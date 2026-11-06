@@ -6,7 +6,7 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { AuthenticationType } from "./connectionDialog";
 import { SchemaDesigner } from "./schemaDesigner";
-import { ApiStatus, Status } from "./webview";
+import { Status } from "./webview";
 
 /**
  * Data API builder (DAB) interfaces for webview-extension communication
@@ -680,23 +680,6 @@ export namespace Dab {
      * same channel, so starting it before the delete has landed would race the
      * two writes against each other.
      */
-    export interface DiscardPendingCliEngineParams {
-        /** Port the engine was told to publish on. */
-        port: number;
-    }
-
-    /**
-     * Stops a CLI engine that started but never finished deploying. The engine
-     * is detached and is only tracked once the last step succeeds, so a failure
-     * in between would otherwise leave it running and holding the port that the
-     * retry is about to ask for.
-     */
-    export namespace DiscardPendingCliEngineRequest {
-        export const type = new RequestType<DiscardPendingCliEngineParams, void, void>(
-            "dab/discardPendingCliEngine",
-        );
-    }
-
     export namespace ResetConfigRequest {
         export const type = new RequestType<void, void, void>("dab/resetConfig");
     }
@@ -836,11 +819,6 @@ export namespace Dab {
      * Default port for DAB container
      */
     export const DAB_DEFAULT_PORT = 5000;
-
-    /**
-     * Default container name prefix for DAB
-     */
-    export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
     /** Prefix every generated deployment name carries. */
     export const DAB_DEPLOYMENT_NAME_PREFIX = "DAB";
@@ -987,21 +965,6 @@ export namespace Dab {
         Docker = "docker",
         /** DAB runs as a local process, started by the DAB CLI. */
         DabCli = "dabCli",
-    }
-
-    /**
-     * How the deployment flow was entered.
-     *
-     * Deploying from the toolbar is a self-contained flow that ends on its own
-     * completion screen; the deployments dialog owns a list to return to. The
-     * distinction lets the deployments experience be switched off without
-     * leaving the toolbar's Deploy button with nowhere to finish.
-     */
-    export enum DabDeploymentEntryPoint {
-        /** The toolbar's Deploy button, with no deployments list behind it. */
-        Standalone = "standalone",
-        /** The deployments dialog. */
-        Deployments = "deployments",
     }
 
     /**
@@ -1212,22 +1175,6 @@ export namespace Dab {
     }
 
     /**
-     * Enumeration representing the current view/step in the deployment dialog
-     */
-    export enum DabDeploymentDialogStep {
-        /** Initial confirmation dialog */
-        Confirmation = 0,
-        /** Docker prerequisites check */
-        Prerequisites = 1,
-        /** Parameter input form (container name, port) */
-        ParameterInput = 2,
-        /** Deployment progress steps */
-        Deployment = 3,
-        /** Completion or error state, shown only by the standalone flow */
-        Complete = 4,
-    }
-
-    /**
      * Parameters for DAB container deployment
      */
     export interface DabDeploymentParams {
@@ -1259,62 +1206,14 @@ export namespace Dab {
         fullErrorText?: string;
     }
 
-    /**
-     * State tracking for the DAB deployment process
-     */
+    /** State of the deployment dialog. */
     export interface DabDeploymentState {
         /**
          * Whether the deployment dialog is open
          */
         isDialogOpen: boolean;
-        /**
-         * Where the wizard is deploying to. Decides which steps run.
-         */
-        target: DabDeploymentTarget;
-        /** Optional steps this deployment runs. */
-        stepOptions: DabDeploymentStepOptions;
         /** Opens the deployment view on its configuration changes. */
         showChanges?: boolean;
-        /**
-         * How the flow was entered, which decides where it finishes.
-         */
-        entryPoint: DabDeploymentEntryPoint;
-        /**
-         * Whether the wizard is creating a container or redeploying one
-         */
-        mode: DabDeploymentMode;
-        /**
-         * Tracked deployment the wizard is redeploying, when in redeploy mode
-         */
-        activeDeploymentId?: string;
-        /**
-         * Current dialog step
-         */
-        dialogStep: DabDeploymentDialogStep;
-        /**
-         * Current deployment step (when in Deployment dialog step)
-         */
-        currentDeploymentStep: DabDeploymentStepOrder;
-        /**
-         * Deployment parameters from user input
-         */
-        params: DabDeploymentParams;
-        /**
-         * Status of each deployment step
-         */
-        stepStatuses: DabDeploymentStepStatus[];
-        /**
-         * Whether deployment is in progress
-         */
-        isDeploying: boolean;
-        /**
-         * URL where the API is accessible after successful deployment
-         */
-        apiUrl?: string;
-        /**
-         * Error message if deployment failed
-         */
-        error?: string;
     }
 
     /**
@@ -1355,37 +1254,16 @@ export namespace Dab {
     /**
      * Creates a default deployment state
      */
-    export function createDefaultDeploymentState(
-        target: DabDeploymentTarget = DabDeploymentTarget.Docker,
-        stepOptions: DabDeploymentStepOptions = {},
-    ): DabDeploymentState {
-        const steps = getDabDeploymentSteps(target, stepOptions);
-        return {
-            isDialogOpen: false,
-            target,
-            stepOptions,
-            entryPoint: DabDeploymentEntryPoint.Deployments,
-            mode: DabDeploymentMode.Create,
-            dialogStep: DabDeploymentDialogStep.Confirmation,
-            currentDeploymentStep: steps[0],
-            params: {
-                // Left blank: the settings form asks the extension for a
-                // generated name on mount, so seeding a placeholder here would
-                // only flash a name that is about to be replaced.
-                containerName: "",
-                port: DAB_DEFAULT_PORT,
-            },
-            stepStatuses: steps.map((step) => ({ step, status: ApiStatus.NotStarted })),
-            isDeploying: false,
-        };
+    export function createDefaultDeploymentState(): DabDeploymentState {
+        return { isDialogOpen: false };
     }
 
     // ============================================
-    // Deployment Requests (Webview -> Extension)
+    // Deployment Steps
     // ============================================
 
     /**
-     * Request to run a specific deployment step
+     * What one deployment step runs with
      */
     export interface RunDeploymentStepParams {
         /**
@@ -1397,8 +1275,6 @@ export namespace Dab {
          * predate the CLI target.
          */
         target?: DabDeploymentTarget;
-        /** The dialog that started this deployment, for bounded telemetry. */
-        entryPoint?: DabDeploymentEntryPoint;
         /**
          * Deployment parameters (needed for some steps)
          */
@@ -1454,73 +1330,6 @@ export namespace Dab {
         prompt?: DabDeploymentStepPrompt;
     }
 
-    export namespace RunDeploymentStepRequest {
-        export const type = new RequestType<
-            RunDeploymentStepParams,
-            RunDeploymentStepResponse,
-            void
-        >("dab/runDeploymentStep");
-    }
-
-    /**
-     * Request to validate deployment parameters
-     */
-    export interface ValidateDeploymentParamsParams {
-        /**
-         * Container name to validate
-         */
-        containerName: string;
-        /**
-         * Port to validate
-         */
-        port: number;
-    }
-
-    export interface ValidateDeploymentParamsResponse {
-        /**
-         * Whether the container name is valid and unique
-         */
-        isContainerNameValid: boolean;
-        /**
-         * Validated/suggested container name (may be auto-generated if input was empty)
-         */
-        validatedContainerName: string;
-        /**
-         * Error message for container name if invalid
-         */
-        containerNameError?: string;
-        /**
-         * Whether the port is valid and available
-         */
-        isPortValid: boolean;
-        /**
-         * Suggested available port (may differ from input if port was in use)
-         */
-        suggestedPort: number;
-        /**
-         * Error message for port if invalid
-         */
-        portError?: string;
-    }
-
-    export namespace ValidateDeploymentParamsRequest {
-        export const type = new RequestType<
-            ValidateDeploymentParamsParams,
-            ValidateDeploymentParamsResponse,
-            void
-        >("dab/validateDeploymentParams");
-    }
-
-    /**
-     * Request to stop and clean up a DAB container
-     */
-    export interface StopDeploymentParams {
-        /**
-         * Name of the container to stop
-         */
-        containerName: string;
-    }
-
     export interface StopDeploymentResponse {
         /**
          * Whether the container was stopped successfully
@@ -1530,12 +1339,6 @@ export namespace Dab {
          * Error message if stopping failed
          */
         error?: string;
-    }
-
-    export namespace StopDeploymentRequest {
-        export const type = new RequestType<StopDeploymentParams, StopDeploymentResponse, void>(
-            "dab/stopDeployment",
-        );
     }
 
     /**
@@ -1901,16 +1704,6 @@ export namespace Dab {
             config?: DabConfig,
             connectionInfo?: DabConnectionInfo,
         ): Promise<RunDeploymentStepResponse>;
-
-        /**
-         * Validates deployment parameters (container name and port)
-         * @param containerName The container name to validate
-         * @param port The port to validate
-         */
-        validateDeploymentParams(
-            containerName: string,
-            port: number,
-        ): Promise<ValidateDeploymentParamsResponse>;
 
         /**
          * Stops and removes a DAB container

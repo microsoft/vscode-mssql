@@ -375,7 +375,6 @@
     "mssql.sharedConnections.authenticationProviderLabel": "SQL Server (mssql)",
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
     "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns",
-    "mssql.schemaDesigner.enableDeploymentsView": "(Preview) Manage Data API builder deployments from a Deployments view in Schema Designer, with support for deploying through Docker or the DAB CLI. Turn this off to use the original Docker-only Deploy dialog. Requires a reload of Visual Studio Code.",
     "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.",
     "mssql.autoRevealResultsPanel": "Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.",
     "mssql.queryResults.followActiveEditor": "Show the active editor's results when switching editors. Applies when `#mssql.preview.multiResults#` is enabled.",

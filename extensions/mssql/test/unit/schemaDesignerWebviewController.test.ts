@@ -23,10 +23,7 @@ import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
-import {
-    configSchemaDesignerEnableDeploymentsView,
-    DefaultSqlPortNumber,
-} from "../../src/constants/constants";
+import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     observeWebviewReady,
     stubExtensionContext,
@@ -1359,120 +1356,6 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
-        suite("RunDeploymentStepRequest handler", () => {
-            test("should register RunDeploymentStepRequest handler", () => {
-                createController();
-
-                expect(requestHandlers.has(Dab.RunDeploymentStepRequest.type.method)).to.be.true;
-            });
-
-            test("should call dabService.runDeploymentStep with correct parameters", async () => {
-                createController();
-
-                const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
-                expect(handler).to.be.a("function");
-
-                // Test with dockerInstallation step (no additional params needed)
-                const payload: Dab.RunDeploymentStepParams = {
-                    step: Dab.DabDeploymentStepOrder.dockerInstallation,
-                };
-
-                // The handler delegates to dabService which calls dockerUtils
-                // For this test, we just verify the handler exists and can be called
-                // The actual behavior is tested in dabService.test.ts
-                try {
-                    await handler(payload);
-                } catch {
-                    // Expected to fail in test environment without Docker
-                }
-            });
-
-            test("should pass deployment params for startContainer step", async () => {
-                createController();
-
-                const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
-
-                const payload: Dab.RunDeploymentStepParams = {
-                    step: Dab.DabDeploymentStepOrder.startContainer,
-                    params: {
-                        containerName: "test-dab-container",
-                        port: 5000,
-                    },
-                    config: mockDabConfig,
-                };
-
-                // Handler exists and accepts the payload structure
-                try {
-                    await handler(payload);
-                } catch {
-                    // Expected to fail without actual Docker environment
-                }
-            });
-        });
-
-        suite("ValidateDeploymentParamsRequest handler", () => {
-            test("should register ValidateDeploymentParamsRequest handler", () => {
-                createController();
-
-                expect(requestHandlers.has(Dab.ValidateDeploymentParamsRequest.type.method)).to.be
-                    .true;
-            });
-
-            test("should call dabService.validateDeploymentParams with correct parameters", async () => {
-                createController();
-
-                const handler = requestHandlers.get(
-                    Dab.ValidateDeploymentParamsRequest.type.method,
-                );
-                expect(handler).to.be.a("function");
-
-                const payload: Dab.ValidateDeploymentParamsParams = {
-                    containerName: "test-container",
-                    port: 5000,
-                };
-
-                // The handler delegates to dabService which calls dockerUtils
-                try {
-                    const result = await handler(payload);
-                    // If Docker is available, verify response structure
-                    expect(result).to.have.property("isContainerNameValid");
-                    expect(result).to.have.property("validatedContainerName");
-                    expect(result).to.have.property("isPortValid");
-                    expect(result).to.have.property("suggestedPort");
-                } catch {
-                    // Expected to fail in test environment without Docker
-                }
-            });
-        });
-
-        suite("StopDeploymentRequest handler", () => {
-            test("should register StopDeploymentRequest handler", () => {
-                createController();
-
-                expect(requestHandlers.has(Dab.StopDeploymentRequest.type.method)).to.be.true;
-            });
-
-            test("should call dabService.stopDeployment with container name", async () => {
-                createController();
-
-                const handler = requestHandlers.get(Dab.StopDeploymentRequest.type.method);
-                expect(handler).to.be.a("function");
-
-                const payload: Dab.StopDeploymentParams = {
-                    containerName: "test-dab-container",
-                };
-
-                // The handler delegates to dabService which calls dockerUtils
-                try {
-                    const result = await handler(payload);
-                    // If Docker is available, verify response structure
-                    expect(result).to.have.property("success");
-                } catch {
-                    // Expected to fail in test environment without Docker
-                }
-            });
-        });
-
         suite("AddMcpServerRequest handler", () => {
             test("should register AddMcpServerRequest handler", () => {
                 createController();
@@ -1524,27 +1407,6 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(result.success).to.be.false;
                 expect(result.error).to.equal("No workspace folder is open.");
             });
-        });
-    });
-
-    suite("enableDeploymentsView", () => {
-        /** Answers one setting deliberately and every other one as enabled. */
-        function stubSetting(key: string, value: boolean) {
-            (vscode.workspace.getConfiguration as sinon.SinonStub).returns({
-                get: (requested: string) => (requested === key ? value : true),
-            } as any);
-        }
-
-        test("should carry the setting into the initial state when enabled", () => {
-            stubSetting(configSchemaDesignerEnableDeploymentsView, true);
-
-            expect(createController().state.enableDeploymentsView).to.be.true;
-        });
-
-        test("should carry the setting into the initial state when disabled", () => {
-            stubSetting(configSchemaDesignerEnableDeploymentsView, false);
-
-            expect(createController().state.enableDeploymentsView).to.be.false;
         });
     });
 
@@ -1676,7 +1538,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
-    suite("RunDeploymentStepRequest deployment guard", () => {
+    suite("Deployment step guard", () => {
         test("should block deployment and return error when isDabDeploymentSupported is false", async () => {
             sandbox.stub(treeNode, "connectionProfile").get(
                 () =>
@@ -1689,16 +1551,11 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
 
-            createController();
+            const ctrl = createController();
 
-            const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
-            expect(handler).to.be.a("function");
-
-            const payload: Dab.RunDeploymentStepParams = {
+            const result = await ctrl["runDabDeploymentStep"]({
                 step: Dab.DabDeploymentStepOrder.dockerInstallation,
-            };
-
-            const result = await handler(payload);
+            });
 
             expect(result.success).to.be.false;
             expect(result.error).to.be.a("string");

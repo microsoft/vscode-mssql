@@ -2294,7 +2294,7 @@ export class LocConstants {
             ),
             dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
             dabCopilotDiscoveryBody: l10n.t(
-                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
+                "Use GitHub Copilot chat to review or change the API configuration. Changes apply here immediately.",
             ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
@@ -2777,7 +2777,7 @@ export class LocConstants {
             ),
             enableMcpForEntity: l10n.t("Expose this entity through MCP"),
             enableMcpForEntityHelp: l10n.t(
-                "Enable MCP in API Type to expose this entity through MCP.",
+                "To expose this entity through MCP, enable MCP in API type.",
             ),
             storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
             storedProcedureRestMethodsHelp: l10n.t(
@@ -2820,7 +2820,7 @@ export class LocConstants {
                 }),
             enableApiTypeForEntity: (apiType: string) =>
                 l10n.t({
-                    message: "Enable {0} in API Type to expose this entity.",
+                    message: "To expose this entity, enable {0} in API type.",
                     args: [apiType],
                     comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
                 }),
@@ -2918,16 +2918,9 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
-            dabDeploymentNotSupported: l10n.t(
-                "Local container deployment is currently only supported with SQL Authentication connections.",
-            ),
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             missingLogicalKeyRequired: l10n.t(
-                "Select at least one logical key column before applying or deploying this exposed table or view.",
-            ),
-            authenticationNotSupported: l10n.t("Authentication not supported"),
-            dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "Select at least one logical key column to expose this table or view.",
             ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
@@ -2962,12 +2955,10 @@ export class LocConstants {
             required: l10n.t("Required"),
             requiredParameter: l10n.t("Required parameter"),
             optional: l10n.t("Optional"),
-            noColumnsDiscovered: l10n.t("No columns were discovered for this entity."),
+            noColumnsDiscovered: l10n.t("No columns found for this entity."),
             filterColumns: l10n.t("Filter columns..."),
             noColumnsMatchFilter: l10n.t("No columns match the current filter."),
-            noParametersDiscovered: l10n.t(
-                "No parameters were discovered for this stored procedure.",
-            ),
+            noParametersDiscovered: l10n.t("No parameters found for this stored procedure."),
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
@@ -3035,7 +3026,7 @@ export class LocConstants {
                 }),
             logicalKeyColumnExposureLocked: (columnName: string) =>
                 l10n.t({
-                    message: "{0} is a logical key column and can't be hidden.",
+                    message: "{0} is a logical key column. It cannot be hidden.",
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
@@ -3061,35 +3052,13 @@ export class LocConstants {
                     comment: ["{0} is the action name (Create, Read, etc.)"],
                 }),
 
-            // DAB Deployment Dialog
-            deployDabContainer: l10n.t("Deploy DAB Container"),
-            localContainerDeployment: l10n.t("Local Container Deployment"),
-            deployDabContainerDescription: (apiTypes: string) =>
-                l10n.t({
-                    message:
-                        "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
-                    args: [apiTypes],
-                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
-                }),
-            requirements: l10n.t("Requirements:"),
             dockerDesktopRequirement: l10n.t(
-                "Docker Desktop must be installed and running on your machine.",
+                "Requires Docker Desktop to be installed and running.",
             ),
-            containerSettings: l10n.t("Container Settings"),
             containerName: l10n.t("Container Name"),
-            containerNameRequired: l10n.t("Container name is required"),
-            containerNameInvalid: l10n.t(
-                "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
-            ),
-            containerNameHint: l10n.t("Name for the Docker container running DAB"),
             port: l10n.t("Port"),
             portInvalid: l10n.t("Port must be between 1 and 65535"),
-            portHint: l10n.t("Port to expose the API on (default: 5000)"),
-            deploymentComplete: l10n.t("Deployment Complete"),
             deploymentFailed: l10n.t("Deployment Failed"),
-            dabContainerRunning: l10n.t("DAB container is running!"),
-            dabEngineRunning: l10n.t("Data API builder is running!"),
-            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
             copyUrl: (apiType: string) =>
                 l10n.t({
                     message: "Copy {0} URL",
@@ -3105,38 +3074,38 @@ export class LocConstants {
             // DAB Deployments dialog
             deployDataApiBuilder: l10n.t("Deploy Data API builder"),
             deploymentTarget: l10n.t("Deployment target"),
-            dabDeploymentWaiting: l10n.t("One thing needs you before the API can start."),
-            dabDeploymentFailed: l10n.t("A step failed. Fix the problem, then retry."),
+            dabDeploymentWaiting: l10n.t("Complete the step below to start the API."),
+            dabDeploymentFailed: l10n.t("A step failed. Fix the issue and retry."),
             showDeploymentLog: l10n.t("Show log"),
             dabStepDone: l10n.t("Done"),
             dabStepWaitingForYou: l10n.t("Waiting for you"),
             dabStepCheckDocker: l10n.t("Check Docker"),
-            dabStepCheckDockerRunning: l10n.t("Looking for Docker on this machine"),
+            dabStepCheckDockerRunning: l10n.t("Checking for Docker"),
             dabStepStartDocker: l10n.t("Start Docker"),
-            dabStepStartDockerRunning: l10n.t("Starting Docker Desktop if it is not running"),
+            dabStepStartDockerRunning: l10n.t("Starting Docker Desktop"),
             dabStepDockerEngine: l10n.t("Wait for Docker engine"),
-            dabStepDockerEngineRunning: l10n.t("Waiting for Docker to accept commands"),
+            dabStepDockerEngineRunning: l10n.t("Waiting for Docker to start"),
             dabStepPullImage: l10n.t("Get Data API builder image"),
             dabStepPullImageRunning: l10n.t("Downloading the container image"),
             dabStepStartContainerRunning: l10n.t("Creating and starting the container"),
             dabStepPrepareCli: l10n.t("Prepare Data API builder"),
-            dabStepPrepareCliRunning: l10n.t("Getting the CLI and a .NET runtime to run it"),
+            dabStepPrepareCliRunning: l10n.t("Downloading the CLI and .NET runtime"),
             dabStepCheckDotnet: l10n.t("Check .NET runtime"),
-            dabStepCheckDotnetRunning: l10n.t("Finding a runtime that can run the CLI"),
+            dabStepCheckDotnetRunning: l10n.t("Finding a .NET runtime"),
             dabStepGetAzureCli: l10n.t("Get Azure CLI"),
             dabStepGetAzureCliRunning: l10n.t("Checking for the Azure CLI"),
             dabStepSignInEntra: l10n.t("Sign in to Microsoft Entra"),
             dabStepSignInEntraRunning: l10n.t("Checking for an existing sign-in"),
-            dabStepSigningInBrowser: l10n.t("Finish signing in in your browser"),
-            dabStepSigningInCode: l10n.t("Waiting for you to enter the code"),
+            dabStepSigningInBrowser: l10n.t("Complete sign-in in your browser"),
+            dabStepSigningInCode: l10n.t("Enter the code on the sign-in page"),
             dabStepValidateConfig: l10n.t("Validate configuration"),
             dabStepValidateConfigRunning: l10n.t(
-                "Checking the generated configuration against the database",
+                "Validating the configuration against the database",
             ),
             dabStepStartApi: l10n.t("Start API"),
             dabStepStartApiRunning: l10n.t("Launching the engine"),
             dabStepCheckEndpoints: l10n.t("Check endpoints"),
-            dabStepCheckEndpointsRunning: l10n.t("Waiting for the API to answer"),
+            dabStepCheckEndpointsRunning: l10n.t("Waiting for the API to respond"),
             dabProgressDownloading: (completedMegabytes: number, totalMegabytes: number) =>
                 l10n.t({
                     message: "Downloading Azure CLI · {0} of {1} MB",
@@ -3157,7 +3126,7 @@ export class LocConstants {
                 }),
             dabProgressInstalling: (percent: number) =>
                 l10n.t({
-                    message: "Installing with pip · {0}%. This can take a few minutes.",
+                    message: "Installing with pip ({0}%). This can take a few minutes.",
                     args: [percent],
                     comment: ["{0} is the percentage of the install done so far"],
                 }),
@@ -3171,7 +3140,9 @@ export class LocConstants {
                     ],
                 }),
             viewChanges: l10n.t("View changes"),
-            deploymentConfigChangedBanner: l10n.t("Configuration changed since this was deployed."),
+            deploymentConfigChangedBanner: l10n.t(
+                "The configuration changed since the last deployment.",
+            ),
             deploymentNotRunningBanner: l10n.t("This deployment is not running."),
             deploymentMissingBanner: l10n.t("This deployment no longer exists."),
             deploymentStatusPillMissing: l10n.t("Missing"),
@@ -3189,7 +3160,7 @@ export class LocConstants {
                 }),
             deployedToCurrent: l10n.t("Deployed → current"),
             loadingChanges: l10n.t("Loading changes"),
-            noConfigChanges: l10n.t("The deployed configuration matches the current one."),
+            noConfigChanges: l10n.t("No changes since the last deployment."),
             runInBackground: l10n.t("Run in background"),
             cancelDeployment: l10n.t("Cancel deployment"),
             deployingDataApiBuilder: l10n.t("Deploying Data API builder"),
@@ -3202,13 +3173,10 @@ export class LocConstants {
                 }),
             dabDeploymentCanceled: l10n.t("The deployment was canceled."),
             browserDidNotOpen: l10n.t("Browser did not open?"),
-            entraAccountCaption: l10n.t("Account this connection uses · Microsoft Entra"),
-            entraSignInPrompt: l10n.t(
-                "Sign in once. Data API builder keeps the session and refreshes its tokens on its own, even after you close VS Code.",
-            ),
+            entraAccountCaption: l10n.t("Microsoft Entra account for this connection"),
             signIn: l10n.t("Sign in"),
             useCodeInstead: l10n.t("Use a code instead"),
-            deviceCodeInstructions: l10n.t("Open the sign-in page and enter this code:"),
+            deviceCodeInstructions: l10n.t("Go to the sign-in page and enter this code:"),
             openSignInPage: l10n.t("Open sign-in page"),
             copyCode: l10n.t("Copy code"),
             showErrorDetails: l10n.t("Show details"),
@@ -3238,13 +3206,13 @@ export class LocConstants {
             dabStatusUnavailable: l10n.t("Unavailable"),
             dabStatusLiveTooltip: (port: number) =>
                 l10n.t({
-                    message: "The API is live on port {0}.",
+                    message: "Running on port {0}",
                     args: [port],
                     comment: ["{0} is the port number"],
                 }),
             dabStatusNotLiveTooltip: (port: number) =>
                 l10n.t({
-                    message: "The API is not running. It is deployed on port {0}.",
+                    message: "Not running (port {0})",
                     args: [port],
                     comment: ["{0} is the port number"],
                 }),
@@ -3254,7 +3222,7 @@ export class LocConstants {
             dabStatusSignInNeeded: l10n.t("Sign in needed"),
             dabStatusDeployFailed: l10n.t("Deploy failed"),
             dabStatusChangesTooltip: l10n.t(
-                "Your configuration changed since this was deployed. Apply the changes to update the API.",
+                "Configuration changed. Apply the changes to update the API.",
             ),
             copyApiUrl: l10n.t("Copy API URL"),
             stopDeployment: l10n.t("Stop"),
@@ -3263,14 +3231,14 @@ export class LocConstants {
             deleteDeploymentConfirmMessage: (containerName: string) =>
                 l10n.t({
                     message:
-                        "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+                        "This stops and removes the container {0}. Its endpoints stop responding.",
                     args: [containerName],
                     comment: ["{0} is the Docker container name"],
                 }),
             deleteCliDeploymentConfirmMessage: (name: string) =>
                 l10n.t({
                     message:
-                        "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+                        "This stops the engine for {0} and removes its generated configuration. Its endpoints stop responding.",
                     args: [name],
                     comment: ["{0} is the deployment name"],
                 }),
@@ -3279,60 +3247,31 @@ export class LocConstants {
             ),
             deploymentTargetDocker: l10n.t("Local Docker container"),
             deploymentTargetDockerDescription: l10n.t(
-                "Runs Data API builder in a container on this machine, published on a local port.",
+                "Run the API in a Docker container on this machine.",
             ),
 
             // DAB CLI deployment
             deploymentTargetDabCli: l10n.t("Data API builder CLI"),
-            deploymentTargetDabCliDescription: l10n.t(
-                "Runs Data API builder as a local process on this machine. No Docker required.",
-            ),
-            deployDabCli: l10n.t("Run with the Data API builder CLI"),
-            deployDabCliDescription: (apiTypes: string) =>
-                l10n.t({
-                    message:
-                        "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
-                    args: [apiTypes],
-                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
-                }),
-            dotnetRequirement: l10n.t(
-                "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
-            ),
-            gettingDabCliReady: l10n.t("Getting Data API builder ready"),
-            gettingDabCli: l10n.t("Getting Data API builder CLI"),
-            downloadingDabCli: l10n.t("Downloading and unpacking the CLI package"),
-            checkingDotnetRuntime: l10n.t("Checking .NET runtime"),
-            resolvingDotnetRuntime: l10n.t("Resolving a runtime that can run the CLI"),
-            validatingDabConfig: l10n.t("Validating configuration"),
-            checkingGeneratedConfig: l10n.t("Checking the generated configuration"),
-            startingDabEngine: l10n.t("Starting Data API builder"),
-            launchingDabEngine: l10n.t("Launching the engine process"),
-            checkingEngineReadiness: l10n.t("Checking engine readiness"),
-            deploymentSettings: l10n.t("Deployment settings"),
-            preparingDeploymentSettings: l10n.t("Preparing deployment settings"),
-            preparingContainerSettings: l10n.t("Preparing container settings"),
+            deploymentTargetDabCliDescription: l10n.t("Run the API as a local process."),
             deploymentName: l10n.t("Name"),
-            deploymentNameHint: l10n.t("A name for this deployment"),
-
             // DAB reset configuration
             resetConfig: l10n.t("Reset"),
-            resetConfigTooltip: l10n.t("Reset the configuration to the defaults for this schema"),
+            resetConfigTooltip: l10n.t("Reset the configuration to the schema defaults"),
             resetConfigConfirmTitle: l10n.t("Reset DAB configuration?"),
             resetConfigConfirmMessage: l10n.t(
-                "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
+                "This discards all entity, action, column, and advanced settings, including changes from Copilot, and rebuilds the configuration from the current schema.",
             ),
 
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
                 l10n.t({
-                    message:
-                        "{0} must define one or more key fields to be used with Data API builder",
+                    message: "{0} has no key fields. Data API builder requires at least one.",
                     args: [sourceType],
                     comment: ["{0} is the DAB source type, e.g. Table or View"],
                 }),
             unsupportedDataTypes: (columns: string, sourceType: string = "Table") =>
                 l10n.t({
-                    message: "{0} contains column types not supported by Data API builder: {1}",
+                    message: "{0} has column types that Data API builder does not support: {1}",
                     args: [sourceType, columns],
                     comment: [
                         "{0} is the DAB source type, e.g. Table or View",
@@ -3340,22 +3279,9 @@ export class LocConstants {
                     ],
                 }),
             unsupportedUnnamedResultColumns: l10n.t(
-                "Stored procedure returns a column without a name. Add an alias to each expression in its result set to use it with Data API builder",
+                "A result column has no name. Add an alias to each expression in the result set.",
             ),
 
-            // DAB Deployment Steps
-            checkingDockerInstallation: l10n.t("Checking Docker installation"),
-            verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
-            startingDockerDesktop: l10n.t("Starting Docker Desktop"),
-            ensuringDockerDesktopRunning: l10n.t("Ensuring Docker Desktop is running"),
-            checkingDockerEngine: l10n.t("Checking Docker engine"),
-            verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
-            pullingDabImage: l10n.t("Pulling DAB container image"),
-            downloadingDabImage: l10n.t("Downloading the Data API builder container image"),
-            startingDabContainer: l10n.t("Starting DAB container"),
-            creatingAndStartingContainer: l10n.t("Creating and starting the container"),
-            checkingContainerReadiness: l10n.t("Checking container readiness"),
-            verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
             containerLogs: l10n.t("Container logs"),
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),

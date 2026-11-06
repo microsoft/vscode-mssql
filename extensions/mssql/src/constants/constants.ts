@@ -386,8 +386,6 @@ export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecu
 export const configStatusBarShowServerProcessId = "statusBar.showServerProcessId";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
-export const configSchemaDesignerEnableDeploymentsView =
-    "mssql.schemaDesigner.enableDeploymentsView";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";

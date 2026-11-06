@@ -243,7 +243,13 @@ export class DabDeploymentRun implements vscode.Disposable {
             const interruption = this._interruption;
             this._interruption = undefined;
             if (interruption) {
-                this.updateStep(step, { status: ApiStatus.Loading, action: interruption });
+                // The prompt stays with the step so the account it names is
+                // still shown while the new sign-in runs.
+                this.updateStep(step, {
+                    status: ApiStatus.Loading,
+                    action: interruption,
+                    prompt: this.getStepStatus(step)?.prompt,
+                });
                 response = await this.runStep(step, interruption);
                 continue;
             }
@@ -271,7 +277,11 @@ export class DabDeploymentRun implements vscode.Disposable {
                 }
 
                 this.update({ status: Dab.DabDeploymentRunStatus.Running });
-                this.updateStep(step, { status: ApiStatus.Loading, action });
+                this.updateStep(step, {
+                    status: ApiStatus.Loading,
+                    action,
+                    prompt: this.getStepStatus(step)?.prompt,
+                });
                 response = await this.runStep(step, action);
                 continue;
             }

@@ -28,7 +28,6 @@ import {
     startDabDockerContainer,
     stopAndRemoveDabContainer,
     stopDabContainer,
-    validateDabContainerName,
 } from "../dab/dabContainer";
 import { DabCliRunner, DAB_CLI_CONFIG_FILE_NAME } from "../dab/dabCliRunner";
 import {
@@ -149,44 +148,6 @@ export class DabService implements Dab.IDabService {
         }
 
         return this.executeDeploymentStep(step, params, configContent);
-    }
-
-    /**
-     * Validates deployment parameters (container name and port).
-     *
-     * @param containerName The container name to validate
-     * @param port The port to validate
-     */
-    public async validateDeploymentParams(
-        containerName: string,
-        port: number,
-        trackedNames: string[] = [],
-    ): Promise<Dab.ValidateDeploymentParamsResponse> {
-        const containerNameValidation = await validateDabContainerName(containerName);
-        // Docker only knows about its own containers, so a name a CLI
-        // deployment already holds would otherwise read as free and take over
-        // that deployment's record.
-        const isNameTracked = trackedNames.includes(containerName);
-        const isContainerNameValid = containerNameValidation === containerName && !isNameTracked;
-
-        const availablePort = await findAvailableDabPort(port);
-        // A negative result means the scan found nothing free. Suggesting it
-        // would put -1 in the port field, so the requested port is echoed back
-        // and reported as unusable instead.
-        const foundPort = availablePort >= 0;
-        const suggestedPort = foundPort ? availablePort : port;
-        const isPortValid = foundPort && availablePort === port;
-
-        return {
-            isContainerNameValid,
-            validatedContainerName: containerNameValidation,
-            containerNameError: isContainerNameValid
-                ? undefined
-                : LocalContainers.dabContainerNameInvalidOrInUse,
-            isPortValid,
-            suggestedPort,
-            portError: isPortValid ? undefined : LocalContainers.dabPortAlreadyInUse(port),
-        };
     }
 
     /**

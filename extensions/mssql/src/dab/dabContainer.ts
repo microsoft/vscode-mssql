@@ -19,7 +19,6 @@ import {
     pullContainerImage,
     sanitizeContainerInput,
     startContainerLogMonitor,
-    validateContainerName,
 } from "../docker/dockerUtils";
 
 const dabContainerLogTail = 200;
@@ -316,14 +315,6 @@ export async function stopAndRemoveDabContainer(
             fullErrorText: getErrorMessage(e),
         };
     }
-}
-
-/**
- * Validates and returns a unique container name for DAB
- * @param containerName The requested container name (can be empty for auto-generation)
- */
-export async function validateDabContainerName(containerName: string): Promise<string> {
-    return validateContainerName(containerName, Dab.DAB_DEFAULT_CONTAINER_NAME);
 }
 
 /**

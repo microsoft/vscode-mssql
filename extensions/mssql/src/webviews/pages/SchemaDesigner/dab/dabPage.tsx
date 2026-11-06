@@ -5,19 +5,14 @@
 
 import { makeStyles } from "@fluentui/react-components";
 import { useContext, useEffect, useRef, useState } from "react";
-import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
-import { DabInfoBanner } from "./dabInfoBanner";
 import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
-import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { DabDeploymentsDialog } from "./deployments/dabDeploymentsDialog";
 import { DabConfigChangedBanner } from "./deployments/dabConfigChangedBanner";
-import { Dab } from "../../../../sharedInterfaces/dab";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useDabContext } from "./dabContext";
-import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { LoadingLog } from "../../../common/loadingLog";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { defaultDabEntityFilters } from "./dabEntityFilters";
@@ -75,24 +70,9 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
     const [entityFilters, setEntityFilters] = useState(defaultDabEntityFilters);
     const schemaDesignerContext = useContext(SchemaDesignerContext);
-    const {
-        dabConfig,
-        initializeDabConfig,
-        syncDabConfigWithSchema,
-        isInitialized,
-        isDabDeploymentSupported,
-        isDockerTargetSupported,
-        dabDeploymentState,
-    } = useDabContext();
-    const showDeployments = useSchemaDesignerSelector((s) => s?.enableDeploymentsView) ?? false;
+    const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
+        useDabContext();
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
-    // Whether this connection can be deployed at all depends on what the
-    // toolbar offers. Deploy runs in a container and nothing else, so an
-    // authentication the container cannot carry is a dead end. The deployments
-    // experience also reaches the CLI, which carries Windows Authentication
-    // and an Entra sign-in already on the machine, so there only a connection
-    // no target can carry is worth a banner.
-    const hasNoWayToDeploy = showDeployments ? !isDabDeploymentSupported : !isDockerTargetSupported;
     const canShowDiscovery = isDabTabActive && isInitialized && Boolean(dabConfig);
     const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(
         undefined as unknown as DabDefinitionsPanelRef,
@@ -121,23 +101,8 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
 
     return (
         <div className={classes.root}>
-            {/* The toolbar's Deploy button drives the original self-contained
-                dialog; the deployments experience drives its own. Only one is
-                rendered, so the deployments experience can be removed without
-                touching the flow behind Deploy. */}
-            {dabDeploymentState.entryPoint === Dab.DabDeploymentEntryPoint.Standalone ? (
-                <DabDeploymentDialog />
-            ) : (
-                <DabDeploymentsDialog />
-            )}
-            {hasNoWayToDeploy && (
-                <DabInfoBanner
-                    title={locConstants.schemaDesigner.authenticationNotSupported}
-                    message={locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}
-                    learnMoreUrl="https://aka.ms/dab-dep-limitation"
-                />
-            )}
-            {showDeployments && <DabConfigChangedBanner />}
+            <DabDeploymentsDialog />
+            <DabConfigChangedBanner />
             <PanelGroup direction="vertical" className={classes.panelGroup}>
                 <Panel defaultSize={100}>
                     <div className={classes.panelContent}>

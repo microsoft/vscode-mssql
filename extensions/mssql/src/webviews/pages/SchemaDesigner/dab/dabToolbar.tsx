@@ -23,7 +23,6 @@ import {
     Text,
     ToggleButton,
     tokens,
-    Tooltip,
 } from "@fluentui/react-components";
 import {
     ArrowCounterclockwise16Regular as ResetIcon,
@@ -32,7 +31,6 @@ import {
     Dismiss16Regular,
     Eye16Regular as EyeIcon,
     Filter16Regular,
-    Play16Filled as PlayIcon,
     Search16Regular,
 } from "@fluentui/react-icons";
 import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
@@ -41,7 +39,6 @@ import { locConstants } from "../../../common/locConstants";
 import { SegmentedControl } from "../../../common/segmentedControl";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
-import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 import {
     DabEntityAuthFilter,
@@ -318,20 +315,8 @@ export function DabToolbar({
 }: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
-    const {
-        dabConfig,
-        isDockerTargetSupported,
-        updateDabApiTypes,
-        dabTextFilter,
-        setDabTextFilter,
-        openDabDeploymentDialog,
-        resetDabConfig,
-    } = context;
-
-    // The toolbar offers one of the two experiences, never both. Deployments
-    // stands in for Deploy while this is on, and the deployments list starts a
-    // new deployment itself, so the flow behind Deploy stays reachable.
-    const showDeployments = useSchemaDesignerSelector((s) => s?.enableDeploymentsView) ?? false;
+    const { dabConfig, updateDabApiTypes, dabTextFilter, setDabTextFilter, resetDabConfig } =
+        context;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
@@ -453,31 +438,6 @@ export function DabToolbar({
         [Dab.ApiType.Mcp]: supportedEntities.filter((entity) => Dab.isEntityMcpEnabled(entity))
             .length,
     };
-    const hasApiTypes = dabConfig.apiTypes.length > 0;
-    const hasMissingKeyEntity = dabConfig.entities.some(
-        (entity) =>
-            entity.isSupported &&
-            Dab.isEntityExposed(entity) &&
-            entity.sourceType !== Dab.EntitySourceType.StoredProcedure &&
-            !Dab.hasLogicalKey(entity),
-    );
-    // Deploy runs the original Docker-only flow, so it gates on that target,
-    // which is the same rule and the same message it has always shown.
-    const isDeployDisabled = !isDockerTargetSupported || !hasApiTypes || hasMissingKeyEntity;
-
-    const getDeployTooltip = (): string => {
-        if (!isDockerTargetSupported) {
-            return locConstants.schemaDesigner.dabDeploymentNotSupported;
-        }
-        if (!hasApiTypes) {
-            return locConstants.schemaDesigner.atLeastOneApiTypeRequired;
-        }
-        if (hasMissingKeyEntity) {
-            return locConstants.schemaDesigner.missingLogicalKeyRequired;
-        }
-        return locConstants.schemaDesigner.deploy;
-    };
-
     return (
         <div className={classes.toolbarContainer}>
             {/* Header row with title and action buttons */}
@@ -517,29 +477,7 @@ export function DabToolbar({
                         onClick={() => setIsResetDialogOpen(true)}>
                         {locConstants.schemaDesigner.resetConfig}
                     </Button>
-                    {showDeployments ? (
-                        <DabDeployStatusButton />
-                    ) : isDeployDisabled ? (
-                        <Tooltip content={getDeployTooltip()} relationship="label">
-                            <span>
-                                <Button
-                                    appearance="primary"
-                                    icon={<PlayIcon />}
-                                    size="small"
-                                    disabled>
-                                    {locConstants.schemaDesigner.deploy}
-                                </Button>
-                            </span>
-                        </Tooltip>
-                    ) : (
-                        <Button
-                            appearance="primary"
-                            icon={<PlayIcon />}
-                            size="small"
-                            onClick={openDabDeploymentDialog}>
-                            {locConstants.schemaDesigner.deploy}
-                        </Button>
-                    )}
+                    <DabDeployStatusButton />
                 </div>
             </div>
 

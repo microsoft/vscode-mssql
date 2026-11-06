@@ -1356,7 +1356,6 @@
     "Enter container name": "Enter container name",
     "Enter port": "Enter port",
     "Enter hostname": "Enter hostname",
-    "Container name is invalid or already in use": "Container name is invalid or already in use",
     "Port {0} is already in use/{0} is the port number": {
         "message": "Port {0} is already in use",
         "comment": ["{0} is the port number"]
@@ -1422,7 +1421,7 @@
         "message": "Data API builder {0} ready",
         "comment": ["{0} is the Data API builder version"]
     },
-    "Azure CLI ready · private to this extension": "Azure CLI ready · private to this extension",
+    "Azure CLI ready": "Azure CLI ready",
     "The Azure CLI is not set up yet. Run the deployment again from the start.": "The Azure CLI is not set up yet. Run the deployment again from the start.",
     "The Azure CLI could not be downloaded. Check your network connection, then try again.": "The Azure CLI could not be downloaded. Check your network connection, then try again.",
     "The Azure CLI could not be set up.": "The Azure CLI could not be set up.",
@@ -4669,7 +4668,7 @@
     "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
-    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
+    "Use GitHub Copilot chat to review or change the API configuration. Changes apply here immediately.": "Use GitHub Copilot chat to review or change the API configuration. Changes apply here immediately.",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -4969,7 +4968,7 @@
     "Expose this entity through GraphQL": "Expose this entity through GraphQL",
     "Enable GraphQL in API Type to expose this entity through GraphQL.": "Enable GraphQL in API Type to expose this entity through GraphQL.",
     "Expose this entity through MCP": "Expose this entity through MCP",
-    "Enable MCP in API Type to expose this entity through MCP.": "Enable MCP in API Type to expose this entity through MCP.",
+    "To expose this entity through MCP, enable MCP in API type.": "To expose this entity through MCP, enable MCP in API type.",
     "Stored procedure REST methods": "Stored procedure REST methods",
     "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.": "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
     "Stored procedure GraphQL operation": "Stored procedure GraphQL operation",
@@ -4990,8 +4989,8 @@
         "message": "{0} is not enabled globally",
         "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
     },
-    "Enable {0} in API Type to expose this entity./{0} is the API type, e.g. REST, GraphQL, or MCP": {
-        "message": "Enable {0} in API Type to expose this entity.",
+    "To expose this entity, enable {0} in API type./{0} is the API type, e.g. REST, GraphQL, or MCP": {
+        "message": "To expose this entity, enable {0} in API type.",
         "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
     },
     "Enable {0} globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
@@ -5047,9 +5046,7 @@
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "At least one API type must be selected.": "At least one API type must be selected.",
-    "Select at least one logical key column before applying or deploying this exposed table or view.": "Select at least one logical key column before applying or deploying this exposed table or view.",
-    "Authentication not supported": "Authentication not supported",
-    "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+    "Select at least one logical key column to expose this table or view.": "Select at least one logical key column to expose this table or view.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -5075,10 +5072,10 @@
     "Hidden": "Hidden",
     "Required parameter": "Required parameter",
     "Optional": "Optional",
-    "No columns were discovered for this entity.": "No columns were discovered for this entity.",
+    "No columns found for this entity.": "No columns found for this entity.",
     "Filter columns...": "Filter columns...",
     "No columns match the current filter.": "No columns match the current filter.",
-    "No parameters were discovered for this stored procedure.": "No parameters were discovered for this stored procedure.",
+    "No parameters found for this stored procedure.": "No parameters found for this stored procedure.",
     "Custom REST Path": "Custom REST Path",
     "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
     "Custom GraphQL Type": "Custom GraphQL Type",
@@ -5121,8 +5118,8 @@
         "message": "{0} is a primary key column and can't be disabled.",
         "comment": ["{0} is the backing database column name"]
     },
-    "{0} is a logical key column and can't be hidden./{0} is the backing database column name": {
-        "message": "{0} is a logical key column and can't be hidden.",
+    "{0} is a logical key column. It cannot be hidden./{0} is the backing database column name": {
+        "message": "{0} is a logical key column. It cannot be hidden.",
         "comment": ["{0} is the backing database column name"]
     },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
@@ -5137,25 +5134,9 @@
         "message": "Select all {0}",
         "comment": ["{0} is the action name (Create, Read, etc.)"]
     },
-    "Deploy DAB Container": "Deploy DAB Container",
-    "Local Container Deployment": "Local Container Deployment",
-    "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
-        "message": "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
-        "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
-    },
-    "Requirements:": "Requirements:",
-    "Docker Desktop must be installed and running on your machine.": "Docker Desktop must be installed and running on your machine.",
-    "Container Settings": "Container Settings",
-    "Container name is required": "Container name is required",
-    "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens": "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
-    "Name for the Docker container running DAB": "Name for the Docker container running DAB",
+    "Requires Docker Desktop to be installed and running.": "Requires Docker Desktop to be installed and running.",
     "Port must be between 1 and 65535": "Port must be between 1 and 65535",
-    "Port to expose the API on (default: 5000)": "Port to expose the API on (default: 5000)",
-    "Deployment Complete": "Deployment Complete",
     "Deployment Failed": "Deployment Failed",
-    "DAB container is running!": "DAB container is running!",
-    "Data API builder is running!": "Data API builder is running!",
-    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
     "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
         "message": "Copy {0} URL",
         "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
@@ -5165,34 +5146,35 @@
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
     "Deployment target": "Deployment target",
-    "One thing needs you before the API can start.": "One thing needs you before the API can start.",
-    "A step failed. Fix the problem, then retry.": "A step failed. Fix the problem, then retry.",
+    "Complete the step below to start the API.": "Complete the step below to start the API.",
+    "A step failed. Fix the issue and retry.": "A step failed. Fix the issue and retry.",
     "Show log": "Show log",
     "Waiting for you": "Waiting for you",
     "Check Docker": "Check Docker",
-    "Looking for Docker on this machine": "Looking for Docker on this machine",
+    "Checking for Docker": "Checking for Docker",
     "Start Docker": "Start Docker",
-    "Starting Docker Desktop if it is not running": "Starting Docker Desktop if it is not running",
+    "Starting Docker Desktop": "Starting Docker Desktop",
     "Wait for Docker engine": "Wait for Docker engine",
-    "Waiting for Docker to accept commands": "Waiting for Docker to accept commands",
+    "Waiting for Docker to start": "Waiting for Docker to start",
     "Get Data API builder image": "Get Data API builder image",
     "Downloading the container image": "Downloading the container image",
     "Creating and starting the container": "Creating and starting the container",
     "Prepare Data API builder": "Prepare Data API builder",
-    "Getting the CLI and a .NET runtime to run it": "Getting the CLI and a .NET runtime to run it",
+    "Downloading the CLI and .NET runtime": "Downloading the CLI and .NET runtime",
     "Check .NET runtime": "Check .NET runtime",
-    "Finding a runtime that can run the CLI": "Finding a runtime that can run the CLI",
+    "Finding a .NET runtime": "Finding a .NET runtime",
     "Get Azure CLI": "Get Azure CLI",
     "Checking for the Azure CLI": "Checking for the Azure CLI",
     "Sign in to Microsoft Entra": "Sign in to Microsoft Entra",
     "Checking for an existing sign-in": "Checking for an existing sign-in",
-    "Finish signing in in your browser": "Finish signing in in your browser",
-    "Waiting for you to enter the code": "Waiting for you to enter the code",
+    "Complete sign-in in your browser": "Complete sign-in in your browser",
+    "Enter the code on the sign-in page": "Enter the code on the sign-in page",
     "Validate configuration": "Validate configuration",
-    "Checking the generated configuration against the database": "Checking the generated configuration against the database",
+    "Validating the configuration against the database": "Validating the configuration against the database",
     "Start API": "Start API",
     "Launching the engine": "Launching the engine",
     "Check endpoints": "Check endpoints",
+    "Waiting for the API to respond": "Waiting for the API to respond",
     "Downloading Azure CLI · {0} of {1} MB/{0} is megabytes downloaded so far{1} is the total megabytes": {
         "message": "Downloading Azure CLI · {0} of {1} MB",
         "comment": ["{0} is megabytes downloaded so far", "{1} is the total megabytes"]
@@ -5205,8 +5187,8 @@
         "message": "Unpacking · {0} of {1} files",
         "comment": ["{0} is files unpacked so far", "{1} is the total number of files"]
     },
-    "Installing with pip · {0}%. This can take a few minutes./{0} is the percentage of the install done so far": {
-        "message": "Installing with pip · {0}%. This can take a few minutes.",
+    "Installing with pip ({0}%). This can take a few minutes./{0} is the percentage of the install done so far": {
+        "message": "Installing with pip ({0}%). This can take a few minutes.",
         "comment": ["{0} is the percentage of the install done so far"]
     },
     "Loading {0} entities from the database · {1}/{0} is the number of entities{1} is the time spent so far, such as 2:05": {
@@ -5214,7 +5196,7 @@
         "comment": ["{0} is the number of entities", "{1} is the time spent so far, such as 2:05"]
     },
     "View changes": "View changes",
-    "Configuration changed since this was deployed.": "Configuration changed since this was deployed.",
+    "The configuration changed since the last deployment.": "The configuration changed since the last deployment.",
     "This deployment is not running.": "This deployment is not running.",
     "This deployment no longer exists.": "This deployment no longer exists.",
     "Missing": "Missing",
@@ -5230,7 +5212,7 @@
     },
     "Deployed → current": "Deployed → current",
     "Loading changes": "Loading changes",
-    "The deployed configuration matches the current one.": "The deployed configuration matches the current one.",
+    "No changes since the last deployment.": "No changes since the last deployment.",
     "Run in background": "Run in background",
     "Cancel deployment": "Cancel deployment",
     "Deploying Data API builder": "Deploying Data API builder",
@@ -5241,10 +5223,9 @@
     },
     "The deployment was canceled.": "The deployment was canceled.",
     "Browser did not open?": "Browser did not open?",
-    "Account this connection uses · Microsoft Entra": "Account this connection uses · Microsoft Entra",
-    "Sign in once. Data API builder keeps the session and refreshes its tokens on its own, even after you close VS Code.": "Sign in once. Data API builder keeps the session and refreshes its tokens on its own, even after you close VS Code.",
+    "Microsoft Entra account for this connection": "Microsoft Entra account for this connection",
     "Use a code instead": "Use a code instead",
-    "Open the sign-in page and enter this code:": "Open the sign-in page and enter this code:",
+    "Go to the sign-in page and enter this code:": "Go to the sign-in page and enter this code:",
     "Open sign-in page": "Open sign-in page",
     "Copy code": "Copy code",
     "Show details": "Show details",
@@ -5263,12 +5244,12 @@
     "just now": "just now",
     "Apply changes": "Apply changes",
     "Restart": "Restart",
-    "The API is live on port {0}./{0} is the port number": {
-        "message": "The API is live on port {0}.",
+    "Running on port {0}/{0} is the port number": {
+        "message": "Running on port {0}",
         "comment": ["{0} is the port number"]
     },
-    "The API is not running. It is deployed on port {0}./{0} is the port number": {
-        "message": "The API is not running. It is deployed on port {0}.",
+    "Not running (port {0})/{0} is the port number": {
+        "message": "Not running (port {0})",
         "comment": ["{0} is the port number"]
     },
     "Deployment actions": "Deployment actions",
@@ -5276,69 +5257,38 @@
     "Updating…": "Updating…",
     "Sign in needed": "Sign in needed",
     "Deploy failed": "Deploy failed",
-    "Your configuration changed since this was deployed. Apply the changes to update the API.": "Your configuration changed since this was deployed. Apply the changes to update the API.",
+    "Configuration changed. Apply the changes to update the API.": "Configuration changed. Apply the changes to update the API.",
     "Copy API URL": "Copy API URL",
     "Stop": "Stop",
     "Delete deployment?": "Delete deployment?",
-    "The container {0} will be stopped and removed, and its endpoints will stop responding./{0} is the Docker container name": {
-        "message": "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+    "This stops and removes the container {0}. Its endpoints stop responding./{0} is the Docker container name": {
+        "message": "This stops and removes the container {0}. Its endpoints stop responding.",
         "comment": ["{0} is the Docker container name"]
     },
-    "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding./{0} is the deployment name": {
-        "message": "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+    "This stops the engine for {0} and removes its generated configuration. Its endpoints stop responding./{0} is the deployment name": {
+        "message": "This stops the engine for {0} and removes its generated configuration. Its endpoints stop responding.",
         "comment": ["{0} is the deployment name"]
     },
     "Restart the deployment to use these endpoints.": "Restart the deployment to use these endpoints.",
     "Local Docker container": "Local Docker container",
-    "Runs Data API builder in a container on this machine, published on a local port.": "Runs Data API builder in a container on this machine, published on a local port.",
+    "Run the API in a Docker container on this machine.": "Run the API in a Docker container on this machine.",
     "Data API builder CLI": "Data API builder CLI",
-    "Runs Data API builder as a local process on this machine. No Docker required.": "Runs Data API builder as a local process on this machine. No Docker required.",
-    "Run with the Data API builder CLI": "Run with the Data API builder CLI",
-    "This will run Data API builder as a local process, exposing {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
-        "message": "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
-        "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
-    },
-    "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.": "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
-    "Getting Data API builder ready": "Getting Data API builder ready",
-    "Getting Data API builder CLI": "Getting Data API builder CLI",
-    "Downloading and unpacking the CLI package": "Downloading and unpacking the CLI package",
-    "Checking .NET runtime": "Checking .NET runtime",
-    "Resolving a runtime that can run the CLI": "Resolving a runtime that can run the CLI",
-    "Validating configuration": "Validating configuration",
-    "Checking the generated configuration": "Checking the generated configuration",
-    "Starting Data API builder": "Starting Data API builder",
-    "Launching the engine process": "Launching the engine process",
-    "Checking engine readiness": "Checking engine readiness",
-    "Deployment settings": "Deployment settings",
-    "Preparing deployment settings": "Preparing deployment settings",
-    "Preparing container settings": "Preparing container settings",
-    "A name for this deployment": "A name for this deployment",
-    "Reset the configuration to the defaults for this schema": "Reset the configuration to the defaults for this schema",
+    "Run the API as a local process.": "Run the API as a local process.",
+    "Reset the configuration to the schema defaults": "Reset the configuration to the schema defaults",
     "Reset DAB configuration?": "Reset DAB configuration?",
-    "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.": "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
-    "{0} must define one or more key fields to be used with Data API builder/{0} is the DAB source type, e.g. Table or View": {
-        "message": "{0} must define one or more key fields to be used with Data API builder",
+    "This discards all entity, action, column, and advanced settings, including changes from Copilot, and rebuilds the configuration from the current schema.": "This discards all entity, action, column, and advanced settings, including changes from Copilot, and rebuilds the configuration from the current schema.",
+    "{0} has no key fields. Data API builder requires at least one./{0} is the DAB source type, e.g. Table or View": {
+        "message": "{0} has no key fields. Data API builder requires at least one.",
         "comment": ["{0} is the DAB source type, e.g. Table or View"]
     },
-    "{0} contains column types not supported by Data API builder: {1}/{0} is the DAB source type, e.g. Table or View{1} is a comma-separated list of column names and their data types": {
-        "message": "{0} contains column types not supported by Data API builder: {1}",
+    "{0} has column types that Data API builder does not support: {1}/{0} is the DAB source type, e.g. Table or View{1} is a comma-separated list of column names and their data types": {
+        "message": "{0} has column types that Data API builder does not support: {1}",
         "comment": [
             "{0} is the DAB source type, e.g. Table or View",
             "{1} is a comma-separated list of column names and their data types"
         ]
     },
-    "Stored procedure returns a column without a name. Add an alias to each expression in its result set to use it with Data API builder": "Stored procedure returns a column without a name. Add an alias to each expression in its result set to use it with Data API builder",
-    "Checking Docker installation": "Checking Docker installation",
-    "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
-    "Starting Docker Desktop": "Starting Docker Desktop",
-    "Ensuring Docker Desktop is running": "Ensuring Docker Desktop is running",
-    "Checking Docker engine": "Checking Docker engine",
-    "Verifying Docker engine is ready": "Verifying Docker engine is ready",
-    "Pulling DAB container image": "Pulling DAB container image",
-    "Downloading the Data API builder container image": "Downloading the Data API builder container image",
-    "Starting DAB container": "Starting DAB container",
-    "Checking container readiness": "Checking container readiness",
-    "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
+    "A result column has no name. Add an alias to each expression in the result set.": "A result column has no name. Add an alias to each expression in the result set.",
     "Container logs": "Container logs",
     "Show full error message": "Show full error message",
     "Hide full error message": "Hide full error message",

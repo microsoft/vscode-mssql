@@ -165,9 +165,14 @@ export const DabDeployStatusButton = () => {
     const statusTooltip = isRunning
         ? locConstants.schemaDesigner.dabStatusLiveTooltip(deployment.port)
         : locConstants.schemaDesigner.dabStatusNotLiveTooltip(deployment.port);
-    const tooltip = deployment.isConfigOutdated
-        ? `${statusTooltip} ${locConstants.schemaDesigner.dabStatusChangesTooltip}`
-        : statusTooltip;
+    const tooltip = deployment.isConfigOutdated ? (
+        <>
+            <div>{statusTooltip}</div>
+            <div>{locConstants.schemaDesigner.dabStatusChangesTooltip}</div>
+        </>
+    ) : (
+        statusTooltip
+    );
 
     /** Redeploys with the current config and shows the run in the dialog. */
     const redeploy = async () => {

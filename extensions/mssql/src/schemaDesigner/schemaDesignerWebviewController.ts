@@ -13,10 +13,7 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import {
-    configSchemaDesignerEnableDeploymentsView,
-    configSchemaDesignerEnableExpandCollapseButtons,
-} from "../constants/constants";
+import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
@@ -49,12 +46,6 @@ function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
-}
-
-function isDeploymentsViewEnabled(): boolean {
-    return !!vscode.workspace
-        .getConfiguration()
-        .get<boolean>(configSchemaDesignerEnableDeploymentsView);
 }
 
 function isCopilotChatInstalled(): boolean {
@@ -161,7 +152,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
-                enableDeploymentsView: isDeploymentsViewEnabled(),
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
@@ -559,13 +549,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             this.scheduleDabConfigSave(payload.config);
         });
 
-        this.onRequest(Dab.DiscardPendingCliEngineRequest.type, async (payload) => {
-            // A sign-in left open would keep its browser flow and process
-            // alive after the dialog that started it is gone.
-            this._dabService.cancelCliSignIn();
-            await this.discardPendingDabCliEngine(payload.port);
-        });
-
         this.onRequest(Dab.ResetConfigRequest.type, async () => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ResetDabConfig);
             await this.deleteStoredDabConfig();
@@ -653,33 +636,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             await vscode.window.showInformationMessage(message);
-        });
-
-        // DAB deployment request handlers
-        this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) =>
-            this.runDabDeploymentStep(payload),
-        );
-
-        this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
-            // An empty name means the form is asking for a default; generate one
-            // from the database so both targets read as DAB_<database>_<n>.
-            const trackedNames = await this.getTrackedDabNames();
-            if (!payload.containerName) {
-                return this._dabService.validateDeploymentParams(
-                    await this.generateDabDeploymentName(),
-                    payload.port,
-                );
-            }
-
-            return this._dabService.validateDeploymentParams(
-                payload.containerName,
-                payload.port,
-                trackedNames,
-            );
-        });
-
-        this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
-            return this._dabService.stopDeployment(payload.containerName);
         });
 
         // DAB deployment tracking request handlers
@@ -1217,13 +1173,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     enableExpandCollapseButtons: newValue,
                 });
             }
-
-            if (e.affectsConfiguration(configSchemaDesignerEnableDeploymentsView)) {
-                this.updateState({
-                    ...this.state,
-                    enableDeploymentsView: isDeploymentsViewEnabled(),
-                });
-            }
         });
         this.registerDisposable(configChangeDisposable);
     }
@@ -1742,7 +1691,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         {
                             step,
                             target,
-                            entryPoint: Dab.DabDeploymentEntryPoint.Deployments,
                             params,
                             config,
                             deploymentId,
@@ -1877,11 +1825,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     step: Dab.DabDeploymentStepOrder[payload.step] ?? "unknown",
                     target: telemetryTarget,
                     mode,
-                    entryPoint:
-                        payload.entryPoint === Dab.DabDeploymentEntryPoint.Standalone ||
-                        payload.entryPoint === Dab.DabDeploymentEntryPoint.Deployments
-                            ? payload.entryPoint
-                            : "unknown",
                     phase:
                         telemetryTarget === "unknown"
                             ? "unknown"

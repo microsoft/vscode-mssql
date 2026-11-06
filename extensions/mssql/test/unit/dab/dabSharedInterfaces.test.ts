@@ -524,23 +524,6 @@ suite("DAB deployment step sequencing", () => {
             ).to.be.false;
         }
     });
-
-    test("the default deployment state matches its target's steps", () => {
-        for (const target of targets) {
-            const state = Dab.createDefaultDeploymentState(target);
-            const steps = Dab.getDabDeploymentSteps(target);
-
-            expect(state.target).to.equal(target);
-            expect(state.stepStatuses.map((status) => status.step)).to.deep.equal(steps);
-            expect(state.currentDeploymentStep, `${target} starts at its first step`).to.equal(
-                steps[0],
-            );
-        }
-    });
-
-    test("the default deployment state is Docker when no target is given", () => {
-        expect(Dab.createDefaultDeploymentState().target).to.equal(Dab.DabDeploymentTarget.Docker);
-    });
 });
 
 suite("DAB deployment naming", () => {
@@ -662,39 +645,6 @@ suite("DAB supported data types", () => {
             "A tag can be moved to another image; only a digest names one build",
         ).to.equal(`${Dab.DAB_CONTAINER_IMAGE_REPOSITORY}@${Dab.DAB_CONTAINER_IMAGE_DIGEST}`);
         expect(Dab.DAB_CONTAINER_IMAGE_DIGEST).to.match(/^sha256:[0-9a-f]{64}$/);
-    });
-});
-
-suite("DAB deployment entry points", () => {
-    test("the deployments dialog is the default entry point", () => {
-        expect(Dab.createDefaultDeploymentState().entryPoint).to.equal(
-            Dab.DabDeploymentEntryPoint.Deployments,
-        );
-    });
-
-    test("the standalone flow keeps a completion step to finish on", () => {
-        // The toolbar's Deploy flow has no deployments list to return to, so
-        // the completion step has to remain reachable independently of it.
-        expect(Dab.DabDeploymentDialogStep.Complete).to.not.be.undefined;
-    });
-
-    test("a target's steps do not depend on the entry point", () => {
-        for (const target of [Dab.DabDeploymentTarget.Docker, Dab.DabDeploymentTarget.DabCli]) {
-            const steps = Dab.getDabDeploymentSteps(target);
-            for (const entryPoint of [
-                Dab.DabDeploymentEntryPoint.Standalone,
-                Dab.DabDeploymentEntryPoint.Deployments,
-            ]) {
-                const state = {
-                    ...Dab.createDefaultDeploymentState(target),
-                    entryPoint,
-                };
-                expect(
-                    state.stepStatuses.map((status) => status.step),
-                    `${target} from ${entryPoint}`,
-                ).to.deep.equal(steps);
-            }
-        }
     });
 });
 

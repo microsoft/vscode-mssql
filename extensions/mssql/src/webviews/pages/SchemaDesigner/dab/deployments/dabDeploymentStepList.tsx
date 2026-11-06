@@ -408,21 +408,25 @@ const DabDeploymentStepRow = ({ stepStatus }: { stepStatus: Dab.DabDeploymentSte
                     </div>
                 )}
                 {isRunning && action === Dab.DabDeploymentStepAction.SignIn && (
-                    // A browser that never opens would leave the step waiting
-                    // with no way forward, so the code sign-in stays one click away.
-                    <div className={classes.actions}>
-                        <Text className={classes.panelNote}>
-                            {locConstants.schemaDesigner.browserDidNotOpen}
-                        </Text>
-                        <Link
-                            onClick={() =>
-                                respondToDabDeploymentStep(
-                                    stepStatus.step,
-                                    Dab.DabDeploymentStepAction.SignInWithCode,
-                                )
-                            }>
-                            {locConstants.schemaDesigner.useCodeInstead}
-                        </Link>
+                    <div className={classes.panel}>
+                        {prompt?.account && <EntraAccount account={prompt.account} />}
+                        {/* A browser that never opens would leave the step
+                            waiting with no way forward, so the code sign-in
+                            stays one click away. */}
+                        <div className={classes.actions}>
+                            <Text className={classes.panelNote}>
+                                {locConstants.schemaDesigner.browserDidNotOpen}
+                            </Text>
+                            <Link
+                                onClick={() =>
+                                    respondToDabDeploymentStep(
+                                        stepStatus.step,
+                                        Dab.DabDeploymentStepAction.SignInWithCode,
+                                    )
+                                }>
+                                {locConstants.schemaDesigner.useCodeInstead}
+                            </Link>
+                        </div>
                     </div>
                 )}
                 {isWaiting && prompt && <StepPrompt step={stepStatus.step} prompt={prompt} />}
@@ -450,9 +454,6 @@ const StepPrompt = ({
             return (
                 <div className={classes.panel}>
                     {prompt.account && <EntraAccount account={prompt.account} />}
-                    <Text className={classes.panelText}>
-                        {locConstants.schemaDesigner.entraSignInPrompt}
-                    </Text>
                     <div className={classes.actions}>
                         <Button
                             appearance="primary"

@@ -14,10 +14,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 interface DabContextProps {
     isInitialized: boolean;
-    isDabDeploymentSupported: boolean;
     dabTargetSupport: Record<string, SchemaDesigner.DabTargetSupport>;
-    /** True unless this connection's authentication rules the container out. */
-    isDockerTargetSupported: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     openUrl: (url: string, apiType?: Dab.ApiType) => void;
     openLogsInNewTab: (logsContent: string) => void;
@@ -25,7 +22,6 @@ interface DabContextProps {
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
     resetDabConfig: () => Promise<void>;
-    discardPendingDabCliEngine: () => Promise<void>;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
@@ -38,12 +34,10 @@ interface DabContextProps {
     openDabConfigInEditor: (configContent: string) => void;
     addDabConfigToWorkspace: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
-    openDabDeploymentDialog: () => void;
     openDabDeploymentsDialog: () => void;
     /** Opens the deployment view straight on its configuration changes. */
     openDabDeploymentChanges: () => void;
     closeDabDeploymentDialog: () => void;
-    setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
     dabDeployments: Dab.DabDeploymentListItem[];
     dabDeploymentsStatus: ApiStatus;
     dabDeploymentsError: string | undefined;
@@ -54,12 +48,6 @@ interface DabContextProps {
     loadDabDeployments: (options?: { quiet?: boolean }) => Promise<void>;
     deleteDabDeployment: (deploymentId: string) => Promise<Dab.DeploymentActionResponse>;
     stopDabDeploymentContainer: (deploymentId: string) => Promise<Dab.DeploymentActionResponse>;
-    updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
-    validateDabDeploymentParams: (
-        containerName: string,
-        port: number,
-    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
-    runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
     /** The database's deployment run, while there is one to show. */
     dabDeploymentRun: Dab.DabDeploymentRunState | undefined;
@@ -84,7 +72,6 @@ interface DabContextProps {
     getDabDeploymentChanges: (deploymentId: string) => Promise<Dab.GetDeploymentChangesResponse>;
     /** Suggests the first free port when none is given, or checks the given one. */
     checkDabDeploymentPort: (port?: number) => Promise<Dab.CheckDeploymentPortResponse>;
-    retryDabDeploymentSteps: () => Promise<void>;
     addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
     currentFilteredTables: string[];
 }
@@ -99,13 +86,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
     const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
         schemaDesignerContext;
-    const isDabDeploymentSupported =
-        useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
     const dabTargetSupport = useSchemaDesignerSelector((s) => s?.dabTargetSupport) ?? {};
-    // Read as supported until the extension says otherwise, so a state that
-    // has not arrived yet does not read as a refusal.
-    const isDockerTargetSupported =
-        dabTargetSupport[Dab.DabDeploymentTarget.Docker]?.isSupported !== false;
     const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
@@ -443,38 +424,13 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
-    /**
-     * Opens the toolbar's Deploy flow: a self-contained Docker deployment that
-     * starts at its confirmation step and ends on its own completion screen.
-     * It deliberately never enters the deployments views, so that experience
-     * can be switched off without this flow losing a beginning or an end.
-     */
-    const openDabDeploymentDialog = useCallback(() => {
-        extensionRpc.sendActionEvent({
-            telemetryView: TelemetryViews.SchemaDesigner,
-            telemetryAction: TelemetryActions.OpenDabDeploymentDialog,
-            additionalProps: { entryPoint: Dab.DabDeploymentEntryPoint.Standalone },
-        });
-        setDabDeploymentState({
-            ...Dab.createDefaultDeploymentState(Dab.DabDeploymentTarget.Docker),
-            isDialogOpen: true,
-            dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
-            entryPoint: Dab.DabDeploymentEntryPoint.Standalone,
-        });
-    }, [extensionRpc]);
-
     const openDeploymentsDialog = useCallback(
         (showChanges: boolean) => {
             extensionRpc.sendActionEvent({
                 telemetryView: TelemetryViews.SchemaDesigner,
                 telemetryAction: TelemetryActions.OpenDabDeploymentDialog,
-                additionalProps: { entryPoint: Dab.DabDeploymentEntryPoint.Deployments },
             });
-            setDabDeploymentState({
-                ...Dab.createDefaultDeploymentState(),
-                isDialogOpen: true,
-                showChanges,
-            });
+            setDabDeploymentState({ isDialogOpen: true, showChanges });
         },
         [extensionRpc],
     );
@@ -496,127 +452,6 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             isDialogOpen: false,
         }));
     }, []);
-
-    const setDabDeploymentDialogStep = useCallback((step: Dab.DabDeploymentDialogStep) => {
-        setDabDeploymentState((prev) => ({
-            ...prev,
-            dialogStep: step,
-        }));
-    }, []);
-
-    const updateDabDeploymentParams = useCallback((params: Partial<Dab.DabDeploymentParams>) => {
-        setDabDeploymentState((prev) => ({
-            ...prev,
-            params: {
-                ...prev.params,
-                ...params,
-            },
-        }));
-    }, []);
-
-    const validateDabDeploymentParams = useCallback(
-        async (
-            containerName: string,
-            port: number,
-        ): Promise<Dab.ValidateDeploymentParamsResponse> => {
-            return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
-                containerName,
-                port,
-            });
-        },
-        [extensionRpc],
-    );
-
-    const updateDeploymentStepStatus = useCallback(
-        (
-            step: Dab.DabDeploymentStepOrder,
-            status: ApiStatus,
-            update: Partial<Omit<Dab.DabDeploymentStepStatus, "step" | "status">> = {},
-        ) => {
-            setDabDeploymentState((prev) => ({
-                ...prev,
-                stepStatuses: prev.stepStatuses.map((s) =>
-                    s.step === step
-                        ? {
-                              step,
-                              status,
-                              ...update,
-                          }
-                        : s,
-                ),
-            }));
-        },
-        [],
-    );
-
-    /**
-     * Runs one step of the toolbar's Deploy flow. The deployments dialog does
-     * not use this: its deployment is run by the extension, so it keeps going
-     * when the designer is closed.
-     */
-    const runDabDeploymentStep = useCallback(
-        async (step: Dab.DabDeploymentStepOrder) => {
-            updateDeploymentStepStatus(step, ApiStatus.Loading);
-
-            if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
-                updateDeploymentStepStatus(step, ApiStatus.Error, {
-                    message: "DAB configuration is not available.",
-                });
-                return;
-            }
-
-            const response = await extensionRpc.sendRequest(Dab.RunDeploymentStepRequest.type, {
-                step,
-                target: dabDeploymentState.target,
-                entryPoint: dabDeploymentState.entryPoint,
-                params: dabDeploymentState.params,
-                config: dabConfig ?? undefined,
-            });
-
-            if (!response.success) {
-                updateDeploymentStepStatus(step, ApiStatus.Error, {
-                    message: response.error,
-                    containerLogs: response.containerLogs,
-                    fullErrorText: response.fullErrorText,
-                    errorLink: response.errorLink,
-                    errorLinkText: response.errorLinkText,
-                });
-                return;
-            }
-
-            setDabDeploymentState((prev) => {
-                const updatedStatuses = prev.stepStatuses.map((s) =>
-                    s.step === step ? { step, status: ApiStatus.Loaded } : s,
-                );
-                const nextStep = Dab.getNextDabDeploymentStep(prev.target, step) ?? step;
-
-                if (Dab.isFinalDabDeploymentStep(prev.target, step)) {
-                    return {
-                        ...prev,
-                        stepStatuses: updatedStatuses,
-                        currentDeploymentStep: nextStep,
-                        isDeploying: false,
-                        apiUrl: response.apiUrl,
-                        dialogStep: Dab.DabDeploymentDialogStep.Complete,
-                    };
-                }
-
-                return {
-                    ...prev,
-                    stepStatuses: updatedStatuses,
-                    currentDeploymentStep: nextStep,
-                };
-            });
-        },
-        [
-            dabConfig,
-            dabDeploymentState.params,
-            dabDeploymentState.target,
-            dabDeploymentState.entryPoint,
-            extensionRpc,
-            updateDeploymentStepStatus,
-        ],
-    );
 
     const resetDabDeploymentState = useCallback(() => {
         setDabDeploymentState(Dab.createDefaultDeploymentState());
@@ -751,77 +586,6 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
-    /**
-     * Stops a CLI engine that started but never became a tracked deployment.
-     * Does nothing for any other target, or once the deployment has finished.
-     */
-    const discardPendingDabCliEngine = useCallback(async () => {
-        if (dabDeploymentState.target !== Dab.DabDeploymentTarget.DabCli) {
-            return;
-        }
-
-        try {
-            await extensionRpc.sendRequest(Dab.DiscardPendingCliEngineRequest.type, {
-                port: dabDeploymentState.params.port,
-            });
-        } catch (error) {
-            extensionRpc.log.error("Failed to stop a pending DAB CLI engine", error);
-        }
-    }, [dabDeploymentState.params.port, dabDeploymentState.target, extensionRpc]);
-
-    const retryDabDeploymentSteps = useCallback(async () => {
-        // Each target can leave something behind that would make the retry fail
-        // against its own previous attempt: Docker a container, the CLI an
-        // engine that started but never passed its readiness check and is still
-        // holding the port.
-        try {
-            // No name means the run failed before one was picked, so the
-            // deployment steps never started and left nothing behind.
-            if (!dabDeploymentState.params.containerName) {
-                // Nothing to clean up.
-            } else if (dabDeploymentState.target === Dab.DabDeploymentTarget.Docker) {
-                await extensionRpc.sendRequest(Dab.StopDeploymentRequest.type, {
-                    containerName: dabDeploymentState.params.containerName,
-                });
-            } else {
-                await discardPendingDabCliEngine();
-            }
-        } catch (error) {
-            extensionRpc.log.error("Failed to clean up the DAB deployment before retry", error);
-        }
-
-        setDabDeploymentState((prev) => {
-            // Rerun this target's deployment steps, leaving its prerequisites
-            // alone: they are already satisfied and are numbered independently.
-            const deploymentSteps = Dab.dabDeploymentStepsByTarget[prev.target].deployment;
-            return {
-                ...prev,
-                currentDeploymentStep: deploymentSteps[0],
-                stepStatuses: prev.stepStatuses.map((s) => {
-                    if (deploymentSteps.includes(s.step)) {
-                        return {
-                            ...s,
-                            status: ApiStatus.NotStarted,
-                            message: undefined,
-                            containerLogs: undefined,
-                            fullErrorText: undefined,
-                            errorLink: undefined,
-                            errorLinkText: undefined,
-                        };
-                    }
-                    return s;
-                }),
-                error: undefined,
-                apiUrl: undefined,
-            };
-        });
-    }, [
-        dabDeploymentState.params.containerName,
-        dabDeploymentState.target,
-        discardPendingDabCliEngine,
-        extensionRpc,
-    ]);
-
     const loadDabDeployments = useCallback(
         async (options?: { quiet?: boolean }) => {
             if (!options?.quiet) {
@@ -883,20 +647,18 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const addDabMcpServer = useCallback(
         async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {
             return extensionRpc.sendRequest(Dab.AddMcpServerRequest.type, {
-                serverName: `DabMcp-${dabDeploymentState.params.port}`,
+                serverName: `DabMcp-${new URL(serverUrl).port}`,
                 serverUrl,
             });
         },
-        [extensionRpc, dabDeploymentState.params.port],
+        [extensionRpc],
     );
 
     return (
         <DabContext.Provider
             value={{
                 isInitialized,
-                isDabDeploymentSupported,
                 dabTargetSupport,
-                isDockerTargetSupported,
                 copyToClipboard,
                 openUrl,
                 openLogsInNewTab,
@@ -904,7 +666,6 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 initializeDabConfig,
                 syncDabConfigWithSchema,
                 resetDabConfig,
-                discardPendingDabCliEngine,
                 updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
@@ -917,20 +678,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 openDabConfigInEditor,
                 addDabConfigToWorkspace,
                 dabDeploymentState,
-                openDabDeploymentDialog,
                 openDabDeploymentsDialog,
                 openDabDeploymentChanges,
                 closeDabDeploymentDialog,
-                setDabDeploymentDialogStep,
                 dabDeployments,
                 dabDeploymentsStatus,
                 dabDeploymentsError,
                 loadDabDeployments,
                 deleteDabDeployment,
                 stopDabDeploymentContainer,
-                updateDabDeploymentParams,
-                validateDabDeploymentParams,
-                runDabDeploymentStep,
                 resetDabDeploymentState,
                 startDabDeployment,
                 dabDeploymentRun,
@@ -941,7 +697,6 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 dismissDabDeploymentRun,
                 getDabDeploymentChanges,
                 checkDabDeploymentPort,
-                retryDabDeploymentSteps,
                 addDabMcpServer,
                 currentFilteredTables,
             }}>

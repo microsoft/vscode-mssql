@@ -249,9 +249,6 @@
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
     </trans-unit>
-    <trans-unit id="++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289">
-      <source xml:lang="en">A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.</source>
-    </trans-unit>
     <trans-unit id="++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f">
       <source xml:lang="en">A SQL Projects build task has been added to the existing tasks.json file.</source>
     </trans-unit>
@@ -301,9 +298,6 @@
     <trans-unit id="++CODE++9a3f4dcb8d00d77d27a03c716032f15e1dedc065981e6efc522136594f99cfa3">
       <source xml:lang="en">A longer flush interval loses more data if the server stops unexpectedly.</source>
     </trans-unit>
-    <trans-unit id="++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666">
-      <source xml:lang="en">A name for this deployment</source>
-    </trans-unit>
     <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
       <source xml:lang="en">A predefined global default value for the column or binding.</source>
     </trans-unit>
@@ -325,14 +319,17 @@
     <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
       <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++76c57103ae092e19701585f4f2bcc6d66bb4c048c1b13fab2668fc273951e74e">
+      <source xml:lang="en">A result column has no name. Add an alias to each expression in the result set.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfdcb47ff9f029cb83b66a913ad547fff407ef9ff383c870163fd5538a10068a">
       <source xml:lang="en">A saved filter with this name already exists.</source>
     </trans-unit>
     <trans-unit id="++CODE++4dcf05a44cbb1db82f1cd8739832e3965536559c31f7a883bcf0af045fc96f2f">
       <source xml:lang="en">A shorter interval gives more detail but uses more storage.</source>
     </trans-unit>
-    <trans-unit id="++CODE++cf714f3610b89e3fa42db54f7618feba7bf4d4ad9afc823599d3c85ce58464f8">
-      <source xml:lang="en">A step failed. Fix the problem, then retry.</source>
+    <trans-unit id="++CODE++812a9ce8d1759b69b581186de75aa9a2e87c4f58f259dec9c4b637c9508e755c">
+      <source xml:lang="en">A step failed. Fix the issue and retry.</source>
     </trans-unit>
     <trans-unit id="++CODE++2a40053b5c7c4638c958ed8af2d4f5c7b4ea80f9eb9bd4276b90a63e91116ca4">
       <source xml:lang="en">A tour of what the extension can do, grouped by task.</source>
@@ -395,9 +392,6 @@
     </trans-unit>
     <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
       <source xml:lang="en">Account not found</source>
-    </trans-unit>
-    <trans-unit id="++CODE++73f376a932e0fb62de99bd224dcbf1ea263e291d8093235ee16ae554ca8394e2">
-      <source xml:lang="en">Account this connection uses · Microsoft Entra</source>
     </trans-unit>
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
@@ -1021,9 +1015,6 @@
     <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
       <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
     </trans-unit>
-    <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
-      <source xml:lang="en">Authentication not supported</source>
-    </trans-unit>
     <trans-unit id="++CODE++0286249762f7c94349cdc0ba3bb2255baf9a80036e2193ead1d77696f888582f">
       <source xml:lang="en">Auto</source>
     </trans-unit>
@@ -1111,8 +1102,8 @@
     <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
       <source xml:lang="en">Azure Account is required</source>
     </trans-unit>
-    <trans-unit id="++CODE++4867b9342c668767f3885f72dd1d6f6278b9b900a28608a3548592643b8cdff0">
-      <source xml:lang="en">Azure CLI ready · private to this extension</source>
+    <trans-unit id="++CODE++98725cade800173739e9f016ffa103d4e115a45802225eb8b42d5ea9ad651f30">
+      <source xml:lang="en">Azure CLI ready</source>
     </trans-unit>
     <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
       <source xml:lang="en">Azure Code Grant</source>
@@ -1774,29 +1765,17 @@
     <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
       <source xml:lang="en">Check output pane for more details</source>
     </trans-unit>
-    <trans-unit id="++CODE++2fffa807cb6b4bd34f3fc8bf567ebcb2aed34f84dbe187fe16c7a2102150b6b5">
-      <source xml:lang="en">Checking .NET runtime</source>
-    </trans-unit>
     <trans-unit id="++CODE++49642942f7d4c80ba07961e658a4514aa19b474b6154b0716d674fa23dfcaf52">
       <source xml:lang="en">Checking Docker</source>
     </trans-unit>
     <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
       <source xml:lang="en">Checking Docker Engine Configuration</source>
     </trans-unit>
-    <trans-unit id="++CODE++c4d0dafd128387fb1c4553a2fe77c141f1fffdf1f10f4d605e40b8517d80c56d">
-      <source xml:lang="en">Checking Docker engine</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a50cb68f78c39490b180c6145c6ed95e4a691961e5aa7b8253ce9567281c73ba">
-      <source xml:lang="en">Checking Docker installation</source>
-    </trans-unit>
     <trans-unit id="++CODE++75fa3318f66944d01336b10cbb1e3c08afc6e230d849ee6fff4f4dba7f19489c">
       <source xml:lang="en">Checking Docker prerequisites...</source>
     </trans-unit>
-    <trans-unit id="++CODE++a03fe5c6bd995e5dd1d1f1972329ecc85747bd329900c6fbd46344bd110d9a7d">
-      <source xml:lang="en">Checking container readiness</source>
-    </trans-unit>
-    <trans-unit id="++CODE++66b868d316fac9d2254207e43df9118377a95ef7e35d136c357498e0637d5871">
-      <source xml:lang="en">Checking engine readiness</source>
+    <trans-unit id="++CODE++51b0a594c14340be0b3e99d959a59baf01728c99580b615c1be44b0ed88d7e59">
+      <source xml:lang="en">Checking for Docker</source>
     </trans-unit>
     <trans-unit id="++CODE++b0f39fbe809d94f7715d3e9054ab25d4f8473d8c8dfa9ec9ed3adfd930e6e733">
       <source xml:lang="en">Checking for an existing sign-in</source>
@@ -1832,12 +1811,6 @@
     </trans-unit>
     <trans-unit id="++CODE++bed2352ff59159c73b59736906b22bdd3d00395b9ab6fe9854a94e0b0ec3707c">
       <source xml:lang="en">Checking prerequisites</source>
-    </trans-unit>
-    <trans-unit id="++CODE++ed7fa7e173cd1f99f4403bd77fd717d26cdffa2216341e208fa2c5f7ac0d5d53">
-      <source xml:lang="en">Checking the generated configuration</source>
-    </trans-unit>
-    <trans-unit id="++CODE++fc9579a876db5179a43a644af6062942b8a9843efb16635654072351f1571f20">
-      <source xml:lang="en">Checking the generated configuration against the database</source>
     </trans-unit>
     <trans-unit id="++CODE++009a217216e315d46a059b610c8a45ecd78e10f1fe79e6edb0fc303515c8f831">
       <source xml:lang="en">Checking {0} configuration</source>
@@ -2290,6 +2263,12 @@
     <trans-unit id="++CODE++ff09ed14e260f89ad6e0aed11f1a11048f6f238137e3bc68ef97c9ab279fa63e">
       <source xml:lang="en">Compile CPU</source>
     </trans-unit>
+    <trans-unit id="++CODE++64e52412f96de98de3131553bfaba6df079640e57f567e727c4c2b3e5ddbfc14">
+      <source xml:lang="en">Complete sign-in in your browser</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c017f3bf828728f1c266d235366c54224eb05b83258762e94b918c175eb97803">
+      <source xml:lang="en">Complete the step below to start the API.</source>
+    </trans-unit>
     <trans-unit id="++CODE++849df5c9c0457311e9e94386791938b8ba5a91a060867c6a32aaba5f32a4bd55">
       <source xml:lang="en">Completed with errors</source>
     </trans-unit>
@@ -2332,8 +2311,8 @@
     <trans-unit id="++CODE++007ca017e4de24e97f332e4a5c9b2bc3e297a53c7105f857a63054cf349ea470">
       <source xml:lang="en">Configs</source>
     </trans-unit>
-    <trans-unit id="++CODE++8172dc37144fccaaa112f31885df9898f6f06233bfe0b91c785e403e874185c8">
-      <source xml:lang="en">Configuration changed since this was deployed.</source>
+    <trans-unit id="++CODE++ebd39991eb963e3b0aad1c53c130daf6a7e306a12c8693d6fe2d4f24f47bdd56">
+      <source xml:lang="en">Configuration changed. Apply the changes to update the API.</source>
     </trans-unit>
     <trans-unit id="++CODE++6b5b3c69e02dd47e73c93615e2a00d870b2ced5f28f2b7698d30d77d82cc349b">
       <source xml:lang="en">Configuration saved.</source>
@@ -2738,9 +2717,6 @@
     <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
       <source xml:lang="en">Container Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++69f2cb7dd2107d62b752a7de5d918a0b657147558a767c02175920d2b510a997">
-      <source xml:lang="en">Container Settings</source>
-    </trans-unit>
     <trans-unit id="++CODE++8c5db61c12be42335ff46beb93cc83ae5686c04239ee29893e1bb734ffff12d2">
       <source xml:lang="en">Container deployment failed.</source>
     </trans-unit>
@@ -2761,12 +2737,6 @@
     </trans-unit>
     <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
       <source xml:lang="en">Container name and port are required to check container readiness.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c988a04c68ad84375f618514201df662f5e213301f897d4f937005ded7b3b6ac">
-      <source xml:lang="en">Container name is invalid or already in use</source>
-    </trans-unit>
-    <trans-unit id="++CODE++ee060d909ac8f92d5b43012fb61218d44b303601dca7b271908151aa6ae86b17">
-      <source xml:lang="en">Container name is required</source>
     </trans-unit>
     <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
       <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
@@ -3345,9 +3315,6 @@
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
-    <trans-unit id="++CODE++4e639b73088f5575d27eeb76cc69d222f4587c494af6bebace73a891c65491a3">
-      <source xml:lang="en">DAB container is running!</source>
-    </trans-unit>
     <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
       <source xml:lang="en">DAB container logs</source>
     </trans-unit>
@@ -3413,9 +3380,6 @@
     <trans-unit id="++CODE++fc99f6bfe5e11ec996bb6edec67dd66123056685de26c34d516169c667267486">
       <source xml:lang="en">Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.</source>
       <note>{0} is a .NET runtime identifier, such as osx-arm64</note>
-    </trans-unit>
-    <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
-      <source xml:lang="en">Data API builder is running!</source>
     </trans-unit>
     <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
       <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -3717,9 +3681,6 @@
     <trans-unit id="++CODE++4c236daafb445f867f574918b3d07c901d73ac48d2ab87edb940b665d79e0039">
       <source xml:lang="en">Deploy</source>
     </trans-unit>
-    <trans-unit id="++CODE++242bc6248a8996f225d777aea89e819b3a97184f0b646a727fc7ee6f4698a2d0">
-      <source xml:lang="en">Deploy DAB Container</source>
-    </trans-unit>
     <trans-unit id="++CODE++a9262376667f32300b28873d41c5804d114d0d030208d62e82623673abfcf4be">
       <source xml:lang="en">Deploy Data API builder</source>
     </trans-unit>
@@ -3761,9 +3722,6 @@
     <trans-unit id="++CODE++d12eeed2e4651e3bd162f1a0eb6561819b8ed2ccef51b072eb67320b42d9b84d">
       <source xml:lang="en">Deploying…</source>
     </trans-unit>
-    <trans-unit id="++CODE++a6587d759edaef774b88015d9298a0965eeec92561af3c20bc4171eecdf27f5b">
-      <source xml:lang="en">Deployment Complete</source>
-    </trans-unit>
     <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
       <source xml:lang="en">Deployment Failed</source>
     </trans-unit>
@@ -3784,9 +3742,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c">
       <source xml:lang="en">Deployment name, port, and configuration are required to start the engine.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++777bc7ace9ef9cd24f40d697d603c4ca07ebd13f76c7ce9148fa0df315e2c5ef">
-      <source xml:lang="en">Deployment settings</source>
     </trans-unit>
     <trans-unit id="++CODE++5b274e18ab4e923ea63cc75ed934a37d62ff9a67e3c491138ce13da1fb3dfdc6">
       <source xml:lang="en">Deployment target</source>
@@ -4021,9 +3976,6 @@
     <trans-unit id="++CODE++c8beae897ee0f07e4f929cfc5a5584932a7d07e2754f7c6b53ff44d351c2245c">
       <source xml:lang="en">Docker Desktop</source>
     </trans-unit>
-    <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
-      <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
-    </trans-unit>
     <trans-unit id="++CODE++6ca9d6623e40335fc13a80d426d2dd39b8c8a8b656c66b0d973cee8d5d49e4d9">
       <source xml:lang="en">Docker failed to start within the timeout period. Please manually start Docker and try again.</source>
     </trans-unit>
@@ -4099,17 +4051,14 @@
       <note>{0} is megabytes downloaded so far
 {1} is the total megabytes</note>
     </trans-unit>
-    <trans-unit id="++CODE++6f1737dd338b7ed6e377799ecdaaeae637e31c51c9641edf808353790312c58e">
-      <source xml:lang="en">Downloading and unpacking the CLI package</source>
-    </trans-unit>
     <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
       <source xml:lang="en">Downloading from {0} to {1}</source>
     </trans-unit>
     <trans-unit id="++CODE++35a7f79758a02a6a17a3c37bca5b2a2b052997c457829e62a7ec5f473f40d25b">
       <source xml:lang="en">Downloading the Azure SQL Database developer container image from the registry.</source>
     </trans-unit>
-    <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
-      <source xml:lang="en">Downloading the Data API builder container image</source>
+    <trans-unit id="++CODE++a5781d45fd04cce9834a92417d9f5a938430c475512982a1fa7f9f7bec076e44">
+      <source xml:lang="en">Downloading the CLI and .NET runtime</source>
     </trans-unit>
     <trans-unit id="++CODE++d9ec6c452082eecc269df8508c0459383716c4d13cb03fe83606009b28ac4e76">
       <source xml:lang="en">Downloading the container image</source>
@@ -4240,9 +4189,6 @@
     <trans-unit id="++CODE++7bce93a011075575cf98f089cee89c6108be3220cd9701e8ce2fe0c19b38f411">
       <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
     </trans-unit>
-    <trans-unit id="++CODE++88c59d6325c5f9cb638b3671a4ed7680c56c924d8b07a98dadce93466d269197">
-      <source xml:lang="en">Enable MCP in API Type to expose this entity through MCP.</source>
-    </trans-unit>
     <trans-unit id="++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203">
       <source xml:lang="en">Enable MCP in API Type to use this DML tools setting.</source>
     </trans-unit>
@@ -4304,10 +4250,6 @@
       <source xml:lang="en">Enable {0} globally</source>
       <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
     </trans-unit>
-    <trans-unit id="++CODE++1626a7035e3aa94fb8b04ec4401e20974b845ed50315a4dda0aa7ee2b07c4d56">
-      <source xml:lang="en">Enable {0} in API Type to expose this entity.</source>
-      <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
-    </trans-unit>
     <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
       <source xml:lang="en">Enabled</source>
     </trans-unit>
@@ -4362,9 +4304,6 @@
     <trans-unit id="++CODE++37344542a7e5c1efe17609d8b0a03cfce9724b28b06beef14f1cdd17ef737245">
       <source xml:lang="en">Engine: {0}</source>
       <note>{0} is the engine type</note>
-    </trans-unit>
-    <trans-unit id="++CODE++11c21b54b49bcb3c27b1f9371f18ba2da2f6c80cf2cb66a608ff8396ade41518">
-      <source xml:lang="en">Ensuring Docker Desktop is running</source>
     </trans-unit>
     <trans-unit id="++CODE++dc8659db6d416dc32fcad510cc921af3c7eaf1176ddedfbe050ecf708fbac087">
       <source xml:lang="en">Enter</source>
@@ -4498,6 +4437,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1d2db8e24c656cf7880c0ca98a2f89b3ae6a7fccdb0d9576cecf6249b5f64455">
       <source xml:lang="en">Enter the client secret for the selected app registration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e222314d1108c813a5ed057f407ae567e2f20ee2030f90b2e3b7c950ad7273d2">
+      <source xml:lang="en">Enter the code on the sign-in page</source>
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
@@ -5798,17 +5740,14 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++613b7e993988994199b92318b2a4d8c6505ff807e5a1c9a923866b2bbfcc83b6">
-      <source xml:lang="en">Finding a runtime that can run the CLI</source>
+    <trans-unit id="++CODE++f8076828c20dacab21a5b00a767888abd491d890e7093d62d0c9a6bb43ec9e77">
+      <source xml:lang="en">Finding a .NET runtime</source>
     </trans-unit>
     <trans-unit id="++CODE++bc12828833bc9ee18470ba7153b2cb126440d09c75b13217854e625eead2c922">
       <source xml:lang="en">Finding this resource in Database Hub...</source>
     </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2dce94aef8d15f210bebabfd6e6c149bc9c33d3b6eeba0b4f06df74f8fd78f2b">
-      <source xml:lang="en">Finish signing in in your browser</source>
     </trans-unit>
     <trans-unit id="++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6">
       <source xml:lang="en">Finished Deployment</source>
@@ -6116,12 +6055,6 @@
     <trans-unit id="++CODE++4e63fb87cbc6a025a54031861b7d3c365603bbb20ec7da137882527c7e31f488">
       <source xml:lang="en">Getting Azure CLI</source>
     </trans-unit>
-    <trans-unit id="++CODE++68d329969e77edfb8153e6ca614c82e901435d0d3def01bb59341fd555d821e0">
-      <source xml:lang="en">Getting Data API builder CLI</source>
-    </trans-unit>
-    <trans-unit id="++CODE++14999af228be42ee1b1416c75be3e2e2679235dd464d1419388e8053829b70ef">
-      <source xml:lang="en">Getting Data API builder ready</source>
-    </trans-unit>
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
     </trans-unit>
@@ -6154,9 +6087,6 @@
     </trans-unit>
     <trans-unit id="++CODE++fd3de1df58e0359434b048c93f9c81d995c274b3324feac5914da2b4a87373e4">
       <source xml:lang="en">Getting started with the MSSQL extension in 5 minutes</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f6b1e9504a58442e25114d1ed324c1b837a7dab419e4e2c2905a2aa30f7bb8ea">
-      <source xml:lang="en">Getting the CLI and a .NET runtime to run it</source>
     </trans-unit>
     <trans-unit id="++CODE++96c5398e2aca41174ed57b9a94aaea66e5b5e7660cdde3fa498fd410d75b60eb">
       <source xml:lang="en">Getting the Data API builder image</source>
@@ -6197,6 +6127,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a8c82361b26dcdb0c5a9a1f8235d8d92ad4765db1852209d6d696ca80bf7e4">
       <source xml:lang="en">Go to line {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb3066c1db4f6c632b954a6e9d3afdaa287101a7696c2211678d964b44b05f6d">
+      <source xml:lang="en">Go to the sign-in page and enter this code:</source>
     </trans-unit>
     <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
       <source xml:lang="en">Got invalid tool use parameters: &quot;{0}&quot;. ({1})</source>
@@ -6459,9 +6392,6 @@
     <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
       <source xml:lang="en">In progress</source>
     </trans-unit>
-    <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
-      <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3c6fc9855fa8c109c37b694b4253f9e5782feba98a29fec8afbbffee38b9aef8">
       <source xml:lang="en">In tok</source>
     </trans-unit>
@@ -6557,8 +6487,8 @@
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
     </trans-unit>
-    <trans-unit id="++CODE++9cd4f0cfee827905975ca366091112d8605226baa5566a880e42c422dd01baab">
-      <source xml:lang="en">Installing with pip · {0}%. This can take a few minutes.</source>
+    <trans-unit id="++CODE++304cf94ca84882ceab9045322f13885d78294bb80ffbbf862f6acac7bff7c07c">
+      <source xml:lang="en">Installing with pip ({0}%). This can take a few minutes.</source>
       <note>{0} is the percentage of the install done so far</note>
     </trans-unit>
     <trans-unit id="++CODE++07ae7fd684564e68cac0181cc95916cb616319dfe87d79129cfcef36ea83a328">
@@ -6785,9 +6715,6 @@
     </trans-unit>
     <trans-unit id="++CODE++1356cd894ab5b98163b0bf73fa64581898dbcbf7134b6bdfd9347f6748b3e16b">
       <source xml:lang="en">Launching the engine</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e50ad98d51d6c665dad03d3a770a4c3346d6e449ff0c88ad895cd9f03c045684">
-      <source xml:lang="en">Launching the engine process</source>
     </trans-unit>
     <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
       <source xml:lang="en">Layout</source>
@@ -7174,9 +7101,6 @@
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
     </trans-unit>
-    <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
-      <source xml:lang="en">Local Container Deployment</source>
-    </trans-unit>
     <trans-unit id="++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd">
       <source xml:lang="en">Local Docker container</source>
     </trans-unit>
@@ -7248,9 +7172,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3ca28060047e89434e1ea7aa6606706d510852b36766a95a06c502350f5241d9">
-      <source xml:lang="en">Looking for Docker on this machine</source>
     </trans-unit>
     <trans-unit id="++CODE++49dea82cdfee99724e008074322a1639991fb4b725e74f02ac90a47d9248deda">
       <source xml:lang="en">MB</source>
@@ -7581,6 +7502,9 @@
     <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
       <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
     </trans-unit>
+    <trans-unit id="++CODE++575a15c7f485f6d4ec34591752c930dfde388b51f2c37aa777eeb8f91fff04a7">
+      <source xml:lang="en">Microsoft Entra account for this connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d">
       <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
       <note>{0} is the account name</note>
@@ -7805,9 +7729,6 @@
     <trans-unit id="++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730">
       <source xml:lang="en">Must be a valid number</source>
     </trans-unit>
-    <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
-      <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
-    </trans-unit>
     <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
       <source xml:lang="en">Mutation</source>
     </trans-unit>
@@ -7828,9 +7749,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9615c8137b02c86108999710ddc924d44c2c40df671c8aa746e15448bde4a572">
       <source xml:lang="en">Name cannot be empty</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b82c5cef7aaff3d8d682ade902e1ed86c30c2206d3291b70c464bca8b9632e1e">
-      <source xml:lang="en">Name for the Docker container running DAB</source>
     </trans-unit>
     <trans-unit id="++CODE++b1743930588be919ac27ab28e0bbcd85cffe715f69aedcfefe0a66b79f58464a">
       <source xml:lang="en">Name must not be empty</source>
@@ -8059,17 +7977,20 @@
     <trans-unit id="++CODE++3b2b9748d5fb147e1033227d9b53a65f26f62ff8fff7f66f037a1b020166a30a">
       <source xml:lang="en">No changes match your search.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d276031bf2c38ba86bedf099477860f988307e103a6c94031b5f4db7834cd4f1">
+      <source xml:lang="en">No changes since the last deployment.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9b1d0a5f102cd0f86d612e1c6b0860d5e918d9bb28966b29acbf500dd9df5b70">
       <source xml:lang="en">No changes yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38">
       <source xml:lang="en">No code analysis rules available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b84c9d50949d65135b50b9d29f046fab3394a69127d6bb6a39740c96385cd340">
+      <source xml:lang="en">No columns found for this entity.</source>
+    </trans-unit>
     <trans-unit id="++CODE++aced1f6eb816646c06bf8c07537b988d6170549fb090727e92423ce063207afd">
       <source xml:lang="en">No columns match the current filter.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++92b96197f4ff0a723964fe779267ba475892eb8f744fe5482fd3c6bc752892a3">
-      <source xml:lang="en">No columns were discovered for this entity.</source>
     </trans-unit>
     <trans-unit id="++CODE++5d5b010f2586c8df38b2a31e976af0f62c04fc31ea075da4c7ac989ea8c1a156">
       <source xml:lang="en">No completion activity in this source</source>
@@ -8226,8 +8147,8 @@
     <trans-unit id="++CODE++62b98c0dc526cee1f4c34b229e91b60fa1959fb2ea9011db985c924966c0753c">
       <source xml:lang="en">No objects match &apos;{0}&apos;.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c2a1a3e03cf67c0ac40fabfee38ee5346f05417614d1a55e7eed85e87de976d7">
-      <source xml:lang="en">No parameters were discovered for this stored procedure.</source>
+    <trans-unit id="++CODE++7cc76512a7795b5f486c28c89f590a1b596815adb965737002e736456b75b0cd">
+      <source xml:lang="en">No parameters found for this stored procedure.</source>
     </trans-unit>
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -8463,6 +8384,10 @@
     <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
       <source xml:lang="en">Not running</source>
     </trans-unit>
+    <trans-unit id="++CODE++290971092562a1c438e4a94437017eeb630d3a04e60dff837b60d0d50c0d375f">
+      <source xml:lang="en">Not running (port {0})</source>
+      <note>{0} is the port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
       <source xml:lang="en">Not signed in</source>
     </trans-unit>
@@ -8577,9 +8502,6 @@
     <trans-unit id="++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a">
       <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
       <note>{0} is the comma separated list of connection display names</note>
-    </trans-unit>
-    <trans-unit id="++CODE++a08a9deb134826986765a9f27352c96ca43ca8d25ab026f6b9ce08a21c7c8103">
-      <source xml:lang="en">One thing needs you before the API can start.</source>
     </trans-unit>
     <trans-unit id="++CODE++46c0e2d94b6989f19eb6cc2ae1d2418d69dc81cfb7d9b9e35c5e5f13345be8ee">
       <source xml:lang="en">Only moving files and folders are supported</source>
@@ -8755,9 +8677,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a666cb55e8efc1271d993d6079c9d3b620dc543cc7472302ea0fff9ac239ab89">
       <source xml:lang="en">Open the replay trace builder while the current run continues</source>
-    </trans-unit>
-    <trans-unit id="++CODE++922dd548876c562852a44e63be48c7bb008daa17e3a952575f3c8ae1b659fb0b">
-      <source xml:lang="en">Open the sign-in page and enter this code:</source>
     </trans-unit>
     <trans-unit id="++CODE++7018c260f7d968f3bca63b6724982783533b0531193b150e2a3f35ef239ddd38">
       <source xml:lang="en">Open this skill on GitHub</source>
@@ -9171,9 +9090,6 @@
     <trans-unit id="++CODE++186d06201f857df30733b51de403c7e7199e855dbf359eefe8c35389ba8440aa">
       <source xml:lang="en">Port must be between 1 and 65535</source>
     </trans-unit>
-    <trans-unit id="++CODE++de9d0069c353909a19960efae7bb5fd1e1462dfa95644ed05a3b1f9609c63f38">
-      <source xml:lang="en">Port to expose the API on (default: 5000)</source>
-    </trans-unit>
     <trans-unit id="++CODE++ba5e4505ea6d90c8541d23f16fc76c8037249f57b31210e1d88c08d20d5612fd">
       <source xml:lang="en">Port {0} belongs to another Data API builder deployment</source>
       <note>{0} is the port number</note>
@@ -9211,12 +9127,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5f2bfd2417b16b90c8f0d869f2a031fede4564c0f5f5410d315cda62aedf01ca">
       <source xml:lang="en">Preparing Data API builder</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3d7fd045c1fc29ea67f5662af12d1583f91b038b1ad04078a4b52d3ff49a3291">
-      <source xml:lang="en">Preparing container settings</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5e03ca0d91206dd95d88a9ecb660ec409ec2794c296c6e68c1fa420c0d2dc41a">
-      <source xml:lang="en">Preparing deployment settings</source>
     </trans-unit>
     <trans-unit id="++CODE++865514682d0132abd96594e2eff0ac8d379e16c60c7def0ee5c5f220ed3474ef">
       <source xml:lang="en">Prerequisites</source>
@@ -9458,9 +9368,6 @@
     </trans-unit>
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
-    </trans-unit>
-    <trans-unit id="++CODE++dac6f3f6dc8268df14288406b10ad3eb311b7488bb2932e5d97baf42c0409f46">
-      <source xml:lang="en">Pulling DAB container image</source>
     </trans-unit>
     <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
       <source xml:lang="en">Pulling SQL Server Image</source>
@@ -10104,8 +10011,8 @@
     <trans-unit id="++CODE++a0bd6e6936bbac62dd89c1012d9ccddc307a904c3cb34cbceed2500075fe3b5d">
       <source xml:lang="en">Required parameter</source>
     </trans-unit>
-    <trans-unit id="++CODE++98fe17bca293f3dccd1fbe14ff7b0f12d73ba72e6a3e47310982e8de208f560f">
-      <source xml:lang="en">Requirements:</source>
+    <trans-unit id="++CODE++20a0e330d9e6f05be78a63dcf5ebaa20cb3c1bd571db6e231cbd96a0c20cbadd">
+      <source xml:lang="en">Requires Docker Desktop to be installed and running.</source>
     </trans-unit>
     <trans-unit id="++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43">
       <source xml:lang="en">Requires user authentication</source>
@@ -10125,8 +10032,8 @@
     <trans-unit id="++CODE++9167ac7c904ba5d419257bdcade7fb6c5756df2a61054f24ffbbf34198dd7440">
       <source xml:lang="en">Reset overrides</source>
     </trans-unit>
-    <trans-unit id="++CODE++291afc74d5a450bbd0b7f7b0113afdab45aa05c5cad2bea333ca7bc4b177cadb">
-      <source xml:lang="en">Reset the configuration to the defaults for this schema</source>
+    <trans-unit id="++CODE++94af7b51b751328d36a6cebd6c4614e40790c64f2f528dad06c33023d3863553">
+      <source xml:lang="en">Reset the configuration to the schema defaults</source>
     </trans-unit>
     <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
       <source xml:lang="en">Reset to Defaults?</source>
@@ -10152,9 +10059,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c3c45f64620368b034ba8a6e6d4c315fa5b9791ef22525756bef5c2f237c80d1">
       <source xml:lang="en">Resize the query text</source>
-    </trans-unit>
-    <trans-unit id="++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1">
-      <source xml:lang="en">Resolving a runtime that can run the CLI</source>
     </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
@@ -10332,9 +10236,6 @@
     <trans-unit id="++CODE++da59c55382da6161c8f7ce12f775a7d6dc1427daf065a0a53ea2ba1372b162ad">
       <source xml:lang="en">Review change</source>
     </trans-unit>
-    <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
-      <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
-    </trans-unit>
     <trans-unit id="++CODE++9996bb7e9255f22a2b0717bec3036cbd4df93e8be250406b83bcf5fc85f8a62e">
       <source xml:lang="en">Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.</source>
     </trans-unit>
@@ -10452,11 +10353,14 @@
     <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
       <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e20e6708a1d0b00365b2016bb3e731f803298d6947c3a87326b5875165d3d7fe">
+      <source xml:lang="en">Run the API as a local process.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++892a973cb132b0cf6be6f2c3715197e7af964daf85dc8d6bf1bd00481c50b7dc">
+      <source xml:lang="en">Run the API in a Docker container on this machine.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4da9216545080e8a99bac954b2109da175d7047b97e8a483d4a225951d97b7f5">
       <source xml:lang="en">Run the cart across a profile x schema config matrix.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3a5c6f7694e6b79d4a4b5f16765912115902c0d08963fba6a8cc8258318c8a42">
-      <source xml:lang="en">Run with the Data API builder CLI</source>
     </trans-unit>
     <trans-unit id="++CODE++a7a384abc83e37761ee41ba5f19362042a34b3a53742e0638055c378197f0829">
       <source xml:lang="en">Run your app against the API and keep refining the schema as you go.</source>
@@ -10480,6 +10384,10 @@
       <source xml:lang="en">Running at {0}</source>
       <note>{0} is the URL the API is published on</note>
     </trans-unit>
+    <trans-unit id="++CODE++a33e6714f9a2827ed0ab2e16c5fcd6e680eb9709afae20d944d4b92a738ac541">
+      <source xml:lang="en">Running on port {0}</source>
+      <note>{0} is the port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
       <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
     </trans-unit>
@@ -10494,12 +10402,6 @@
     </trans-unit>
     <trans-unit id="++CODE++848f54e89660cea4357644039ac5d7146f76c8e85df5c04076e08feb7e7547f0">
       <source xml:lang="en">Runs</source>
-    </trans-unit>
-    <trans-unit id="++CODE++352c59bc5b59bba13bb085699f2c07a1103715439ec1a8d57b294dc06d2fbd1b">
-      <source xml:lang="en">Runs Data API builder as a local process on this machine. No Docker required.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
-      <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
     </trans-unit>
     <trans-unit id="++CODE++da343d583a7a7a73b9b687d5dcc9991a9cd6454c8cbcadecd5a091bf2c91fc5e">
       <source xml:lang="en">Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.</source>
@@ -11245,8 +11147,8 @@
     <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
       <source xml:lang="en">Select an operation</source>
     </trans-unit>
-    <trans-unit id="++CODE++1f44d9cdb4b2b64253e0642a79bda7f3738c87e3a22ce505d6454ee7a10d1623">
-      <source xml:lang="en">Select at least one logical key column before applying or deploying this exposed table or view.</source>
+    <trans-unit id="++CODE++7d8a948ef1fc8dca43f8f1a6acbb4d8871bf3fe513e3f5a970c04046d64eac94">
+      <source xml:lang="en">Select at least one logical key column to expose this table or view.</source>
     </trans-unit>
     <trans-unit id="++CODE++7949572bfffc1f7da718dd36f87551bea337e7e4ae96bdfa57562960ecf80afd">
       <source xml:lang="en">Select at least one profile and schema.</source>
@@ -11708,9 +11610,6 @@
     <trans-unit id="++CODE++ead5a0c8624a871dced6af60aa1e5b9582cd58bd77d27278d800ca21fddf03a2">
       <source xml:lang="en">Sign in needed</source>
     </trans-unit>
-    <trans-unit id="++CODE++dd28ebd2b5f6bae04fb013cca277b242b4410810b14343983f041671120a6ab7">
-      <source xml:lang="en">Sign in once. Data API builder keeps the session and refreshes its tokens on its own, even after you close VS Code.</source>
-    </trans-unit>
     <trans-unit id="++CODE++a046370b364e49c04af35c8d204df4cc0bb51c6952dca1a74184a4e600bbf84d">
       <source xml:lang="en">Sign in to Microsoft Entra</source>
     </trans-unit>
@@ -11935,20 +11834,11 @@
     <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
       <source xml:lang="en">Starting Container...</source>
     </trans-unit>
-    <trans-unit id="++CODE++d1b24d5bbf5df0c21eb556a585b4c43387f0582dc39fffcdac7fe563361e7366">
-      <source xml:lang="en">Starting DAB container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++395d24fb8fa72b65bf141f8edf73f77594688b9c3cee265c680809003f46ada9">
-      <source xml:lang="en">Starting Data API builder</source>
-    </trans-unit>
     <trans-unit id="++CODE++26e931032bc7932e0b673f8586025a7a3930db078f3aab5f9fb90d947673594c">
       <source xml:lang="en">Starting Docker</source>
     </trans-unit>
     <trans-unit id="++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f">
       <source xml:lang="en">Starting Docker Desktop</source>
-    </trans-unit>
-    <trans-unit id="++CODE++81bf60ebb5979b99f2490b05c1a09870efe112c5c1d8c44cce5a210471b373f7">
-      <source xml:lang="en">Starting Docker Desktop if it is not running</source>
     </trans-unit>
     <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
       <source xml:lang="en">Starting Docker...</source>
@@ -12047,9 +11937,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7">
       <source xml:lang="en">Stored procedure REST methods</source>
-    </trans-unit>
-    <trans-unit id="++CODE++55bf9936f5b6f63b21cdb5bd48895ded169caf1df8f0b257b2a5028fb9de488e">
-      <source xml:lang="en">Stored procedure returns a column without a name. Add an alias to each expression in its result set to use it with Data API builder</source>
     </trans-unit>
     <trans-unit id="++CODE++c8e04db8e8952736150e32a7d7744a43eba5879708f5330ddd40643c083b3e68">
       <source xml:lang="en">Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.</source>
@@ -12406,14 +12293,6 @@
     <trans-unit id="++CODE++ce5d55bb752536f83184e27b9bbd84d15f4fe753e2551472518d8f0e68fb80a5">
       <source xml:lang="en">The .NET runtime has not been resolved yet. Run the prerequisite checks again.</source>
     </trans-unit>
-    <trans-unit id="++CODE++0c8b4d10fddeb2cac081f808c210afc1ed2fe0b3eb4b8f96d33b24c24ef97d71">
-      <source xml:lang="en">The API is live on port {0}.</source>
-      <note>{0} is the port number</note>
-    </trans-unit>
-    <trans-unit id="++CODE++43c3c35773e1393916908b2126ff0c1b31100673569abb6af2e046aacfbb0996">
-      <source xml:lang="en">The API is not running. It is deployed on port {0}.</source>
-      <note>{0} is the port number</note>
-    </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
@@ -12526,6 +12405,9 @@
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a5bdaf0f4ae574e8789c6874a3b06f8638e336b1449ad92070012f0e7c60175">
+      <source xml:lang="en">The configuration changed since the last deployment.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
       <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
       <note>{0} is the connection ID that was not found</note>
@@ -12551,10 +12433,6 @@
     <trans-unit id="++CODE++f24f0ea65710646b02db37e614de2d14b6869f13fca2fa875a61d673cab12499">
       <source xml:lang="en">The container started, but the extension could not create its database connection.</source>
     </trans-unit>
-    <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
-      <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
-      <note>{0} is the Docker container name</note>
-    </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>
@@ -12574,9 +12452,6 @@
     <trans-unit id="++CODE++1c73ed6506589da0433a93c24d519af53c1d1b95091a6b265bf331eef1b06e35">
       <source xml:lang="en">The database is read-only.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f512e28034c3231c830622ab76fa421ae8944e6569279d8f9bddcb8f04f833cb">
-      <source xml:lang="en">The deployed configuration matches the current one.</source>
-    </trans-unit>
     <trans-unit id="++CODE++783d5e52f58f64bd115d99269bdbad32661d0fb5f63efbadd284fc06ec5b69c4">
       <source xml:lang="en">The deployment was canceled.</source>
     </trans-unit>
@@ -12594,10 +12469,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ee3b2c978f3d423b040d97d7b48e445431bf81ad403553962e605c08cbbee3f4">
       <source xml:lang="en">The editor for these results is closed. The results stay until you close them.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
-      <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
-      <note>{0} is the deployment name</note>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -12912,8 +12783,8 @@
     <trans-unit id="++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294">
       <source xml:lang="en">This deployment&apos;s configuration file is missing, so it cannot be started. Redeploy it instead.</source>
     </trans-unit>
-    <trans-unit id="++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a">
-      <source xml:lang="en">This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.</source>
+    <trans-unit id="++CODE++d33521e0596e7a1d76c6ce9da3054b975577495f8df5564db6bd1813bbb27012">
+      <source xml:lang="en">This discards all entity, action, column, and advanced settings, including changes from Copilot, and rebuilds the configuration from the current schema.</source>
     </trans-unit>
     <trans-unit id="++CODE++f48881a43b73a7b4228fd5210c84cbe5195374a84089a48e4ca42ad29da0c801">
       <source xml:lang="en">This document will use {0} on its next connect. The current session stays on {1} until you reconnect.</source>
@@ -12972,6 +12843,14 @@
     <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
       <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca183916f4df68cde28991184673588f722539df84b5c1e59594bbcd63de3172">
+      <source xml:lang="en">This stops and removes the container {0}. Its endpoints stop responding.</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9c7fd7a42e80f64562149a6b24e05f557ca291a353a2883c4135a4dd27c77d6b">
+      <source xml:lang="en">This stops the engine for {0} and removes its generated configuration. Its endpoints stop responding.</source>
+      <note>{0} is the deployment name</note>
+    </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
     </trans-unit>
@@ -12984,16 +12863,8 @@
     <trans-unit id="++CODE++fb5ea544d44e350c3d3822e4842d70cb9f7c6d39c180997275afa06cb911deec">
       <source xml:lang="en">This version of SQL Server does not have the custom capture policy.</source>
     </trans-unit>
-    <trans-unit id="++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99">
-      <source xml:lang="en">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
-      <note>{0} is a list of API types, e.g. &apos;REST and GraphQL&apos;</note>
-    </trans-unit>
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
       <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
-    </trans-unit>
-    <trans-unit id="++CODE++44b0a413f8d05eb0ef3f3d9fed2fd83c57f36fb8d949d4bbf51ec80a24ccf64a">
-      <source xml:lang="en">This will run Data API builder as a local process, exposing {0} APIs based on your configuration.</source>
-      <note>{0} is a list of API types, e.g. &apos;REST and GraphQL&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++ce0cc8415d939a3a4ef77722c5c4152d423d21e7f3d7905527811aefcbff2784">
       <source xml:lang="en">Tight</source>
@@ -13029,6 +12900,13 @@
     </trans-unit>
     <trans-unit id="++CODE++485348889fedcc4b3fd8a6c95bed0b36c44153b81cdadcbc117c999fdebf916d">
       <source xml:lang="en">To date</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c1773c93bdc3225b596e912b682ed70606993c2750a094c7d8a1c38da91a860">
+      <source xml:lang="en">To expose this entity through MCP, enable MCP in API type.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4983cabacdc2d355ad0eeb917d4ca3419d471815b9839f54f2e201b4ac2fd468">
+      <source xml:lang="en">To expose this entity, enable {0} in API type.</source>
+      <note>{0} is the API type, e.g. REST, GraphQL, or MCP</note>
     </trans-unit>
     <trans-unit id="++CODE++b6ecb97fd3934d27e281539de8b6f9ab3cd3a6b3ea47ff5664fdc8e9787030f6">
       <source xml:lang="en">To successfully build, update the project to have one pre-deployment script and/or one post-deployment script</source>
@@ -13501,6 +13379,9 @@
     <trans-unit id="++CODE++57cd4465c3c4fa7a5ac8b67e8c2015285fb983f76c49853d74d7b6e23d7f7c4e">
       <source xml:lang="en">Use Dev Containers with Azure SQL Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++59f771b3dd8a033ac396307e643b0c8201271508357ad084e13cd415f59ef76e">
+      <source xml:lang="en">Use GitHub Copilot chat to review or change the API configuration. Changes apply here immediately.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df">
       <source xml:lang="en">Use Microsoft Entra ID authentication to provision and connect to this database.</source>
     </trans-unit>
@@ -13641,8 +13522,8 @@
     <trans-unit id="++CODE++77e42406cc13ed7e8922f01ef4ed2233b9e95d0b328886afe57875681b44e875">
       <source xml:lang="en">Validate the migrated Azure SQL database before cutover. Check that the expected schema and data were migrated successfully, identify discrepancies or migration errors, and verify that the target is ready for application connectivity. Give me a clear go or no-go recommendation, show the evidence behind it, and provide remediation steps for anything that still needs attention.</source>
     </trans-unit>
-    <trans-unit id="++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3">
-      <source xml:lang="en">Validating configuration</source>
+    <trans-unit id="++CODE++c43641fc0f52ae8da9ef1e7ff1405a2b5ce924bfd4063312b480373f21a7b24f">
+      <source xml:lang="en">Validating the configuration against the database</source>
     </trans-unit>
     <trans-unit id="++CODE++23a86f5a2daebf62665f27e6c911523cf8c7fa74b48dd330ca058d0285defb0c">
       <source xml:lang="en">Validation failed</source>
@@ -13691,15 +13572,6 @@
     </trans-unit>
     <trans-unit id="++CODE++360bffd9a4c319eb9ff4ca5dfd2b1fcbc5af2533482587b2418837072c4ed112">
       <source xml:lang="en">Verify the target is complete, healthy, and ready for application traffic.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c3c67860a7ed33d60abb06ff29ebf03be5f1db11b3ed71566467dc8a55add424">
-      <source xml:lang="en">Verifying Docker engine is ready</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bba88aa8201682fe4d61d60b4a68cce37fef65f62111ab2d3ef125630e2b9c57">
-      <source xml:lang="en">Verifying Docker is installed on your system</source>
-    </trans-unit>
-    <trans-unit id="++CODE++231f6c3aeb3c4c3fccb71154ec11eea4e310360cd379f33c6530bef5fa2c7efd">
-      <source xml:lang="en">Verifying the API is ready to accept requests</source>
     </trans-unit>
     <trans-unit id="++CODE++dd167905de0defcaf72de673ee44c07431770d129ccffab286bd2edfdaf62396">
       <source xml:lang="en">Version</source>
@@ -13827,20 +13699,20 @@
       <source xml:lang="en">Waiting</source>
       <note>The part of the query&apos;s duration that it spent waiting</note>
     </trans-unit>
-    <trans-unit id="++CODE++0844e9783e63dc4948a453f77af8d9aaa7808efcadd1aaf6c6a844619dee7c01">
-      <source xml:lang="en">Waiting for Docker to accept commands</source>
+    <trans-unit id="++CODE++acab29af840620904063580cf6b1e3b7da4834ab0f762b8cd645374a7eae23bc">
+      <source xml:lang="en">Waiting for Docker to start</source>
     </trans-unit>
     <trans-unit id="++CODE++eb4e705d02a2723effa5d2342858bb9c71bffab833e41d2950a08dd9a66e31c6">
       <source xml:lang="en">Waiting for the API to answer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9fce120ccea574e4b9b3eccf41ad7d7df1ffc584f94a9ad6a42d0a2c2122b11">
+      <source xml:lang="en">Waiting for the API to respond</source>
     </trans-unit>
     <trans-unit id="++CODE++a3ae02338154fb3e0d35409f90e1dc7d6bd4617de8f21539c07a211a0aecfbcd">
       <source xml:lang="en">Waiting for the Docker engine</source>
     </trans-unit>
     <trans-unit id="++CODE++9f760ab207394414e76655e20267a56573691f5c5df523dd663ae13420656378">
       <source xml:lang="en">Waiting for you</source>
-    </trans-unit>
-    <trans-unit id="++CODE++674d51af07f0199f482de882b21c4998dc2a4cb0cbef2c2bb3d5da00816823e8">
-      <source xml:lang="en">Waiting for you to enter the code</source>
     </trans-unit>
     <trans-unit id="++CODE++65754e938cbd96b1124abbd73b84f20c429ae6b44ef3bf7a9020de8b403dcd11">
       <source xml:lang="en">Waiting for you to sign in. Open Data API builder in the schema designer to continue.</source>
@@ -14021,9 +13893,6 @@
     <trans-unit id="++CODE++fb7accfff8c6f8ea9b03c91ee5576d0d08080e9ba35918d801aaeb6020dbc88c">
       <source xml:lang="en">YouTube</source>
     </trans-unit>
-    <trans-unit id="++CODE++218a10d5a69c30b5a238c1ef9158c0427b0a183bc40cb11117e8eb7563807c9a">
-      <source xml:lang="en">Your APIs are available at the following endpoints:</source>
-    </trans-unit>
     <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
       <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
     </trans-unit>
@@ -14038,9 +13907,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
       <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4caf03704edcf4103fc51cda26fa6a98d6b434ade37267319ae4dbec1af12d2d">
-      <source xml:lang="en">Your configuration changed since this was deployed. Apply the changes to update the API.</source>
     </trans-unit>
     <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
       <source xml:lang="en">Your current IP {0} will be added automatically.</source>
@@ -14773,11 +14639,6 @@
       <source xml:lang="en">{0} connections imported</source>
       <note>{0} is the number of connections imported (plural)</note>
     </trans-unit>
-    <trans-unit id="++CODE++39a06811c113ad2304d8de603fc9e9ac1546b2526ee973d774012b76e767ca7c">
-      <source xml:lang="en">{0} contains column types not supported by Data API builder: {1}</source>
-      <note>{0} is the DAB source type, e.g. Table or View
-{1} is a comma-separated list of column names and their data types</note>
-    </trans-unit>
     <trans-unit id="++CODE++b850bcc16df9842efb77a1c7ecc3bd8b4ecf299ee29505b01203484441e72679">
       <source xml:lang="en">{0} could not be rendered.</source>
     </trans-unit>
@@ -14830,6 +14691,15 @@
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
     </trans-unit>
+    <trans-unit id="++CODE++10b1ea38d8ff5e6dd0fec53311f61c9aa4ec4c7b65f16160b343d686a8ddd670">
+      <source xml:lang="en">{0} has column types that Data API builder does not support: {1}</source>
+      <note>{0} is the DAB source type, e.g. Table or View
+{1} is a comma-separated list of column names and their data types</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ec99fed6d13f137ca304b1951a44793fb37929f8cb9b2ce0d8230911e4f501cb">
+      <source xml:lang="en">{0} has no key fields. Data API builder requires at least one.</source>
+      <note>{0} is the DAB source type, e.g. Table or View</note>
+    </trans-unit>
     <trans-unit id="++CODE++ebbe9b87a489ba1d93c1d28e404806351782810745a3555c03dbd9008ea36f14">
       <source xml:lang="en">{0} included trace files, {1} included events</source>
     </trans-unit>
@@ -14837,8 +14707,8 @@
       <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
       <note>{0} is the number of invalid accounts that have been removed</note>
     </trans-unit>
-    <trans-unit id="++CODE++f6c28fcc89c496f47616db462f5bd4632eee12be2c297424b5b67daee0a610b7">
-      <source xml:lang="en">{0} is a logical key column and can&apos;t be hidden.</source>
+    <trans-unit id="++CODE++73906edf27e7c7c43d594c2c0fe0b39b0892105499b7b69b41616b8edc373b2d">
+      <source xml:lang="en">{0} is a logical key column. It cannot be hidden.</source>
       <note>{0} is the backing database column name</note>
     </trans-unit>
     <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
@@ -14874,10 +14744,6 @@
     </trans-unit>
     <trans-unit id="++CODE++867b4bc96dd1efa97f229e78bcae22c22c4a3f01c2eafd608652660ab91e1369">
       <source xml:lang="en">{0} ms (pending)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
-      <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
-      <note>{0} is the DAB source type, e.g. Table or View</note>
     </trans-unit>
     <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
       <source xml:lang="en">{0} objects found</source>
@@ -15278,9 +15144,6 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
-    <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
-      <source xml:lang="en">(Preview) Manage Data API builder deployments from a Deployments view in Schema Designer, with support for deploying through Docker or the DAB CLI. Turn this off to use the original Docker-only Deploy dialog. Requires a reload of Visual Studio Code.</source>
-    </trans-unit>
     <trans-unit id="mssql.saveAsExcel.autoFilterHeaderRow">
       <source xml:lang="en">**Used when column headers are enabled.** When true, enable auto filtering on the header row when saving results as an Excel file</source>
     </trans-unit>

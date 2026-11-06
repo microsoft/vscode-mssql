@@ -396,43 +396,6 @@ suite("DAB Container", () => {
         expect(result.error).to.include("Failed to stop and remove DAB container");
     });
 
-    test("validateDabContainerName: should use DAB default container name", async () => {
-        const listContainersStub = sandbox.stub();
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        // When dab-container already exists, should generate dab-container_2
-        listContainersStub.resolves([{ Names: ["/dab-container"] }]);
-        const result = await dabContainer.validateDabContainerName("");
-        expect(result).to.equal("dab-container_2");
-    });
-
-    test("validateDabContainerName: should return valid name when not taken", async () => {
-        const listContainersStub = sandbox.stub();
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        listContainersStub.resolves([]);
-        const result = await dabContainer.validateDabContainerName("my-dab-api");
-        expect(result).to.equal("my-dab-api");
-    });
-
-    test("validateDabContainerName: should return empty string for invalid name", async () => {
-        const listContainersStub = sandbox.stub();
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        listContainersStub.resolves([]);
-        const result = await dabContainer.validateDabContainerName("!invalid@name");
-        expect(result).to.equal("");
-    });
-
     /** Port availability comes from the test, not from the host running it. */
     const allHostPortsFree = async () => true;
 

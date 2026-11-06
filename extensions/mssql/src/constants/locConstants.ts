@@ -2379,9 +2379,6 @@ export class LocalContainers {
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
     // DAB (Data API builder) deployment strings
-    public static dabContainerNameInvalidOrInUse = l10n.t(
-        "Container name is invalid or already in use",
-    );
     public static dabPortAlreadyInUse = (port: number) =>
         l10n.t({
             message: "Port {0} is already in use",
@@ -2515,7 +2512,7 @@ export class LocalContainers {
             args: [version],
             comment: ["{0} is the Data API builder version"],
         });
-    public static dabAzureCliPrivateReady = l10n.t("Azure CLI ready · private to this extension");
+    public static dabAzureCliPrivateReady = l10n.t("Azure CLI ready");
     public static dabAzureCliNotReady = l10n.t(
         "The Azure CLI is not set up yet. Run the deployment again from the start.",
     );
