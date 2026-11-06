@@ -53,6 +53,11 @@ const useStyles = makeStyles({
         justifySelf: "start",
         maxWidth: "100%",
     },
+    // Holds the link, which keeps its own role inside the cell.
+    urlCell: {
+        display: "flex",
+        minWidth: 0,
+    },
     urlDisabled: {
         color: tokens.colorNeutralForeground3,
     },
@@ -184,12 +189,13 @@ export const DabDeploymentEndpoints = ({
                                 {endpoint.url}
                             </Text>
                         ) : (
-                            <Link
-                                className={classes.url}
-                                role="cell"
-                                onClick={() => openUrl(endpoint.url, endpoint.type)}>
-                                {endpoint.url}
-                            </Link>
+                            <div className={classes.urlCell} role="cell">
+                                <Link
+                                    className={classes.url}
+                                    onClick={() => openUrl(endpoint.url, endpoint.type)}>
+                                    {endpoint.url}
+                                </Link>
+                            </div>
                         )}
                         <div className={classes.actions} role="cell">
                             {endpoint.actions.map((action) => renderAction(endpoint, action))}

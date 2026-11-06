@@ -249,9 +249,7 @@ export const DabDeploymentOverview = ({
     const header = (
         <div className={classes.header}>
             <div className={classes.titleRow}>
-                <Text as="h2" className={classes.title}>
-                    {deployment.name}
-                </Text>
+                <DialogTitle className={classes.title}>{deployment.name}</DialogTitle>
                 {renderPill()}
             </div>
             <Tooltip

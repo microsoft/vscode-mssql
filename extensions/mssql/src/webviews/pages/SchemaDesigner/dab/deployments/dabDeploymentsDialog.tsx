@@ -10,6 +10,8 @@ import {
     DialogBody,
     DialogSurface,
     makeStyles,
+    MessageBar,
+    MessageBarBody,
     Spinner,
     tokens,
 } from "@fluentui/react-components";
@@ -71,10 +73,6 @@ const useStyles = makeStyles({
  * The deployment itself is run by the extension. The dialog follows it, so
  * closing the dialog or the designer leaves the deployment running, listed in
  * Background Tasks, and reopening the dialog picks it up where it is.
- *
- * Kept apart from the toolbar's Deploy flow in ../deployment, which is the
- * original self-contained dialog and has to keep working unchanged when this
- * experience is switched off.
  */
 export const DabDeploymentsDialog = () => {
     const classes = useStyles();
@@ -90,6 +88,7 @@ export const DabDeploymentsDialog = () => {
         dismissDabDeploymentRun,
         dabDeployments,
         dabDeploymentsStatus,
+        dabDeploymentsError,
         loadDabDeployments,
         stopDabDeploymentContainer,
         deleteDabDeployment,
@@ -151,6 +150,31 @@ export const DabDeploymentsDialog = () => {
                         />
                     </DabDialogContent>
                     <DialogActions>
+                        <Button appearance="secondary" onClick={handleClose}>
+                            {locConstants.common.close}
+                        </Button>
+                    </DialogActions>
+                </>
+            );
+        }
+
+        // Setup is only offered once the list has loaded empty. A list that
+        // failed to load may be hiding a deployment that already exists.
+        if (dabDeploymentsStatus === ApiStatus.Error) {
+            return (
+                <>
+                    <DabDialogTitle>
+                        {locConstants.schemaDesigner.deployDataApiBuilder}
+                    </DabDialogTitle>
+                    <DabDialogContent>
+                        <MessageBar intent="error" layout="multiline">
+                            <MessageBarBody>{dabDeploymentsError}</MessageBarBody>
+                        </MessageBar>
+                    </DabDialogContent>
+                    <DialogActions>
+                        <Button appearance="primary" onClick={() => void loadDabDeployments()}>
+                            {locConstants.common.retry}
+                        </Button>
                         <Button appearance="secondary" onClick={handleClose}>
                             {locConstants.common.close}
                         </Button>

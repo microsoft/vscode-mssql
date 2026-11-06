@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, DialogActions, Link, makeStyles, Text, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    DialogActions,
+    DialogTitle,
+    Link,
+    makeStyles,
+    Text,
+    tokens,
+} from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { useDabContext } from "../dabContext";
@@ -82,11 +90,11 @@ export const DabDeploymentProgress = ({
     return (
         <>
             <div className={classes.header}>
-                <Text as="h2" className={classes.title}>
+                <DialogTitle className={classes.title}>
                     {run.mode === Dab.DabDeploymentMode.Redeploy
                         ? locConstants.schemaDesigner.updatingDataApiBuilder
                         : locConstants.schemaDesigner.deployingDataApiBuilder}
-                </Text>
+                </DialogTitle>
                 {subtitle && (
                     <Text className={classes.subtitle} aria-live="polite">
                         {subtitle}

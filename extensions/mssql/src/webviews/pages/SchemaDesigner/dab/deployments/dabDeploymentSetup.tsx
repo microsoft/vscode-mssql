@@ -252,11 +252,12 @@ export const DabDeploymentSetup = ({ onDeploy, onCancel }: DabDeploymentSetupPro
 
     const handlePortChange = (value: string) => {
         setPort(value);
+        // Drop any answer still in flight for an earlier value, the first
+        // suggestion included, so it cannot settle the check for this one.
+        portCheckIdRef.current++;
         const portNumber = Number(value);
         if (!Number.isInteger(portNumber) || portNumber < 1 || portNumber > 65535) {
             debouncedPortCheck.cancel();
-            // Drop any answer still in flight for an earlier value.
-            portCheckIdRef.current++;
             setPortError(locConstants.schemaDesigner.portInvalid);
             setIsCheckingPort(false);
             return;
