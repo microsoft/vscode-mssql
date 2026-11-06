@@ -213,6 +213,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Ensure deployment options are loaded before executing DacFx operations.
         await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
+        const telemetryContext = getConnectionTelemetryInfo(
+            this._connectionManager,
+            connectionUri,
+            databaseName,
+        );
+        const serverTypes = this._serverTypes;
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
         try {
@@ -228,48 +234,36 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                    ...getConnectionTelemetryInfo(
-                        this._connectionManager,
-                        this._connectionUri,
-                        databaseName,
-                    ),
+                    ...telemetryContext,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "true",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                    ...getConnectionTelemetryInfo(
-                        this._connectionManager,
-                        this._connectionUri,
-                        databaseName,
-                    ),
+                    ...telemetryContext,
                     error: new Error(getErrorMessage(result.errorMessage)),
                     includeErrorMessage: false,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "false",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
             }
         } catch (error) {
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                ...getConnectionTelemetryInfo(
-                    this._connectionManager,
-                    this._connectionUri,
-                    databaseName,
-                ),
+                ...telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
                     operationId: this._operationId,
                     success: "false",
-                    serverTypes: this._serverTypes,
+                    serverTypes,
                 },
             });
         }
@@ -289,6 +283,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Ensure deployment options are loaded before executing DacFx operations.
         await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
+        const telemetryContext = getConnectionTelemetryInfo(
+            this._connectionManager,
+            connectionUri,
+            databaseName,
+        );
+        const serverTypes = this._serverTypes;
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
         try {
@@ -303,46 +303,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                    ...getConnectionTelemetryInfo(
-                        this._connectionManager,
-                        this._connectionUri,
-                        databaseName,
-                    ),
+                    ...telemetryContext,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "true",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                    ...getConnectionTelemetryInfo(
-                        this._connectionManager,
-                        this._connectionUri,
-                        databaseName,
-                    ),
+                    ...telemetryContext,
                     error: new Error(getErrorMessage(result.errorMessage)),
                     includeErrorMessage: false,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "false",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
             }
         } catch (error) {
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                ...getConnectionTelemetryInfo(
-                    this._connectionManager,
-                    this._connectionUri,
-                    databaseName,
-                ),
+                ...telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
                     operationId: this._operationId,
                     success: "false",
-                    serverTypes: this._serverTypes,
+                    serverTypes,
                 },
             });
         }

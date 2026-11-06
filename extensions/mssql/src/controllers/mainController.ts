@@ -596,14 +596,20 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
+                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 sendActionEvent(
                     TelemetryViews.MssqlCopilot,
                     TelemetryActions.ChatWithDatabase,
-                    getConnectionTelemetryInfo(this._connectionMgr, treeNodeInfo.connectionProfile),
+                    getConnectionTelemetryInfo(
+                        this._connectionMgr,
+                        treeNodeInfo.connectionProfile,
+                        databaseName === LocalizedConstants.defaultDatabaseLabel
+                            ? ""
+                            : (databaseName ?? ""),
+                    ),
                 );
 
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
-                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 if (
                     databaseName !== connectionCredentials.database &&
                     databaseName !== LocalizedConstants.defaultDatabaseLabel
@@ -672,17 +678,20 @@ export default class MainController implements vscode.Disposable {
             this._event.on(
                 Constants.cmdChatWithDatabaseInAgentMode,
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.ChatWithDatabaseInAgentMode,
                         getConnectionTelemetryInfo(
                             this._connectionMgr,
                             treeNodeInfo.connectionProfile,
+                            databaseName === LocalizedConstants.defaultDatabaseLabel
+                                ? ""
+                                : (databaseName ?? ""),
                         ),
                     );
 
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
                         databaseName &&
                         databaseName !== connectionCredentials.database &&

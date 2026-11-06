@@ -218,11 +218,18 @@ export class ObjectExplorerService {
         sessionId: string,
         shouldRefresh: boolean = node.shouldRefresh,
     ): Promise<vscode.TreeItem[] | undefined> {
+        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
             {
-                ...getConnectionTelemetryInfo(this._connectionManager, node.connectionProfile),
+                ...getConnectionTelemetryInfo(
+                    this._connectionManager,
+                    node.connectionProfile,
+                    databaseName === LocalizedConstants.defaultDatabaseLabel
+                        ? ""
+                        : (databaseName ?? ""),
+                ),
                 additionalProps: {
                     nodeType: node.nodeType,
                     nodeSubType: node.nodeSubType,
@@ -244,8 +251,6 @@ export class ObjectExplorerService {
                 nodePath: node.nodePath,
                 filters: node.filters,
             };
-            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-
             // Retry loop for paused/resuming Azure serverless databases (original attempt + 2 retries).
             const maxAttempts = serverlessWakeMaxRetryAttempts + 1;
             for (let attempt = 0; attempt < maxAttempts; attempt++) {

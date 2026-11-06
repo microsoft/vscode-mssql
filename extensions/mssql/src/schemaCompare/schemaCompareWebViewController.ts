@@ -1189,6 +1189,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     ...getConnectionTelemetryInfo(
                         this.connectionMgr,
                         state.targetEndpointInfo?.ownerUri,
+                        payload.targetDatabaseName ?? "",
                     ),
                     correlationId: generateOperationId(),
                     additionalProps: {
@@ -1281,6 +1282,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     ...getConnectionTelemetryInfo(
                         this.connectionMgr,
                         state.targetEndpointInfo?.ownerUri,
+                        payload.targetDatabaseName ?? "",
                     ),
                     correlationId: generateOperationId(),
                     additionalProps: {
@@ -1483,6 +1485,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     ...getConnectionTelemetryInfo(
                         this.connectionMgr,
                         state.targetEndpointInfo?.ownerUri,
+                        payload.targetDatabaseName ?? "",
                     ),
                     correlationId: generateOperationId(),
                     additionalProps: {

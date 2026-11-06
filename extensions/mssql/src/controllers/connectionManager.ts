@@ -691,10 +691,7 @@ export default class ConnectionManager {
                           databaseServiceTier: undefined,
                           databaseServiceObjective: undefined,
                       };
-                self._connectionCredentialsToServerInfoMap.set(
-                    connectionInfo.credentials,
-                    connectionInfo.serverInfo,
-                );
+                self.cacheServerInfo(connectionInfo.credentials, connectionInfo.serverInfo);
 
                 void self._statusView.connectSuccess(
                     event.ownerUri,
@@ -1239,7 +1236,7 @@ export default class ConnectionManager {
     }
 
     /**
-     * Gets cached server info, optionally restricting database-scoped metadata to a target database.
+     * Gets cached server info with database-scoped metadata restricted to the requested database.
      */
     public getServerInfo(
         connectionCredentials: IConnectionInfo,
@@ -1248,36 +1245,43 @@ export default class ConnectionManager {
         if (!connectionCredentials) {
             return undefined;
         }
-        if (databaseName !== undefined) {
-            for (const [connection, serverInfo] of this._connectionCredentialsToServerInfoMap) {
-                if (
-                    databaseName &&
-                    connection.database === databaseName &&
-                    Utils.isSameConnectionInfo(connection, {
-                        ...connectionCredentials,
-                        database: databaseName,
-                    })
-                ) {
-                    return serverInfo;
-                }
+        const targetDatabase = databaseName ?? connectionCredentials.database;
+        const targetConnection = { ...connectionCredentials, database: targetDatabase };
+        let fallbackServerInfo: IServerInfo | undefined;
+        for (const [connection, serverInfo] of this._connectionCredentialsToServerInfoMap) {
+            if (
+                targetDatabase &&
+                connection.database === targetDatabase &&
+                Utils.isSameConnectionInfo(connection, targetConnection)
+            ) {
+                return serverInfo;
             }
-            const serverInfo = this.getServerInfo(connectionCredentials);
-            return serverInfo
-                ? {
-                      ...serverInfo,
-                      databaseServiceTier: undefined,
-                      databaseServiceObjective: undefined,
-                  }
-                : undefined;
-        }
-        if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
-            return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
-        }
-        for (const connection of this._connectionCredentialsToServerInfoMap.keys()) {
             if (Utils.isSameConnectionInfo(connection, connectionCredentials)) {
-                return this._connectionCredentialsToServerInfoMap.get(connection);
+                fallbackServerInfo ??= serverInfo;
             }
         }
+        return fallbackServerInfo
+            ? {
+                  ...fallbackServerInfo,
+                  databaseServiceTier: undefined,
+                  databaseServiceObjective: undefined,
+              }
+            : undefined;
+    }
+
+    /**
+     * Replaces cached metadata for a connection/database and snapshots its mutable credentials.
+     */
+    private cacheServerInfo(credentials: IConnectionInfo, serverInfo: IServerInfo): void {
+        for (const connection of this._connectionCredentialsToServerInfoMap.keys()) {
+            if (
+                connection.database === credentials.database &&
+                Utils.isSameConnectionInfo(connection, credentials)
+            ) {
+                this._connectionCredentialsToServerInfoMap.delete(connection);
+            }
+        }
+        this._connectionCredentialsToServerInfoMap.set({ ...credentials }, serverInfo);
     }
 
     /**
@@ -1937,12 +1941,6 @@ export default class ConnectionManager {
          * Connection was successful
          */
 
-        // Saving server info to the map
-        this._connectionCredentialsToServerInfoMap.set(
-            connectionInfo.credentials,
-            result.serverInfo,
-        );
-
         let newCredentials: IConnectionInfo = <any>{};
         Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, connectionInfo.credentials);
 
@@ -1953,6 +1951,7 @@ export default class ConnectionManager {
         connectionInfo.connectionId = result.connectionId;
         connectionInfo.serverInfo = result.serverInfo;
         connectionInfo.credentials = newCredentials;
+        this.cacheServerInfo(newCredentials, result.serverInfo);
         connectionInfo.errorNumber = undefined;
         connectionInfo.errorMessage = undefined;
 

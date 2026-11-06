@@ -35,6 +35,8 @@ import * as constants from "../../src/constants/constants";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 import { ServerType } from "../../src/models/connectionInfo";
+import { Deferred } from "../../src/protocol";
+import { UserSurvey } from "../../src/nps/userSurvey";
 
 chai.use(sinonChai);
 
@@ -1589,6 +1591,89 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     for (const operation of ["publishToDatabase", "generateDeploymentScript"] as const) {
+        for (const outcome of ["success", "failure", "exception"] as const) {
+            test(`${operation} ${outcome} telemetry retains its connection when selection changes`, async () => {
+                const sendActionEvent = sandbox.stub(telemetry, "sendActionEvent");
+                const sendErrorEvent = sandbox.stub(telemetry, "sendErrorEvent");
+                sandbox
+                    .stub(UserSurvey, "getInstance")
+                    .returns(sandbox.createStubInstance(UserSurvey));
+                const controller = createTestController();
+                await controller.initialized.promise;
+                controller["_connectionUri"] = "mssql://server-a";
+                controller["_serverTypes"] = "Azure,SQL";
+                const connectionInfo = {
+                    server: "server-a",
+                    database: "target",
+                } as mssql.IConnectionInfo;
+                const serverInfo = {
+                    engineEditionId: 5,
+                    databaseServiceTier: "GeneralPurpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                } as mssql.IServerInfo;
+                mockConnectionManager.getConnectionInfo.withArgs("mssql://server-a").returns({
+                    credentials: connectionInfo,
+                    serverInfo,
+                } as ReturnType<ConnectionManager["getConnectionInfo"]>);
+                mockConnectionManager.getConnectionInfo.withArgs("mssql://server-b").returns({
+                    credentials: { server: "server-b", database: "target" },
+                    serverInfo: { ...serverInfo, engineEditionId: 8 },
+                } as ReturnType<ConnectionManager["getConnectionInfo"]>);
+                const started = new Deferred<void>();
+                const result = new Deferred<mssql.DacFxResult>();
+                const serviceMethod =
+                    operation === "publishToDatabase"
+                        ? mockDacFxService.deployDacpac
+                        : mockDacFxService.generateDeployScript;
+                serviceMethod.callsFake(() => {
+                    started.resolve();
+                    return result.promise;
+                });
+                const pending =
+                    operation === "publishToDatabase"
+                        ? controller[operation](
+                              controller.state,
+                              "/tmp/test.dacpac",
+                              "target",
+                              true,
+                          )
+                        : controller[operation](controller.state, "/tmp/test.dacpac", "target");
+                await started.promise;
+                controller["_connectionUri"] = "mssql://server-b";
+                controller["_serverTypes"] = "DifferentServer";
+                if (outcome === "exception") {
+                    result.reject(new Error("Deployment failed"));
+                } else {
+                    result.resolve({
+                        success: outcome === "success",
+                        errorMessage: outcome === "failure" ? "Deployment failed" : "",
+                        operationId: "operation",
+                    });
+                }
+                await pending;
+
+                const event = outcome === "success" ? sendActionEvent : sendErrorEvent;
+                expect(event).to.have.been.calledWithMatch(
+                    sinon.match.any,
+                    operation === "publishToDatabase"
+                        ? TelemetryActions.PublishProject
+                        : TelemetryActions.GenerateScript,
+                    {
+                        connectionInfo,
+                        serverInfo,
+                        additionalProps: { serverTypes: "Azure,SQL" },
+                    },
+                );
+                expect(serviceMethod).to.have.been.calledWithMatch(
+                    "/tmp/test.dacpac",
+                    "target",
+                    ...(operation === "publishToDatabase"
+                        ? [true, "mssql://server-a"]
+                        : ["mssql://server-a"]),
+                );
+            });
+        }
+
         test(`${operation} omits another database's tier for the operation target`, async () => {
             const sendActionEvent = sandbox.stub(telemetry, "sendActionEvent");
             const result = { success: true, operationId: "test-operation", errorMessage: "" };
