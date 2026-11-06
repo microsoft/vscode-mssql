@@ -16084,7 +16084,7 @@
       <source xml:lang="en">Open Query History in Command Palette</source>
     </trans-unit>
     <trans-unit id="mssql.performance.openDashboard">
-      <source xml:lang="en">Open Query Performance Dashboard</source>
+      <source xml:lang="en">Open Query Performance Dashboard (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.openXelFile">
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
