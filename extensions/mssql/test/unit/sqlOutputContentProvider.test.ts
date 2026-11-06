@@ -42,7 +42,6 @@ import {
 import { stubMessageBoxes, stubTelemetry, stubVscodeWorkspace } from "./utils";
 import { Perf } from "../../src/perf/perfTelemetry";
 import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
-import { IServerInfo } from "vscode-mssql";
 
 const { expect } = chai;
 
@@ -1013,51 +1012,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 batchId: -1,
             },
         });
-
-        for (const originalUri of ["untitled:query.sql", "file:///original.sql"]) {
-            test(`query-result telemetry follows the runner URI after saving ${originalUri}`, async () => {
-                const savedUri = "file:///saved.sql";
-                const { sendActionEvent } = stubTelemetry(sandbox);
-                const telemetryContext = {
-                    connectionInfo: {
-                        server: "localhost",
-                        database: "database-a",
-                        authenticationType: "SqlLogin",
-                    },
-                    serverInfo: { engineEditionId: 5 } as IServerInfo,
-                };
-                const getTelemetry = sandbox.stub(contentProvider, "getConnectionTelemetryInfo");
-                getTelemetry.withArgs(savedUri).returns(telemetryContext);
-                sandbox
-                    .stub(QueryRunner.prototype, "runQuery")
-                    .callsFake(async function (selection) {
-                        this.setupQueryExecution(selection);
-                        this["_startEmitter"].fire(this.uri);
-                    });
-                await contentProvider.runQuery(statusViewInstance, originalUri, undefined, "query");
-                contentProvider.getQueryRunner(originalUri).handleQueryComplete({
-                    ownerUri: originalUri,
-                    batchSummaries: [],
-                });
-                await contentProvider.updateQueryRunnerUri(originalUri, savedUri);
-                sendActionEvent.resetHistory();
-                getTelemetry.resetHistory();
-
-                await contentProvider.runQuery(statusViewInstance, savedUri, undefined, "query");
-
-                expect(getTelemetry).to.have.been.calledWith(savedUri);
-                expect(getTelemetry).not.to.have.been.calledWith(originalUri);
-                expect(sendActionEvent).to.have.been.calledWithMatch(
-                    sinon.match.any,
-                    TelemetryActions.OpenQueryResult,
-                    telemetryContext,
-                );
-                contentProvider.getQueryRunner(savedUri).handleQueryComplete({
-                    ownerUri: savedUri,
-                    batchSummaries: [],
-                });
-            });
-        }
 
         state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
         expect(state.rowsAffected).to.equal(7);

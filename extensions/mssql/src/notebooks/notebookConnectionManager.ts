@@ -238,7 +238,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.invalidateCellRegistrations();
             activity.end(
                 ActivityStatus.Succeeded,
-                getConnectionTelemetryInfo(this.connectionMgr, connectionInfo),
+                getConnectionTelemetryInfo(this.connectionMgr, uri),
             );
             return uri;
         } catch (err) {

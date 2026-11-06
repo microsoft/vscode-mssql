@@ -7,13 +7,15 @@ import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
-import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
+import type { IConnectionInfo, ConnectionDetails, IServerInfo } from "vscode-mssql";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 
 chai.use(sinonChai);
 
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { ILogger } from "../../../src/sharedInterfaces/logger";
-import ConnectionManager from "../../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../../src/controllers/connectionManager";
+import { ActivityStatus } from "../../../src/sharedInterfaces/telemetry";
 import {
     ConnectionCompleteParams,
     ConnectionRequest,
@@ -263,6 +265,35 @@ suite("NotebookConnectionManager", () => {
         test("stores connectionUri after successful connect", async () => {
             const uri = await mgr.promptAndConnect();
             expect(mgr.getConnectionUri()).to.equal(uri);
+        });
+
+        test("reports successful connection telemetry from the connected URI", async () => {
+            const endStub = sandbox.stub();
+            sandbox.stub(telemetry, "startActivity").returns({
+                correlationId: "notebook-connect",
+                startTime: 0,
+                update: sandbox.stub(),
+                end: endStub,
+                endFailed: sandbox.stub(),
+            });
+            stubUI.promptForConnection.resolves(makeConnectionInfo({ database: "" }));
+            const connectedInfo = new ConnectionInfo();
+            connectedInfo.credentials = makeConnectionInfo({ database: "login-default" });
+            connectedInfo.serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            connectionMgr.getConnectionInfo.callsFake((uri: string) =>
+                uri === mgr.getConnectionUri() ? connectedInfo : undefined,
+            );
+
+            await mgr.promptAndConnect();
+
+            expect(endStub).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                connectionInfo: connectedInfo.credentials,
+                serverInfo: connectedInfo.serverInfo,
+            });
         });
     });
 

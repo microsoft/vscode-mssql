@@ -1256,7 +1256,12 @@ export default class ConnectionManager {
             ) {
                 return serverInfo;
             }
-            if (Utils.isSameConnectionInfo(connection, connectionCredentials)) {
+            if (
+                Utils.isSameConnectionInfo(
+                    { ...connection, database: undefined },
+                    { ...connectionCredentials, database: undefined },
+                )
+            ) {
                 fallbackServerInfo ??= serverInfo;
             }
         }

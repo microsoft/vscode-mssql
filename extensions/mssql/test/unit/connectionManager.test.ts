@@ -258,6 +258,33 @@ suite("ConnectionManager Tests", () => {
             ).to.equal(infoB);
         });
 
+        test("one-argument server info lookup finds an ID-less connection resolved to its default database", () => {
+            const credentials = {
+                server: "localhost",
+                database: "",
+                authenticationType: "SqlLogin",
+                user: "sa",
+            } as IConnectionInfo;
+            const serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            connectionManager["cacheServerInfo"](
+                { ...credentials, database: "login-default" },
+                serverInfo,
+            );
+
+            expect(connectionManager.getServerInfo(credentials)).to.include({
+                engineEditionId: 5,
+                databaseServiceTier: undefined,
+                databaseServiceObjective: undefined,
+            });
+            expect(
+                connectionManager.getServerInfo({ ...credentials, server: "other-server" }),
+            ).to.equal(undefined);
+        });
+
         for (const database of ["database-b", "", undefined]) {
             test(`one-argument server info lookup omits unmatched database fields for ${database === undefined ? "a missing database" : database === "" ? "an empty database" : database}`, () => {
                 const profile = {
