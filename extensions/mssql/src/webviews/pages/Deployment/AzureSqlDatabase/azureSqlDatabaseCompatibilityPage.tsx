@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
     Button,
     Link,
@@ -44,7 +44,6 @@ const useStyles = makeStyles({
         minWidth: 0,
         width: "100%",
     },
-    heading: { margin: 0 },
     secondary: { color: "var(--vscode-descriptionForeground)", lineHeight: "24px" },
     databaseName: {
         fontFamily: "var(--vscode-editor-font-family), monospace",
@@ -177,7 +176,6 @@ export const AzureSqlDatabaseCompatibilityPage = ({
     const [showDetails, setShowDetails] = useState(false);
     const detailsId = useId();
     const [stage, setStage] = useState<LocalDatabaseCompatibilityStage>("extractingSchema");
-    const heading = useRef<HTMLHeadingElement>(null);
     const diagnostics = result?.diagnostics ?? [];
     const warningDiagnostics = useMemo(
         () => result?.diagnostics.filter((diagnostic) => diagnostic.severity === "warning") ?? [],
@@ -188,7 +186,6 @@ export const AzureSqlDatabaseCompatibilityPage = ({
 
     useEffect(() => {
         let cancelled = false;
-        heading.current?.focus({ preventScroll: true });
         setResult(undefined);
         setError(undefined);
         setShowDetails(false);
@@ -266,15 +263,6 @@ export const AzureSqlDatabaseCompatibilityPage = ({
 
     return (
         <div className={classes.content}>
-            <Text
-                as="h2"
-                size={400}
-                weight="semibold"
-                className={classes.heading}
-                ref={heading}
-                tabIndex={-1}>
-                {strings.checkAzureCompatibility}
-            </Text>
             <Text className={classes.secondary}>
                 {renderDatabaseName(strings.compatibilityDescription("{0}"))}
             </Text>

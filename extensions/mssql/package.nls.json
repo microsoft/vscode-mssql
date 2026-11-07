@@ -347,6 +347,7 @@
     "mssql.sharedConnections.scriptObject": "Shared Connections: Script Object",
     "mssql.sharedConnections.getConnectionString": "Shared Connections: Get Connection String",
     "mssql.newDeployment": "New Deployment",
+    "mssql.deployDatabaseToAzure": "Deploy to Azure",
     "mssql.stopContainer": "Stop SQL Container",
     "mssql.deleteContainer": "Delete SQL Container",
     "mssql.startContainer": "Start SQL Container",

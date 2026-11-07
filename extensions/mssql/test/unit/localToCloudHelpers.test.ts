@@ -21,6 +21,7 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { CredentialsQuickPickItemType } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { FirewallService } from "../../src/firewall/firewallService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { DacFxService } from "../../src/services/dacFxService";
@@ -36,6 +37,7 @@ import {
     connectLocalDatabaseSource,
     getCompatibilityModelObjects,
     getLocalDatabaseSources,
+    getLocalDatabaseProfileId,
     getLocalServerDatabases,
     LocalDatabaseCompatibilityService,
     LocalDatabaseDeploymentService,
@@ -52,6 +54,7 @@ import {
     initializeAzureSqlDatabaseState,
 } from "../../src/deployment/azureSqlDatabaseHelpers";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
+import { FormItemType } from "../../src/sharedInterfaces/form";
 import {
     AzureSqlDatabaseState,
     LocalDatabaseCompatibilityDiagnostic,
@@ -204,7 +207,7 @@ suite("Local-to-cloud helpers", () => {
             ]);
         });
 
-        test("keeps a saved server expandable when its active session has a default database", () => {
+        test("keeps a saved server database-agnostic when its active session has a default database", () => {
             const sources = getLocalDatabaseSources([
                 { id: "server", server: "localhost,1433", profileName: "Local server" },
                 {
@@ -292,7 +295,7 @@ suite("Local-to-cloud helpers", () => {
             const result = await connectSource();
 
             expect(result).to.include({
-                id: profile.id,
+                id: connection.connectionId,
                 database: "InventoryDb",
                 isConnected: true,
                 serverVersion: "2025",
@@ -353,7 +356,7 @@ suite("Local-to-cloud helpers", () => {
             expect(manager.connect).to.have.been.calledWith(
                 sinon.match.string,
                 sinon.match({
-                    id: result.id,
+                    id: profile.id,
                     database: "InventoryDb",
                     password: "test-only-password",
                 }),
@@ -374,9 +377,64 @@ suite("Local-to-cloud helpers", () => {
             expect(connection.credentials.database).to.equal("");
             expect(manager.connect).to.have.been.calledWith(
                 sinon.match((uri: string) => uri !== "existing"),
-                sinon.match({ id: result.id, database: "AppDb" }),
+                sinon.match({ id: profile.id, database: "AppDb" }),
                 sinon.match.any,
             );
+        });
+
+        test("database-specific sessions keep one container profile in saved, recent and active sources", async () => {
+            profile.database = "";
+            profile.profileName = "azure_sql_db_container_5";
+            const selected = new ConnectionInfo();
+            selected.connectionId = "selected-database-connection";
+            manager.connect.callsFake(async (uri, credentials) => {
+                selected.credentials = credentials;
+                manager.getConnectionInfo.withArgs(uri).returns(selected);
+                return true;
+            });
+
+            const source = await connectLocalDatabaseSource(manager, profile.id, client, "AppDb");
+            const sources = getLocalDatabaseSources([
+                profile,
+                {
+                    ...selected.credentials,
+                    id: getLocalDatabaseProfileId(selected),
+                },
+                {
+                    ...selected.credentials,
+                    id: getLocalDatabaseProfileId(selected),
+                    isConnected: true,
+                },
+            ]);
+
+            expect(source.id).to.equal(selected.connectionId);
+            expect(sources).to.have.lengthOf(1);
+            expect(sources[0]).to.include({
+                id: profile.id,
+                profileName: "azure_sql_db_container_5",
+                database: "",
+                isConnected: true,
+            });
+        });
+
+        test("reuses the exact selected database session when a profile has multiple active databases", async () => {
+            profile.database = "";
+            const selected = new ConnectionInfo();
+            selected.credentials = { ...profile, database: "AppDb" };
+            selected.connectionId = "selected-database-connection";
+            active.existing = connection;
+            active.selected = selected;
+            manager.isConnected.returns(true);
+            manager.getConnectionInfo.withArgs("selected").returns(selected);
+
+            const source = await connectLocalDatabaseSource(manager, profile.id, client, "AppDb");
+            expect(source.id).to.equal(selected.connectionId);
+            expect(source.database).to.equal("AppDb");
+            expect(manager.connect).not.to.have.been.called;
+            expect(client.sendRequest).to.have.been.calledWith(sinon.match.any, {
+                ownerUri: "selected",
+                queryString: "SELECT @@VERSION AS version;",
+            });
         });
 
         test("connects a server without a database and lists only distinct user databases", async () => {
@@ -402,7 +460,7 @@ suite("Local-to-cloud helpers", () => {
             expect(client.sendRequest).not.to.have.been.called;
         });
 
-        test("reuses an active server connection when expanding its databases", async () => {
+        test("reuses an active server connection when loading its databases", async () => {
             profile.database = "";
             active.existing = connection;
             manager.isConnected.withArgs("existing").returns(true);
@@ -436,6 +494,29 @@ suite("Local-to-cloud helpers", () => {
             }
             expect(failure).to.be.instanceOf(Error);
             expect(failure).to.have.property("message", LocalToCloud.sourceConnectionFailed);
+        });
+
+        test("preserves the connection error when loading databases fails to connect", async () => {
+            manager.connect.resolves(false);
+            connection.errorMessage = "Login failed for user 'sa'.";
+            const failure = await getLocalServerDatabases(manager, profile.id, client).then(
+                () => undefined,
+                (error: unknown) => error,
+            );
+            expect(failure).to.have.property("message", connection.errorMessage);
+            expect(manager.listDatabases).not.to.have.been.called;
+        });
+
+        test("preserves metadata query errors instead of replacing them with a version error", async () => {
+            manager.connect.resolves(true);
+            client.sendRequest.resolves({
+                messages: [{ isError: true, message: "Metadata access denied." }],
+            });
+            const failure = await connectSource().then(
+                () => undefined,
+                (error: unknown) => error,
+            );
+            expect(failure).to.have.property("message", "Metadata access denied.");
         });
 
         test("propagates credential or connection errors", async () => {
@@ -514,13 +595,27 @@ suite("Local-to-cloud helpers", () => {
 
         test("rejects missing, unexpected and error query results instead of guessing a year", async () => {
             manager.connect.resolves(true);
-            for (const result of [
-                { rows: [] },
-                { rows: [[{ displayValue: "17.0.1000", isNull: false }]] },
-                { rows: [[{ displayValue: "Microsoft SQL Server 2025", isNull: true }]] },
+            for (const { result, expectedMessage } of [
                 {
-                    rows: [[{ displayValue: "Microsoft SQL Server 2025", isNull: false }]],
-                    messages: [{ isError: true, message: "Query failed" }],
+                    result: { rows: [] },
+                    expectedMessage: LocalToCloud.sourceVersionFailed,
+                },
+                {
+                    result: { rows: [[{ displayValue: "17.0.1000", isNull: false }]] },
+                    expectedMessage: LocalToCloud.sourceVersionFailed,
+                },
+                {
+                    result: {
+                        rows: [[{ displayValue: "Microsoft SQL Server 2025", isNull: true }]],
+                    },
+                    expectedMessage: LocalToCloud.sourceVersionFailed,
+                },
+                {
+                    result: {
+                        rows: [[{ displayValue: "Microsoft SQL Server 2025", isNull: false }]],
+                        messages: [{ isError: true, message: "Query failed" }],
+                    },
+                    expectedMessage: "Query failed",
                 },
             ]) {
                 client.sendRequest.resolves(result);
@@ -530,10 +625,7 @@ suite("Local-to-cloud helpers", () => {
                 } catch (error) {
                     failure = error;
                 }
-                expect(failure).to.have.property(
-                    "message",
-                    "Unable to determine the selected SQL Server release year.",
-                );
+                expect(failure).to.have.property("message", expectedMessage);
             }
         });
 
@@ -601,12 +693,13 @@ suite("Local-to-cloud helpers", () => {
             sandbox.stub(netCore, "getMicrosoftBuildSqlVersion").returns("2.2.0");
             const profile = sandbox.createStubInstance(ConnectionProfile);
             Object.assign(profile, {
-                id: request.sourceId,
+                id: "saved-container-profile",
                 server: "localhost,1433",
                 database: "InventoryDb",
             });
 
             const connection = new ConnectionInfo();
+            connection.connectionId = request.sourceId;
             connection.credentials = profile;
             sandbox.stub(manager, "activeConnections").get(() => ({ "source-uri": connection }));
             manager.isConnected.withArgs("source-uri").returns(true);
@@ -813,6 +906,7 @@ suite("Local-to-cloud helpers", () => {
             });
             const blocked = await service.validate(request);
             expect(blocked.status).to.equal("blocked");
+            expect(blocked.errorMessage).to.equal("Unsupported object");
             expect(blocked.packageId).to.equal(undefined);
             expect(telemetry.sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.LocalToCloudDeployment,
@@ -834,9 +928,10 @@ suite("Local-to-cloud helpers", () => {
                 ],
                 errorMessage: "Build failed",
             });
-            expect((await service.validate({ ...request, validationId: "retry" })).status).to.equal(
-                "error",
-            );
+            expect(await service.validate({ ...request, validationId: "retry" })).to.include({
+                status: "error",
+                errorMessage: "Restore failed",
+            });
             expect(telemetry.sendErrorEvent).to.have.been.calledWith(
                 TelemetryViews.LocalToCloudDeployment,
                 TelemetryActions.ValidateLocalDatabaseCompatibility,
@@ -867,6 +962,40 @@ suite("Local-to-cloud helpers", () => {
             expect(builder.build).not.to.have.been.called;
             expect(projects.closeProject).to.have.been.called;
             expect(disposeSuppression).to.have.been.called;
+        });
+
+        test("preserves schema extraction task details over the generic operation error", async () => {
+            dacFx.createProjectFromDatabase.callsFake(async (_database, directory) => {
+                taskCreatedEmitter.fire({
+                    taskId: "extract-task",
+                    targetLocation: directory,
+                } as TaskInfo);
+                taskProgressEmitter.fire({
+                    taskId: "extract-task",
+                    status: TaskStatus.Failed,
+                    message: "Extraction failed.",
+                    progressMessage: "Login failed for user 'sa'.",
+                });
+                return { success: false, errorMessage: "Operation failed.", operationId: "" };
+            });
+            expect(await service.validate(request)).to.include({
+                status: "error",
+                errorMessage: "Login failed for user 'sa'.",
+            });
+            expect(builder.build).not.to.have.been.called;
+        });
+
+        test("preserves the validation failure when project cleanup also fails", async () => {
+            dacFx.createProjectFromDatabase.resolves({
+                success: false,
+                errorMessage: "Extraction denied.",
+                operationId: "extract-one",
+            });
+            projects.closeProject.resolves({ success: false, errorMessage: "Close failed." });
+            expect(await service.validate(request)).to.include({
+                status: "error",
+                errorMessage: "Extraction denied.\nClose failed.",
+            });
         });
 
         test("reports progress only when extraction, Azure validation, and package verification start", async () => {
@@ -1324,8 +1453,9 @@ suite("Local-to-cloud helpers", () => {
             sandbox.stub(node, "sessionId").get(() => "object-explorer-session");
             main.createObjectExplorerSession.resolves(node);
             const source = new ConnectionInfo();
+            source.connectionId = request.sourceId;
             source.credentials = Object.assign(new ConnectionProfile(), {
-                id: "source-id",
+                id: "saved-source-profile",
                 server: "localhost,1433",
                 database: "Inventory",
             });
@@ -1941,10 +2071,15 @@ suite("Local-to-cloud helpers", () => {
                 .callThrough()
                 .onFirstCall()
                 .rejects(new Error("private cleanup path"));
-            expect((await deploy()).status).to.equal("error");
+            const result = await deploy();
+            expect(result).to.include({
+                status: "error",
+                errorMessage: `private cleanup path\n${LocalToCloud.deploymentCleanupFailed}`,
+            });
             expect(
                 backgroundTasks.tasks.find((task) => task.state === BackgroundTaskState.Failed),
-            ).to.include({ message: LocalToCloud.deploymentCleanupFailed });
+            ).to.include({ message: result.errorMessage });
+            expect(output.appendLine).not.to.have.been.calledWith(LocalToCloud.deploymentSucceeded);
             expect(telemetry.sendErrorEvent).to.have.been.calledWith(
                 TelemetryViews.LocalToCloudDeployment,
                 TelemetryActions.FinishLocalToCloudDeployment,
@@ -2066,6 +2201,73 @@ suite("Local-to-cloud helpers", () => {
             expect(output.appendLine).not.to.have.been.calledWith(LocalToCloud.deploymentSucceeded);
         });
 
+        test("preserves source connection errors during data export", async () => {
+            withData();
+            manager.connect.resolves(false);
+            const connection = new ConnectionInfo();
+            connection.errorMessage = "Cannot open database Inventory requested by the login.";
+            manager.getConnectionInfo.returns(connection);
+            expect(await deploy()).to.include({
+                status: "error",
+                errorMessage: connection.errorMessage,
+                resourcesMayRemain: false,
+            });
+            expect(createDatabase).not.to.have.been.called;
+        });
+
+        test("surfaces specific Azure form validation errors", async () => {
+            controller.validateDeploymentForm.callsFake(async (_propertyName, snapshot) => {
+                if (!snapshot || !("azureComponentStatuses" in snapshot)) {
+                    throw new Error("Expected the Azure SQL deployment snapshot.");
+                }
+                snapshot.formComponents.databaseName = {
+                    type: FormItemType.Input,
+                    propertyName: "databaseName",
+                    label: "Database name",
+                    required: true,
+                    componentWidth: "100%",
+                    validation: {
+                        isValid: false,
+                        validationMessage: "Choose a new database name.",
+                    },
+                };
+                return ["databaseName"];
+            });
+            expect(await deploy()).to.include({
+                status: "error",
+                errorMessage: "Choose a new database name.",
+                resourcesMayRemain: false,
+            });
+            expect(createDatabase).not.to.have.been.called;
+        });
+
+        test("preserves connection errors when automatic firewall handling fails", async () => {
+            manager.connect.resolves(false);
+            const firewall = sandbox.createStubInstance(FirewallService);
+            firewall.handleFirewallRule.resolves({ result: false, ipAddress: "" });
+            sandbox.stub(manager, "firewallService").get(() => firewall);
+            const connection = new ConnectionInfo();
+            connection.errorNumber = 40615;
+            connection.errorMessage = "The client IP is not allowed to access the server.";
+            manager.getConnectionInfo.returns(connection);
+            expect(await deploy()).to.include({
+                status: "error",
+                errorMessage: connection.errorMessage,
+                resourcesMayRemain: true,
+            });
+        });
+
+        test("preserves Object Explorer connection errors after deployment", async () => {
+            const node = sandbox.createStubInstance(TreeNodeInfo);
+            node.errorMessage = "Login failed while creating the Object Explorer session.";
+            main.createObjectExplorerSession.resolves(node);
+            expect(await deploy()).to.include({
+                status: "error",
+                errorMessage: node.errorMessage,
+                resourcesMayRemain: true,
+            });
+        });
+
         test("surfaces package-task errors in the deployment log even when STS returns an empty error", async () => {
             dacFx.deployDacpac.callsFake(async () => {
                 const task = {
@@ -2080,7 +2282,7 @@ suite("Local-to-cloud helpers", () => {
                     status: TaskStatus.Failed,
                     message: "The schema could not be published.",
                 });
-                return { ...success, success: false };
+                return { ...success, success: false, errorMessage: "Deployment failed." };
             });
             expect(await deploy()).to.include({
                 status: "error",

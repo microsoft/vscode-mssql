@@ -14,7 +14,6 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import {
-    CheckmarkCircle24Regular,
     Checkmark20Regular,
     Circle20Regular,
     DismissCircle20Regular,
@@ -35,6 +34,7 @@ import {
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentScriptsCard } from "../deploymentScriptsCard";
+import { AzureSqlDatabaseDeploymentComplete } from "./azureSqlDatabaseDeploymentComplete";
 import {
     generateAzureSqlDatabaseArm,
     generateAzureSqlDatabaseBicep,
@@ -54,11 +54,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
     },
-    success: {
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-editorGutter-addedBackground) 15%, var(--vscode-editor-background))",
-    },
-    successHeading: { display: "flex", alignItems: "center", gap: "10px" },
     passed: { color: "var(--vscode-testing-iconPassed)" },
     error: {
         color: "var(--vscode-errorForeground)",
@@ -77,17 +72,6 @@ const useStyles = makeStyles({
     active: { fontWeight: tokens.fontWeightSemibold },
     pending: { color: "var(--vscode-descriptionForeground)" },
     icon: { flexShrink: 0, width: "24px" },
-    metadata: { margin: 0, display: "flex", flexDirection: "column" },
-    row: {
-        display: "grid",
-        gridTemplateColumns: "120px minmax(0, 1fr)",
-        gap: "12px",
-        padding: "8px 0",
-        "@media (max-width: 480px)": { gridTemplateColumns: "minmax(0, 1fr)", gap: "4px" },
-    },
-    value: { margin: 0, overflowWrap: "anywhere" },
-    sql: { fontFamily: "var(--vscode-editor-font-family), monospace" },
-    actions: { display: "flex", flexWrap: "wrap", gap: "12px" },
 });
 
 export const AzureSqlDatabaseDeployPage = ({
@@ -202,13 +186,12 @@ export const AzureSqlDatabaseDeployPage = ({
               },
           ]
         : [];
-    const title = succeeded
-        ? strings.deploymentReady
-        : result?.status === "cancelled"
-          ? strings.deploymentCancelled
-          : result
-            ? strings.deploymentFailed
-            : strings.deployingDatabase(databaseName);
+    const title =
+        result?.status === "cancelled"
+            ? strings.deploymentCancelled
+            : result
+              ? strings.deploymentFailed
+              : strings.deployingDatabase(databaseName);
     const metadata = succeeded
         ? [
               { label: strings.deploymentName, value: result.database, sql: true },
@@ -230,6 +213,66 @@ export const AzureSqlDatabaseDeployPage = ({
               { label: strings.deploymentSource, value: result.sourceDatabase, sql: true },
           ]
         : [];
+    const deploymentLog = (
+        <Link
+            as="button"
+            onClick={() => {
+                void extensionRpc
+                    .sendRequest(AzureSqlDatabaseRequests.ShowLocalDatabaseCompatibilityOutput)
+                    .catch((error) =>
+                        extensionRpc.log.error("Failed to show deployment output", error),
+                    );
+            }}>
+            {strings.deploymentLog}
+        </Link>
+    );
+
+    if (succeeded) {
+        return (
+            <AzureSqlDatabaseDeploymentComplete
+                databaseName={result.database}
+                metadata={metadata}
+                cardFooter={deploymentLog}
+                actions={
+                    <>
+                        <Button
+                            icon={<CopyRegular />}
+                            disabled={actionPending}
+                            onClick={() => void performAction("copyConnectionString")}>
+                            {locConstants.connectToDatabase.copyConnectionString}
+                        </Button>
+                        <Button
+                            icon={<OpenRegular />}
+                            disabled={actionPending}
+                            onClick={() => void performAction("openPortal")}>
+                            {strings.openInAzurePortal}
+                        </Button>
+                    </>
+                }>
+                {actionError && (
+                    <Text role="alert" className={classes.error}>
+                        {actionError}
+                    </Text>
+                )}
+                {settings && (
+                    <DeploymentScriptsCard
+                        expanded
+                        scripts={scripts}
+                        description={strings.deploymentScriptsDescription}
+                        onDownload={(content, fileName) =>
+                            extensionRpc.action("downloadDeploymentScript", { content, fileName })
+                        }
+                        onAddToWorkspace={(content, fileName) =>
+                            extensionRpc.action("addDeploymentScriptToWorkspace", {
+                                content,
+                                fileName,
+                            })
+                        }
+                    />
+                )}
+            </AzureSqlDatabaseDeploymentComplete>
+        );
+    }
 
     return (
         <section className={classes.content} aria-label={strings.deploymentProgress}>
@@ -243,121 +286,48 @@ export const AzureSqlDatabaseDeployPage = ({
                 ref={heading}>
                 {title}
             </Text>
-            <div className={mergeClasses(classes.card, succeeded && classes.success)}>
-                {succeeded ? (
-                    <>
-                        <div className={classes.successHeading} role="status">
-                            <CheckmarkCircle24Regular className={classes.passed} aria-hidden />
-                            <Text weight="semibold">{result.database}</Text>
-                        </div>
-                        <dl className={classes.metadata}>
-                            {metadata.map(({ label, value, sql }) => (
-                                <div key={label} className={classes.row}>
-                                    <dt className={classes.secondary}>{label}</dt>
-                                    <dd className={mergeClasses(classes.value, sql && classes.sql)}>
-                                        {value}
-                                    </dd>
-                                </div>
-                            ))}
-                        </dl>
-                    </>
-                ) : (
-                    <ol className={classes.steps} aria-label={strings.deploymentProgress}>
-                        {steps.map((stage) => {
-                            const completed = progress.completedStages.includes(stage);
-                            const current = progress.stage === stage;
-                            return (
-                                <li
-                                    key={stage}
-                                    aria-current={current && !result ? "step" : undefined}
-                                    className={mergeClasses(
-                                        classes.step,
-                                        completed && classes.passed,
-                                        current && classes.active,
-                                        !completed && !current && classes.pending,
-                                    )}>
-                                    {completed ? (
-                                        <Checkmark20Regular className={classes.icon} aria-hidden />
-                                    ) : current && !result ? (
-                                        <Spinner size="tiny" className={classes.icon} aria-hidden />
-                                    ) : current && result?.status === "error" ? (
-                                        <DismissCircle20Regular
-                                            className={mergeClasses(classes.icon, classes.error)}
-                                            aria-hidden
-                                        />
-                                    ) : (
-                                        <Circle20Regular className={classes.icon} aria-hidden />
-                                    )}
-                                    {strings.deploymentStageLabels[stage]}
-                                </li>
-                            );
-                        })}
-                    </ol>
-                )}
-                {!succeeded && result?.errorMessage && (
+            <div className={classes.card}>
+                <ol className={classes.steps} aria-label={strings.deploymentProgress}>
+                    {steps.map((stage) => {
+                        const completed = progress.completedStages.includes(stage);
+                        const current = progress.stage === stage;
+                        return (
+                            <li
+                                key={stage}
+                                aria-current={current && !result ? "step" : undefined}
+                                className={mergeClasses(
+                                    classes.step,
+                                    completed && classes.passed,
+                                    current && classes.active,
+                                    !completed && !current && classes.pending,
+                                )}>
+                                {completed ? (
+                                    <Checkmark20Regular className={classes.icon} aria-hidden />
+                                ) : current && !result ? (
+                                    <Spinner size="tiny" className={classes.icon} aria-hidden />
+                                ) : current && result?.status === "error" ? (
+                                    <DismissCircle20Regular
+                                        className={mergeClasses(classes.icon, classes.error)}
+                                        aria-hidden
+                                    />
+                                ) : (
+                                    <Circle20Regular className={classes.icon} aria-hidden />
+                                )}
+                                {strings.deploymentStageLabels[stage]}
+                            </li>
+                        );
+                    })}
+                </ol>
+                {result?.errorMessage && (
                     <Text role="alert" className={classes.error}>
                         {result.errorMessage}
                     </Text>
                 )}
-                {!succeeded && result?.resourcesMayRemain && (
+                {result?.resourcesMayRemain && (
                     <Text className={classes.secondary}>{strings.deploymentResourcesRemain}</Text>
                 )}
-                <Link
-                    as="button"
-                    onClick={() => {
-                        void extensionRpc
-                            .sendRequest(
-                                AzureSqlDatabaseRequests.ShowLocalDatabaseCompatibilityOutput,
-                            )
-                            .catch((error) =>
-                                extensionRpc.log.error("Failed to show deployment output", error),
-                            );
-                    }}>
-                    {strings.deploymentLog}
-                </Link>
+                {deploymentLog}
             </div>
-            {succeeded && (
-                <>
-                    <div className={classes.actions}>
-                        <Button
-                            icon={<CopyRegular />}
-                            disabled={actionPending}
-                            onClick={() => void performAction("copyConnectionString")}>
-                            {locConstants.connectToDatabase.copyConnectionString}
-                        </Button>
-                        <Button
-                            icon={<OpenRegular />}
-                            disabled={actionPending}
-                            onClick={() => void performAction("openPortal")}>
-                            {strings.openInAzurePortal}
-                        </Button>
-                    </div>
-                    {actionError && (
-                        <Text role="alert" className={classes.error}>
-                            {actionError}
-                        </Text>
-                    )}
-                    {settings && (
-                        <DeploymentScriptsCard
-                            expanded
-                            scripts={scripts}
-                            description={strings.deploymentScriptsDescription}
-                            onDownload={(content, fileName) =>
-                                extensionRpc.action("downloadDeploymentScript", {
-                                    content,
-                                    fileName,
-                                })
-                            }
-                            onAddToWorkspace={(content, fileName) =>
-                                extensionRpc.action("addDeploymentScriptToWorkspace", {
-                                    content,
-                                    fileName,
-                                })
-                            }
-                        />
-                    )}
-                </>
-            )}
         </section>
     );
 };

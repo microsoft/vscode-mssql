@@ -45,6 +45,7 @@ import type { SqlProjectsService } from "../services/sqlProjectsService";
 import {
     onTaskCreated,
     onTaskProgress,
+    TaskStatus,
     type SqlTasksService,
     type TaskInfo,
 } from "../services/sqlTasksService";
@@ -66,14 +67,14 @@ import { DeploymentType } from "../sharedInterfaces/deployment";
 import type { ILogger } from "../sharedInterfaces/logger";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, isLocalServer } from "../utils/utils";
 import { isSystemDatabase } from "../utils/databaseUtils";
 import type { DeploymentWebviewController } from "./deploymentWebviewController";
 
 //#region Local database sources
 
 const azureSqlContainerEngineEdition = -978196525;
-const versionRequest = new RequestType<
+const simpleQuery = new RequestType<
     { ownerUri: string; queryString: string },
     SimpleExecuteResult,
     void
@@ -86,7 +87,7 @@ export function isAzureSqlDatabaseSource(serverInfo?: IServerInfo): boolean {
     );
 }
 
-export function getLocalDatabaseConnectionId(connection: ConnectionInfo): string {
+export function getLocalDatabaseProfileId(connection: ConnectionInfo): string {
     return "id" in connection.credentials &&
         typeof connection.credentials.id === "string" &&
         connection.credentials.id
@@ -100,11 +101,12 @@ export async function connectLocalDatabaseSource(
     client: SqlToolsServiceClient,
     database?: string,
 ): Promise<LocalDatabaseSource> {
-    const { source } = await connectLocalSource(manager, id, client, database);
-    if (!source.database) {
+    const { source, uri } = await connectLocalSource(manager, id, client, database);
+    const connectionId = manager.getConnectionInfo(uri)?.connectionId;
+    if (!source.database || !connectionId) {
         throw new Error(LocalToCloud.sourceUnavailable);
     }
-    return source;
+    return { ...source, id: connectionId };
 }
 
 export async function getLocalServerDatabases(
@@ -125,17 +127,20 @@ async function connectLocalSource(
 ): Promise<{ source: LocalDatabaseSource; uri: string }> {
     const profiles = await manager.connectionStore.readAllConnections(true);
     const profile = profiles.find((connection) => connection.id === id);
-    let active = Object.entries(manager.activeConnections).find(
+    const activeConnections = Object.entries(manager.activeConnections).filter(
         ([uri, connection]) =>
-            getLocalDatabaseConnectionId(connection) === id && manager.isConnected(uri),
+            getLocalDatabaseProfileId(connection) === id && manager.isConnected(uri),
     );
-    let credentials = active?.[1].credentials ?? profile;
+    let active = activeConnections.find(
+        ([, connection]) => database === undefined || connection.credentials.database === database,
+    );
+    let credentials = active?.[1].credentials ?? profile ?? activeConnections[0]?.[1].credentials;
     if (credentials && database !== undefined && database !== credentials.database) {
+        // Preserve the profile identity in history; the connected source uses its STS connection ID.
         const password =
             !credentials.password && ConnectionCredentials.isPasswordBasedCredential(credentials)
                 ? await manager.connectionStore.lookupPassword(credentials)
                 : credentials.password;
-        id = randomUUID();
         const databaseCredentials = { ...credentials, id, database, password };
         credentials = databaseCredentials;
         active = undefined;
@@ -168,13 +173,15 @@ async function connectLocalSource(
             },
         ))
     ) {
-        throw new Error(LocalToCloud.sourceConnectionFailed);
+        throw new Error(
+            manager.getConnectionInfo(uri)?.errorMessage || LocalToCloud.sourceConnectionFailed,
+        );
     }
     const serverInfo = active?.[1].serverInfo ?? manager.getConnectionInfo(uri)?.serverInfo;
     const isAzureSql = isAzureSqlDatabaseSource(serverInfo);
     let serverVersion = serverInfo?.serverVersion;
     if (source.database && !isAzureSql) {
-        const result = await client.sendRequest(versionRequest, {
+        const result = await client.sendRequest(simpleQuery, {
             ownerUri: uri,
             queryString: "SELECT @@VERSION AS version;",
         });
@@ -183,7 +190,12 @@ async function connectLocalSource(
             ? cell?.displayValue.match(/\bMicrosoft SQL Server\s+(\d{4})\b/i)?.[1]
             : undefined;
         if (!year || result.messages?.some((message) => message.isError)) {
-            throw new Error("Unable to determine the selected SQL Server release year.");
+            throw new Error(
+                result.messages
+                    ?.filter((message) => message.isError)
+                    .map((message) => message.message)
+                    .join("\n") || LocalToCloud.sourceVersionFailed,
+            );
         }
         serverVersion = year;
     }
@@ -212,13 +224,10 @@ export function getLocalDatabaseSources(
     const sources = new Map<string, LocalDatabaseSource>();
     for (const connection of connections) {
         const server = connection.server?.trim();
-        // Match the host, not a prefix such as localhost.example.com.
         if (
             !connection.id ||
             !server ||
-            !/^(?:tcp:|np:|lpc:)?\s*(?:localhost|127(?:\.\d{1,3}){3}|\[::1\]|::1|\(local\)|\.)(?=$|[,\\])/i.test(
-                server,
-            ) ||
+            !isLocalServer(server) ||
             (sources.has(connection.id) && !connection.isConnected)
         ) {
             continue;
@@ -227,9 +236,9 @@ export function getLocalDatabaseSources(
         const existing = sources.get(connection.id);
         sources.set(connection.id, {
             id: connection.id,
-            profileName: connection.profileName || sources.get(connection.id)?.profileName || "",
+            profileName: connection.profileName || existing?.profileName || "",
             server,
-            // A server profile remains expandable when its active session defaults to master.
+            // Keep a server-only profile database-agnostic even if its active session uses master.
             database:
                 existing?.database === "" || !connection.database?.trim()
                     ? ""
@@ -656,14 +665,19 @@ export class LocalDatabaseCompatibilityService {
                 }
             }
         });
+        let extractionError: string | undefined;
+        const progressSubscription = onTaskProgress((progress) => {
+            if (progress.taskId === operation.taskId && progress.status === TaskStatus.Failed) {
+                extractionError ??= progress.progressMessage || progress.message;
+            }
+        });
         try {
             await previous;
             await this.clearPackage();
             abort.signal.throwIfAborted();
             const active = Object.entries(this.manager.activeConnections).find(
                 ([uri, connection]) =>
-                    getLocalDatabaseConnectionId(connection) === request.sourceId &&
-                    this.manager.isConnected(uri),
+                    connection.connectionId === request.sourceId && this.manager.isConnected(uri),
             );
             const source =
                 active &&
@@ -704,7 +718,9 @@ export class LocalDatabaseCompatibilityService {
             );
             abort.signal.throwIfAborted();
             if (!extracted.success) {
-                throw new Error(extracted.errorMessage || LocalToCloud.extractionFailed);
+                throw new Error(
+                    extractionError || extracted.errorMessage || LocalToCloud.extractionFailed,
+                );
             }
             reportProgress("validatingSchema");
             const build = await this.builder.build(projectPath, abort.signal, () =>
@@ -720,7 +736,8 @@ export class LocalDatabaseCompatibilityService {
                     errors.length && errors.every((diagnostic) => diagnostic.category !== "tooling")
                         ? "blocked"
                         : "error";
-                result.errorMessage = build.errorMessage;
+                result.errorMessage =
+                    errors.map((diagnostic) => diagnostic.message).join("\n") || build.errorMessage;
             } else if (build.packagePath && build.objectsValidated !== undefined) {
                 const packageFileName = `${sanitizeStringForFilename(source.database)}.dacpac`;
                 const filenameError = isValidBasenameErrorMessage(packageFileName);
@@ -760,6 +777,7 @@ export class LocalDatabaseCompatibilityService {
         } finally {
             clearTimeout(timeout);
             taskSubscription.dispose();
+            progressSubscription.dispose();
             abort.signal.removeEventListener("abort", cancel);
             if (opened && projectPath) {
                 try {
@@ -771,7 +789,9 @@ export class LocalDatabaseCompatibilityService {
                     stage = "cleanup";
                     this.logger.error("Failed to close the compatibility project.", error);
                     result.status = "error";
-                    result.errorMessage = getErrorMessage(error);
+                    result.errorMessage = [result.errorMessage, getErrorMessage(error)]
+                        .filter(Boolean)
+                        .join("\n");
                     result.packageId = undefined;
                     result.packageFileName = undefined;
                 }
@@ -786,7 +806,9 @@ export class LocalDatabaseCompatibilityService {
                     stage = "cleanup";
                     this.logger.error("Failed to clean up compatibility artifacts.", error);
                     result.status = "error";
-                    result.errorMessage = getErrorMessage(error);
+                    result.errorMessage = [result.errorMessage, getErrorMessage(error)]
+                        .filter(Boolean)
+                        .join("\n");
                     result.packageId = undefined;
                     result.packageFileName = undefined;
                 }
@@ -836,13 +858,6 @@ export class LocalDatabaseCompatibilityService {
 //#endregion
 
 //#region Local-to-cloud deployment
-
-const simpleQuery = new RequestType<
-    { ownerUri: string; queryString: string },
-    SimpleExecuteResult,
-    void
->("query/simpleexecute");
-const cancelTask = new RequestType<{ taskId: string }, boolean, void>("tasks/canceltask");
 
 const schemaQuery = `
 SELECT QUOTENAME(SCHEMA_NAME(schema_id)) + N'.' + QUOTENAME(name) AS name
@@ -1256,7 +1271,12 @@ export class LocalDatabaseDeploymentService {
                     new Set(Object.keys(request.tags).map((key) => key.toLowerCase())).size !==
                         Object.keys(request.tags).length
                 ) {
-                    throw new Error(LocalToCloud.invalidAzureSettings);
+                    throw new Error(
+                        errors
+                            .map((key) => state.formComponents[key]?.validation?.validationMessage)
+                            .filter(Boolean)
+                            .join("\n") || LocalToCloud.invalidAzureSettings,
+                    );
                 }
                 const key = JSON.stringify(
                     [
@@ -1317,18 +1337,23 @@ export class LocalDatabaseDeploymentService {
                     const active = Object.entries(manager.activeConnections).find(
                         ([uri, connection]) =>
                             manager.isConnected(uri) &&
-                            getLocalDatabaseConnectionId(connection) === request.sourceId &&
+                            connection.connectionId === request.sourceId &&
                             connection.credentials.database === validation.database,
                     );
+                    if (!active) {
+                        throw new Error(LocalToCloud.sourceUnavailable);
+                    }
                     if (
-                        !active ||
                         !(await manager.connect(
                             sourceUri,
                             { ...active[1].credentials, commandTimeout: 0 },
                             { shouldHandleErrors: false },
                         ))
                     ) {
-                        throw new Error(LocalToCloud.sourceUnavailable);
+                        throw new Error(
+                            manager.getConnectionInfo(sourceUri)?.errorMessage ||
+                                LocalToCloud.sourceConnectionFailed,
+                        );
                     }
                     const usedBytesText = (await query(sourceUri, storageQuery))[0]?.[0];
                     const usedBytes = Number(usedBytesText);
@@ -1440,7 +1465,9 @@ export class LocalDatabaseDeploymentService {
                             info.errorMessage,
                         );
                         if (!firewall.result || !firewall.ipAddress) {
-                            throw new Error(LocalToCloud.deploymentConnectionFailed);
+                            throw new Error(
+                                info.errorMessage || LocalToCloud.deploymentConnectionFailed,
+                            );
                         }
                         signal.throwIfAborted();
                         await VsCodeAzureHelper.createFirewallRule(
@@ -1507,7 +1534,7 @@ export class LocalDatabaseDeploymentService {
                 }
                 const node = await main.createObjectExplorerSession(saved);
                 if (!node?.sessionId || node.errorMessage) {
-                    throw new Error(LocalToCloud.deploymentProfileFailed);
+                    throw new Error(node?.errorMessage || LocalToCloud.deploymentProfileFailed);
                 }
             });
             result.status = "succeeded";
@@ -1529,7 +1556,6 @@ export class LocalDatabaseDeploymentService {
                 profile,
                 portalUrl: `${getCloudProviderSettings().portalEndpoint.replace(/\/$/, "")}/#resource/${resourcePath}`,
             });
-            this.output.appendLine(LocalToCloud.deploymentSucceeded);
         } catch (error) {
             failureStage = currentStage;
             result.status = signal.aborted ? "cancelled" : "error";
@@ -1564,13 +1590,22 @@ export class LocalDatabaseDeploymentService {
                 } catch (error) {
                     failureStage = "cleanup";
                     result.status = "error";
-                    result.errorMessage = LocalToCloud.deploymentCleanupFailed;
+                    result.errorMessage = [
+                        result.errorMessage,
+                        safeError(error),
+                        LocalToCloud.deploymentCleanupFailed,
+                    ]
+                        .filter(Boolean)
+                        .join("\n");
                     this.logger.error(
                         `Failed to remove migration artifacts in ${directory}: ${safeError(error)}`,
                     );
                     this.output.appendLine(result.errorMessage);
                 }
             }
+        }
+        if (result.status === "succeeded") {
+            this.output.appendLine(LocalToCloud.deploymentSucceeded);
         }
         backgroundTask.complete(
             result.status === "succeeded"
@@ -1632,7 +1667,9 @@ export class LocalDatabaseDeploymentService {
         let cancellation: Promise<void> | undefined;
         const cancel = () => {
             if (taskId && !cancellation) {
-                cancellation = Promise.resolve(this.client.sendRequest(cancelTask, { taskId }))
+                cancellation = Promise.resolve(
+                    this.client.sendRequest(cancelTaskRequest, { taskId }),
+                )
                     .then((cancelled) => {
                         if (!cancelled) {
                             this.logger.warn(
@@ -1657,12 +1694,17 @@ export class LocalDatabaseDeploymentService {
         });
         const suppression = tasks.suppressTaskUI(matches);
         let lastMessage: string | undefined;
+        let failureMessage: string | undefined;
         const progressListener = onTaskProgress((progress) => {
             if (progress.taskId === taskId) {
-                const message = progress.message || progress.progressMessage;
+                const message = progress.progressMessage || progress.message;
                 if (message) {
                     lastMessage = safeError(message);
                     this.output.appendLine(lastMessage);
+                    if (progress.status === TaskStatus.Failed) {
+                        // Later completion messages can replace the underlying failure with a summary.
+                        failureMessage ??= lastMessage;
+                    }
                 }
             }
         });
@@ -1673,7 +1715,10 @@ export class LocalDatabaseDeploymentService {
             signal.throwIfAborted();
             if (!result.success) {
                 throw new Error(
-                    result.errorMessage || lastMessage || LocalToCloud.deploymentOperationFailed,
+                    failureMessage ||
+                        result.errorMessage ||
+                        lastMessage ||
+                        LocalToCloud.deploymentOperationFailed,
                 );
             }
         } finally {

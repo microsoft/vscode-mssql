@@ -3,26 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    makeStyles,
-    mergeClasses,
-    SearchBox,
-    Spinner,
-    Text,
-    tokens,
-} from "@fluentui/react-components";
+import { Button, makeStyles, Text } from "@fluentui/react-components";
 import {
     ArrowLeft20Regular,
     ArrowRight20Regular,
     ArrowClockwise20Regular,
-    ChevronRight16Regular,
-    ChevronDown16Regular,
-    Database20Regular,
-    Server20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { DatabaseSelector } from "../../../common/databaseSelector";
+import { ErrorMessageDetails } from "../../../common/errorMessageDetails";
 import {
     AzureSqlDatabaseRequests,
     LocalDatabaseSource,
@@ -66,104 +55,50 @@ const useStyles = makeStyles({
     introduction: {
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "24px",
     },
     heading: { margin: 0 },
     description: {
         color: "var(--vscode-descriptionForeground)",
         lineHeight: "24px",
     },
-    searchRow: {
+    selector: {
         display: "flex",
+        flexDirection: "column",
         gap: "8px",
         width: "100%",
         maxWidth: "680px",
     },
-    search: { flexGrow: 1, maxWidth: "unset" },
-    list: {
-        width: "100%",
-        maxWidth: "680px",
-        height: "min(360px, 42vh)",
-        overflowY: "auto",
-        scrollbarGutter: "stable",
-        position: "relative",
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: "6px",
-        padding: "4px",
-        boxSizing: "border-box",
-    },
-    card: {
-        width: "100%",
-        height: "48px",
-        padding: "6px 10px",
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        textAlign: "left",
-        backgroundColor: "transparent",
-        color: tokens.colorNeutralForeground1,
-        border: "none",
-        borderRadius: "4px",
-        cursor: "pointer",
-        boxSizing: "border-box",
-        ":hover": { backgroundColor: tokens.colorNeutralBackground2Hover },
-        ":focus-visible": { outline: "2px solid var(--vscode-focusBorder)", outlineOffset: "-2px" },
-    },
-    databaseIcon: { color: tokens.colorBrandForeground1, flexShrink: 0 },
-    cardText: { display: "flex", flexDirection: "column", minWidth: 0, flexGrow: 1 },
-    cardTitle: { fontSize: "13px", lineHeight: "18px" },
-    cardSubtitle: { fontSize: "12px", lineHeight: "16px" },
-    expander: {
-        display: "flex",
-        alignItems: "center",
-        width: "16px",
-        flexShrink: 0,
-        color: tokens.colorNeutralForeground3,
-    },
-    childCard: { marginLeft: "32px", width: "calc(100% - 32px)", height: "32px" },
-    childRow: {
-        "::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: "18px",
-            borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
-        },
-    },
-    serverStatus: { display: "block", padding: "6px 10px 6px 64px" },
-    ellipsis: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-    secondary: { color: "var(--vscode-descriptionForeground)" },
     footer: { display: "flex", alignItems: "center", gap: "8px" },
 });
 
-interface LocalServerDatabases {
-    expanded: boolean;
+interface LocalDatabaseList {
+    connectionId: string;
     loading: boolean;
-    databases?: string[];
+    databases: string[];
     error?: string;
 }
 
-interface LocalSourceRow {
-    key: string;
-    source: LocalDatabaseSource;
-    isChild: boolean;
-}
-
-export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) => {
+export const AzureSqlDatabaseSourcePage = ({
+    onBack,
+    initialSource,
+}: {
+    onBack: () => void;
+    initialSource?: LocalDatabaseSource;
+}) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
     const [sources, setSources] = useState<LocalDatabaseSource[]>([]);
-    const [search, setSearch] = useState("");
+    const [selectedConnectionId, setSelectedConnectionId] = useState("");
     const [selectedSource, setSelectedSource] = useState<LocalDatabaseSource>();
-    const [serverDatabases, setServerDatabases] = useState<Record<string, LocalServerDatabases>>(
-        {},
-    );
-    const sourcesGeneration = useRef(0);
+    const [databaseList, setDatabaseList] = useState<LocalDatabaseList>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>();
+    const [sourceConnectionError, setSourceConnectionError] = useState<string>();
     const [refresh, setRefresh] = useState(0);
+    // Consume Object Explorer preselection once, not again after Refresh or Change.
+    const initialSourceRef = useRef(initialSource);
     const [connectedSource, setConnectedSource] = useState<LocalDatabaseSource>();
     const [deploymentContent, setDeploymentContent] =
         useState<LocalDatabaseDeploymentContent>("schemaAndData");
@@ -188,8 +123,13 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
         !!azureState.formState &&
         !!azureState.formComponents &&
         "accountId" in azureState.formComponents;
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const searchInputRef = useRef<HTMLInputElement>(null);
+    const connectionTriggerRef = useRef<HTMLButtonElement>(null);
+    const selectedConnection = sources.find((source) => source.id === selectedConnectionId);
+    const databaseStateMatchesSelection = databaseList?.connectionId === selectedConnectionId;
+    const displayedDatabases = databaseStateMatchesSelection ? databaseList.databases : [];
+    const showDatabaseSpinner =
+        !!selectedConnectionId && (!databaseStateMatchesSelection || databaseList.loading);
+    const databaseListError = databaseStateMatchesSelection ? databaseList.error : "";
     const strings = locConstants.azureSqlDatabase;
     const currentStep = showDeployment
         ? 4
@@ -267,20 +207,27 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
 
     useEffect(() => {
         let cancelled = false;
-        sourcesGeneration.current++;
-        setServerDatabases({});
         setLoading(true);
         setError(undefined);
         void extensionRpc
             .sendRequest(AzureSqlDatabaseRequests.GetLocalDatabaseSources)
             .then((connections) => {
                 if (!cancelled) {
-                    setSources(connections);
-                    setSelectedSource((source) =>
-                        connections.some((connection) => connection.id === source?.id)
-                            ? source
-                            : undefined,
-                    );
+                    const initial = initialSourceRef.current;
+                    if (initial) {
+                        initialSourceRef.current = undefined;
+                        setSources([
+                            ...connections.filter((connection) => connection.id !== initial.id),
+                            {
+                                ...initial,
+                                ...connections.find((connection) => connection.id === initial.id),
+                                database: initial.database,
+                            },
+                        ]);
+                        setSelectedConnectionId(initial.id);
+                    } else {
+                        setSources(connections);
+                    }
                 }
             })
             .catch((loadError) => {
@@ -296,87 +243,71 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
             });
         return () => {
             cancelled = true;
-            sourcesGeneration.current++;
         };
     }, [extensionRpc, refresh]);
 
-    const toggleServer = (source: LocalDatabaseSource) => {
-        const current = serverDatabases[source.id];
-        setServerDatabases((previous) => ({
-            ...previous,
-            [source.id]: {
-                ...previous[source.id],
-                expanded: !current?.expanded,
-                loading: current?.loading ?? false,
-            },
-        }));
-        if (current?.expanded || current?.loading || current?.databases) {
+    useEffect(() => {
+        if (!selectedConnection) {
+            setDatabaseList(undefined);
             return;
         }
-        const generation = sourcesGeneration.current;
-        setServerDatabases((previous) => ({
-            ...previous,
-            [source.id]: { expanded: true, loading: true },
-        }));
+        let cancelled = false;
+        setDatabaseList({ connectionId: selectedConnection.id, loading: true, databases: [] });
         void extensionRpc
-            .sendRequest(AzureSqlDatabaseRequests.GetLocalServerDatabases, { id: source.id })
+            .sendRequest(AzureSqlDatabaseRequests.GetLocalServerDatabases, {
+                id: selectedConnection.id,
+            })
             .then((databases) => {
-                if (sourcesGeneration.current === generation) {
-                    setServerDatabases((previous) => ({
-                        ...previous,
-                        [source.id]: { ...previous[source.id], loading: false, databases },
-                    }));
+                if (!cancelled) {
+                    const names = [
+                        ...new Set([
+                            ...databases,
+                            ...(selectedConnection.database ? [selectedConnection.database] : []),
+                        ]),
+                    ].sort((left, right) =>
+                        left.localeCompare(right, undefined, { sensitivity: "base" }),
+                    );
+                    setDatabaseList({
+                        connectionId: selectedConnection.id,
+                        loading: false,
+                        databases: names,
+                    });
+                    const database = selectedConnection.database || names[0];
+                    if (database) {
+                        setSelectedSource({ ...selectedConnection, database });
+                    }
                 }
             })
             .catch((failure) => {
                 extensionRpc.log.error("Failed to load local server databases", failure);
-                if (sourcesGeneration.current === generation) {
-                    setServerDatabases((previous) => ({
-                        ...previous,
-                        [source.id]: {
-                            ...previous[source.id],
-                            loading: false,
-                            error: failure instanceof Error ? failure.message : String(failure),
-                        },
-                    }));
-                }
-            });
-    };
-
-    const filtered = useMemo(() => {
-        const query = search.trim().toLocaleLowerCase();
-        const rows: LocalSourceRow[] = [];
-        for (const source of sources) {
-            const matches = [source.database, source.profileName, source.server].some((value) =>
-                value.toLocaleLowerCase().includes(query),
-            );
-            const server = !source.database ? serverDatabases[source.id] : undefined;
-            const databases = (server?.databases ?? []).filter(
-                (database) => matches || database.toLocaleLowerCase().includes(query),
-            );
-            if (!matches && databases.length === 0) {
-                continue;
-            }
-            rows.push({ key: source.id, source, isChild: false });
-            if (server?.expanded) {
-                for (const database of databases) {
-                    rows.push({
-                        key: JSON.stringify([source.id, database]),
-                        source: { ...source, database },
-                        isChild: true,
+                if (!cancelled) {
+                    setDatabaseList({
+                        connectionId: selectedConnection.id,
+                        loading: false,
+                        databases: [],
+                        error: failure instanceof Error ? failure.message : String(failure),
                     });
                 }
-            }
-        }
-        return rows;
-    }, [sources, search, serverDatabases]);
-    const virtualizer = useVirtualizer({
-        count: filtered.length,
-        getScrollElement: () => scrollRef.current,
-        estimateSize: (index) => (filtered[index].isChild ? 34 : 50),
-        getItemKey: (index) => filtered[index].key,
-        overscan: 4,
-    });
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [extensionRpc, selectedConnection]);
+
+    const connectionOptions = useMemo(
+        () =>
+            sources.map((source) => ({
+                value: source.id,
+                text: source.profileName || source.server,
+            })),
+        [sources],
+    );
+    const clearSource = () => {
+        setSelectedConnectionId("");
+        setSelectedSource(undefined);
+        setConnectedSource(undefined);
+        setSourceConnectionError(undefined);
+    };
     const steps = [
         strings.sourceStep,
         strings.compatibilityStep,
@@ -552,241 +483,103 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
             ) : (
                 <div className={classes.content}>
                     <div className={classes.introduction}>
-                        <Text as="h2" size={400} weight="semibold" className={classes.heading}>
-                            {strings.deployToAzureSql}
-                        </Text>
                         <Text className={classes.description}>
                             {strings.deployToAzureSqlDescription}
                         </Text>
-                        {!selectedSource && (
-                            <Text
-                                as="h3"
-                                size={300}
-                                weight="semibold"
-                                id="local-database-heading"
-                                className={classes.heading}>
-                                {strings.selectLocalDatabase}
-                            </Text>
+                        <Text as="h3" size={400} weight="semibold" className={classes.heading}>
+                            {strings.selectLocalDatabase}
+                        </Text>
+                    </div>
+                    <div className={classes.selector}>
+                        <DatabaseSelector
+                            connectionAction={
+                                <Button
+                                    icon={<ArrowClockwise20Regular />}
+                                    aria-label={locConstants.common.refresh}
+                                    disabled={loading}
+                                    onClick={() => {
+                                        clearSource();
+                                        setRefresh((value) => value + 1);
+                                    }}
+                                />
+                            }
+                            connections={connectionOptions}
+                            selectedConnection={{
+                                value: selectedConnectionId,
+                                text:
+                                    selectedConnection?.profileName ||
+                                    selectedConnection?.server ||
+                                    "",
+                            }}
+                            databases={displayedDatabases.map((database) => ({
+                                value: database,
+                                displayName: database,
+                            }))}
+                            selectedDatabase={
+                                selectedSource?.database || selectedConnection?.database || ""
+                            }
+                            isConnectionListLoading={loading || (!error && showDatabaseSpinner)}
+                            connectionListError={error}
+                            connectionListLoadingMessage={
+                                loading
+                                    ? strings.loadingLocalConnections
+                                    : locConstants.dacpacDialog.loadingDatabases
+                            }
+                            isDatabaseListLoading={showDatabaseSpinner}
+                            databaseListError={
+                                databaseListError
+                                    ? strings.localServerDatabasesLoadFailed(databaseListError)
+                                    : ""
+                            }
+                            connectionTriggerRef={connectionTriggerRef}
+                            onConnectionSelected={(option) => {
+                                if (option.value === selectedConnectionId) {
+                                    return;
+                                }
+                                setSelectedSource(undefined);
+                                setConnectedSource(undefined);
+                                setSourceConnectionError(undefined);
+                                setDeploymentContent("schemaAndData");
+                                setSelectedConnectionId(option.value);
+                            }}
+                            onDatabaseSelected={(database) => {
+                                if (selectedConnection) {
+                                    if (selectedSource?.database === database) {
+                                        return;
+                                    }
+                                    setConnectedSource(undefined);
+                                    setSourceConnectionError(undefined);
+                                    setDeploymentContent("schemaAndData");
+                                    setSelectedSource({ ...selectedConnection, database });
+                                }
+                            }}
+                        />
+                        {sourceConnectionError && (
+                            <ErrorMessageDetails message={sourceConnectionError} />
                         )}
                     </div>
-                    {selectedSource ? (
+                    {!loading && !error && sources.length === 0 ? (
+                        <Text role="status">{strings.noLocalConnections}</Text>
+                    ) : !loading &&
+                      !showDatabaseSpinner &&
+                      !databaseListError &&
+                      selectedConnection &&
+                      displayedDatabases.length === 0 ? (
+                        <Text role="status">{strings.noLocalServerDatabases}</Text>
+                    ) : undefined}
+                    {selectedSource && (
                         <AzureSqlDatabaseSourceDetails
                             key={JSON.stringify([selectedSource.id, selectedSource.database])}
                             source={selectedSource}
                             deploymentContent={deploymentContent}
                             onDeploymentContentChange={setDeploymentContent}
                             onConnectionChange={setConnectedSource}
+                            onConnectionError={setSourceConnectionError}
                             onChange={() => {
-                                setSelectedSource(undefined);
-                                setConnectedSource(undefined);
-                                requestAnimationFrame(() => searchInputRef.current?.focus());
+                                clearSource();
+                                requestAnimationFrame(() => connectionTriggerRef.current?.focus());
                             }}
                         />
-                    ) : (
-                        <>
-                            <div className={classes.searchRow}>
-                                <SearchBox
-                                    input={{ ref: searchInputRef }}
-                                    className={classes.search}
-                                    aria-label={strings.searchLocalConnections}
-                                    placeholder={strings.searchLocalConnections}
-                                    value={search}
-                                    onChange={(_, data) => {
-                                        setSearch(data.value);
-                                        virtualizer.scrollToOffset(0);
-                                    }}
-                                />
-                                <Button
-                                    icon={<ArrowClockwise20Regular />}
-                                    aria-label={locConstants.common.refresh}
-                                    disabled={loading}
-                                    onClick={() => setRefresh((value) => value + 1)}
-                                />
-                            </div>
-                            {loading ? (
-                                <Spinner label={strings.loadingLocalConnections} size="small" />
-                            ) : !error && filtered.length === 0 ? (
-                                <Text role="status">
-                                    {sources.length === 0
-                                        ? strings.noLocalConnections
-                                        : strings.noMatchingLocalConnections}
-                                </Text>
-                            ) : !error ? (
-                                <div
-                                    ref={scrollRef}
-                                    className={classes.list}
-                                    role="group"
-                                    aria-labelledby="local-database-heading">
-                                    <div
-                                        style={{
-                                            height: virtualizer.getTotalSize(),
-                                            position: "relative",
-                                        }}>
-                                        {virtualizer.getVirtualItems().map((item) => {
-                                            const row = filtered[item.index];
-                                            const { source } = row;
-                                            const server = !source.database
-                                                ? serverDatabases[source.id]
-                                                : undefined;
-                                            return (
-                                                <div
-                                                    key={row.key}
-                                                    ref={virtualizer.measureElement}
-                                                    data-index={item.index}
-                                                    className={
-                                                        row.isChild ? classes.childRow : undefined
-                                                    }
-                                                    style={{
-                                                        position: "absolute",
-                                                        top: 0,
-                                                        left: 0,
-                                                        width: "100%",
-                                                        paddingBottom: "2px",
-                                                        boxSizing: "border-box",
-                                                        transform: `translateY(${item.start}px)`,
-                                                    }}>
-                                                    <button
-                                                        type="button"
-                                                        data-index={item.index}
-                                                        className={mergeClasses(
-                                                            classes.card,
-                                                            row.isChild && classes.childCard,
-                                                        )}
-                                                        aria-expanded={
-                                                            !source.database
-                                                                ? (server?.expanded ?? false)
-                                                                : undefined
-                                                        }
-                                                        onClick={() => {
-                                                            if (!source.database) {
-                                                                toggleServer(source);
-                                                                return;
-                                                            }
-                                                            setConnectedSource(undefined);
-                                                            setDeploymentContent("schemaAndData");
-                                                            setSelectedSource(source);
-                                                        }}
-                                                        onKeyDown={(event) => {
-                                                            const nextIndex =
-                                                                event.key === "ArrowDown"
-                                                                    ? Math.min(
-                                                                          item.index + 1,
-                                                                          filtered.length - 1,
-                                                                      )
-                                                                    : event.key === "ArrowUp"
-                                                                      ? Math.max(item.index - 1, 0)
-                                                                      : event.key === "Home"
-                                                                        ? 0
-                                                                        : event.key === "End"
-                                                                          ? filtered.length - 1
-                                                                          : undefined;
-                                                            if (nextIndex === undefined) {
-                                                                return;
-                                                            }
-                                                            event.preventDefault();
-                                                            virtualizer.scrollToIndex(nextIndex);
-                                                            requestAnimationFrame(() => {
-                                                                scrollRef.current
-                                                                    ?.querySelector<HTMLButtonElement>(
-                                                                        `[data-index="${nextIndex}"]`,
-                                                                    )
-                                                                    ?.focus();
-                                                            });
-                                                        }}>
-                                                        <span
-                                                            className={classes.expander}
-                                                            aria-hidden="true">
-                                                            {!source.database &&
-                                                                (server?.expanded ? (
-                                                                    <ChevronDown16Regular />
-                                                                ) : (
-                                                                    <ChevronRight16Regular />
-                                                                ))}
-                                                        </span>
-                                                        {source.database ? (
-                                                            <Database20Regular
-                                                                className={classes.databaseIcon}
-                                                                aria-hidden="true"
-                                                            />
-                                                        ) : (
-                                                            <Server20Regular
-                                                                className={classes.databaseIcon}
-                                                                aria-hidden="true"
-                                                            />
-                                                        )}
-                                                        <span className={classes.cardText}>
-                                                            <Text
-                                                                weight={
-                                                                    row.isChild
-                                                                        ? "regular"
-                                                                        : "semibold"
-                                                                }
-                                                                className={mergeClasses(
-                                                                    classes.ellipsis,
-                                                                    classes.cardTitle,
-                                                                )}>
-                                                                {source.database ||
-                                                                    source.profileName ||
-                                                                    source.server}
-                                                            </Text>
-                                                            {!row.isChild && (
-                                                                <Text
-                                                                    className={mergeClasses(
-                                                                        classes.ellipsis,
-                                                                        classes.secondary,
-                                                                        classes.cardSubtitle,
-                                                                    )}>
-                                                                    {source.database &&
-                                                                    source.profileName
-                                                                        ? strings.localConnectionDetails(
-                                                                              source.profileName,
-                                                                              source.server.replace(
-                                                                                  /,\s*/,
-                                                                                  ", ",
-                                                                              ),
-                                                                          )
-                                                                        : source.server}
-                                                                </Text>
-                                                            )}
-                                                        </span>
-                                                        {source.database && (
-                                                            <ChevronRight16Regular
-                                                                className={classes.secondary}
-                                                                aria-hidden="true"
-                                                            />
-                                                        )}
-                                                    </button>
-                                                    {server?.expanded &&
-                                                        (server.loading ? (
-                                                            <Spinner
-                                                                size="tiny"
-                                                                label={
-                                                                    strings.loadingLocalServerDatabases
-                                                                }
-                                                                className={classes.serverStatus}
-                                                            />
-                                                        ) : server.error ? (
-                                                            <Text
-                                                                role="alert"
-                                                                className={classes.serverStatus}>
-                                                                {strings.localServerDatabasesLoadFailed(
-                                                                    server.error,
-                                                                )}
-                                                            </Text>
-                                                        ) : server.databases?.length === 0 ? (
-                                                            <Text
-                                                                role="status"
-                                                                className={classes.serverStatus}>
-                                                                {strings.noLocalServerDatabases}
-                                                            </Text>
-                                                        ) : undefined)}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            ) : undefined}
-                        </>
                     )}
                 </div>
             )}

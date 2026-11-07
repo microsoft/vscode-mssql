@@ -46,7 +46,7 @@ import * as azureSql from "./azureSqlHelpers";
 import {
     AzureSqlCompatibilityBuilder,
     connectLocalDatabaseSource,
-    getLocalDatabaseConnectionId,
+    getLocalDatabaseProfileId,
     isAzureSqlDatabaseSource,
     getLocalDatabaseSources,
     getLocalServerDatabases,
@@ -79,6 +79,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         public mainController: MainController,
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        initialLocalDatabaseSource?: LocalDatabaseSource,
     ) {
         super(context, DEPLOYMENT_VIEW_ID, DEPLOYMENT_VIEW_ID, new DeploymentWebviewState(), {
             title: newDeployment,
@@ -88,18 +89,24 @@ export class DeploymentWebviewController extends FormWebviewController<
                 light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
             },
         });
-        void this.initialize(initialConnectionGroup, initialDeploymentType);
+        void this.initialize(
+            initialConnectionGroup,
+            initialDeploymentType,
+            initialLocalDatabaseSource,
+        );
     }
 
     private async initialize(
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        initialLocalDatabaseSource?: LocalDatabaseSource,
     ) {
         // If an initial connection group was provided, try to pre-populate the form state
         if (initialConnectionGroup) {
             this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.initialDeploymentType = initialDeploymentType;
+        this.state.initialLocalDatabaseSource = initialLocalDatabaseSource;
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();
@@ -406,15 +413,20 @@ export class DeploymentWebviewController extends FormWebviewController<
                 sendActionEvent(TelemetryViews.LocalToCloudDeployment, TelemetryActions.Open);
             }
             const manager = this.mainController.connectionManager;
-            const connections = await manager.connectionStore.readAllConnections(true);
+            const connections = await manager.connectionStore.readAllConnections();
+            const savedProfileIds = new Set(connections.map((connection) => connection.id));
             const activeConnections = Object.entries(manager.activeConnections)
-                .filter(([uri]) => manager.isConnected(uri))
+                .filter(
+                    ([uri, connection]) =>
+                        savedProfileIds.has(getLocalDatabaseProfileId(connection)) &&
+                        manager.isConnected(uri),
+                )
                 .map(([, connection]) => ({
                     ...connection.credentials,
                     isConnected: true,
                     serverVersion: connection.serverInfo?.serverVersion,
                     isAzureSql: isAzureSqlDatabaseSource(connection.serverInfo),
-                    id: getLocalDatabaseConnectionId(connection),
+                    id: getLocalDatabaseProfileId(connection),
                 }));
             return getLocalDatabaseSources([...connections, ...activeConnections]);
         });

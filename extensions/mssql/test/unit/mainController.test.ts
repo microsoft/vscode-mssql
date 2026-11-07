@@ -44,6 +44,7 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import type { IConnectionInfo } from "vscode-mssql";
+import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 
 chai.use(sinonChai);
 
@@ -117,6 +118,69 @@ suite("MainController Tests", function () {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    suite("Deploy a local database to Azure", () => {
+        function databaseNode(server: string, subType?: string) {
+            const node = sandbox.createStubInstance(TreeNodeInfo);
+            const profile = new ConnectionProfile();
+            profile.id = "saved-profile-id";
+            profile.groupId = "local-group";
+            profile.profileName = "Local SQL";
+            profile.server = server;
+            profile.database = "master";
+            sandbox.stub(node, "connectionProfile").get(() => profile);
+            sandbox.stub(node, "nodeType").get(() => (subType ? "Server" : "Database"));
+            sandbox.stub(node, "context").get(() => ({
+                type: subType ? "Server" : "Database",
+                subType,
+                filterable: false,
+                hasFilters: false,
+            }));
+            return node;
+        }
+
+        for (const subType of [undefined, "Database", "DockerContainerDatabase"]) {
+            test(`preselects the database on a local ${subType ?? "database"} node using its profile identity`, () => {
+                const node = databaseNode("localhost,1433", subType);
+                sandbox
+                    .stub(ObjectExplorerUtils, "getDatabaseName")
+                    .withArgs(node)
+                    .returns("Selected DB");
+                const launch = sandbox.stub(mainController, "onDeployNewDatabase");
+                mainController.onDeployDatabaseToAzure(node);
+                expect(launch).to.have.been.calledWith(
+                    "local-group",
+                    undefined,
+                    sinon.match({
+                        id: "saved-profile-id",
+                        server: "localhost,1433",
+                        database: "Selected DB",
+                        profileName: "Local SQL",
+                    }),
+                );
+            });
+        }
+
+        test("rejects remote databases even when the command is invoked directly", () => {
+            const node = databaseNode("localhost.example.com");
+            sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns("Selected DB");
+            const launch = sandbox.stub(mainController, "onDeployNewDatabase");
+            mainController.onDeployDatabaseToAzure(node);
+            expect(launch).not.to.have.been.called;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                LocalizedConstants.LocalToCloud.localDatabaseRequired,
+            );
+        });
+
+        test("rejects a missing database node", () => {
+            const launch = sandbox.stub(mainController, "onDeployNewDatabase");
+            mainController.onDeployDatabaseToAzure();
+            expect(launch).not.to.have.been.called;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                LocalizedConstants.LocalToCloud.localDatabaseRequired,
+            );
+        });
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {

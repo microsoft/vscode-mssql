@@ -13,7 +13,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { Database20Regular, Table20Regular } from "@fluentui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     AzureSqlDatabaseRequests,
     LocalDatabaseSource,
@@ -55,7 +55,13 @@ const useStyles = makeStyles({
     secondary: { color: "var(--vscode-descriptionForeground)" },
     connecting: { justifyContent: "flex-start" },
     options: { border: "none", padding: 0, margin: 0, minWidth: 0 },
-    legend: { padding: 0, marginBottom: "12px", fontWeight: tokens.fontWeightSemibold },
+    legend: {
+        padding: 0,
+        marginBottom: "12px",
+        fontSize: tokens.fontSizeBase400,
+        lineHeight: tokens.lineHeightBase400,
+        fontWeight: tokens.fontWeightSemibold,
+    },
     option: {
         display: "grid",
         gridTemplateColumns: "20px minmax(0, 1fr)",
@@ -90,28 +96,26 @@ export const AzureSqlDatabaseSourceDetails = ({
     deploymentContent,
     onDeploymentContentChange,
     onConnectionChange,
+    onConnectionError,
 }: {
     source: LocalDatabaseSource;
     onChange: () => void;
     deploymentContent: LocalDatabaseDeploymentContent;
     onDeploymentContentChange: (content: LocalDatabaseDeploymentContent) => void;
     onConnectionChange: (connection: LocalDatabaseSource | undefined) => void;
+    onConnectionError: (error: string | undefined) => void;
 }) => {
     const classes = useStyles();
     const strings = locConstants.azureSqlDatabase;
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
     const [connection, setConnection] = useState(source);
     const [isConnecting, setIsConnecting] = useState(true);
-    const headingRef = useRef<HTMLHeadingElement>(null);
-
-    useEffect(() => {
-        headingRef.current?.focus({ preventScroll: true });
-    }, []);
 
     useEffect(() => {
         let cancelled = false;
         setIsConnecting(true);
         onConnectionChange(undefined);
+        onConnectionError(undefined);
         void extensionRpc
             .sendRequest(AzureSqlDatabaseRequests.ConnectLocalDatabaseSource, {
                 id: source.id,
@@ -131,6 +135,7 @@ export const AzureSqlDatabaseSourceDetails = ({
                 if (!cancelled) {
                     setConnection({ ...source, isConnected: false, serverVersion: undefined });
                     onConnectionChange(undefined);
+                    onConnectionError(error instanceof Error ? error.message : String(error));
                 }
             })
             .finally(() => {
@@ -141,18 +146,14 @@ export const AzureSqlDatabaseSourceDetails = ({
         return () => {
             cancelled = true;
         };
-    }, [extensionRpc, source, onConnectionChange]);
+    }, [extensionRpc, source, onConnectionChange, onConnectionError]);
 
     return (
         <>
             <section className={classes.details} aria-labelledby="local-database-details-heading">
                 <div className={classes.header}>
                     <Database20Regular className={classes.icon} aria-hidden="true" />
-                    <h3
-                        id="local-database-details-heading"
-                        ref={headingRef}
-                        tabIndex={-1}
-                        className={classes.heading}>
+                    <h3 id="local-database-details-heading" className={classes.heading}>
                         {strings.localDatabase}
                     </h3>
                     <Button onClick={onChange}>{strings.changeLocalDatabase}</Button>

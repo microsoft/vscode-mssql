@@ -44,11 +44,17 @@ export class SqlToolsMcp {
 }
 
 export class LocalToCloud {
+    public static localDatabaseRequired = l10n.t(
+        "Select a database on a local SQL Server connection to deploy to Azure SQL.",
+    );
     public static sourceConnectionFailed = l10n.t(
         "Unable to connect to the selected local connection.",
     );
     public static sourceUnavailable = l10n.t(
         "The selected local database is no longer connected. Return to Source and reconnect.",
+    );
+    public static sourceVersionFailed = l10n.t(
+        "Unable to determine the selected SQL Server release year.",
     );
     public static extractionFailed = l10n.t("The local database schema could not be extracted.");
     public static buildFailed = l10n.t(

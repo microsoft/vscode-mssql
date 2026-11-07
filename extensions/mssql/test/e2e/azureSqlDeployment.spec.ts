@@ -17,17 +17,13 @@ test.describe("Azure SQL deployment options", () => {
         },
     });
 
-    test("opens each deployment flow directly from the first page without preview flags", async () => {
+    test("opens container and cloud provisioning flows without preview flags", async () => {
         const { page } = getContext();
         await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
         const deployment = await getWebviewByTitle(page, "New Deployment");
         const localSection = deployment.getByRole("region", { name: "Run locally", exact: true });
         const cloudSection = deployment.getByRole("region", {
             name: "Run in the cloud",
-            exact: true,
-        });
-        const deploySection = deployment.getByRole("region", {
-            name: "Deploy to the cloud",
             exact: true,
         });
         await expect(
@@ -48,15 +44,11 @@ test.describe("Azure SQL deployment options", () => {
         const azure = cloudSection.getByRole("button", {
             name: /^Azure SQL Database(?! container)/,
         });
-        const deployLocalDatabase = deploySection.getByRole("button", {
-            name: /^Local database to Azure SQL Database/,
-        });
 
         await expect(sqlServer).toBeVisible();
         await expect(azureContainer).toBeVisible();
         await expect(fabric).toBeVisible();
         await expect(azure).toBeVisible();
-        await expect(deployLocalDatabase).toBeVisible();
         await expect(localSection.getByRole("button")).toHaveText([
             /Azure SQL Database container \(Preview\)/,
             /SQL Server container/,
@@ -65,11 +57,6 @@ test.describe("Azure SQL deployment options", () => {
             /Azure SQL Database/,
             /SQL database in Fabric/,
         ]);
-        const [containerLeft, deploymentLeft] = await Promise.all([
-            azureContainer.evaluate((card) => card.getBoundingClientRect().left),
-            deployLocalDatabase.evaluate((card) => card.getBoundingClientRect().left),
-        ]);
-        expect(Math.abs(deploymentLeft - containerLeft)).toBeLessThan(1);
         await azureContainer.click();
         await expect(
             deployment.getByText("Azure SQL Database developer container", { exact: true }),
@@ -138,18 +125,5 @@ test.describe("Azure SQL deployment options", () => {
         ).toBeVisible();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await expect(azureContainer).toBeVisible();
-
-        await deployLocalDatabase.click();
-        await expect(deployment.getByText("Source", { exact: true })).toBeVisible();
-        await expect(deployment.getByText("Step 1 of 5", { exact: true })).toBeVisible();
-        await expect(deployment.getByRole("list", { name: "Deployment steps" })).toHaveCount(0);
-        await expect(
-            deployment.getByRole("heading", {
-                name: "Deploy a database to Azure SQL",
-                exact: true,
-            }),
-        ).toBeVisible();
-        await deployment.getByRole("button", { name: "Previous", exact: true }).click();
-        await expect(deployLocalDatabase).toBeVisible();
     });
 });

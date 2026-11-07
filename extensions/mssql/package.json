@@ -1047,6 +1047,11 @@
                     "group": "7_MSSQL_compareAndDacpac@2"
                 },
                 {
+                    "command": "mssql.deployDatabaseToAzure",
+                    "when": "view == objectExplorer && viewItem =~ /\\blocalToCloud=true\\b/ && (viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "7_MSSQL_compareAndDacpac@3"
+                },
+                {
                     "command": "mssql.renameDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
                     "group": "4_MSSQL_databaseMaintenance@1"
@@ -1483,6 +1488,10 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.deployDatabaseToAzure",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.queryResults.enableFollowActiveEditor",
                     "when": "mssql.multiResults.active && !config.mssql.queryResults.followActiveEditor"
@@ -3215,6 +3224,11 @@
                     "dark": "media/newContainer_dark.svg",
                     "light": "media/newContainer_light.svg"
                 }
+            },
+            {
+                "command": "mssql.deployDatabaseToAzure",
+                "title": "%mssql.deployDatabaseToAzure%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.stopContainer",

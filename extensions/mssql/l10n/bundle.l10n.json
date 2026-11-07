@@ -25,8 +25,10 @@
         "comment": ["{0} is the server, container, or database target being provisioned"]
     },
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
+    "Select a database on a local SQL Server connection to deploy to Azure SQL.": "Select a database on a local SQL Server connection to deploy to Azure SQL.",
     "Unable to connect to the selected local connection.": "Unable to connect to the selected local connection.",
     "The selected local database is no longer connected. Return to Source and reconnect.": "The selected local database is no longer connected. Return to Source and reconnect.",
+    "Unable to determine the selected SQL Server release year.": "Unable to determine the selected SQL Server release year.",
     "The local database schema could not be extracted.": "The local database schema could not be extracted.",
     "The Azure SQL compatibility build failed. See the validation details for diagnostics.": "The Azure SQL compatibility build failed. See the validation details for diagnostics.",
     "The compatibility build did not produce a valid schema package.": "The compatibility build did not produce a valid schema package.",
@@ -5305,6 +5307,9 @@
     "Applying changes, this might take a while...": "Applying changes, this might take a while...",
     "Changes applied successfully. Run Schema Compare again to see updated differences.": "Changes applied successfully. Run Schema Compare again to see updated differences.",
     "Apply failed. Fix the error and retry, or run Schema Compare again.": "Apply failed. Fix the error and retry, or run Schema Compare again.",
+    "Select a connection": "Select a connection",
+    "No connections found": "No connections found",
+    "No databases found": "No databases found",
     "Folder Structure": "Folder Structure",
     "Compare": "Compare",
     "Schema Compare Options": "Schema Compare Options",
@@ -5576,27 +5581,26 @@
     "Loading Azure SQL Database...": "Loading Azure SQL Database...",
     "Create an Azure SQL Database": "Create an Azure SQL Database",
     "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.": "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
-    "Choose a deployment option for Azure SQL Database": "Choose a deployment option for Azure SQL Database",
-    "Local database to Azure SQL Database": "Local database to Azure SQL Database",
+    "Local database to Azure SQL Database (Preview)": "Local database to Azure SQL Database (Preview)",
     "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.": "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.",
-    "Deploy a database to Azure SQL": "Deploy a database to Azure SQL",
-    "Publish your local development database schema to a free Azure SQL Database.": "Publish your local development database schema to a free Azure SQL Database.",
+    "Deploy a database to Azure SQL (Preview)": "Deploy a database to Azure SQL (Preview)",
     "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.": "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
+    "Choose source database": "Choose source database",
+    "Verify Azure SQL compatibility": "Verify Azure SQL compatibility",
     "Compatibility": "Compatibility",
-    "Azure": "Azure",
-    "Review": "Review",
-    "Deployment steps": "Deployment steps",
+    "Configure your Azure SQL database": "Configure your Azure SQL database",
+    "Review deployment specifications": "Review deployment specifications",
+    "Deploying to Azure": "Deploying to Azure",
     "Select a local database": "Select a local database",
     "Local database": "Local database",
     "SQL Server": "SQL Server",
     "SQL Azure": "SQL Azure",
     "Connected": "Connected",
     "Not available": "Not available",
-    "Deploy {0} to Azure SQL/{0} is the selected database name": {
-        "message": "Deploy {0} to Azure SQL",
+    "Deploy {0} to Azure SQL (Preview)/{0} is the selected database name": {
+        "message": "Deploy {0} to Azure SQL (Preview)",
         "comment": ["{0} is the selected database name"]
     },
-    "Check Azure SQL compatibility": "Check Azure SQL compatibility",
     "We'll validate the {0} schema before creating cloud resources./{0} is the selected database name": {
         "message": "We'll validate the {0} schema before creating cloud resources.",
         "comment": ["{0} is the selected database name"]
@@ -5661,17 +5665,10 @@
     "Unresolved schema dependency": "Unresolved schema dependency",
     "Build or tooling issue": "Build or tooling issue",
     "Schema compatibility issue": "Schema compatibility issue",
-    "{0} {1}: {2}/{0} is the diagnostic severity; {1} is its code; {2} is the diagnostic message": {
-        "message": "{0} {1}: {2}",
-        "comment": [
-            "{0} is the diagnostic severity; {1} is its code; {2} is the diagnostic message"
-        ]
-    },
     "{0}, line {1}/{0} is the source file; {1} is its line number": {
         "message": "{0}, line {1}",
         "comment": ["{0} is the source file; {1} is its line number"]
     },
-    "No schema compatibility issues were reported.": "No schema compatibility issues were reported.",
     "Resolve blocking issues and complete compatibility validation before continuing.": "Resolve blocking issues and complete compatibility validation before continuing.",
     "Continue to Azure": "Continue to Azure",
     "Review and deploy": "Review and deploy",
@@ -5720,8 +5717,6 @@
     "Import schema and data": "Import schema and data",
     "Verify deployment": "Verify deployment",
     "Your Azure SQL Database is ready": "Your Azure SQL Database is ready",
-    "Your validated schema has been published. No table rows were copied.": "Your validated schema has been published. No table rows were copied.",
-    "Your schema and data have been imported, and table row counts have been verified.": "Your schema and data have been imported, and table row counts have been verified.",
     "Deployment cancelled": "Deployment cancelled",
     "Any Azure resources created have been left in place. Check the target before retrying and choose a new database name.": "Any Azure resources created have been left in place. Check the target before retrying and choose a new database name.",
     "View deployment log": "View deployment log",
@@ -5742,25 +5737,17 @@
     },
     "Schema only": "Schema only",
     "Deploy tables, views, and procedures without copying any rows. You can move data later.": "Deploy tables, views, and procedures without copying any rows. You can move data later.",
-    "Search local connections": "Search local connections",
     "Loading local connections...": "Loading local connections...",
-    "Loading databases...": "Loading databases...",
     "No user databases found on this server.": "No user databases found on this server.",
-    "Unable to load databases: {0}. Collapse and expand the server to retry./{0} is the error returned while loading databases": {
-        "message": "Unable to load databases: {0}. Collapse and expand the server to retry.",
+    "Unable to load databases: {0}. Select Refresh to retry./{0} is the error returned while loading databases": {
+        "message": "Unable to load databases: {0}. Select Refresh to retry.",
         "comment": ["{0} is the error returned while loading databases"]
     },
-    "No local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.": "No local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.",
-    "No local connections match your search.": "No local connections match your search.",
+    "No saved local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.": "No saved local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.",
     "Unable to load local connections: {0}/{0} is the error returned while loading connections": {
         "message": "Unable to load local connections: {0}",
         "comment": ["{0} is the error returned while loading connections"]
     },
-    "{0} - {1}/{0} is the connection profile name; {1} is the server address": {
-        "message": "{0} - {1}",
-        "comment": ["{0} is the connection profile name; {1} is the server address"]
-    },
-    "The remaining deployment steps are not available yet.": "The remaining deployment steps are not available yet.",
     "Local container (Preview)": "Local container (Preview)",
     "Azure SQL Database container (Preview)": "Azure SQL Database container (Preview)",
     "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.": "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
@@ -5975,6 +5962,7 @@
     "Select an operation": "Select an operation",
     "No connections available. Please create a connection first.": "No connections available. Please create a connection first.",
     "Connecting to server...": "Connecting to server...",
+    "Loading databases...": "Loading databases...",
     "Publish DACPAC": "Publish DACPAC",
     "Extract DACPAC": "Extract DACPAC",
     "Import BACPAC": "Import BACPAC",

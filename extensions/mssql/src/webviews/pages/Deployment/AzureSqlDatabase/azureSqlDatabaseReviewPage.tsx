@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
     Button,
     Dialog,
@@ -46,8 +46,6 @@ const useStyles = makeStyles({
         maxWidth: "1080px",
         minWidth: 0,
     },
-    introduction: { display: "flex", flexDirection: "column", gap: "8px" },
-    heading: { margin: 0 },
     secondary: { color: "var(--vscode-descriptionForeground)", lineHeight: "20px" },
     card: {
         border: `1px solid ${tokens.colorNeutralStroke2}`,
@@ -144,7 +142,6 @@ export const AzureSqlDatabaseReviewPage = ({
 }) => {
     const classes = useStyles();
     const strings = locConstants.azureSqlDatabase;
-    const heading = useRef<HTMLHeadingElement>(null);
     const list = useRef<HTMLDivElement>(null);
     const [showObjects, setShowObjects] = useState(false);
     const [search, setSearch] = useState("");
@@ -160,9 +157,6 @@ export const AzureSqlDatabaseReviewPage = ({
         estimateSize: () => 28,
         overscan: 4,
     });
-    useEffect(() => {
-        heading.current?.focus({ preventScroll: true });
-    }, []);
 
     const form = azureState.formState;
     const subscription =
@@ -184,18 +178,7 @@ export const AzureSqlDatabaseReviewPage = ({
 
     return (
         <section className={classes.content} aria-label={strings.reviewAndDeploy}>
-            <div className={classes.introduction}>
-                <Text
-                    as="h2"
-                    size={400}
-                    weight="semibold"
-                    className={classes.heading}
-                    ref={heading}
-                    tabIndex={-1}>
-                    {strings.reviewAndDeploy}
-                </Text>
-                <Text className={classes.secondary}>{strings.reviewDescription}</Text>
-            </div>
+            <Text className={classes.secondary}>{strings.reviewDescription}</Text>
             <div className={mergeClasses(classes.card, classes.mapping)}>
                 <div className={classes.database}>
                     <Database24Regular className={classes.sourceIcon} aria-hidden />
@@ -246,7 +229,7 @@ export const AzureSqlDatabaseReviewPage = ({
                     </dd>
                 </div>
                 <div className={classes.row}>
-                    <dt className={classes.secondary}>{strings.compatibilityStep}</dt>
+                    <dt className={classes.secondary}>{strings.compatibilityLabel}</dt>
                     <dd
                         className={mergeClasses(
                             classes.value,

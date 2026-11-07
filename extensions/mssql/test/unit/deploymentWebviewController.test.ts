@@ -19,8 +19,11 @@ import {
 } from "../../src/deployment/azureSqlDatabaseHelpers";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import MainController from "../../src/controllers/mainController";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
+import { CredentialsQuickPickItemType } from "../../src/models/interfaces";
+import type { IServerInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as azureSql from "../../src/deployment/azureSqlHelpers";
 import * as logger from "../../src/models/logger";
@@ -34,6 +37,7 @@ import { createWorkspaceConfiguration } from "./stubs";
 import * as connectionGroups from "../../src/controllers/connectionGroupWebviewController";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { FormItemType } from "../../src/sharedInterfaces/form";
+import { ApiStatus } from "../../src/sharedInterfaces/webview";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -45,11 +49,15 @@ suite("Deployment webview controller", () => {
     let close: (state: DeploymentWebviewState, payload: {}) => Promise<DeploymentWebviewState>;
     let telemetry: ReturnType<typeof stubTelemetry>;
     let disposables: vscode.Disposable[];
+    let manager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let store: sinon.SinonStubbedInstance<ConnectionStore>;
+    let activeConnections: Record<string, ConnectionInfo>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         telemetry = stubTelemetry(sandbox);
-        ({ controller, disposables } = registerLocalWizardHandlers());
+        ({ controller, disposables, manager, store, activeConnections } =
+            registerLocalWizardHandlers());
         closePanel = sandbox.stub();
         sandbox.stub(controller, "panel").get(() => ({ dispose: closePanel }));
         close = controller.registerReducer.getCalls().find((call) => call.args[0] === "dispose")!
@@ -86,14 +94,108 @@ suite("Deployment webview controller", () => {
         const main = sandbox.createStubInstance(MainController);
         const manager = sandbox.createStubInstance(ConnectionManager);
         const store = sandbox.createStubInstance(ConnectionStore);
+        const activeConnections: Record<string, ConnectionInfo> = {};
         store.readAllConnections.resolves([]);
         sandbox.stub(manager, "connectionStore").get(() => store);
-        sandbox.stub(manager, "activeConnections").get(() => ({}));
+        sandbox.stub(manager, "activeConnections").get(() => activeConnections);
         sandbox.stub(main, "connectionManager").get(() => manager);
         controller.mainController = main;
         DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
-        return { controller, disposables };
+        return { controller, disposables, manager, store, activeConnections };
     }
+
+    test("lists saved connections without duplicate recent or active-only history entries", async () => {
+        const saved = Object.assign(new ConnectionProfile(), {
+            id: "saved-container",
+            profileName: "azure_sql_db_container_5",
+            server: "localhost,1433",
+            database: "",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        });
+        const recent = Object.assign(new ConnectionProfile(), saved, {
+            id: "old-database-session",
+            database: "Inventory",
+            profileSource: CredentialsQuickPickItemType.Mru,
+        });
+        store.readAllConnections.callsFake(async (includeRecent = false) =>
+            includeRecent ? [saved, recent] : [saved],
+        );
+        const active = new ConnectionInfo();
+        active.credentials = recent;
+        active.connectionId = "active-sts-connection";
+        activeConnections.recent = active;
+        manager.isConnected.returns(true);
+        const handler = controller.onRequest
+            .getCalls()
+            .find(
+                (call) =>
+                    call.args[0].method === AzureSqlDatabaseRequests.GetLocalDatabaseSources.method,
+            )!.args[1];
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+
+        expect(await handler(undefined, token)).to.deep.equal([
+            {
+                id: saved.id,
+                profileName: saved.profileName,
+                server: saved.server,
+                database: "",
+                isConnected: false,
+                serverVersion: undefined,
+            },
+        ]);
+    });
+
+    test("keeps distinct saved IDs and enriches only their matching active sessions", async () => {
+        const saved = Object.assign(new ConnectionProfile(), {
+            id: "saved-container",
+            profileName: "azure_sql_db_container_5",
+            server: "localhost,1433",
+            database: "",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        });
+        const otherSaved = Object.assign(new ConnectionProfile(), saved, {
+            id: "other-saved-profile",
+        });
+        store.readAllConnections.resolves([saved, otherSaved]);
+        const active = new ConnectionInfo();
+        active.credentials = { ...saved, database: "Inventory" };
+        active.connectionId = "active-sts-connection";
+        active.serverInfo = { serverVersion: "17.0.1000" } as IServerInfo;
+        activeConnections.saved = active;
+        manager.isConnected.returns(true);
+        const handler = controller.onRequest
+            .getCalls()
+            .find(
+                (call) =>
+                    call.args[0].method === AzureSqlDatabaseRequests.GetLocalDatabaseSources.method,
+            )!.args[1];
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+
+        expect(await handler(undefined, token)).to.deep.equal([
+            {
+                id: saved.id,
+                profileName: saved.profileName,
+                server: saved.server,
+                database: "",
+                isConnected: true,
+                serverVersion: "17.0.1000",
+            },
+            {
+                id: otherSaved.id,
+                profileName: otherSaved.profileName,
+                server: otherSaved.server,
+                database: "",
+                isConnected: false,
+                serverVersion: undefined,
+            },
+        ]);
+    });
 
     test("records opening once across source refreshes and closing when the panel is disposed", async () => {
         const handler = controller.onRequest
@@ -122,6 +224,30 @@ suite("Deployment webview controller", () => {
             TelemetryActions.Close,
             sinon.match({ additionalMeasurements: { durationInMs: sinon.match.number } }),
         );
+    });
+
+    test("carries the Object Explorer source and connection group into initial webview state", async () => {
+        const state = new DeploymentWebviewState();
+        sandbox.stub(controller, "state").get(() => state);
+        const source = {
+            id: "saved-local-profile",
+            profileName: "Local SQL",
+            server: "localhost,1433",
+            database: "Selected DB",
+            isConnected: true,
+        };
+        const ui = sandbox.createStubInstance(ConnectionUI);
+        ui.getConnectionGroupOptions.resolves([]);
+        sandbox.stub(controller.mainController.connectionManager, "connectionUI").get(() => ui);
+        await DeploymentWebviewController.prototype["initialize"].call(
+            controller,
+            "local-group",
+            undefined,
+            source,
+        );
+        expect(state.initialLocalDatabaseSource).to.deep.equal(source);
+        expect(state.formState.groupId).to.equal("local-group");
+        expect(state.loadState).to.equal(ApiStatus.Loaded);
     });
 
     test("stale compatibility cleanup cannot invalidate a running deployment", async () => {

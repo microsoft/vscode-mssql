@@ -158,6 +158,7 @@ export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDesignSchemaForTable = "mssql.schemaDesignerForTable";
 export const cmdBuildDataApi = "mssql.buildDataApi";
 export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
+export const cmdDeployDatabaseToAzure = "mssql.deployDatabaseToAzure";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";

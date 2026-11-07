@@ -3334,6 +3334,9 @@ export class LocConstants {
             ),
             connection: l10n.t("Connection"),
             database: l10n.t("Database"),
+            selectConnection: l10n.t("Select a connection"),
+            noConnectionsFound: l10n.t("No connections found"),
+            noDatabasesFound: l10n.t("No databases found"),
             defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),
             file: l10n.t("File"),
@@ -3859,24 +3862,20 @@ export class LocConstants {
             azureSqlDatabaseDescription: l10n.t(
                 "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
             ),
-            chooseDeploymentOption: l10n.t("Choose a deployment option for Azure SQL Database"),
-            deployLocalDatabase: l10n.t("Local database to Azure SQL Database"),
+            deployLocalDatabase: l10n.t("Local database to Azure SQL Database (Preview)"),
             deployLocalDatabaseDescription: l10n.t(
                 "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.",
             ),
-            deployToAzureSql: l10n.t("Deploy a database to Azure SQL"),
-            deployToAzureSqlSubtitle: l10n.t(
-                "Publish your local development database schema to a free Azure SQL Database.",
-            ),
+            deployToAzureSql: l10n.t("Deploy a database to Azure SQL (Preview)"),
             deployToAzureSqlDescription: l10n.t(
                 "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
             ),
-            sourceStep: l10n.t("Source"),
-            compatibilityStep: l10n.t("Compatibility"),
-            azureStep: l10n.t("Azure"),
-            reviewStep: l10n.t("Review"),
-            deployStep: l10n.t("Deploy"),
-            deploymentSteps: l10n.t("Deployment steps"),
+            sourceStep: l10n.t("Choose source database"),
+            compatibilityStep: l10n.t("Verify Azure SQL compatibility"),
+            compatibilityLabel: l10n.t("Compatibility"),
+            azureStep: l10n.t("Configure your Azure SQL database"),
+            reviewStep: l10n.t("Review deployment specifications"),
+            deployStep: l10n.t("Deploying to Azure"),
             selectLocalDatabase: l10n.t("Select a local database"),
             localDatabase: l10n.t("Local database"),
             changeLocalDatabase: l10n.t("Change"),
@@ -3892,11 +3891,10 @@ export class LocConstants {
             sourceVersionUnavailable: l10n.t("Not available"),
             deployDatabaseToAzure: (database: string) =>
                 l10n.t({
-                    message: "Deploy {0} to Azure SQL",
+                    message: "Deploy {0} to Azure SQL (Preview)",
                     args: [database],
                     comment: ["{0} is the selected database name"],
                 }),
-            checkAzureCompatibility: l10n.t("Check Azure SQL compatibility"),
             compatibilityDescription: (database: string) =>
                 l10n.t({
                     message: "We'll validate the {0} schema before creating cloud resources.",
@@ -3988,21 +3986,12 @@ export class LocConstants {
             compatibilityDependency: l10n.t("Unresolved schema dependency"),
             compatibilityTooling: l10n.t("Build or tooling issue"),
             compatibilityIssue: l10n.t("Schema compatibility issue"),
-            compatibilityDiagnostic: (severity: string, code: string, message: string) =>
-                l10n.t({
-                    message: "{0} {1}: {2}",
-                    args: [severity, code, message],
-                    comment: [
-                        "{0} is the diagnostic severity; {1} is its code; {2} is the diagnostic message",
-                    ],
-                }),
             compatibilityLocation: (file: string, line: number) =>
                 l10n.t({
                     message: "{0}, line {1}",
                     args: [file, line],
                     comment: ["{0} is the source file; {1} is its line number"],
                 }),
-            compatibilityNoIssues: l10n.t("No schema compatibility issues were reported."),
             compatibilityContinueBlocked: l10n.t(
                 "Resolve blocking issues and complete compatibility validation before continuing.",
             ),
@@ -4074,12 +4063,6 @@ export class LocConstants {
                 savingConnection: l10n.t("Connecting to Azure SQL"),
             },
             deploymentReady: l10n.t("Your Azure SQL Database is ready"),
-            deploymentSchemaReady: l10n.t(
-                "Your validated schema has been published. No table rows were copied.",
-            ),
-            deploymentDataReady: l10n.t(
-                "Your schema and data have been imported, and table row counts have been verified.",
-            ),
             deploymentCancelled: l10n.t("Deployment cancelled"),
             deploymentResourcesRemain: l10n.t(
                 "Any Azure resources created have been left in place. Check the target before retrying and choose a new database name.",
@@ -4115,37 +4098,24 @@ export class LocConstants {
             schemaOnlyDescription: l10n.t(
                 "Deploy tables, views, and procedures without copying any rows. You can move data later.",
             ),
-            searchLocalConnections: l10n.t("Search local connections"),
             loadingLocalConnections: l10n.t("Loading local connections..."),
-            loadingLocalServerDatabases: l10n.t("Loading databases..."),
             noLocalServerDatabases: l10n.t("No user databases found on this server."),
             localServerDatabasesLoadFailed: (error: string) =>
                 l10n.t({
-                    message:
-                        "Unable to load databases: {0}. Collapse and expand the server to retry.",
+                    message: "Unable to load databases: {0}. Select Refresh to retry.",
                     args: [error],
                     comment: ["{0} is the error returned while loading databases"],
                 }),
             noLocalConnections: l10n.t(
-                "No local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.",
+                "No saved local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.",
             ),
-            noMatchingLocalConnections: l10n.t("No local connections match your search."),
             localConnectionsLoadFailed: (error: string) =>
                 l10n.t({
                     message: "Unable to load local connections: {0}",
                     args: [error],
                     comment: ["{0} is the error returned while loading connections"],
                 }),
-            localConnectionDetails: (profileName: string, server: string) =>
-                l10n.t({
-                    message: "{0} - {1}",
-                    args: [profileName, server],
-                    comment: ["{0} is the connection profile name; {1} is the server address"],
-                }),
             continueDeployment: l10n.t("Continue"),
-            remainingDeploymentStepsUnavailable: l10n.t(
-                "The remaining deployment steps are not available yet.",
-            ),
             localContainer: l10n.t("Local container (Preview)"),
             developerContainerPreview: l10n.t("Azure SQL Database container (Preview)"),
             localContainerDescription: l10n.t(

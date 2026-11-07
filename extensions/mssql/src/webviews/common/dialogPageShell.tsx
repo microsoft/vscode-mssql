@@ -62,28 +62,6 @@ const useStyles = makeStyles({
         padding: "16px 10px 32px",
         boxSizing: "border-box",
     },
-    spaciousContainer: {
-        padding: "32px 48px",
-        "@media (max-width: 600px)": {
-            padding: "24px",
-        },
-    },
-    stickyHeaderContainer: {
-        paddingTop: 0,
-    },
-    stickyHeader: {
-        position: "sticky",
-        top: 0,
-        zIndex: 1,
-        paddingTop: "16px",
-        backgroundColor: "var(--vscode-editor-background)",
-    },
-    spaciousStickyHeader: {
-        paddingTop: "32px",
-        "@media (max-width: 600px)": {
-            paddingTop: "24px",
-        },
-    },
     headerOuter: {
         borderBottom: "1px solid var(--vscode-editorGroup-border)",
         paddingBottom: "16px",
@@ -163,12 +141,6 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
         padding: "12px 16px",
     },
-    spaciousFooter: {
-        padding: "20px 48px",
-        "@media (max-width: 600px)": {
-            padding: "16px 24px",
-        },
-    },
     footerInner: {
         width: "100%",
         margin: 0,
@@ -198,8 +170,6 @@ export interface DialogPageShellProps {
     maxContentWidth?: DialogPageShellContentWidth;
     iconSize?: number;
     compactHeader?: boolean;
-    spacious?: boolean;
-    stickyHeader?: boolean;
     footerStart?: ReactNode;
     footerEnd?: ReactNode;
     children?: ReactNode;
@@ -217,8 +187,6 @@ export const DialogPageShell = ({
     maxContentWidth,
     iconSize = defaultHeaderIconSizePx,
     compactHeader = false,
-    spacious = false,
-    stickyHeader = false,
     footerStart,
     footerEnd,
     children,
@@ -253,77 +221,64 @@ export const DialogPageShell = ({
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.scrollRegion}>
-                <div
-                    className={mergeClasses(
-                        styles.container,
-                        spacious && styles.spaciousContainer,
-                        stickyHeader && styles.stickyHeaderContainer,
-                    )}>
-                    <div
-                        className={mergeClasses(
-                            stickyHeader && styles.stickyHeader,
-                            stickyHeader && spacious && styles.spaciousStickyHeader,
-                        )}>
-                        {hasHeaderContent && (
+                <div className={styles.container}>
+                    {hasHeaderContent && (
+                        <div
+                            className={styles.headerOuter}
+                            style={
+                                showHeaderDivider
+                                    ? undefined
+                                    : {
+                                          borderBottom: "none",
+                                          paddingBottom: "16px",
+                                      }
+                            }>
                             <div
-                                className={styles.headerOuter}
-                                style={
-                                    showHeaderDivider
-                                        ? undefined
-                                        : {
-                                              borderBottom: "none",
-                                              paddingBottom: "16px",
-                                          }
-                                }>
-                                <div
-                                    className={mergeClasses(
-                                        styles.header,
-                                        compactHeader && styles.compactHeader,
-                                    )}
-                                    style={{
-                                        ...contentWidthStyle,
-                                        gridTemplateColumns:
-                                            hasHeaderIcon && headerEnd
-                                                ? "auto minmax(0, 1fr) auto"
-                                                : hasHeaderIcon
-                                                  ? "auto 1fr"
-                                                  : headerEnd
-                                                    ? "minmax(0, 1fr) auto"
-                                                    : "1fr",
-                                    }}>
-                                    {hasHeaderIcon && (
+                                className={mergeClasses(
+                                    styles.header,
+                                    compactHeader && styles.compactHeader,
+                                )}
+                                style={{
+                                    ...contentWidthStyle,
+                                    gridTemplateColumns:
+                                        hasHeaderIcon && headerEnd
+                                            ? "auto minmax(0, 1fr) auto"
+                                            : hasHeaderIcon
+                                              ? "auto 1fr"
+                                              : headerEnd
+                                                ? "minmax(0, 1fr) auto"
+                                                : "1fr",
+                                }}>
+                                {hasHeaderIcon && (
+                                    <div
+                                        className={mergeClasses(
+                                            styles.iconContainer,
+                                            compactHeader && styles.compactIconContainer,
+                                        )}
+                                        style={{
+                                            width: `${iconSize}px`,
+                                            height: `${iconSize}px`,
+                                        }}>
+                                        {headerIcon}
+                                    </div>
+                                )}
+                                <div className={styles.headerText}>
+                                    {title && (
                                         <div
                                             className={mergeClasses(
-                                                styles.iconContainer,
-                                                compactHeader && styles.compactIconContainer,
-                                            )}
-                                            style={{
-                                                width: `${iconSize}px`,
-                                                height: `${iconSize}px`,
-                                            }}>
-                                            {headerIcon}
+                                                styles.title,
+                                                compactHeader && styles.compactTitle,
+                                            )}>
+                                            {title}
                                         </div>
                                     )}
-                                    <div className={styles.headerText}>
-                                        {title && (
-                                            <div
-                                                className={mergeClasses(
-                                                    styles.title,
-                                                    compactHeader && styles.compactTitle,
-                                                )}>
-                                                {title}
-                                            </div>
-                                        )}
-                                        {subtitle && (
-                                            <div className={styles.subtitle}>{subtitle}</div>
-                                        )}
-                                    </div>
-                                    {headerEnd}
+                                    {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
                                 </div>
+                                {headerEnd}
                             </div>
-                        )}
-                        {headerBottom && <div style={contentWidthStyle}>{headerBottom}</div>}
-                    </div>
+                        </div>
+                    )}
+                    {headerBottom && <div style={contentWidthStyle}>{headerBottom}</div>}
                     {(errorMessage || loadingMessage) && (
                         <div className={styles.messageStack} style={contentWidthStyle}>
                             {errorMessage && (
@@ -350,7 +305,7 @@ export const DialogPageShell = ({
                 </div>
             </div>
             {(footerStart || footerEnd) && (
-                <div className={mergeClasses(styles.footer, spacious && styles.spaciousFooter)}>
+                <div className={styles.footer}>
                     <div className={styles.footerInner} style={footerWidthStyle}>
                         <div className={styles.footerGroup}>{footerStart}</div>
                         <div className={styles.footerGroup}>{footerEnd}</div>
