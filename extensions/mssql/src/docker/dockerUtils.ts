@@ -976,30 +976,69 @@ export async function findAvailablePort(
     isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
 ): Promise<number> {
     try {
-        const dockerClient = getDockerodeClient();
-        const containerInfos = await dockerClient.listContainers({ all: true });
-        const containerIds = containerInfos
-            .map((containerInfo) => containerInfo.Id)
-            .filter((id): id is string => Boolean(id));
-
-        const usedPorts = containerIds.length
-            ? await getUsedPortsFromContainers(containerIds)
-            : new Set<number>();
-
-        const lastPort = Math.min(startPort + MAX_PORT_PROBE_ATTEMPTS - 1, MAX_PORT_NUMBER);
-        for (let port = startPort; port <= lastPort; port++) {
-            if (usedPorts.has(port)) {
-                continue;
-            }
-
-            if (await isPortFree(port)) {
-                return port;
-            }
-        }
-        return -1; // No available port found
+        return await scanForAvailablePort(startPort, await getPortsHeldByContainers(), isPortFree);
     } catch {
         return -1;
     }
+}
+
+/**
+ * Finds an available port for something that does not need Docker to run.
+ * Containers still count when Docker can be asked about them, but Docker being
+ * unreachable is not a failure here: it just means no container holds a port.
+ */
+export async function findAvailablePortWithoutDocker(
+    startPort: number,
+    /** Overridable so tests can drive port availability without real sockets. */
+    isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
+    /**
+     * Ports to skip even when nothing holds them right now, such as a port a
+     * stopped deployment expects to get back when it starts again.
+     */
+    reservedPorts: Iterable<number> = [],
+): Promise<number> {
+    let usedPorts = new Set<number>();
+    try {
+        usedPorts = await getPortsHeldByContainers();
+    } catch {
+        // Docker is not running or not installed
+    }
+
+    for (const port of reservedPorts) {
+        usedPorts.add(port);
+    }
+
+    return scanForAvailablePort(startPort, usedPorts, isPortFree);
+}
+
+/** Collects the host ports claimed by every container, running or stopped. */
+async function getPortsHeldByContainers(): Promise<Set<number>> {
+    const dockerClient = getDockerodeClient();
+    const containerInfos = await dockerClient.listContainers({ all: true });
+    const containerIds = containerInfos
+        .map((containerInfo) => containerInfo.Id)
+        .filter((id): id is string => Boolean(id));
+
+    return containerIds.length ? getUsedPortsFromContainers(containerIds) : new Set<number>();
+}
+
+/** Returns the first port from startPort that is free, or -1 if none is found. */
+async function scanForAvailablePort(
+    startPort: number,
+    usedPorts: Set<number>,
+    isPortFree: (port: number) => Promise<boolean>,
+): Promise<number> {
+    const lastPort = Math.min(startPort + MAX_PORT_PROBE_ATTEMPTS - 1, MAX_PORT_NUMBER);
+    for (let port = startPort; port <= lastPort; port++) {
+        if (usedPorts.has(port)) {
+            continue;
+        }
+
+        if (await isPortFree(port)) {
+            return port;
+        }
+    }
+    return -1; // No available port found
 }
 
 /**

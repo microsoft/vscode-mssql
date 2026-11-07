@@ -24,6 +24,14 @@ function getNoLockTableHint(options?: Dab.DabMetadataQueryOptions): string {
     return options?.useNoLock ? " WITH (NOLOCK)" : "";
 }
 
+/**
+ * DAB reads a table-valued parameter as "table type" and cannot map it, so report
+ * it the same way to mark the procedure as unsupported.
+ */
+function getParameterDataTypeExpression(): string {
+    return "CASE WHEN t.is_table_type = 1 THEN N'table type' ELSE TYPE_NAME(p.user_type_id) END";
+}
+
 function getListDabViewsQuery(options?: Dab.DabMetadataQueryOptions): string {
     const tableHint = getNoLockTableHint(options);
     return `
@@ -100,17 +108,83 @@ WHERE v.is_ms_shipped = 0
 ORDER BY SCHEMA_NAME(v.schema_id), v.name, c.column_id;`;
 }
 
+/**
+ * Traces the columns of each view without a unique index back to the unique keys of
+ * its base tables. Browse information makes SQL Server report every key column it
+ * needs to identify a row, and adds the ones the view leaves out as hidden columns.
+ */
+function getListDabViewSourceKeysQuery(options?: Dab.DabMetadataQueryOptions): string {
+    const tableHint = getNoLockTableHint(options);
+    return `
+;WITH views_without_unique_index AS
+(
+    SELECT
+        v.object_id,
+        v.schema_id,
+        v.name
+    FROM sys.views AS v${tableHint}
+    WHERE v.is_ms_shipped = 0
+        AND NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes AS i${tableHint}
+            WHERE i.object_id = v.object_id
+                AND i.is_unique = 1
+                AND i.is_hypothetical = 0
+                AND i.has_filter = 0
+        )
+)
+SELECT
+    CONCAT('view:', SCHEMA_NAME(v.schema_id), '.', v.name) AS [object_id],
+    r.name AS [column_name],
+    CAST(r.is_hidden AS bit) AS [is_hidden],
+    CONCAT(r.source_database, N'.', r.source_schema, N'.', r.source_table) AS [source_table]
+FROM views_without_unique_index AS v
+CROSS APPLY sys.dm_exec_describe_first_result_set(
+    N'SELECT * FROM ' + QUOTENAME(SCHEMA_NAME(v.schema_id)) + N'.' + QUOTENAME(v.name),
+    NULL,
+    1
+) AS r
+WHERE r.error_number IS NULL
+    AND r.is_part_of_unique_key = 1
+    AND r.source_table IS NOT NULL
+ORDER BY SCHEMA_NAME(v.schema_id), v.name, r.column_ordinal;`;
+}
+
+/**
+ * Reads the first result set of each stored procedure the same way DAB does at
+ * startup, so procedures that would stop DAB can be found before deployment.
+ */
+function getListDabStoredProcedureResultColumnsQuery(
+    options?: Dab.DabMetadataQueryOptions,
+): string {
+    const tableHint = getNoLockTableHint(options);
+    return `
+SELECT
+    CONCAT('stored-procedure:', SCHEMA_NAME(sp.schema_id), '.', sp.name) AS [object_id],
+    r.name AS [column_name],
+    COALESCE(TYPE_NAME(r.system_type_id), r.system_type_name) AS [data_type],
+    r.column_ordinal AS [ordinal]
+FROM sys.procedures AS sp${tableHint}
+CROSS APPLY sys.dm_exec_describe_first_result_set_for_object(sp.object_id, 0) AS r
+WHERE sp.is_ms_shipped = 0
+    AND r.is_hidden IS NOT NULL
+    AND r.is_hidden = 0
+ORDER BY SCHEMA_NAME(sp.schema_id), sp.name, r.column_ordinal;`;
+}
+
 function getListDabStoredProcedureParametersQuery(options?: Dab.DabMetadataQueryOptions): string {
     const tableHint = getNoLockTableHint(options);
     return `
 SELECT
     CONCAT('stored-procedure:', SCHEMA_NAME(sp.schema_id), '.', sp.name) AS [object_id],
     p.name AS [parameter_name],
-    TYPE_NAME(p.user_type_id) AS [data_type],
+    ${getParameterDataTypeExpression()} AS [data_type],
     p.parameter_id AS [ordinal]
 FROM sys.procedures AS sp${tableHint}
 INNER JOIN sys.parameters AS p${tableHint}
     ON p.object_id = sp.object_id
+INNER JOIN sys.types AS t${tableHint}
+    ON t.user_type_id = p.user_type_id
 WHERE sp.is_ms_shipped = 0
     AND p.parameter_id > 0
 ORDER BY SCHEMA_NAME(sp.schema_id), sp.name, p.parameter_id;`;
@@ -181,9 +255,11 @@ DECLARE @procedureObjectId int = OBJECT_ID(
 
 SELECT
     p.name AS [parameter_name],
-    TYPE_NAME(p.user_type_id) AS [data_type],
+    ${getParameterDataTypeExpression()} AS [data_type],
     p.parameter_id AS [ordinal]
 FROM sys.parameters AS p${tableHint}
+INNER JOIN sys.types AS t${tableHint}
+    ON t.user_type_id = p.user_type_id
 WHERE p.object_id = @procedureObjectId
     AND p.parameter_id > 0
 ORDER BY p.parameter_id;`;
@@ -229,6 +305,22 @@ export interface IDabMetadataService {
         databaseName?: string,
         options?: Dab.DabMetadataQueryOptions,
     ): Promise<Dab.DabStoredProcedureParameterMetadata[]>;
+
+    /**
+     * Returns key column names for views without a unique index, taken from the
+     * unique keys of their base tables. Views with no traceable key are left out.
+     */
+    getDabViewSourceKeysByView(
+        ownerUri: string,
+        databaseName?: string,
+        options?: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, string[]>>;
+
+    getDabStoredProcedureResultColumnsByProcedure(
+        ownerUri: string,
+        databaseName?: string,
+        options?: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, Dab.DabStoredProcedureResultColumnMetadata[]>>;
 }
 
 export class DabMetadataService implements IDabMetadataService {
@@ -345,6 +437,44 @@ export class DabMetadataService implements IDabMetadataService {
         } catch (error) {
             logger.error(
                 `Failed to get DAB stored procedure parameters by procedure: ${getErrorMessage(error)}`,
+            );
+            throw error;
+        }
+    }
+
+    public async getDabViewSourceKeysByView(
+        ownerUri: string,
+        databaseName?: string,
+        options?: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, string[]>> {
+        try {
+            const result = await this.executeSimpleQuery(
+                ownerUri,
+                getListDabViewSourceKeysQuery(options),
+                databaseName,
+            );
+            return this.parseDabViewSourceKeysByObject(result);
+        } catch (error) {
+            logger.error(`Failed to get DAB view source keys: ${getErrorMessage(error)}`);
+            throw error;
+        }
+    }
+
+    public async getDabStoredProcedureResultColumnsByProcedure(
+        ownerUri: string,
+        databaseName?: string,
+        options?: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, Dab.DabStoredProcedureResultColumnMetadata[]>> {
+        try {
+            const result = await this.executeSimpleQuery(
+                ownerUri,
+                getListDabStoredProcedureResultColumnsQuery(options),
+                databaseName,
+            );
+            return this.parseDabStoredProcedureResultColumnsByObject(result);
+        } catch (error) {
+            logger.error(
+                `Failed to get DAB stored procedure result columns: ${getErrorMessage(error)}`,
             );
             throw error;
         }
@@ -502,5 +632,73 @@ ${queryString}`;
         }
 
         return parametersByObject;
+    }
+
+    /**
+     * A base table counts only when the view shows every column of its key. When
+     * no key column is hidden, the visible key columns identify each row. When some
+     * are hidden, the fully shown keys are the closest match the view has.
+     */
+    private parseDabViewSourceKeysByObject(result: SimpleExecuteResult): Map<string, string[]> {
+        const keyColumnsByObject = new Map<
+            string,
+            { name: string; isHidden: boolean; sourceTable: string }[]
+        >();
+        for (let index = 0; index < (result?.rows ?? []).length; index++) {
+            const objectId = this.getCellDisplayValue(result, index, 0);
+            const name = this.getCellDisplayValue(result, index, 1);
+            const isHidden = this.getBooleanCellValue(result, index, 2);
+            const sourceTable = this.getCellDisplayValue(result, index, 3);
+            if (!objectId || !name || !sourceTable) {
+                continue;
+            }
+
+            const keyColumns = keyColumnsByObject.get(objectId) ?? [];
+            keyColumns.push({ name, isHidden, sourceTable: sourceTable.toLowerCase() });
+            keyColumnsByObject.set(objectId, keyColumns);
+        }
+
+        const keysByObject = new Map<string, string[]>();
+        for (const [objectId, keyColumns] of keyColumnsByObject) {
+            const partlyHiddenTables = new Set(
+                keyColumns.filter((column) => column.isHidden).map((column) => column.sourceTable),
+            );
+            const keyNames = [
+                ...new Set(
+                    keyColumns
+                        .filter(
+                            (column) =>
+                                !column.isHidden && !partlyHiddenTables.has(column.sourceTable),
+                        )
+                        .map((column) => column.name),
+                ),
+            ];
+            if (keyNames.length > 0) {
+                keysByObject.set(objectId, keyNames);
+            }
+        }
+
+        return keysByObject;
+    }
+
+    private parseDabStoredProcedureResultColumnsByObject(
+        result: SimpleExecuteResult,
+    ): Map<string, Dab.DabStoredProcedureResultColumnMetadata[]> {
+        const columnsByObject = new Map<string, Dab.DabStoredProcedureResultColumnMetadata[]>();
+        for (let index = 0; index < (result?.rows ?? []).length; index++) {
+            const objectId = this.getCellDisplayValue(result, index, 0);
+            const name = this.getCellDisplayValue(result, index, 1);
+            const dataType = this.getCellDisplayValue(result, index, 2) ?? "";
+            const ordinal = this.getPositiveOrdinalCellValue(result, index, 3);
+            if (!objectId || ordinal === undefined) {
+                continue;
+            }
+
+            const columns = columnsByObject.get(objectId) ?? [];
+            columns.push({ ...(name ? { name } : {}), dataType, ordinal });
+            columnsByObject.set(objectId, columns);
+        }
+
+        return columnsByObject;
     }
 }

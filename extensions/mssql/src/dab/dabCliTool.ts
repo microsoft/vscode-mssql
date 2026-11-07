@@ -19,17 +19,16 @@
  * extension manages rather than whatever happens to be on PATH.
  */
 
-import * as vscode from "vscode";
 import * as fsPromises from "fs/promises";
 import * as path from "path";
 import { DOMParser } from "@xmldom/xmldom";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
-import { configDabCliPackageFeedUrl } from "../constants/constants";
 import { Dab } from "../sharedInterfaces/dab";
 import { resolveDabCliFeedUrl } from "./dabNuGetFeed";
 import { getErrorMessage } from "../utils/utils";
 import { extractZipArchive } from "./dabCliArchive";
+import { getPinnedDabCliTreeDigest, isOfficialDabCliInstallation } from "./dabCliIntegrity";
 
 /** Assembly name of the CLI inside the package. */
 const DAB_CLI_ASSEMBLY_NAME = "Microsoft.DataApiBuilder.dll";
@@ -46,8 +45,11 @@ const DOTNET_TOOL_SETTINGS_NAME = "DotnetToolSettings.xml";
  * nothing this machine can run, which retrying will never change. It is kept
  * apart from `resolve` so the user is told that rather than being pointed at a
  * package that simply does not exist for them.
+ *
+ * `verify` means the feed served something other than the official release.
+ * Nothing it served is kept or run.
  */
-export type DabCliAcquisitionStage = "download" | "unpack" | "resolve" | "unsupported";
+export type DabCliAcquisitionStage = "download" | "unpack" | "resolve" | "unsupported" | "verify";
 
 export class DabCliAcquisitionError extends Error {
     constructor(
@@ -74,6 +76,8 @@ export interface DabCliInstallation {
     runtimeConfigPath: string;
     /** Version that was acquired. */
     version: string;
+    /** Set when an earlier unpacked copy was reused instead of downloading. */
+    isCached?: boolean;
 }
 
 /**
@@ -95,17 +99,6 @@ export function getDabCliPackageUrl(
     const packageVersion = version.toLowerCase();
     const base = feedUrl.replace(/\/+$/, "");
     return `${base}/${packageId}/${packageVersion}/${packageId}.${packageVersion}.nupkg`;
-}
-
-/**
- * Reads the feed setting, or undefined when the user has not set one and the
- * feed should be discovered from NuGet configuration instead.
- */
-export function getConfiguredDabCliFeedUrl(): string | undefined {
-    return (
-        vscode.workspace.getConfiguration().get<string>(configDabCliPackageFeedUrl)?.trim() ||
-        undefined
-    );
 }
 
 /** Directory a given CLI version is unpacked into. */
@@ -211,16 +204,30 @@ function readRuntimeIdentifierPackages(settingsXml: string) {
     return document.getElementsByTagName("RuntimeIdentifierPackage");
 }
 
-/** Resolves an already-unpacked installation, or undefined when there is none. */
+/**
+ * Resolves an already-unpacked installation, or undefined when there is none
+ * that can be run. An install that no longer matches the pinned release, such
+ * as one made before downloads were verified, is not reused.
+ */
 async function resolveExistingInstallation(
     installPath: string,
     version: string,
+    logger: ILogger,
 ): Promise<DabCliInstallation | undefined> {
     try {
         // Only trust a directory that finished unpacking: an interrupted
         // download leaves a partial tree that would fail in confusing ways.
         await fsPromises.access(path.join(installPath, INSTALL_COMPLETE_MARKER));
     } catch {
+        return undefined;
+    }
+
+    if (
+        !(await isOfficialDabCliInstallation(installPath, version, getCurrentRuntimeIdentifier()))
+    ) {
+        logger.warn(
+            `The cached Data API builder CLI ${version} at ${installPath} does not match the official release. Downloading it again.`,
+        );
         return undefined;
     }
 
@@ -305,17 +312,28 @@ export async function acquireDabCli(
 ): Promise<DabCliInstallation> {
     const installPath = getDabCliInstallPath(rootPath, version);
 
-    const existing = await resolveExistingInstallation(installPath, version);
+    const runtimeIdentifier = getCurrentRuntimeIdentifier();
+    if (!getPinnedDabCliTreeDigest(version, runtimeIdentifier)) {
+        // Nothing unverified is ever run, so a release or runtime without a
+        // pinned digest is treated like one with no build at all.
+        throw new DabCliAcquisitionError(
+            "unsupported",
+            `No verified Data API builder CLI ${version} is known for ${runtimeIdentifier}.`,
+            runtimeIdentifier,
+        );
+    }
+
+    const existing = await resolveExistingInstallation(installPath, version, logger);
     if (existing) {
         logger.debug(`Using cached DAB CLI ${version} at ${installPath}`);
-        return existing;
+        return { ...existing, isCached: true };
     }
 
     // Start clean so a previous partial unpack cannot be mistaken for content.
     await fsPromises.rm(installPath, { recursive: true, force: true });
     await fsPromises.mkdir(installPath, { recursive: true });
 
-    const feedUrl = await resolveDabCliFeedUrl(getConfiguredDabCliFeedUrl(), logger);
+    const feedUrl = await resolveDabCliFeedUrl(logger);
     await downloadAndUnpack(Dab.DAB_CLI_PACKAGE_ID, version, feedUrl, installPath, logger);
 
     const settingsPath = await findFile(installPath, DOTNET_TOOL_SETTINGS_NAME);
@@ -326,7 +344,6 @@ export async function acquireDabCli(
         );
     }
 
-    const runtimeIdentifier = getCurrentRuntimeIdentifier();
     let runtimePackageId: string | undefined;
     let isSplitByRuntime: boolean;
     try {
@@ -363,6 +380,16 @@ export async function acquireDabCli(
         throw new DabCliAcquisitionError(
             "resolve",
             `${runtimePackageId ?? Dab.DAB_CLI_PACKAGE_ID} did not contain ${DAB_CLI_ASSEMBLY_NAME}.`,
+        );
+    }
+
+    // The install is marked complete, and so ever run, only once every file
+    // matches the official release.
+    if (!(await isOfficialDabCliInstallation(installPath, version, runtimeIdentifier))) {
+        await fsPromises.rm(installPath, { recursive: true, force: true });
+        throw new DabCliAcquisitionError(
+            "verify",
+            `The Data API builder CLI downloaded from ${feedUrl} does not match the official ${version} release, so it was removed and not run.`,
         );
     }
 

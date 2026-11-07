@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { Button, Link, makeStyles, mergeClasses, Text, tokens } from "@fluentui/react-components";
 import {
     Add16Regular,
     Checkmark16Regular,
@@ -17,40 +17,65 @@ import { useDabContext } from "../dabContext";
 import { DabEndpoint, DabEndpointAction, getDabEndpoints } from "./dabEndpoints";
 
 const useStyles = makeStyles({
-    list: {
+    wrapper: {
         display: "flex",
         flexDirection: "column",
-        gap: "6px",
+        gap: "8px",
         width: "100%",
     },
-    row: {
+    table: {
         display: "flex",
+        flexDirection: "column",
+        borderRadius: tokens.borderRadiusXLarge,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground2,
+        overflow: "hidden",
+    },
+    row: {
+        display: "grid",
+        gridTemplateColumns: "120px minmax(0, 1fr) auto",
         alignItems: "center",
-        gap: "8px",
-        padding: "6px 10px",
-        backgroundColor: tokens.colorNeutralBackground3,
-        borderRadius: "4px",
+        columnGap: "16px",
+        padding: "10px 12px 10px 16px",
+        ":not(:last-child)": {
+            borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        },
     },
     label: {
-        fontWeight: 600,
-        minWidth: "80px",
+        fontWeight: tokens.fontWeightSemibold,
     },
     url: {
-        flex: 1,
+        fontFamily: "var(--vscode-editor-font-family)",
+        fontSize: tokens.fontSizeBase300,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
+        justifySelf: "start",
+        maxWidth: "100%",
+    },
+    // Holds the link, which keeps its own role inside the cell.
+    urlCell: {
+        display: "flex",
+        minWidth: 0,
+    },
+    urlDisabled: {
+        color: tokens.colorNeutralForeground3,
+    },
+    actions: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
     },
     actionButton: {
         minWidth: "auto",
         flexShrink: 0,
     },
     note: {
-        fontSize: "12px",
+        fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
     },
     errorText: {
-        fontSize: "12px",
+        fontSize: tokens.fontSizeBase200,
         color: tokens.colorStatusDangerForeground1,
     },
 });
@@ -98,18 +123,8 @@ export const DabDeploymentEndpoints = ({
         (endpoint: DabEndpoint, action: DabEndpointAction) => {
             switch (action) {
                 case "copy":
-                    return (
-                        <Button
-                            key={action}
-                            appearance="subtle"
-                            icon={<Copy16Regular />}
-                            size="small"
-                            className={classes.actionButton}
-                            onClick={() => copyToClipboard(endpoint.url, Dab.CopyTextType.Url)}
-                            aria-label={locConstants.schemaDesigner.copyUrl(endpoint.label)}
-                            title={locConstants.schemaDesigner.copyUrl(endpoint.label)}
-                        />
-                    );
+                    // Every row ends with a copy button, added below.
+                    return null;
                 case "openUrl":
                     if (!endpoint.openUrlConfig) {
                         return null;
@@ -155,19 +170,48 @@ export const DabDeploymentEndpoints = ({
     }
 
     return (
-        <div className={classes.list}>
+        <div className={classes.wrapper}>
             {isDisabled && (
                 <Text className={classes.note}>
                     {locConstants.schemaDesigner.endpointsUnavailableWhenStopped}
                 </Text>
             )}
-            {endpoints.map((endpoint) => (
-                <div key={endpoint.type} className={classes.row}>
-                    <Text className={classes.label}>{endpoint.label}</Text>
-                    <Text className={classes.url}>{endpoint.url}</Text>
-                    {endpoint.actions.map((action) => renderAction(endpoint, action))}
-                </div>
-            ))}
+            <div className={classes.table} role="table">
+                {endpoints.map((endpoint) => (
+                    <div key={endpoint.type} className={classes.row} role="row">
+                        <Text className={classes.label} role="cell">
+                            {endpoint.label}
+                        </Text>
+                        {isDisabled ? (
+                            <Text
+                                className={mergeClasses(classes.url, classes.urlDisabled)}
+                                role="cell">
+                                {endpoint.url}
+                            </Text>
+                        ) : (
+                            <div className={classes.urlCell} role="cell">
+                                <Link
+                                    className={classes.url}
+                                    onClick={() => openUrl(endpoint.url, endpoint.type)}>
+                                    {endpoint.url}
+                                </Link>
+                            </div>
+                        )}
+                        <div className={classes.actions} role="cell">
+                            {endpoint.actions.map((action) => renderAction(endpoint, action))}
+                            <Button
+                                appearance="subtle"
+                                icon={<Copy16Regular />}
+                                size="small"
+                                className={classes.actionButton}
+                                onClick={() => copyToClipboard(endpoint.url, Dab.CopyTextType.Url)}
+                                aria-label={locConstants.schemaDesigner.copyUrl(endpoint.label)}
+                                title={locConstants.schemaDesigner.copyUrl(endpoint.label)}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
             {mcpError && <Text className={classes.errorText}>{mcpError}</Text>}
         </div>
     );
