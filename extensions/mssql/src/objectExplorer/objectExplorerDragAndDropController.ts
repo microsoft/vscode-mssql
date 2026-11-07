@@ -107,8 +107,14 @@ export class ObjectExplorerDragAndDropController
                         const conn = await this.connectionStore.connectionConfig.getConnectionById(
                             dragData.id,
                         );
-                        conn.groupId = targetInfo.id;
-                        await this.connectionStore.connectionConfig.updateConnection(conn);
+                        const updated =
+                            await this.connectionStore.connectionConfig.updateConnection({
+                                ...conn,
+                                groupId: targetInfo.id,
+                            });
+                        if (!updated) {
+                            return;
+                        }
                     } else {
                         const group = this.connectionStore.connectionConfig.getGroupById(
                             dragData.id,
@@ -119,8 +125,13 @@ export class ObjectExplorerDragAndDropController
                             return;
                         }
 
-                        group.parentId = targetInfo.id;
-                        await this.connectionStore.connectionConfig.updateGroup(group);
+                        const updated = await this.connectionStore.connectionConfig.updateGroup({
+                            ...group,
+                            parentId: targetInfo.id,
+                        });
+                        if (!updated) {
+                            return;
+                        }
                     }
 
                     sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {

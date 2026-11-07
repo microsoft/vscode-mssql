@@ -137,6 +137,7 @@ export class ObjectExplorerFilter {
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         const correlationId = randomUUID();
         sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
+            connectionInfo: treeNode.connectionProfile,
             additionalProps: {
                 nodeType: treeNode.nodeType,
                 correlationId,
@@ -185,6 +186,7 @@ export class ObjectExplorerFilter {
                             TelemetryViews.ObjectExplorerFilter,
                             TelemetryActions.Submit,
                             {
+                                connectionInfo: treeNode.connectionProfile,
                                 additionalProps: {
                                     nodeType: treeNode.nodeType,
                                     correlationId,
@@ -202,6 +204,7 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onCancel(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                        connectionInfo: treeNode.connectionProfile,
                         additionalProps: {
                             nodeType: treeNode.nodeType,
                             correlationId,
@@ -213,6 +216,7 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onDisposed(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                        connectionInfo: treeNode.connectionProfile,
                         additionalProps: {
                             nodeType: treeNode.nodeType,
                             correlationId,

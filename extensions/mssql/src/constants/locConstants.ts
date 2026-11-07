@@ -1223,6 +1223,18 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    public static startContainer = l10n.t("Start Container");
+    public static containerAndConnectionFailed = (dockerError: string, sqlError: string) =>
+        l10n.t("Docker preparation failed: {0}\nSQL connection failed: {1}", dockerError, sqlError);
+    public static containerConnectionFailed = l10n.t(
+        "Connections (Private Preview) could not connect to the new container.",
+    );
+    public static containerStartupTimedOut = l10n.t(
+        "The SQL container did not become ready in time. Docker may be unresponsive.",
+    );
+    public static containerStartupFailed = l10n.t(
+        "The SQL container could not be started. Check the Docker logs and try again.",
+    );
     static selectObjectToScript = l10n.t("Select a database object to script.");
     static connectBeforeScripting = l10n.t(
         "Connect this profile in Connections (Private Preview) first.",
@@ -3808,6 +3820,78 @@ export class ConnectionGroup {
             comment: ["{0} is the connection group name"],
         });
     };
+}
+
+export class ConnectionConfig {
+    public static itemNotFound = (id: string) =>
+        l10n.t({
+            message: "The connection or connection group with ID '{0}' no longer exists.",
+            args: [id],
+            comment: ["{0} is the ID of the connection or connection group being updated"],
+        });
+    public static settingsWriteFailed = (location: string, error: string) =>
+        l10n.t({
+            message:
+                "Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.",
+            args: [location, error],
+            comment: ["{0} is the configuration location", "{1} is the write error"],
+        });
+    public static parentGroupNotFound = (parentId: string) =>
+        l10n.t({
+            message: "Parent connection group with ID '{0}' was not found.",
+            args: [parentId],
+            comment: ["{0} is the missing parent connection group ID"],
+        });
+    public static groupMoveCreatesCycle = (groupName: string, parentGroupName: string) =>
+        l10n.t({
+            message:
+                "Connection group '{0}' cannot be moved under '{1}' because that would create a cycle.",
+            args: [groupName, parentGroupName],
+            comment: [
+                "{0} is the connection group being moved",
+                "{1} is the selected parent connection group",
+            ],
+        });
+    public static groupHierarchyContainsCycle = l10n.t(
+        "Connection groups cannot be added because their parent hierarchy contains a cycle.",
+    );
+    public static moveToDifferentSaveLocation = (
+        itemName: string,
+        currentLocation: string,
+        parentGroupName: string,
+        parentLocation: string,
+    ) =>
+        l10n.t({
+            message:
+                "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?",
+            args: [itemName, currentLocation, parentGroupName, parentLocation],
+            comment: [
+                "{0} is the connection profile or group name",
+                "{1} is the item's current configuration location",
+                "{2} is the new parent group name",
+                "{3} is the new parent group's configuration location",
+            ],
+        });
+    public static updateSaveLocation = (location: string) =>
+        l10n.t({
+            message: "Update to {0}",
+            args: [location],
+            comment: ["{0} is a configuration location"],
+        });
+    public static leaveSaveLocation = (location: string) =>
+        l10n.t({
+            message: "Leave in {0}",
+            args: [location],
+            comment: ["{0} is a configuration location"],
+        });
+    public static globalConfig = l10n.t("global config");
+    public static workspaceConfig = l10n.t("workspace config");
+    public static workspaceFolderConfig = (folderName: string) =>
+        l10n.t({
+            message: "workspace folder config ({0})",
+            args: [folderName],
+            comment: ["{0} is the workspace folder name"],
+        });
 }
 
 export class DacpacDialog {

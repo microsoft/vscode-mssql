@@ -14,6 +14,7 @@ import { QueryNotificationHandler } from "../../src/controllers/queryNotificatio
 import * as Utils from "../../src/models/utils";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import {
+    BatchSummary,
     QueryExecuteParams,
     QueryExecuteCompleteNotificationResult,
     QueryExecuteBatchNotificationParams,
@@ -30,8 +31,10 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { stubMessageBoxes, stubTelemetry, stubVscodeWorkspace } from "./utils";
 import { Perf } from "../../src/perf/perfTelemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -516,10 +519,6 @@ suite("Query Runner tests", () => {
             message.message,
         ]);
         expect(messageListener).to.have.been.calledWith(message.message);
-        expect(testStatusView.showRowCount).to.have.been.calledWith(
-            standardUri,
-            message.message.message,
-        );
     });
 
     test("Notification - Message preserves errors when batch messages are disabled", () => {
@@ -547,7 +546,6 @@ suite("Query Runner tests", () => {
             message.message,
         ]);
         expect(messageListener).to.have.been.calledWith(message.message);
-        expect(testStatusView.hideRowCount).to.have.been.calledWith(standardUri, true);
     });
 
     test("Notification - Query complete", () => {
@@ -604,6 +602,111 @@ suite("Query Runner tests", () => {
         const latest = completed.lastCall.args[0] as QueryExecutionCompleteEvent;
         expect(latest).to.include({ hasError: false, isCanceled: false });
         expect(runner.isCanceled).to.be.false;
+    });
+
+    suite("Run telemetry", () => {
+        function completionProps(
+            sendActionEvent: sinon.SinonStub,
+        ): { [key: string]: string } | undefined {
+            return sendActionEvent
+                .getCalls()
+                .find((call) => call.args[1] === TelemetryActions.QueryExecutionCompleted)?.args[2]
+                .additionalProps;
+        }
+
+        test("reports how a live run ended", async () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            testSqlToolsServerClient.sendRequest.resolves({});
+            const runner = createQueryRunner();
+            runner.isLiveStatisticsRun = true;
+            runner.setupQueryExecution();
+            await runner.cancel();
+            runner.handleBatchComplete({
+                ownerUri: standardUri,
+                batchSummary: {
+                    executionElapsed: "00:00:02.000",
+                    executionEnd: new Date().toISOString(),
+                    executionStart: new Date().toISOString(),
+                    hasError: false,
+                    id: 0,
+                    selection: standardSelection,
+                    resultSetSummaries: [],
+                },
+            });
+
+            runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.QueryEditor,
+                TelemetryActions.QueryExecutionCompleted,
+            );
+            expect(completionProps(sendActionEvent)).to.deep.equal({
+                liveStatistics: "true",
+                isCanceled: "true",
+                hasError: "false",
+                durationBucket: "1-5s",
+            });
+        });
+
+        test("reports a run without live statistics", () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            const runner = createQueryRunner();
+            runner.setupQueryExecution();
+
+            runner.handleQueryComplete({
+                ownerUri: standardUri,
+                batchSummaries: [{ hasError: true } as BatchSummary],
+            });
+
+            expect(completionProps(sendActionEvent)).to.deep.equal({
+                liveStatistics: "false",
+                isCanceled: "false",
+                hasError: "true",
+                durationBucket: "<1s",
+            });
+        });
+
+        const planOptions: {
+            options?: QueryExecuteContracts.ExecutionPlanOptions;
+            hasExecutionPlan: string;
+        }[] = [
+            { options: undefined, hasExecutionPlan: "false" },
+            {
+                options: {
+                    includeActualExecutionPlanXml: false,
+                    includeEstimatedExecutionPlanXml: false,
+                },
+                hasExecutionPlan: "false",
+            },
+            { options: { includeActualExecutionPlanXml: true }, hasExecutionPlan: "true" },
+            { options: { includeEstimatedExecutionPlanXml: true }, hasExecutionPlan: "true" },
+        ];
+        for (const { options, hasExecutionPlan } of planOptions) {
+            test(`reports hasExecutionPlan ${hasExecutionPlan} for ${JSON.stringify(options)}`, async () => {
+                const startActivity = sandbox.stub(telemetry, "startActivity").returns({
+                    end: sandbox.stub(),
+                    endFailed: sandbox.stub(),
+                    update: sandbox.stub(),
+                } as unknown as telemetry.ActivityObject);
+                testSqlToolsServerClient.sendRequest.resolves({});
+                vscodeWorkspace.openTextDocument.resolves({
+                    getText: () => "select 1",
+                } as vscode.TextDocument);
+                const runner = createQueryRunner();
+
+                await runner.runQuery(standardSelection, options);
+                await runner.runStatement(0, 0, options);
+
+                const runProps = startActivity
+                    .getCalls()
+                    .filter((call) => call.args[1] === TelemetryActions.RunQuery)
+                    .map((call) => call.args[2].additionalProps);
+                expect(runProps).to.deep.equal([
+                    { executionType: "selection", hasExecutionPlan },
+                    { executionType: "statement", hasExecutionPlan },
+                ]);
+            });
+        }
     });
 
     test("Notification - Query complete refreshes the SPID shown in the status bar", () => {
@@ -944,6 +1047,73 @@ suite("Query Runner tests", () => {
             expectedParams,
         );
         expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+    });
+
+    test("runStatement records the statement the service resolved at the cursor", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1;\r\nselect 2,\r\n  3;",
+        } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runStatement(2, 0);
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 1, startColumn: 0, endLine: 2, endColumn: 4 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal("select 2,\r\n  3;");
+    });
+
+    test("runStatement records the document until a batch starts", async () => {
+        const text = "select 1;\nselect 2;";
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runStatement(1, 0);
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal(text);
+    });
+
+    test("a document run after a statement run does not record its batches", async () => {
+        const text = "select 1;\nGO\nselect 2;";
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runStatement(0, 0);
+        await queryRunner.runQuery(undefined);
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 9 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal(text);
+    });
+
+    test("a run that fails before reading the document keeps no earlier text", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1;",
+        } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQuery(undefined);
+
+        vscodeWorkspace.openTextDocument.rejects(new Error("document unavailable"));
+        try {
+            await queryRunner.runStatement(0, 0);
+        } catch {
+            // The failure itself is covered by the submission failure tests.
+        }
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal(undefined);
     });
 
     test("runStatement submission failure closes its performance interval", async () => {

@@ -5,11 +5,13 @@
 
 import { test, expect } from "./baseFixtures";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { getWebviewByTitle } from "./utils/testHelpers";
 
 test.describe("Object Explorer v2 view parity", () => {
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
             initialConfig: {
+                "window.menuStyle": "custom",
                 "mssql.showChangelogOnUpdate": false,
                 "mssql.enableExperimentalFeatures": true,
                 "mssql.sqlDataPlane.enabled": true,
@@ -87,8 +89,14 @@ test.describe("Object Explorer v2 view parity", () => {
 
         await gettingStarted(preview).click();
         await expect(page.getByRole("tab", { name: /SQL Server \(mssql\)/ })).toBeVisible();
+        const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+        await expect(
+            overview.getByRole("heading", { name: "SQL Server (mssql)", exact: true }),
+        ).toBeVisible();
         await gettingStarted(preview).click({ button: "right" });
-        await page.getByRole("menuitem", { name: "Hide", exact: true }).click();
+        const hide = page.getByRole("menuitem", { name: "Hide", exact: true });
+        await hide.hover();
+        await hide.click();
         await expect(gettingStarted(preview)).toHaveCount(0);
         await expect(gettingStarted(classic)).toHaveCount(0);
         await preview.locator(".pane-header").hover();
@@ -99,5 +107,20 @@ test.describe("Object Explorer v2 view parity", () => {
         await page.getByRole("menuitem", { name: "Show Getting Started", exact: true }).click();
         await expect(gettingStarted(preview)).toBeVisible();
         await expect(gettingStarted(classic)).toBeVisible();
+    });
+
+    test("opens the shared deployment wizard from the v2 toolbar", async () => {
+        const { page } = getContext();
+        const preview = page.locator(".pane").filter({
+            has: page.getByRole("heading", { name: "Connections (Private Preview)", exact: true }),
+        });
+        await preview.locator(".pane-header").hover();
+        await preview.getByRole("button", { name: "New Deployment", exact: true }).click();
+        await expect(page.getByRole("tab", { name: "New Deployment", exact: true })).toBeVisible();
+        const wizard = page.frameLocator(".webview:visible").frameLocator("#active-frame");
+        await wizard.getByRole("button", { name: /^SQL Server container/ }).click();
+        await expect(
+            wizard.getByText("Create a Local Docker SQL Server", { exact: true }),
+        ).toBeVisible();
     });
 });

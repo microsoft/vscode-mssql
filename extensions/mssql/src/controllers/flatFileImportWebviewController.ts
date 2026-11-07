@@ -26,6 +26,7 @@ import { defaultSchema, flatFileImportFileTypes } from "../constants/constants";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as path from "path";
 import ConnectionManager from "./connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { Deferred } from "../protocol";
@@ -106,6 +107,21 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     /**
      * Initialize the controller
      */
+    protected override get telemetryContext() {
+        return this.getSelectedDatabaseTelemetryContext();
+    }
+
+    private getSelectedDatabaseTelemetryContext() {
+        const selectedDatabase = this.state.formState.databaseName;
+        const ownerUri =
+            selectedDatabase === this.databaseName
+                ? this.ownerUri
+                : this._schemaConnectionDatabase === selectedDatabase
+                  ? this._schemaConnectionUri
+                  : undefined;
+        return getConnectionTelemetryInfo(this.connectionManager, ownerUri);
+    }
+
     private async initialize(): Promise<void> {
         // Set database names for dropdown
         this.state.serverName = this.profile.server;
@@ -143,7 +159,9 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
 
-        sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.Initialize);
+        sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.Initialize, {
+            ...this.getSelectedDatabaseTelemetryContext(),
+        });
     }
 
     /**
@@ -168,6 +186,8 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 state.fullErrorMessage = getErrorMessage(error);
                 state.tablePreviewStatus = ApiStatus.Error;
                 sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.TablePreview, {
+                    connectionInfo: this.profile,
+                    serverInfo: this.connectionManager.getServerInfo(this.profile),
                     error,
                     includeErrorMessage: false,
                 });
@@ -219,13 +239,16 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 }
                 state.importDataStatus = ApiStatus.Loaded;
 
-                sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile);
+                sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, {
+                    ...this.getSelectedDatabaseTelemetryContext(),
+                });
             } catch (error) {
                 state.errorMessage = Loc.FlatFileImport.importFailed;
                 state.fullErrorMessage = getErrorMessage(error);
                 state.importDataStatus = ApiStatus.Error;
 
                 sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, {
+                    ...this.getSelectedDatabaseTelemetryContext(),
                     error,
                     includeErrorMessage: false,
                 });
@@ -307,6 +330,8 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                     this.logger.error(errorMessage);
                     state.loadState = ApiStatus.Error;
                     sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ResetState, {
+                        connectionInfo: this.profile,
+                        serverInfo: this.connectionManager.getServerInfo(this.profile),
                         error: new Error(errorMessage),
                         includeErrorMessage: true,
                     });

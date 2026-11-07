@@ -54,6 +54,13 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++bdfd593f36a0f18f0ae7950325e319779792268c31a50bbcf3d2483d2b6ace96">
+      <source xml:lang="en">&apos;{0}&apos; is saved to {1}, but &apos;{2}&apos; is saved to {3}. Would you like to update the save location for {0}?</source>
+      <note>{0} is the connection profile or group name
+{1} is the item&apos;s current configuration location
+{2} is the new parent group name
+{3} is the new parent group&apos;s configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++adf8e04f50ceb08ed05e22cbfc53a0ac2ea0dec32ae4298d7b37a23ba00a6143">
       <source xml:lang="en">&apos;{0}&apos; isn&apos;t connected to Azure Arc, so Database Hub can&apos;t show it. Connect it to Azure Arc to review its findings in Database Hub.</source>
       <note>{0} is the name of a SQL Server machine</note>
@@ -656,9 +663,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3103e52eb1cd4493724fc1943e3393990216fd4e6a6acb67f2934322b70fa5a6">
       <source xml:lang="en">Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f09bb63d5fa0008059d5d8caadbffdf76d4b1f70698c862f2d055b06abee9e34">
-      <source xml:lang="en">Agent skills, SQL formatter, and landing page</source>
     </trans-unit>
     <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
       <source xml:lang="en">Alias</source>
@@ -2677,10 +2681,18 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
+    <trans-unit id="++CODE++08b87ee477e78326a6a12a27995b088e58cdb713ae40c381bde7b9a9a1864e8e">
+      <source xml:lang="en">Connection group &apos;{0}&apos; cannot be moved under &apos;{1}&apos; because that would create a cycle.</source>
+      <note>{0} is the connection group being moved
+{1} is the selected parent connection group</note>
+    </trans-unit>
     <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
       <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
       <note>{0} is the group name
 {1} is the group ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++343353e44c00ea7849d081f1c30bfbc2522c2acd6a4de7d93c31f878a720ccf0">
+      <source xml:lang="en">Connection groups cannot be added because their parent hierarchy contains a cycle.</source>
     </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
@@ -2710,6 +2722,9 @@
     </trans-unit>
     <trans-unit id="++CODE++44b8a8a9840bc6053acbd80a7515867533fd1a1ba95d3fd45fae6a4db6a2e3ce">
       <source xml:lang="en">Connection profile preparation failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3d6b9692961345a1c561b2459401c97e7daeaa146e91d8e823788224764e38eb">
+      <source xml:lang="en">Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>
@@ -2755,6 +2770,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dc273117482b4429ada500ecd2e0c75532454194892cb901ca64cc7df369fdf6">
       <source xml:lang="en">Connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37dfbaba6815491f37ae83a636b1c93ffbe7d56ab4a008e3eaba2d33f6ee3993">
+      <source xml:lang="en">Connections (Private Preview) could not connect to the new container.</source>
     </trans-unit>
     <trans-unit id="++CODE++667becd097c0617a1f7c02fbe6ad67c563025db76df1b78a793d4df8c322ef3f">
       <source xml:lang="en">Connections (Private Preview) could not connect.</source>
@@ -4132,6 +4150,9 @@
     <trans-unit id="++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05">
       <source xml:lang="en">Docker is not installed or not in PATH. Please install Docker Desktop and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d1d2395e0811db06e65dc198b4058df434f11f068d9fc753f66f114d8feabea1">
+      <source xml:lang="en">Docker preparation failed: {0}&#10;SQL connection failed: {1}</source>
+    </trans-unit>
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
     </trans-unit>
@@ -5064,8 +5085,8 @@
     <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
       <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
     </trans-unit>
-    <trans-unit id="++CODE++e69531e4427bebd58fb6509ad9a9ce3867369f93b7277c74443deacb24633467">
-      <source xml:lang="en">Explore what&apos;s new in the MSSQL extension</source>
+    <trans-unit id="++CODE++b8fd3004836a749c40bbd1bd5c531e162a9f56c7f234c24ab5d0981e14742d92">
+      <source xml:lang="en">Explore what&apos;s new in the MSSQL extension (v1.48)</source>
     </trans-unit>
     <trans-unit id="++CODE++1bffe5429645cccdfb734b329417be110bd34942cd3678842c6841f67589c416">
       <source xml:lang="en">Explore your databases, tables, views, and stored procedures in the Object Explorer.</source>
@@ -5666,6 +5687,11 @@
     </trans-unit>
     <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
       <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6179931bae0f7fcdacf1ed63ebc03d32bcb9bc9a8c546b1117fe62526552542">
+      <source xml:lang="en">Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.</source>
+      <note>{0} is the configuration location
+{1} is the write error</note>
     </trans-unit>
     <trans-unit id="++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c">
       <source xml:lang="en">Failed to write the Data API builder configuration file.</source>
@@ -6914,6 +6940,10 @@
     <trans-unit id="++CODE++30fce9502ece39e0039f09e8ada05d1e1aba9016c153517af2d595e846c0f05d">
       <source xml:lang="en">Learning paths, tutorials, samples, and community.</source>
     </trans-unit>
+    <trans-unit id="++CODE++21e68c50434460787cb91ec1352da87bf2dfa44c2b2352f5ac154a55a71f27d0">
+      <source xml:lang="en">Leave in {0}</source>
+      <note>{0} is a configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>
     </trans-unit>
@@ -7266,6 +7296,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c8047e1144b0b498bd5fb4155a1f0e28ad14ed8f63892e2d20bf1fce56f921a">
+      <source xml:lang="en">Local Azure SQL Database container, query performance dashboard, and more</source>
     </trans-unit>
     <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
       <source xml:lang="en">Local Container Deployment</source>
@@ -7802,9 +7835,6 @@
     </trans-unit>
     <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
       <source xml:lang="en">Monthly limits</source>
-    </trans-unit>
-    <trans-unit id="++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68">
-      <source xml:lang="en">More Actions</source>
     </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
@@ -9049,6 +9079,13 @@
     <trans-unit id="++CODE++57965495a046c7cf17c8fed73fd2a810cdf837b8727b5870b65a17cb4942875c">
       <source xml:lang="en">Params/routine</source>
     </trans-unit>
+    <trans-unit id="++CODE++e262868168cfbc61b5c71e9d73571ca772307af3ad606198029c7ad2a0dc5373">
+      <source xml:lang="en">Parent connection group with ID &apos;{0}&apos; was not found.</source>
+      <note>{0} is the missing parent connection group ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ffd307ce81d2fc14aa150a7cc680a982a48c9859b0e2aaa31c3d6f740bb868e5">
+      <source xml:lang="en">Parent group</source>
+    </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
     </trans-unit>
@@ -9372,9 +9409,6 @@
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
     </trans-unit>
-    <trans-unit id="++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8">
-      <source xml:lang="en">Preview Grid</source>
-    </trans-unit>
     <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
       <source xml:lang="en">Previous</source>
     </trans-unit>
@@ -9639,6 +9673,12 @@
     </trans-unit>
     <trans-unit id="++CODE++07e73f3636fc8f275412a00382135b751e78dd28bebbb60b20d8f1482aaf75d4">
       <source xml:lang="en">Query ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aee19d80c47ff13ea33397a4c3f05dcc19de6f466cd02c6b37d4ea88b02e0fc4">
+      <source xml:lang="en">Query Performance Dashboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60c996cb9e5ef618ffbb36871a01ddbb55f1e23287fd075fb8f1706aa5b56338">
+      <source xml:lang="en">Query Performance Dashboard (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
@@ -10428,17 +10468,6 @@
       <source xml:lang="en">Results ({0})</source>
       <note>{0} is the keyboard shortcut for the results tab</note>
     </trans-unit>
-    <trans-unit id="++CODE++2d69137f5dd060efac1008188981aff344c1d3de8f7c3bf54359e68cc4e19b5e">
-      <source xml:lang="en">Results Preview</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2944b5a2b1f061b198f19a818d051f7246c0494c3a7150d757f2301e3ab9e06a">
-      <source xml:lang="en">Results Preview ({0})</source>
-      <note>{0} is the number of preview results</note>
-    </trans-unit>
-    <trans-unit id="++CODE++19845d8a46ab987a3d8bf7a121f630c6f4dd5bbf37f30e81ec6fb187bba7a8e3">
-      <source xml:lang="en">Results Preview ({0})</source>
-      <note>{0} is the keyboard shortcut for the preview results tab</note>
-    </trans-unit>
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
@@ -10534,6 +10563,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c25337055464f8d31fb1498bc94025cba5eae3b0e1cf07741f09f8b873d00103">
       <source xml:lang="en">Roles</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44cb005ee2e65d9cc817b0a083579369fb6c24a4be728cb43fd9d4c3ca7f4c2e">
+      <source xml:lang="en">Root</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -11847,13 +11879,6 @@
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
-    <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
-      <source xml:lang="en">Show Menu</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d014d52362848d2e01dc78db0a3788e52c984baecefb3c94fd4539d03e331e78">
-      <source xml:lang="en">Show Menu ({0})</source>
-      <note>{0} is the keyboard shortcut for showing the menu</note>
-    </trans-unit>
     <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
       <source xml:lang="en">Show New Password</source>
     </trans-unit>
@@ -12097,6 +12122,9 @@
     <trans-unit id="++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644">
       <source xml:lang="en">Start</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc886878e735deffe0170f33b2a7f82a5b864c6427f628721e1e16a5d2e02b6f">
+      <source xml:lang="en">Start Container</source>
+    </trans-unit>
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>
     </trans-unit>
@@ -12326,9 +12354,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5f9a6468c67e9a70a4b7b3b9b65d5c8d1ff0dcd29d0deeebf7232dde003c2918">
       <source xml:lang="en">Switch between result panes and tabs</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89">
-      <source xml:lang="en">Switch between the classic and the preview results grid</source>
     </trans-unit>
     <trans-unit id="++CODE++d797c6360240f8a9e067207c81426437b0a655a0a744840a19a889ab8de4b58e">
       <source xml:lang="en">Switch results view</source>
@@ -12666,6 +12691,12 @@
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++413c259568bece29e0f79a658446153a6d633f09a17fd1c6099bc9f005cdd2ce">
+      <source xml:lang="en">The SQL container could not be started. Check the Docker logs and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f53ff63c1de2d609c0234441696af6d9535e09b242909f08c06c35797e5f1b39">
+      <source xml:lang="en">The SQL container did not become ready in time. Docker may be unresponsive.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f4adae54770965f9be3cbbf3f857b3a5a74f9f5adaa37feda96f1fa47887056">
       <source xml:lang="en">The SQL data plane does not support the authentication type of this connection.</source>
     </trans-unit>
@@ -12732,6 +12763,10 @@
     </trans-unit>
     <trans-unit id="++CODE++757667508525b0a17745f4935bc686a48d56aaf88ff234d58ddec5ab3d66e3d7">
       <source xml:lang="en">The connection finished opening after its deadline.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37ae454a0acf9c64b44acf565a1114197e690b85ce9021c98f427b344aae246e">
+      <source xml:lang="en">The connection or connection group with ID &apos;{0}&apos; no longer exists.</source>
+      <note>{0} is the ID of the connection or connection group being updated</note>
     </trans-unit>
     <trans-unit id="++CODE++70ece7402eaedb300906107bea039eae51bf2b850127528ddb1d48e174d64515">
       <source xml:lang="en">The connection profile for this request no longer exists.</source>
@@ -13294,9 +13329,6 @@
     <trans-unit id="++CODE++0888fb768c96dbbea7f193833d4dc8ec6ac4cf63d8a49991b8768eaa9dab7e6a">
       <source xml:lang="en">Toggle Similar Areas</source>
     </trans-unit>
-    <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
-      <source xml:lang="en">Toggle Sort</source>
-    </trans-unit>
     <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
       <source xml:lang="en">Toggle Tooltips</source>
     </trans-unit>
@@ -13747,6 +13779,10 @@
     <trans-unit id="++CODE++d0211b76d23d7bbcc51f1a6bb4799eca0aca1ecbcaed419891d49df65bb8fd8a">
       <source xml:lang="en">Update the source database schema, then run the check again. No Azure resources have been created.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5204a488029325932cd5843fe8a63aef8a9e113852ad77be943c76a4c1b86923">
+      <source xml:lang="en">Update to {0}</source>
+      <note>{0} is a configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++8671756ce1f486e98ffd9b8be6825b3f751e4bd700c84b0585a449f494aff99f">
       <source xml:lang="en">Update {0} for cross-platform support?</source>
     </trans-unit>
@@ -13814,6 +13850,9 @@
     </trans-unit>
     <trans-unit id="++CODE++50564b2fb586a6f8ee172cd303c720768a52904367132b2cafb6d7a4eb9de5dd">
       <source xml:lang="en">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++373ac9c93803e8d281200596f6576fb1fc60193d5ea97706ab186a0435d99784">
+      <source xml:lang="en">Use the Query Performance Dashboard to find query store insights, analyze performance trends, investigate execution plans, and optimize queries with GitHub Copilot.</source>
     </trans-unit>
     <trans-unit id="++CODE++db9ddb2e90023ccca44562f0c53ed14a531b423deddf3a03c9e6679f62ef9d70">
       <source xml:lang="en">Use the Schema Designer to model tables and relationships for your app.</source>
@@ -14567,6 +14606,9 @@
     <trans-unit id="++CODE++b050581bda74fae55ca1f0c45ffa7bcc939d75ef1650e090e36e0e13cdd18ac4">
       <source xml:lang="en">github.copilot.enable.sql = false</source>
     </trans-unit>
+    <trans-unit id="++CODE++905954d25726f93ea0b44d700e2f03126cc767130c48ee8d4fdba94b76357ffe">
+      <source xml:lang="en">global config</source>
+    </trans-unit>
     <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
       <source xml:lang="en">greater than</source>
     </trans-unit>
@@ -14881,6 +14923,13 @@
     </trans-unit>
     <trans-unit id="++CODE++b6b1e036f2e55bf7904f0645a2b992b1c0266243d0227e815fa66b486af3e84e">
       <source xml:lang="en">waiting for model response</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf86b0ee83e159bc8ea10a71647fda5e6a50968cf37740870a0c144f1fa050df">
+      <source xml:lang="en">workspace config</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f953970c7aa2936f644a4573ff44f6d95d49e6a16825a3a1626c2a9d0551d942">
+      <source xml:lang="en">workspace folder config ({0})</source>
+      <note>{0} is the workspace folder name</note>
     </trans-unit>
     <trans-unit id="++CODE++2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881">
       <source xml:lang="en">x</source>
@@ -15605,11 +15654,11 @@
     <trans-unit id="mssql.copilot.inlineCompletions.trace.folder.description">
       <source xml:lang="en">Absolute or home-relative folder for completion trace files. Leave empty to use extension storage.</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorer">
-      <source xml:lang="en">Add Connection</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
-      <source xml:lang="en">Add Connection Group</source>
+      <source xml:lang="en">Add Connection Group...</source>
+    </trans-unit>
+    <trans-unit id="mssql.addObjectExplorer">
+      <source xml:lang="en">Add Connection...</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
       <source xml:lang="en">Add Database Reference</source>
@@ -16053,7 +16102,7 @@
       <source xml:lang="en">Edit Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
-      <source xml:lang="en">Edit Connection Group</source>
+      <source xml:lang="en">Edit Connection Group...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>
@@ -16161,10 +16210,7 @@
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.liveQueryStatistics.description">
-      <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.preview.betaResultsGrid.description">
-      <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
+      <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. Enabled by default. Set to false to disable, or null to follow mssql.enableExperimentalFeatures.</source>
     </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -16365,7 +16411,7 @@
       <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
     </trans-unit>
     <trans-unit id="mssql.preview.multiResults.description">
-      <source xml:lang="en">Lists the results of every query editor in the Query Results panel, and lets you drag results together to view them side by side. Requires `#mssql.preview.betaResultsGrid#`. Not enabled by `#mssql.enableExperimentalFeatures#`.</source>
+      <source xml:lang="en">Lists the results of every query editor in the Query Results panel, and lets you drag results together to view them side by side. Not enabled by `#mssql.enableExperimentalFeatures#`.</source>
     </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
@@ -16566,7 +16612,7 @@
       <source xml:lang="en">Open Query History in Command Palette</source>
     </trans-unit>
     <trans-unit id="mssql.performance.openDashboard">
-      <source xml:lang="en">Open Query Performance Dashboard</source>
+      <source xml:lang="en">Open Query Performance Dashboard (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.openXelFile">
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
@@ -16699,9 +16745,6 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
-    </trans-unit>
-    <trans-unit id="mssql.queryResults.enablePreviewGrid">
-      <source xml:lang="en">Preview Grid</source>
     </trans-unit>
     <trans-unit id="mssql.queryResults.pinnedDocuments.enabled">
       <source xml:lang="en">Preview: allow pinning Query Studio results into read-only result documents that survive query reruns.</source>
@@ -17488,9 +17531,6 @@
     </trans-unit>
     <trans-unit id="mssql.queryResults.disableMultiResults">
       <source xml:lang="en">✓ Multi-Results Layout</source>
-    </trans-unit>
-    <trans-unit id="mssql.queryResults.disablePreviewGrid">
-      <source xml:lang="en">✓ Preview Grid</source>
     </trans-unit>
   </body></file>
 </xliff>

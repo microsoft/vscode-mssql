@@ -739,7 +739,6 @@ suite("SqlDocumentService Tests", () => {
     test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {
         const hideStatusBarStub = sandbox.stub();
         const updateStatusBarStub = sandbox.stub();
-        const updateSelectionSummaryStub = sandbox.stub();
         const updateResultsOnActiveEditorChangeStub = sandbox.stub();
         sqlDocumentService["_statusview"] = {
             hideLastShownStatusBar: hideStatusBarStub,
@@ -747,7 +746,6 @@ suite("SqlDocumentService Tests", () => {
         } as any;
         sqlDocumentService["_outputContentProvider"] = {
             queryResultWebviewController: {
-                updateSelectionSummary: updateSelectionSummaryStub,
                 updateResultsOnActiveEditorChange: updateResultsOnActiveEditorChangeStub,
             },
         } as any;
@@ -757,10 +755,8 @@ suite("SqlDocumentService Tests", () => {
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
         expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(undefined);
-        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
-        updateSelectionSummaryStub.resetHistory();
         updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 2: editor.document is undefined
@@ -769,10 +765,8 @@ suite("SqlDocumentService Tests", () => {
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
         expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithoutDoc);
-        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
-        updateSelectionSummaryStub.resetHistory();
         updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 3: connection manager returns undefined (no connection)

@@ -34,7 +34,7 @@ import {
  */
 const TEXT_VIEW_LOAD_TIMEOUT = 30 * 1000;
 
-test.describe("MSSQL Extension - Preview Grid Layout", () => {
+test.describe("MSSQL Extension - Results Grid Layout", () => {
     let resultsFrame: FrameLocator;
     let firstGrid: Locator;
 
@@ -48,7 +48,7 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
     });
 
     test("renders three result sets and restores them after maximizing one", async () => {
-        // The preview grid deliberately lazy-mounts offscreen result sets.
+        // The grid deliberately lazy-mounts offscreen result sets.
         await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
         const secondGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
         const thirdGrid = await waitForResultGrid(resultsFrame, "0_2", 1);
@@ -65,7 +65,7 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
 
         const tabs = resultsFrame.getByTestId("results-tab-list");
         await tabs.getByRole("tab", { name: "Messages" }).click();
-        await tabs.getByRole("tab", { name: /Results Preview/ }).click();
+        await tabs.getByRole("tab", { name: /^Results/ }).click();
         await expect(firstGrid).toBeVisible();
         await expect(secondGrid).toHaveCount(0);
         await expect(thirdGrid).toHaveCount(0);
@@ -298,7 +298,7 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
         expect(scrolledTop).toBeGreaterThan(100);
         const tabs = resultsFrame.getByTestId("results-tab-list");
         await tabs.getByRole("tab", { name: "Messages" }).click();
-        await tabs.getByRole("tab", { name: /Results Preview/ }).click();
+        await tabs.getByRole("tab", { name: /^Results/ }).click();
         await expect
             .poll(async () =>
                 scrollContainer.evaluate(

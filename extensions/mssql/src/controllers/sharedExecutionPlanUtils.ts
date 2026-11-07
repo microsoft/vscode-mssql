@@ -16,7 +16,7 @@ import * as vscode from "vscode";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import { sendActionEvent, sendErrorEvent, TelemetryEventOptions } from "extension-toolkit/vscode";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
@@ -29,6 +29,7 @@ export function openExecutionPlanWebview(
     sqlDocumentService: SqlDocumentService,
     planContents: string,
     docName: string,
+    telemetryContext: TelemetryEventOptions = {},
 ) {
     const executionPlanController = new ExecutionPlanWebviewController(
         context,
@@ -36,11 +37,12 @@ export function openExecutionPlanWebview(
         sqlDocumentService,
         planContents,
         docName,
+        telemetryContext,
     );
 
     executionPlanController.revealToForeground();
 
-    sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open);
+    sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open, telemetryContext);
 }
 
 export function openExecutionPlanComparisonWebview(
@@ -74,6 +76,7 @@ export function openExecutionPlanComparisonWebview(
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     payload: ExecutionPlanReducers["saveExecutionPlan"],
+    telemetryContext: TelemetryEventOptions = {},
 ) {
     let folder = vscode.Uri.file(homedir());
 
@@ -91,7 +94,7 @@ export async function saveExecutionPlan(
             saveUri,
             new TextEncoder().encode(payload.sqlPlanContent),
         );
-        sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.SavePlan);
+        sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.SavePlan, telemetryContext);
     }
 
     return state;
@@ -148,6 +151,7 @@ export async function createExecutionPlanGraphs(
     executionPlanService: ExecutionPlanService,
     xmlPlans: string[],
     source: "SqlplanFile" | "QueryResults",
+    telemetryContext: TelemetryEventOptions = {},
 ) {
     let newState = {
         ...state.executionPlanState,
@@ -172,6 +176,7 @@ export async function createExecutionPlanGraphs(
             state.executionPlanState = newState;
 
             sendErrorEvent(TelemetryViews.ExecutionPlan, TelemetryActions.OpenExecutionPlan, {
+                ...telemetryContext,
                 error: e,
                 includeErrorMessage: true,
             });
@@ -180,6 +185,7 @@ export async function createExecutionPlanGraphs(
     }
 
     sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.OpenExecutionPlan, {
+        ...telemetryContext,
         additionalProps: {
             source: source,
         },

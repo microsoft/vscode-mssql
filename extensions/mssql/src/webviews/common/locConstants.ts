@@ -1882,27 +1882,11 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
-            resultBetaTabTooltip: (shortcut?: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Results Preview ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
-                    });
-                }
-                return l10n.t("Results Preview");
-            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
-                }),
-            resultsBeta: (count: number) =>
-                l10n.t({
-                    message: "Results Preview ({0})",
-                    args: [count],
-                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
@@ -1919,25 +1903,9 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
-            moreActions: l10n.t("More Actions"),
-            previewGrid: l10n.t("Preview Grid"),
-            previewGridSwitchTooltip: l10n.t(
-                "Switch between the classic and the preview results grid",
-            ),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: (shortcut: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Show Menu ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for showing the menu"],
-                    });
-                }
-                return l10n.t("Show Menu");
-            },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
-            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {
@@ -3648,6 +3616,9 @@ export class LocConstants {
                 }),
             name: l10n.t("Name"),
             enterConnectionGroupName: l10n.t("Enter connection group name"),
+            parentGroup: l10n.t("Parent group"),
+            root: l10n.t("Root"),
+            searchConnectionGroups: l10n.t("Search connection groups"),
             description: l10n.t("Description"),
             enterDescription: l10n.t("Enter description (optional)"),
             color: l10n.t("Color"),
@@ -3656,6 +3627,9 @@ export class LocConstants {
             hue: l10n.t("Hue"),
             saturation: l10n.t("Saturation"),
             brightness: l10n.t("Brightness"),
+            organizationNote: l10n.t(
+                "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
+            ),
         };
     }
 
@@ -6185,6 +6159,13 @@ export class LocConstants {
             ),
             featureQueryEditorTitle: l10n.t("Query Editor"),
             featureQueryEditorDescription: l10n.t("Write T-SQL with IntelliSense."),
+            featureQueryPerformanceDashboardTitle: l10n.t("Query Performance Dashboard"),
+            featureQueryPerformanceDashboardHeading: l10n.t(
+                "Query Performance Dashboard (Preview)",
+            ),
+            featureQueryPerformanceDashboardDescription: l10n.t(
+                "Use the Query Performance Dashboard to find query store insights, analyze performance trends, investigate execution plans, and optimize queries with GitHub Copilot.",
+            ),
             featureQueryPlansTitle: l10n.t("Query Plans"),
             featureQueryPlansDescription: l10n.t(
                 "Analyze execution plans with interactive node navigation",
@@ -6370,8 +6351,10 @@ export class LocConstants {
             learnMoreAboutTemplate: l10n.t("Learn more about this template"),
 
             videos: l10n.t("Videos"),
-            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
-            videoWhatsNewSubtitle: l10n.t("Agent skills, SQL formatter, and landing page"),
+            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension (v1.48)"),
+            videoWhatsNewSubtitle: l10n.t(
+                "Local Azure SQL Database container, query performance dashboard, and more",
+            ),
             videoGettingStartedTitle: l10n.t(
                 "Getting started with the MSSQL extension in 5 minutes",
             ),

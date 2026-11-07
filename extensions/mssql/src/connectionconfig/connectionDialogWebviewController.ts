@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { shallowEqualObjects } from "shallow-equal";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
@@ -358,7 +359,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("loadConnectionForEdit", async (state, payload) => {
-            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection);
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadConnection,
+                getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    payload.connection,
+                ),
+            );
             await this.setConnectionForEdit(payload.connection);
 
             return state;
@@ -366,6 +374,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("loadConnectionAsNewDraft", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    payload.connection,
+                ),
                 additionalProps: {
                     mode: "newDraft",
                 },
@@ -407,6 +419,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.dialog = undefined;
 
                 sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    ...getConnectionTelemetryInfo(
+                        this._mainController.connectionManager,
+                        state.connectionProfile,
+                    ),
                     error: err,
                     includeErrorMessage: false,
                     errorType: err.Name,
@@ -419,7 +435,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.AddFirewallRule,
+                getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    state.connectionProfile,
+                ),
+            );
 
             state.dialog = undefined;
             this.updateState(state);
@@ -453,7 +476,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
-            state.dialog = getDefaultConnectionGroupDialogProps();
+            state.dialog = getDefaultConnectionGroupDialogProps(
+                await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups(),
+            );
             return state;
         });
 
@@ -549,6 +574,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.LoadFromConnectionString,
                         {
+                            ...getConnectionTelemetryInfo(
+                                this._mainController.connectionManager,
+                                ConnectionCredentials.createConnectionInfo(connDetails),
+                            ),
                             additionalProps: {
                                 result: "unsupportedAuthType",
                                 details: connDetails.options.authenticationType,
@@ -576,6 +605,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.LoadFromConnectionString,
                     {
+                        ...getConnectionTelemetryInfo(
+                            this._mainController.connectionManager,
+                            state.connectionProfile,
+                        ),
                         additionalProps: {
                             result: "success",
                         },
@@ -1364,6 +1397,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (!cleanedConnection) {
             return state;
         }
+        const wasEditingConnection = this._connectionBeingEdited !== undefined;
 
         try {
             if (action === ConnectionSubmitAction.TestConnection) {
@@ -1380,8 +1414,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (action === ConnectionSubmitAction.SaveWithoutConnecting) {
                 const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-                await this.removeEditedConnectionIfNeeded();
-                await this.saveProfileStep(preparedConnection, state);
+                if (!(await this.saveProfileStep(preparedConnection, state))) {
+                    this.state.connectionStatus = ApiStatus.NotStarted;
+                    this.updateState();
+                    return state;
+                }
                 this.state.connectionStatus = ApiStatus.Loaded;
                 this.updateState();
                 await this.panel.dispose();
@@ -1395,18 +1432,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-            await this.removeEditedConnectionIfNeeded();
-            await this.saveProfileStep(preparedConnection, state);
+            if (!(await this.saveProfileStep(preparedConnection, state))) {
+                this.state.connectionStatus = ApiStatus.NotStarted;
+                this.updateState();
+                return state;
+            }
             await this.connectAndRevealStep(preparedConnection, state);
 
             this.state.connectionStatus = ApiStatus.Loaded;
             this.updateState();
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    preparedConnection,
+                ),
                 additionalProps: {
                     result: "success",
                     submitAction: action,
-                    newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                    newOrEditedConnection: wasEditingConnection ? "edited" : "new",
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     serverTypes: getServerTypes(this.state.connectionProfile).join(","),
@@ -1423,6 +1467,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    state.connectionProfile,
+                ),
                 error,
                 additionalProps: {
                     submitAction: action,
@@ -1511,6 +1559,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState(state);
 
             sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    state.connectionProfile,
+                ),
                 error,
                 includeErrorMessage: false,
                 additionalProps: {
@@ -1695,18 +1747,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return preparedConnection;
     }
 
-    private async removeEditedConnectionIfNeeded(): Promise<void> {
+    private async removeEditedConnectionNodeIfNeeded(): Promise<void> {
         if (!this._connectionBeingEdited) {
             return;
         }
 
         this._mainController.connectionManager.getUriForConnection(this._connectionBeingEdited);
-        await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited]);
-
-        await this._mainController.connectionManager.connectionStore.removeProfile(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            this._connectionBeingEdited as any,
-        );
+        await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited], {
+            preserveProfiles: true,
+        });
 
         this._connectionBeingEdited = undefined;
     }
@@ -1714,12 +1763,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async saveProfileStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
-    ): Promise<void> {
-        await this._mainController.connectionManager.connectionStore.saveProfile(
-            connection as IConnectionProfile,
-        );
+    ): Promise<boolean> {
+        if (this._connectionBeingEdited) {
+            const updated =
+                await this._mainController.connectionManager.connectionStore.updateProfile(
+                    connection as IConnectionProfile,
+                    this._connectionBeingEdited as IConnectionProfile,
+                );
+            if (!updated) {
+                return false;
+            }
+            await this.removeEditedConnectionNodeIfNeeded();
+        } else {
+            await this._mainController.connectionManager.connectionStore.saveProfile(
+                connection as IConnectionProfile,
+            );
+        }
         await this.updateLoadedConnections(state);
         this.updateState(state);
+        return true;
     }
 
     private async connectAndRevealStep(
@@ -1780,6 +1842,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (!handleFirewallErrorResult.result) {
                 sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    ...getConnectionTelemetryInfo(
+                        this._mainController.connectionManager,
+                        result.credentials,
+                    ),
                     error: new Error(result.errorMessage),
                     // Parse failed because it couldn't detect an IP address, so that'd be the only PII.
                     includeErrorMessage: true,
@@ -1843,6 +1909,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    result.credentials,
+                ),
                 additionalProps: {
                     result: "connectionError",
                     errorNumber: String(result.errorNumber),

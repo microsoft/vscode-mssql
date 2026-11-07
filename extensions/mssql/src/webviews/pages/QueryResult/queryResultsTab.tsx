@@ -5,7 +5,8 @@
 
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { makeStyles, Spinner } from "@fluentui/react-components";
-import { type ComponentType, lazy, Suspense, useContext, useEffect } from "react";
+import { lazy, Suspense, useContext, useEffect } from "react";
+import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -47,11 +48,7 @@ const QueryResultsTextView = lazy(async () => {
     return { default: module.QueryResultsTextView };
 });
 
-interface QueryResultsTabProps {
-    GridView: ComponentType;
-}
-
-export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
+export const QueryResultsTab = () => {
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
         return;
@@ -103,5 +100,5 @@ export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
             </Suspense>
         );
     }
-    return <GridView />;
+    return <QueryResultFluentResultGridView />;
 };

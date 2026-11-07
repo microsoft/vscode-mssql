@@ -297,7 +297,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
                                 : loc.stepOfTotal(selectedIndex + 1, walkthrough.steps.length)}
                         </Text>
                         <Text as="h2" className={classes.title}>
-                            {step.title}
+                            {step.heading ?? step.title}
                         </Text>
                         <Text className={classes.description}>{step.description}</Text>
                         {step.action && (
@@ -315,7 +315,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
                                     <img
                                         className={classes.stageImage}
                                         src={step.image}
-                                        alt={step.title}
+                                        alt={step.heading ?? step.title}
                                     />
                                 ) : (
                                     <div className={classes.stagePlaceholder}>

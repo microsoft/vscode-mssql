@@ -96,6 +96,7 @@ suite("ExecutionPlanWebviewController", () => {
             controller.executionPlanService,
             [controller.executionPlanContents],
             "SqlplanFile",
+            {},
         );
 
         expect(
@@ -122,7 +123,11 @@ suite("ExecutionPlanWebviewController", () => {
 
         expect(saveExecutionPlanStub).to.have.been.calledOnce;
 
-        expect(saveExecutionPlanStub).to.have.been.calledWithExactly(mockInitialState, mockPayload);
+        expect(saveExecutionPlanStub).to.have.been.calledWithExactly(
+            mockInitialState,
+            mockPayload,
+            {},
+        );
 
         expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 

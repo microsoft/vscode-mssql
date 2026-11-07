@@ -24,6 +24,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersHelpers";
+import { classicContainerConnectAdapter, ContainerConnectAdapter } from "./containerConnectAdapter";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
@@ -73,12 +74,15 @@ export class DeploymentWebviewController extends FormWebviewController<
     DeploymentReducers
 > {
     requiredInputs: DeploymentFormItemSpec[];
+    /** The wizard's terminal connect seam (DOCK-0): which OE opens the profile. */
+    public readonly containerConnect: ContainerConnectAdapter;
     constructor(
         context: vscode.ExtensionContext,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        containerConnect?: ContainerConnectAdapter,
         initialLocalDatabaseSource?: LocalDatabaseSource,
     ) {
         super(context, DEPLOYMENT_VIEW_ID, DEPLOYMENT_VIEW_ID, new DeploymentWebviewState(), {
@@ -89,6 +93,7 @@ export class DeploymentWebviewController extends FormWebviewController<
                 light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
             },
         });
+        this.containerConnect = containerConnect ?? classicContainerConnectAdapter(mainController);
         void this.initialize(
             initialConnectionGroup,
             initialDeploymentType,
@@ -224,8 +229,11 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (typeof createConnectionGroupResult === "string") {
                 // If the result is a string, it means there was an error creating the group
                 state.formErrors.push(createConnectionGroupResult);
-                const dialog = getDefaultConnectionGroupDialogProps();
+                const dialog = getDefaultConnectionGroupDialogProps(
+                    await this.mainController.connectionManager.connectionStore.connectionConfig.getGroups(),
+                );
                 dialog.props = {
+                    ...dialog.props,
                     ...payload.connectionGroupSpec,
                     message: createConnectionGroupResult,
                 };
@@ -251,7 +259,9 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
             if (payload.shouldOpen) {
-                state.dialog = getDefaultConnectionGroupDialogProps();
+                state.dialog = getDefaultConnectionGroupDialogProps(
+                    await this.mainController.connectionManager.connectionStore.connectionConfig.getGroups(),
+                );
             } else {
                 state.dialog = undefined;
             }

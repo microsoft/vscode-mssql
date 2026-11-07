@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import ConnectionManager, {
     serverlessWakeMaxRetryAttempts,
@@ -217,10 +218,18 @@ export class ObjectExplorerService {
         sessionId: string,
         shouldRefresh: boolean = node.shouldRefresh,
     ): Promise<vscode.TreeItem[] | undefined> {
+        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
             {
+                ...getConnectionTelemetryInfo(
+                    this._connectionManager,
+                    node.connectionProfile,
+                    databaseName === LocalizedConstants.defaultDatabaseLabel
+                        ? ""
+                        : (databaseName ?? ""),
+                ),
                 additionalProps: {
                     nodeType: node.nodeType,
                     nodeSubType: node.nodeSubType,
@@ -242,8 +251,6 @@ export class ObjectExplorerService {
                 nodePath: node.nodePath,
                 filters: node.filters,
             };
-            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-
             // Retry loop for paused/resuming Azure serverless databases (original attempt + 2 retries).
             const maxAttempts = serverlessWakeMaxRetryAttempts + 1;
             for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -878,6 +885,7 @@ export class ObjectExplorerService {
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
             {
+                ...getConnectionTelemetryInfo(this._connectionManager, connectionInfo),
                 additionalProps: {
                     connectionType: connectionInfo?.authenticationType ?? "newConnection",
                 },
@@ -890,6 +898,10 @@ export class ObjectExplorerService {
             this._logger.error("Failed to prepare connection profile");
             return undefined;
         }
+
+        createSessionActivity.update(
+            getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
+        );
 
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
 
@@ -957,6 +969,7 @@ export class ObjectExplorerService {
                     connectionProfile,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
+                    ...getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
                     additionalProps: {
                         connectionType: connectionProfile.authenticationType,
                     },
@@ -1038,7 +1051,11 @@ export class ObjectExplorerService {
 
         // Local container, ensure it is started
         if (connectionProfile.containerName) {
-            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.ConnectToContainer);
+            sendActionEvent(
+                TelemetryViews.LocalContainers,
+                TelemetryActions.ConnectToContainer,
+                getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
+            );
             try {
                 const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 const successfullyRunning = await restartSqlServerContainer(
@@ -1253,6 +1270,11 @@ export class ObjectExplorerService {
             }
         }
 
+        await this.removeConnectionNodeFromTree(node);
+        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
+    }
+
+    private async removeConnectionNodeFromTree(node: ConnectionNode): Promise<void> {
         await this.disconnectNode(node);
 
         if (this._connectionNodes.has(node.connectionProfile.id)) {
@@ -1264,7 +1286,6 @@ export class ObjectExplorerService {
         }
 
         this._refreshCallback(undefined); // Refresh tree root.
-        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
 
     /**
@@ -1283,15 +1304,23 @@ export class ObjectExplorerService {
     /**
      * Remove multiple connection nodes from the OE tree.
      * @param connections Connection info of the nodes to remove.
+     * @param options Whether to keep saved profiles and credentials when removing stale edit nodes.
      * @returns True if ALL provided connections were removed successfully, false otherwise.
      */
-    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<boolean> {
+    public async removeConnectionNodes(
+        connections: IConnectionInfo[],
+        options?: { preserveProfiles: boolean },
+    ): Promise<boolean> {
         const notFound: string[] = [];
 
         for (let conn of connections) {
             const node = this.getConnectionNodeFromProfile(conn as IConnectionProfile);
             if (node) {
-                await this.removeNode(node as ConnectionNode, false);
+                if (options?.preserveProfiles) {
+                    await this.removeConnectionNodeFromTree(node as ConnectionNode);
+                } else {
+                    await this.removeNode(node as ConnectionNode, false);
+                }
             } else {
                 notFound.push((conn as IConnectionProfile).id);
             }

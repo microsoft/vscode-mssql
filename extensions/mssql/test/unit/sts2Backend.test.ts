@@ -708,6 +708,40 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(diagnosticJson).to.include("SqlDataPlane.Auth");
     });
 
+    for (const [message, expectedCode] of [
+        [
+            "Connection was forcibly closed during pre-login handshake",
+            "SqlDataPlane.Transport.Closed",
+        ],
+        ["Pre-login handshake: certificate chain is not trusted", "SqlDataPlane.Unavailable"],
+        ["A network-related error: server name could not be resolved", "SqlDataPlane.Unavailable"],
+    ]) {
+        test(`classifies STS2 startup network errors safely: ${message}`, async () => {
+            const rpc = standardRpc();
+            rpc.responders.set(STS2_METHODS.connectionOpen, () => {
+                throw Object.assign(new Error(`${message}; server-canary`), {
+                    data: { code: "Sts2.ConnectionFailed.Network" },
+                });
+            });
+            const backend = new Sts2Backend(rpc, DEFAULT_DEADLINES);
+            await backend.start();
+            try {
+                await backend.openSession({
+                    profile: PROFILE,
+                    applicationName: "test",
+                    auth: { passwordProvider: async () => "pw-canary-x" },
+                });
+                expect.fail("open should throw");
+            } catch (error) {
+                expect(error).to.have.property("code", expectedCode);
+                expect(error).to.have.property("message", "SQL Tools Service v2 is unavailable.");
+                expect(JSON.stringify(error)).not.to.include("server-canary");
+            } finally {
+                await backend.dispose();
+            }
+        });
+    }
+
     test("AzureMFA profile resolves one token and sends canonical accessToken auth", async () => {
         const rpc = standardRpc();
         const backend = new Sts2Backend(rpc);

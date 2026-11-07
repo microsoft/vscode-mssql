@@ -7,6 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { QueryStudioCompletionMetadataResolver } from "../queryStudio/queryStudioCompletionMetadataResolver";
 import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
@@ -29,6 +30,11 @@ import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTree
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
+import {
+    ContainerConnectAdapter,
+    oeV2ContainerConnectAdapter,
+} from "../deployment/containerConnectAdapter";
+import { registerOeV2ContainerPerfSeams } from "../objectExplorer/v2/perf/oeV2ContainerPerfSeams";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
@@ -583,7 +589,11 @@ export default class MainController implements vscode.Disposable {
                 // create new connection
                 if (!this.connectionManager.isConnected(uri)) {
                     await this.promptToConnect();
-                    sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.CreateConnection,
+                        getConnectionTelemetryInfo(this._connectionMgr, uri),
+                    );
                 }
 
                 // Open chat window
@@ -592,10 +602,20 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
-                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatWithDatabase);
+                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                sendActionEvent(
+                    TelemetryViews.MssqlCopilot,
+                    TelemetryActions.ChatWithDatabase,
+                    getConnectionTelemetryInfo(
+                        this._connectionMgr,
+                        treeNodeInfo.connectionProfile,
+                        databaseName === LocalizedConstants.defaultDatabaseLabel
+                            ? ""
+                            : (databaseName ?? ""),
+                    ),
+                );
 
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
-                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 if (
                     databaseName !== connectionCredentials.database &&
                     databaseName !== LocalizedConstants.defaultDatabaseLabel
@@ -664,13 +684,20 @@ export default class MainController implements vscode.Disposable {
             this._event.on(
                 Constants.cmdChatWithDatabaseInAgentMode,
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.ChatWithDatabaseInAgentMode,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            treeNodeInfo.connectionProfile,
+                            databaseName === LocalizedConstants.defaultDatabaseLabel
+                                ? ""
+                                : (databaseName ?? ""),
+                        ),
                     );
 
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
                         databaseName &&
                         databaseName !== connectionCredentials.database &&
@@ -739,7 +766,14 @@ export default class MainController implements vscode.Disposable {
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
-                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ExplainQuery);
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.ExplainQuery,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            Utils.getActiveTextEditorUri(),
+                        ),
+                    );
 
                     await launchEditorChatWithPrompt(
                         Prompts.explainQueryPrompt,
@@ -751,7 +785,14 @@ export default class MainController implements vscode.Disposable {
             // -- REWRITE QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdRewriteQuery, async () => {
-                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.RewriteQuery);
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.RewriteQuery,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            Utils.getActiveTextEditorUri(),
+                        ),
+                    );
 
                     await launchEditorChatWithPrompt(
                         Prompts.rewriteQueryPrompt,
@@ -766,6 +807,10 @@ export default class MainController implements vscode.Disposable {
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.AnalyzeQueryPerformance,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            Utils.getActiveTextEditorUri(),
+                        ),
                     );
 
                     await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
@@ -812,7 +857,9 @@ export default class MainController implements vscode.Disposable {
 
             // Initialize profiler service and session manager
             const profilerService = new ProfilerService(this._connectionMgr.client);
-            const profilerSessionManager = new ProfilerSessionManager(profilerService);
+            const profilerSessionManager = new ProfilerSessionManager(profilerService, (uri) =>
+                getConnectionTelemetryInfo(this._connectionMgr, uri),
+            );
 
             // Initialize profiler controller
             this.profilerController = new ProfilerController(
@@ -1114,6 +1161,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     private async openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void> {
+        const designer = SchemaDesignerWebviewManager.getInstance().getActiveDesigner();
         const scenario = args?.scenario ?? "schemaDesigner";
         const entryPoint = args?.entryPoint ?? "schemaDesignerToolbar";
         const promptOverride = args?.prompt?.trim();
@@ -1122,6 +1170,7 @@ export default class MainController implements vscode.Disposable {
             reason?: "noActiveDesigner" | "chatCommandMissing",
         ) => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
+                ...designer?.telemetryContext,
                 additionalProps: {
                     entryPoint,
                     scenario,
@@ -1132,7 +1181,7 @@ export default class MainController implements vscode.Disposable {
             });
         };
 
-        if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
+        if (!designer) {
             sendCopilotChatEntryTelemetry(false, "noActiveDesigner");
             vscode.window.showErrorMessage(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
@@ -1186,6 +1235,8 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this.executionPlanService,
+            undefined,
+            (uri) => getConnectionTelemetryInfo(this._connectionMgr, uri),
         );
 
         // Init connection manager and connection MRU
@@ -1870,7 +1921,20 @@ export default class MainController implements vscode.Disposable {
             objectExplorerV2ActiveAtActivation,
         );
         if (objectExplorerV2ActiveAtActivation) {
+            registerOeV2ContainerPerfSeams(this._context, {
+                isEnabled: objectExplorerV2Enabled,
+                saveProfile: (profile) => this.connectionManager.connectionUI.saveProfile(profile),
+                removeProfile: async (profile) => {
+                    await this.connectionManager.connectionStore.removeProfile(profile);
+                },
+            });
             activateObjectExplorerV2(this._context, {
+                deployNewDatabase: () =>
+                    this.onDeployNewDatabase(
+                        undefined,
+                        undefined,
+                        oeV2ContainerConnectAdapter(this),
+                    ),
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
                 tokens: vscodeSqlTokenSource,
@@ -2331,20 +2395,36 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        this.registerCommand(Constants.cmdConnectionGroupCreate);
-        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+        const openCreateConnectionGroupDialog = (parentGroupId?: string) => {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 undefined,
+                parentGroupId,
             );
             connGroupDialog.revealToForeground();
+        };
+
+        this.registerCommand(Constants.cmdConnectionGroupCreate);
+        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+            openCreateConnectionGroupDialog();
         });
+
+        this.registerCommandWithArgs(Constants.cmdConnectionGroupCreateWithParent);
+        this._event.on(
+            Constants.cmdConnectionGroupCreateWithParent,
+            (node: ConnectionGroupNode) => {
+                if (node instanceof ConnectionGroupNode) {
+                    openCreateConnectionGroupDialog(node.connectionGroup.id);
+                }
+            },
+        );
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 node.connectionGroup,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
@@ -3300,6 +3380,10 @@ export default class MainController implements vscode.Disposable {
             TelemetryViews.MssqlCopilot,
             TelemetryActions.CopilotNewQueryWithConnection,
             {
+                ...getConnectionTelemetryInfo(
+                    this._connectionMgr,
+                    isSqlEditor && !forceNewEditor ? activeUri : undefined,
+                ),
                 additionalProps: {
                     forceNewEditor: forceNewEditor?.toString() ?? "false",
                     forceConnect: forceConnect?.toString() ?? "false",
@@ -3340,6 +3424,7 @@ export default class MainController implements vscode.Disposable {
     public onDeployNewDatabase(
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        containerConnect?: ContainerConnectAdapter,
         initialLocalDatabaseSource?: LocalDatabaseSource,
     ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
@@ -3349,6 +3434,7 @@ export default class MainController implements vscode.Disposable {
             this,
             initialConnectionGroup,
             initialDeploymentType,
+            containerConnect,
             initialLocalDatabaseSource,
         );
         reactPanel.revealToForeground();
@@ -3374,7 +3460,7 @@ export default class MainController implements vscode.Disposable {
             );
             return;
         }
-        this.onDeployNewDatabase(node.connectionProfile.groupId, undefined, source);
+        this.onDeployNewDatabase(node.connectionProfile.groupId, undefined, undefined, source);
     }
 
     /**
@@ -3706,7 +3792,11 @@ export default class MainController implements vscode.Disposable {
 
         const result = await this.promptToConnect();
         if (result) {
-            sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+            sendActionEvent(
+                TelemetryViews.QueryEditor,
+                TelemetryActions.CreateConnection,
+                getConnectionTelemetryInfo(this._connectionMgr, uri),
+            );
         }
         return result;
     }

@@ -379,7 +379,7 @@ suite("PerformanceDashboardWebviewController", () => {
             });
         });
 
-        test("sends Copilot Chat a prompt to summarize and optimize a query", async () => {
+        test("sends Copilot Chat a prompt to assess a query", async () => {
             createController();
 
             await request(ContinueInChatRequest.type.method, {
@@ -391,13 +391,11 @@ suite("PerformanceDashboardWebviewController", () => {
             expect(host.openChat).to.have.been.calledOnceWithExactly(
                 'Query Store query 913 in database "Sales" on server ' +
                     '"contoso.database.windows.net" (saved connection profileId "profile-1"), ' +
-                    "from 2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z UTC.\n\nUse " +
+                    "from 2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z.\n\nUse " +
                     "#mssql_query_store_analyze_query with the specified profileId and " +
-                    "database.\n\nBriefly summarize the query's performance, key trends, and any " +
-                    "notable execution plan changes. Identify potential performance bottlenecks " +
-                    "and recommend actionable optimizations based on the available data and " +
-                    "execution plans. Then ask what I want to explore further or change. Do not " +
-                    "apply changes until I confirm.",
+                    "database.\n\nBriefly assess the query's performance, highlighting any " +
+                    "notable findings or potential concerns. Then ask what I would like to " +
+                    "investigate or improve next. Do not apply changes without my confirmation.",
             );
         });
 

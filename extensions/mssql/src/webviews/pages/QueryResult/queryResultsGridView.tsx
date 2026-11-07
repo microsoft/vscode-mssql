@@ -18,8 +18,6 @@ import {
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import CommandBar from "./commandBar";
-import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
@@ -45,7 +43,6 @@ const useStyles = makeStyles({
         position: "relative",
         display: "flex",
         fontWeight: "normal",
-        paddingRight: "8px", // Space for scrollbar
         boxSizing: "border-box",
         borderBottom: "1px solid var(--vscode-editorWidget-border)",
         flex: "0 0 auto",
@@ -54,6 +51,23 @@ const useStyles = makeStyles({
     },
 });
 
+export interface ResultGridProps {
+    gridId: string;
+    gridParentRef: React.RefObject<HTMLDivElement | null>;
+    resultId: number;
+    batchId: number;
+    viewMode?: qr.QueryResultViewMode;
+    canToggleMaximize?: boolean;
+    isMaximized?: boolean;
+    onToggleMaximize?: () => void;
+    onSelectionChange?: (hasSelection: boolean) => void;
+}
+
+export interface ResultGridHandle {
+    focusGrid: () => void;
+    clearSelection?: () => void;
+}
+
 type GridItem = { batchId: number; resultId: number; index: number };
 type ResultGridComponent = ForwardRefExoticComponent<
     ResultGridProps & RefAttributes<ResultGridHandle>
@@ -61,23 +75,17 @@ type ResultGridComponent = ForwardRefExoticComponent<
 
 export interface QueryResultsGridViewProps {
     GridComponent: ResultGridComponent;
-    deferOffscreenGridRendering?: boolean;
-    showExternalCommandBar?: boolean;
 }
 
 const ROW_HEIGHT = 26;
 const HEADER = 30;
-export const MARGIN_BOTTOM = 10;
+const MARGIN_BOTTOM = 10;
 const MIN_HORIZONTAL_SCROLLBAR_SPACE = 18; // Reserve space so short grids don't clip the scrollbar over rows
 const DEFAULT_NATURAL_VISIBLE_ROW_CAP = 8;
 const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
 
-export const QueryResultsGridView = ({
-    GridComponent,
-    deferOffscreenGridRendering = false,
-    showExternalCommandBar = true,
-}: QueryResultsGridViewProps) => {
+export const QueryResultsGridView = ({ GridComponent }: QueryResultsGridViewProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
@@ -406,19 +414,6 @@ export const QueryResultsGridView = ({
         });
     };
 
-    const handleCommandBarKeyDown = useCallback(
-        (event: React.KeyboardEvent, gridIndex: number) => {
-            if (!event.shiftKey || event.key !== "Tab") {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            gridRefs.current[gridIndex]?.focusGrid();
-        },
-        [gridRefs],
-    );
-
     const handleGridSelectionChange = useCallback(
         (gridKey: string, hasSelection: boolean) => {
             if (!hasSelection) {
@@ -442,42 +437,6 @@ export const QueryResultsGridView = ({
         },
         [gridList],
     );
-
-    useEffect(() => {
-        const handler = (event: KeyboardEvent) => {
-            if (!isActivePaneRef.current || !event.shiftKey || event.key !== "Tab") {
-                return;
-            }
-
-            const activeElement = document.activeElement as HTMLElement | null;
-            const commandBar = activeElement?.closest<HTMLElement>(
-                '[data-query-result-command-bar="true"]',
-            );
-            if (!commandBar) {
-                return;
-            }
-
-            for (let i = 0; i < gridList.length; i++) {
-                const item = gridList[i];
-                const gridKey = `${item.batchId}_${item.resultId}`;
-                const resultSetContainer = getResultSetContainer(gridKey);
-                if (!resultSetContainer?.contains(commandBar)) {
-                    continue;
-                }
-
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                gridRefs.current[i]?.focusGrid();
-                return;
-            }
-        };
-
-        document.addEventListener("keydown", handler, true);
-        return () => {
-            document.removeEventListener("keydown", handler, true);
-        };
-    }, [gridList, gridRefs, getResultSetContainer]);
 
     const persistGridPaneScrollPosition = useMemo(
         () =>
@@ -575,16 +534,11 @@ export const QueryResultsGridView = ({
                                     : "var(--vscode-editor-font-family)",
                                 fontSize: `${fontSettings?.fontSize ?? 12}px`,
                                 height: isMaximized ? "100%" : `${gridHeight}px`,
-                                paddingRight: showExternalCommandBar ? undefined : 0,
                                 "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
                             } as React.CSSProperties
                         }>
                         <LazyMount
-                            enabled={
-                                deferOffscreenGridRendering &&
-                                !isMaximized &&
-                                gridIndexToFocus !== index
-                            }
+                            enabled={!isMaximized && gridIndexToFocus !== index}
                             rootRef={gridViewContainerRef}
                             containerRef={containerRef}
                             placeholderProps={{
@@ -627,16 +581,6 @@ export const QueryResultsGridView = ({
                                 }
                             />
                         </LazyMount>
-                        {showExternalCommandBar && (
-                            <CommandBar
-                                uri={uri}
-                                resultSetSummary={resultSetSummaries[item.batchId][item.resultId]}
-                                viewMode={viewMode}
-                                onToggleMaximize={() => handleToggleMaximize(gridKey)}
-                                onKeyDownCapture={(event) => handleCommandBarKeyDown(event, index)}
-                                isMaximized={isMaximized}
-                            />
-                        )}
                     </div>
                 );
             })}

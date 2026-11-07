@@ -10,6 +10,7 @@ import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
 import ConnectionManager from "../../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../../utils/telemetryUtils";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
 import { sendActionEvent } from "extension-toolkit/vscode";
@@ -171,11 +172,19 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         super();
     }
 
+    protected override getTelemetryContext(input: SchemaDesignerToolParams) {
+        return input.operation === "show"
+            ? getConnectionTelemetryInfo(this._connectionManager, input.connectionId)
+            : (SchemaDesignerWebviewManager.getInstance().getActiveDesigner()?.telemetryContext ??
+                  {});
+    }
+
     async call(
         options: vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>,
         _token: vscode.CancellationToken,
     ) {
         const json = (obj: unknown) => JSON.stringify(obj);
+        let telemetryContext = this.getTelemetryContext(options.input);
 
         const sendToolTelemetry = (params: {
             operation: SchemaDesignerToolParams["operation"];
@@ -186,6 +195,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
             const { operation, success, reason, measurements } = params;
             try {
                 sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.SchemaDesignerTool, {
+                    ...telemetryContext,
                     additionalProps: {
                         operation,
                         success: String(success),
@@ -278,6 +288,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 }
 
                 const connCreds = resolvedConnection.connectionInfo.credentials;
+                telemetryContext = getConnectionTelemetryInfo(this._connectionManager, connCreds);
                 const designer = await this._showSchema(
                     resolvedConnection.ownerUri,
                     connCreds.database,
@@ -314,6 +325,8 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 sendToolTelemetry({ operation, success: false, reason: err.reason });
                 return json(err);
             }
+
+            telemetryContext = activeDesigner.telemetryContext ?? {};
 
             if (operation === "get_overview") {
                 const includeColumns = options.input.options?.includeColumns ?? "namesAndTypes";

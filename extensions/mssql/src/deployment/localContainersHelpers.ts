@@ -8,7 +8,6 @@ import {
     containerConnectionMaxAttempts,
     containerConnectionRetryDelayMs,
     defaultPortNumber,
-    localhost,
     MAX_PORT_NUMBER,
     sa,
     sqlAuthentication,
@@ -27,9 +26,10 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
+import { ContainerConnectAdapter, classicContainerConnectAdapter } from "./containerConnectAdapter";
+import MainController from "../controllers/mainController";
 import * as dockerUtils from "../docker/dockerUtils";
 import * as sqlServerContainer from "./sqlServerContainer";
-import MainController from "../controllers/mainController";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
@@ -223,6 +223,7 @@ async function completeLocalContainerStep(
             const connectionResult = await addContainerConnection(
                 localContainersState.formState,
                 deploymentController.mainController,
+                deploymentController.containerConnect,
             );
             stepSuccessful = connectionResult.success;
 
@@ -406,11 +407,20 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
 
 export async function addContainerConnection(
     dockerProfile: lc.DockerConnectionProfile,
-    mainController: MainController,
+    owner: MainController | ContainerConnectAdapter,
+    adapter?: ContainerConnectAdapter,
 ): Promise<lc.ContainerConnectionResult> {
+    const mainController = "connectionManager" in owner ? owner : undefined;
+    const connectAdapter =
+        adapter ??
+        (mainController
+            ? classicContainerConnectAdapter(mainController)
+            : (owner as ContainerConnectAdapter));
     const connection = {
         ...dockerProfile,
-        server: `${localhost},${dockerProfile.port}`,
+        // Local engines can publish only IPv4 while SqlClient resolves localhost
+        // to IPv6. Use the published IPv4 endpoint for both readiness and saving.
+        server: `127.0.0.1,${dockerProfile.port}`,
         profileName: dockerProfile.profileName || dockerProfile.containerName,
         savePassword: dockerProfile.savePassword,
         emptyPasswordInput: false,
@@ -419,9 +429,10 @@ export async function addContainerConnection(
         trustServerCertificate: true,
     } as unknown as IConnectionProfile;
 
-    const connectionManager = mainController.connectionManager;
     try {
         if (
+            mainController &&
+            !connectAdapter.usesDataPlane &&
             !(await waitForContainerConnection(
                 connection,
                 dockerProfile.containerName,
@@ -430,13 +441,11 @@ export async function addContainerConnection(
         ) {
             return { success: false };
         }
-        const profile = await connectionManager.connectionUI.saveProfile(connection);
-        const connectionString = await connectionManager.getConnectionString(
-            connectionManager.createConnectionDetails(profile),
-            false /* includePassword */,
-            false /* includeApplicationName */,
+        // The seam decides WHICH Object Explorer persists and opens the
+        // profile (classic OE session vs v2 data-plane connect, DOCK-1).
+        const connectionString = await connectAdapter.saveAndConnect(
+            connection as IConnectionProfile,
         );
-        await mainController.createObjectExplorerSession(profile);
 
         return { success: true, connectionString };
     } catch (error) {
@@ -449,6 +458,10 @@ export async function addContainerConnection(
                     : errorMessage,
             ),
         };
+    } finally {
+        // Saving succeeds before SQL can fail. Retain only its identity in
+        // the wizard form so a retry updates that profile instead of adding one.
+        if (connection.id) dockerProfile.id = connection.id;
     }
 }
 
