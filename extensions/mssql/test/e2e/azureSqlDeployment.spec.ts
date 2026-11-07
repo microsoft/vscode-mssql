@@ -17,7 +17,7 @@ test.describe("Azure SQL deployment options", () => {
         },
     });
 
-    test("opens container and cloud provisioning flows without preview flags", async () => {
+    test("opens each deployment flow directly from the first page without preview flags", async () => {
         const { page } = getContext();
         await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
         const deployment = await getWebviewByTitle(page, "New Deployment");

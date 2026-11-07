@@ -784,7 +784,6 @@ suite("Local-to-cloud helpers", () => {
                 database: "InventoryDb",
                 status: "passed",
                 objectsValidated: 2,
-                packageId: request.validationId,
                 packageFileName: "InventoryDb.dacpac",
             });
             expect(result.schemaObjects).to.deep.equal([
@@ -888,7 +887,6 @@ suite("Local-to-cloud helpers", () => {
             const result = await service.validate(request);
             expect(result.status).to.equal("error");
             expect(result.errorMessage).to.be.a("string").and.not.to.equal("");
-            expect(result.packageId).to.equal(undefined);
             expect(result.packageFileName).to.equal(undefined);
         });
 
@@ -907,7 +905,7 @@ suite("Local-to-cloud helpers", () => {
             const blocked = await service.validate(request);
             expect(blocked.status).to.equal("blocked");
             expect(blocked.errorMessage).to.equal("Unsupported object");
-            expect(blocked.packageId).to.equal(undefined);
+            expect(blocked.packageFileName).to.equal(undefined);
             expect(telemetry.sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.LocalToCloudDeployment,
                 TelemetryActions.ValidateLocalDatabaseCompatibility,
@@ -1126,7 +1124,6 @@ suite("Local-to-cloud helpers", () => {
             projects.closeProject.resolves({ success: false, errorMessage: "Close failed" });
             const result = await service.validate(request);
             expect(result).to.include({ status: "error", errorMessage: "Close failed" });
-            expect(result.packageId).to.equal(undefined);
             expect(result.packageFileName).to.equal(undefined);
             expect(telemetry.sendErrorEvent).to.have.been.calledWith(
                 TelemetryViews.LocalToCloudDeployment,
@@ -1495,7 +1492,6 @@ suite("Local-to-cloud helpers", () => {
                     diagnostics: [],
                     schemaObjects: objects,
                     objectsValidated: objects.length,
-                    snapshotCreatedAt: new Date().toISOString(),
                 };
             });
             dacFx.deployDacpac.resolves(success);

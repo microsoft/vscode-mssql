@@ -5781,7 +5781,6 @@
         "message": "Unable to load local connections: {0}",
         "comment": ["{0} is the error returned while loading connections"]
     },
-    "Local container (Preview)": "Local container (Preview)",
     "Azure SQL Database container (Preview)": "Azure SQL Database container (Preview)",
     "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.": "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
     "TBD": "TBD",

@@ -638,7 +638,6 @@ export class LocalDatabaseCompatibilityService {
             target: "AzureSqlDatabase",
             status: "error",
             diagnostics: [],
-            snapshotCreatedAt: new Date().toISOString(),
         };
         let directory: string | undefined;
         let projectPath: string | undefined;
@@ -759,7 +758,6 @@ export class LocalDatabaseCompatibilityService {
                 result.status = build.diagnostics.length ? "warnings" : "passed";
                 result.objectsValidated = build.objectsValidated;
                 result.schemaObjects = build.schemaObjects;
-                result.packageId = request.validationId;
                 result.packageFileName = packageFileName;
             } else {
                 throw new Error(LocalToCloud.packageMissing);
@@ -792,7 +790,6 @@ export class LocalDatabaseCompatibilityService {
                     result.errorMessage = [result.errorMessage, getErrorMessage(error)]
                         .filter(Boolean)
                         .join("\n");
-                    result.packageId = undefined;
                     result.packageFileName = undefined;
                 }
             }
@@ -809,7 +806,6 @@ export class LocalDatabaseCompatibilityService {
                     result.errorMessage = [result.errorMessage, getErrorMessage(error)]
                         .filter(Boolean)
                         .join("\n");
-                    result.packageId = undefined;
                     result.packageFileName = undefined;
                 }
             }

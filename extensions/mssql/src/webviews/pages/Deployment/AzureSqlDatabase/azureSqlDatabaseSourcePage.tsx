@@ -167,7 +167,6 @@ export const AzureSqlDatabaseSourcePage = ({
             azureState,
         ) &&
         !hasDuplicateTagKeys(tags);
-    const canDeploy = canContinueToReview;
     const cancelOrClose = () => {
         if (!showDeployment || deploymentResult || !deploymentRequest) {
             context?.dispose();
@@ -394,16 +393,14 @@ export const AzureSqlDatabaseSourcePage = ({
                             <Button
                                 appearance="primary"
                                 disabled={
-                                    showReview
-                                        ? !canDeploy
-                                        : showAzureForm
-                                          ? !canContinueToReview
-                                          : validationRequest
-                                            ? !canContinueToAzure
-                                            : !connectedSource?.isConnected
+                                    showReview || showAzureForm
+                                        ? !canContinueToReview
+                                        : validationRequest
+                                          ? !canContinueToAzure
+                                          : !connectedSource?.isConnected
                                 }
                                 onClick={() => {
-                                    if (showReview && canDeploy && validationRequest) {
+                                    if (showReview && canContinueToReview && validationRequest) {
                                         setDeploymentResult(undefined);
                                         setError(undefined);
                                         setDeploymentRequest({

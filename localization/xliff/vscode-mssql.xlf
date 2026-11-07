@@ -7315,9 +7315,6 @@
     <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
       <source xml:lang="en">Local clone path</source>
     </trans-unit>
-    <trans-unit id="++CODE++361bad9f7864ba91d621aa931828237741303dc125d67ac76c81ea7b3001090b">
-      <source xml:lang="en">Local container (Preview)</source>
-    </trans-unit>
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>

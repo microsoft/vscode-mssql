@@ -183,9 +183,7 @@ export interface LocalDatabaseCompatibilityResult {
     diagnostics: LocalDatabaseCompatibilityDiagnostic[];
     objectsValidated?: number;
     schemaObjects?: string[];
-    packageId?: string;
     packageFileName?: string;
-    snapshotCreatedAt: string;
     errorMessage?: string;
 }
 
