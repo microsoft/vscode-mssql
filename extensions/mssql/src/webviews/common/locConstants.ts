@@ -3302,6 +3302,9 @@ export class LocConstants {
             ),
             connection: l10n.t("Connection"),
             database: l10n.t("Database"),
+            selectConnection: l10n.t("Select a connection"),
+            noConnectionsFound: l10n.t("No connections found"),
+            noDatabasesFound: l10n.t("No databases found"),
             defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),
             file: l10n.t("File"),
@@ -3637,6 +3640,7 @@ export class LocConstants {
             deploymentDescription: l10n.t("Choose an option to provision a database"),
             localProvisioning: l10n.t("Run locally"),
             remoteProvisioning: l10n.t("Run in the cloud"),
+            deployToCloud: l10n.t("Deploy to the cloud"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
             dockerSqlServerCardHeader: l10n.t("SQL Server container"),
@@ -3832,6 +3836,258 @@ export class LocConstants {
             azureSqlDatabaseDescription: l10n.t(
                 "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
             ),
+            deployLocalDatabase: l10n.t("Local database to Azure SQL Database (Preview)"),
+            deployLocalDatabaseDescription: l10n.t(
+                "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.",
+            ),
+            deployToAzureSql: l10n.t("Deploy a database to Azure SQL (Preview)"),
+            deployToAzureSqlDescription: l10n.t(
+                "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
+            ),
+            sourceStep: l10n.t("Choose source database"),
+            compatibilityStep: l10n.t("Verify Azure SQL compatibility"),
+            compatibilityLabel: l10n.t("Compatibility"),
+            azureStep: l10n.t("Configure your Azure SQL database"),
+            reviewStep: l10n.t("Review deployment specifications"),
+            deployStep: l10n.t("Deploying to Azure"),
+            selectLocalDatabase: l10n.t("Select a local database"),
+            localDatabase: l10n.t("Local database"),
+            changeLocalDatabase: l10n.t("Change"),
+            sourceConnection: l10n.t("Connection"),
+            sourceServer: l10n.t("Server"),
+            sourceDatabase: l10n.t("Database"),
+            sourceSqlServer: l10n.t("SQL Server"),
+            sourceSqlAzure: l10n.t("SQL Azure"),
+            sourceStatus: l10n.t("Status"),
+            sourceConnected: l10n.t("Connected"),
+            sourceConnecting: l10n.t("Connecting..."),
+            sourceNotConnected: l10n.t("Not connected"),
+            sourceVersionUnavailable: l10n.t("Not available"),
+            deployDatabaseToAzure: (database: string) =>
+                l10n.t({
+                    message: "Deploy {0} to Azure SQL (Preview)",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityDescription: (database: string) =>
+                l10n.t({
+                    message: "We'll validate the {0} schema before creating cloud resources.",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityChecking: l10n.t("Validating database schema"),
+            compatibilityExtractingSchema: l10n.t("Capturing current schema"),
+            compatibilityValidatingSchema: l10n.t("Building and checking Azure SQL support"),
+            compatibilityCheckingPackage: l10n.t("Verifying deployment package"),
+            compatibilityPrerequisites: l10n.t(
+                "This check runs locally and requires the .NET SDK. Restoring SQL build dependencies may require internet access.",
+            ),
+            compatibilityResult: l10n.t("Azure SQL compatibility result"),
+            compatibilityDiagnostics: l10n.t("Compatibility diagnostics"),
+            compatibilityPassed: l10n.t("Compatible with Azure SQL"),
+            compatibilityWarnings: (count: number) =>
+                count === 1
+                    ? l10n.t("Compatible with 1 warning")
+                    : l10n.t("Compatible with {0} warnings", count),
+            compatibilityWarningDescription: (database: string, count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message:
+                              "{0} schema can be deployed to Azure SQL, but we found one item you may want to review.",
+                          args: [database],
+                          comment: ["{0} is the database name"],
+                      })
+                    : l10n.t({
+                          message:
+                              "{0} schema can be deployed to Azure SQL, but we found {1} items you may want to review.",
+                          args: [database, count],
+                          comment: ["{0} is the database name; {1} is the number of warnings"],
+                      }),
+            compatibilityBlocked: l10n.t("Schema isn't compatible with Azure SQL"),
+            compatibilityBlockedDescription: (database: string) =>
+                l10n.t({
+                    message:
+                        "These constructs aren't supported by your Azure SQL Database target. Update {0} schema, then run the check again.",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityUpdateSource: l10n.t(
+                "Update the source database schema, then run the check again. No Azure resources have been created.",
+            ),
+            openCompatibilityOutput: l10n.t("Open output"),
+            compatibilityFailed: l10n.t("Could not validate compatibility"),
+            compatibilityCancelled: l10n.t("Compatibility check cancelled"),
+            compatibilitySuccessDescription: (database: string) =>
+                l10n.t({
+                    message: "{0} schema packaged and validated successfully.",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityRetryDescription: l10n.t(
+                "Review the validation details and retry the compatibility check.",
+            ),
+            compatibilitySchemaPackage: l10n.t("Schema package"),
+            compatibilityPackagePassed: l10n.t("Passed"),
+            compatibilityTarget: l10n.t("Azure SQL target"),
+            compatibilitySupported: l10n.t("Supported"),
+            compatibilityValidationDetails: l10n.t("Validation details"),
+            compatibilitySource: l10n.t("Source"),
+            compatibilityCurrentSchema: l10n.t("Current database schema"),
+            compatibilityPackage: l10n.t("Package"),
+            compatibilityPackageSucceeded: l10n.t("Succeeded"),
+            compatibilityTargetPlatform: l10n.t("Target platform"),
+            compatibilityAzureSqlDatabase: l10n.t("Azure SQL Database"),
+            compatibilityDacpac: l10n.t("DACPAC"),
+            compatibilityReferences: l10n.t("Database references"),
+            compatibilityReferencesResolved: l10n.t("Resolved"),
+            compatibilityReferencesUnresolved: l10n.t("Unresolved references reported"),
+            compatibilityObjects: l10n.t("Objects validated"),
+            compatibilitySqlCodeAnalysis: l10n.t("SQL Code Analysis"),
+            compatibilityCodeCompatible: l10n.t("Compatible"),
+            compatibilityWarningCount: (count: number) =>
+                count === 1 ? l10n.t("1 warning") : l10n.t("{0} warnings", count),
+            viewCompatibilityDetails: l10n.t("Show validation details"),
+            hideCompatibilityDetails: l10n.t("Hide validation details"),
+            retryCompatibility: l10n.t("Run check again"),
+            compatibilityErrorCode: l10n.t("Error code"),
+            compatibilityErrorText: l10n.t("Error text"),
+            compatibilityWarningCode: l10n.t("Warning code"),
+            compatibilityWarningText: l10n.t("Warning text"),
+            compatibilityIssueColumn: l10n.t("Issue"),
+            compatibilityLineColumn: l10n.t("Line"),
+            compatibilityDependency: l10n.t("Unresolved schema dependency"),
+            compatibilityTooling: l10n.t("Build or tooling issue"),
+            compatibilityIssue: l10n.t("Schema compatibility issue"),
+            compatibilityLocation: (file: string, line: number) =>
+                l10n.t({
+                    message: "{0}, line {1}",
+                    args: [file, line],
+                    comment: ["{0} is the source file; {1} is its line number"],
+                }),
+            compatibilityContinueBlocked: l10n.t(
+                "Resolve blocking issues and complete compatibility validation before continuing.",
+            ),
+            continueToAzure: l10n.t("Continue to Azure"),
+            reviewAndDeploy: l10n.t("Review and deploy"),
+            reviewDescription: l10n.t("Confirm what will be created, then deploy."),
+            reviewSourceDescription: (engine: string, version: string) =>
+                l10n.t("Local database · {0} {1}", engine, version),
+            reviewTargetDescription: l10n.t("Azure SQL Database · Free offer"),
+            reviewIncludes: l10n.t("Includes"),
+            reviewIncludesObjects: (content: string, count: number) =>
+                count === 1
+                    ? l10n.t("{0} · 1 object", content)
+                    : l10n.t("{0} · {1} objects", content, count.toLocaleString()),
+            reviewViewObjects: l10n.t("View object list"),
+            reviewSchemaObjects: l10n.t("Schema objects"),
+            reviewSearchObjects: l10n.t("Search schema objects"),
+            reviewNoMatchingObjects: l10n.t("No schema objects match your search."),
+            reviewNoObjects: l10n.t("No schema objects were included in the validated package."),
+            reviewCompatibilityPassed: l10n.t("Ready for Azure SQL · 0 blocking"),
+            reviewCompatibilityWarnings: (count: number) =>
+                count === 1
+                    ? l10n.t("Ready for Azure SQL · 1 warning · 0 blocking")
+                    : l10n.t(
+                          "Ready for Azure SQL · {0} warnings · 0 blocking",
+                          count.toLocaleString(),
+                      ),
+            reviewFreeLimit: l10n.t("Free limit"),
+            reviewPauseUntilNextMonth: l10n.t("Pause until next month"),
+            reviewAzureLocation: l10n.t("Azure location"),
+            reviewAzureDestination: (subscription: string, resourceGroup: string, server: string) =>
+                l10n.t({
+                    message: "{0} · {1} · {2}",
+                    args: [subscription, resourceGroup, server],
+                    comment: [
+                        "{0} is the Azure subscription; {1} is the resource group; {2} is the SQL server",
+                    ],
+                }),
+            reviewSchemaNotice: l10n.t(
+                "Database schema will be copied to Azure SQL. Your local database and container will stay unchanged.",
+            ),
+            reviewDataNotice: l10n.t(
+                "Schema and table rows will be copied to Azure SQL. Your local database and container will stay unchanged.",
+            ),
+            createAndDeploy: l10n.t("Create and Deploy"),
+            compatibilityCopyValue: l10n.t("Copy Value"),
+            compatibilityTableActionFailed: (error: string) =>
+                l10n.t({
+                    message: "Unable to complete the diagnostics table action: {0}",
+                    args: [error],
+                    comment: ["{0} is the error returned by a diagnostics table action"],
+                }),
+            deploymentProgress: l10n.t("Deployment progress"),
+            deployingDatabase: (database: string) =>
+                l10n.t({
+                    message: "Deploying {0} to Azure SQL",
+                    args: [database],
+                    comment: ["{0} is the database being deployed"],
+                }),
+            deploymentStageLabels: {
+                authenticating: l10n.t("Authenticate to Azure"),
+                validatingSettings: l10n.t("Validate Azure resources and schema package"),
+                exportingData: l10n.t("Export source schema and data"),
+                creatingDatabase: l10n.t("Create Azure SQL database"),
+                connecting: l10n.t("Connect to Azure SQL"),
+                publishingSchema: l10n.t("Publish validated schema"),
+                importingData: l10n.t("Import schema and data"),
+                verifying: l10n.t("Verify deployment"),
+                savingConnection: l10n.t("Connecting to Azure SQL"),
+            },
+            deploymentReady: l10n.t("Your Azure SQL Database is ready"),
+            deploymentCancelled: l10n.t("Deployment cancelled"),
+            deploymentResourcesRemain: l10n.t(
+                "Any Azure resources created have been left in place. Check the target before retrying and choose a new database name.",
+            ),
+            deploymentLog: l10n.t("View deployment log"),
+            openInAzurePortal: l10n.t("Open in Azure portal"),
+            deploymentScriptsDescription: l10n.t(
+                "Save Infrastructure-as-Code templates to your workspace to recreate this database later. Templates provision infrastructure only; schema and data are not included.",
+            ),
+            deploymentCancelling: l10n.t("Cancelling deployment..."),
+            deploymentSchema: l10n.t("Schema"),
+            deploymentConnection: l10n.t("Connection"),
+            deploymentSource: l10n.t("Source"),
+            deploymentObjects: (count: number) =>
+                count === 1
+                    ? l10n.t("1 object deployed")
+                    : l10n.t({
+                          message: "{0} objects deployed",
+                          args: [count],
+                          comment: ["{0} is the number of verified schema objects"],
+                      }),
+            deploymentConnected: l10n.t("Saved and connected"),
+            whatToDeploy: l10n.t("What to deploy"),
+            schemaAndData: l10n.t("Schema and data"),
+            schemaAndDataDescription: (database: string) =>
+                l10n.t({
+                    message:
+                        "Copy the structure of {0} and the rows in its tables - a working copy of your database, ready to run in Azure SQL.",
+                    args: [database],
+                    comment: ["{0} is the selected local database name"],
+                }),
+            schemaOnly: l10n.t("Schema only"),
+            schemaOnlyDescription: l10n.t(
+                "Deploy tables, views, and procedures without copying any rows. You can move data later.",
+            ),
+            loadingLocalConnections: l10n.t("Loading local connections..."),
+            noLocalServerDatabases: l10n.t("No user databases found on this server."),
+            localServerDatabasesLoadFailed: (error: string) =>
+                l10n.t({
+                    message: "Unable to load databases: {0}. Select Refresh to retry.",
+                    args: [error],
+                    comment: ["{0} is the error returned while loading databases"],
+                }),
+            noLocalConnections: l10n.t(
+                "No saved local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.",
+            ),
+            localConnectionsLoadFailed: (error: string) =>
+                l10n.t({
+                    message: "Unable to load local connections: {0}",
+                    args: [error],
+                    comment: ["{0} is the error returned while loading connections"],
+                }),
+            continueDeployment: l10n.t("Continue"),
             developerContainerPreview: l10n.t("Azure SQL Database container (Preview)"),
             localContainerDescription: l10n.t(
                 "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",

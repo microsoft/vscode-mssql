@@ -19,19 +19,15 @@ import {
     RadioGroup,
     useId,
     Option,
-    OptionGroup,
     SelectionEvents,
     OptionOnSelectData,
-    Spinner,
     Text,
-    Tooltip,
     tokens,
 } from "@fluentui/react-components";
 import {
     Database16Regular,
     Dismiss24Regular,
     DocumentDatabase20Regular,
-    ErrorCircle16Regular,
     FolderOpenRegular,
 } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
@@ -41,10 +37,8 @@ import {
     SchemaCompareEndpointType,
     ExtractTarget,
 } from "../../../../sharedInterfaces/schemaCompare";
-import {
-    SearchableDropdown,
-    SearchableDropdownOptions,
-} from "../../../common/searchableDropdown.component";
+import type { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
+import { DatabaseSelector } from "../../../common/databaseSelector";
 import { DatabaseProjectIcon } from "./DatabaseProjectIcon";
 
 const useStyles = makeStyles({
@@ -143,12 +137,6 @@ const useStyles = makeStyles({
     fieldControl: {
         minWidth: 0,
         width: "100%",
-    },
-    controlWithStatus: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        minWidth: 0,
     },
     fileInput: {
         minWidth: 0,
@@ -266,24 +254,10 @@ const SchemaSelectorDrawer = (props: Props) => {
     const showDatabaseSpinner =
         Boolean(serverConnectionUri) && (!databaseStateMatchesSelection || isDatabaseListLoading);
     const displayedDatabaseError = databaseStateMatchesSelection ? databaseListError : "";
-    const connectionOptions = Object.entries(connections)
-        .map(([connectionId, connection]) => ({
-            value: connectionId,
-            text: connection.profileName || connection.server,
-        }))
-        .sort((connectionA, connectionB) =>
-            connectionA.text.localeCompare(connectionB.text, undefined, {
-                numeric: true,
-                sensitivity: "base",
-            }),
-        );
-    const databaseGroups = new Map<string, typeof displayedDatabases>();
-    for (const database of displayedDatabases) {
-        const groupName = database.groupName ?? "";
-        const group = databaseGroups.get(groupName) ?? [];
-        group.push(database);
-        databaseGroups.set(groupName, group);
-    }
+    const connectionOptions = Object.entries(connections).map(([connectionId, connection]) => ({
+        value: connectionId,
+        text: connection.profileName || connection.server,
+    }));
     const firstDisplayedDatabase = displayedDatabases[0]?.value;
 
     const fileId = useId("file");
@@ -414,12 +388,6 @@ const SchemaSelectorDrawer = (props: Props) => {
         }
     };
 
-    const handleDatabaseSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
-        if (data.optionValue) {
-            setDatabaseName(data.optionValue);
-        }
-    };
-
     const handleSelectFile = (fileType: "dacpac" | "sqlproj") => {
         const endpoint = props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
 
@@ -518,89 +486,19 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 <Text className={classes.sectionTitle}>
                                     {loc.schemaCompare.database}
                                 </Text>
-                                <div className={classes.sectionBody}>
-                                    <div className={classes.fieldRow}>
-                                        <Text className={classes.fieldLabel}>
-                                            {loc.schemaCompare.connection}
-                                        </Text>
-                                        <div className={classes.fieldControl}>
-                                            <SearchableDropdown
-                                                style={{ width: "100%" }}
-                                                options={connectionOptions}
-                                                selectedOption={{
-                                                    value: serverConnectionUri,
-                                                    text: serverName,
-                                                }}
-                                                onSelect={handleDatabaseServerSelected}
-                                                ariaLabel={loc.schemaCompare.connection}
-                                                placeholder={loc.common.select}
-                                                showPlaceholder
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className={classes.fieldRow}>
-                                        <Text className={classes.fieldLabel}>
-                                            {loc.schemaCompare.database}
-                                        </Text>
-                                        <div className={classes.controlWithStatus}>
-                                            <Dropdown
-                                                className={classes.fieldControl}
-                                                aria-label={loc.schemaCompare.database}
-                                                value={
-                                                    showDatabaseSpinner && !databaseName
-                                                        ? loc.common.loadingWithEllipsis
-                                                        : databaseName
-                                                }
-                                                selectedOptions={databaseName ? [databaseName] : []}
-                                                disabled={
-                                                    showDatabaseSpinner ||
-                                                    Boolean(displayedDatabaseError) ||
-                                                    displayedDatabases.length === 0
-                                                }
-                                                onOptionSelect={(event, data) =>
-                                                    handleDatabaseSelected(event, data)
-                                                }>
-                                                {Array.from(databaseGroups.entries()).map(
-                                                    ([groupName, databaseOptions]) => (
-                                                        <OptionGroup
-                                                            key={groupName}
-                                                            label={groupName}>
-                                                            {databaseOptions.map((database) => (
-                                                                <Option
-                                                                    key={database.value}
-                                                                    value={database.value}>
-                                                                    {database.displayName}
-                                                                </Option>
-                                                            ))}
-                                                        </OptionGroup>
-                                                    ),
-                                                )}
-                                            </Dropdown>
-                                            {showDatabaseSpinner && (
-                                                <Spinner
-                                                    size="extra-tiny"
-                                                    aria-label={loc.common.loadingWithEllipsis}
-                                                />
-                                            )}
-                                            {!showDatabaseSpinner && displayedDatabaseError && (
-                                                <Tooltip
-                                                    content={displayedDatabaseError}
-                                                    relationship="label">
-                                                    <span
-                                                        tabIndex={0}
-                                                        role="img"
-                                                        aria-label={displayedDatabaseError}>
-                                                        <ErrorCircle16Regular
-                                                            style={{
-                                                                color: tokens.colorPaletteRedForeground1,
-                                                            }}
-                                                        />
-                                                    </span>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                <DatabaseSelector
+                                    connections={connectionOptions}
+                                    selectedConnection={{
+                                        value: serverConnectionUri,
+                                        text: serverName,
+                                    }}
+                                    databases={displayedDatabases}
+                                    selectedDatabase={databaseName}
+                                    isDatabaseListLoading={showDatabaseSpinner}
+                                    databaseListError={displayedDatabaseError}
+                                    onConnectionSelected={handleDatabaseServerSelected}
+                                    onDatabaseSelected={setDatabaseName}
+                                />
                             </section>
                         )}
 

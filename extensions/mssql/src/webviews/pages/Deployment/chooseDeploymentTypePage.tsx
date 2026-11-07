@@ -37,7 +37,7 @@ const useStyles = makeStyles({
     },
     cardRow: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 330px))",
+        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 330px))",
         justifyContent: "center",
         gap: "12px",
         width: "100%",
@@ -124,12 +124,14 @@ interface ChooseDeploymentTypePageProps {
     selectedDeploymentType?: DeploymentType;
     onDeploymentTypeChange: (deploymentType: DeploymentType) => void;
     onAzureSqlContainerSelected: () => void;
+    onLocalDatabaseDeploymentSelected: () => void;
 }
 
 export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> = ({
     selectedDeploymentType,
     onDeploymentTypeChange,
     onAzureSqlContainerSelected,
+    onLocalDatabaseDeploymentSelected,
 }) => {
     const classes = useStyles();
     const id = useId();
@@ -277,6 +279,45 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                             </Text>
                             <Text className={classes.cardDescription}>
                                 {locConstants.deployment.fabricProvisioningDescription}
+                            </Text>
+                        </div>
+                    </Card>
+                </div>
+            </section>
+            <section className={classes.section} aria-labelledby={`${id}-deploy`}>
+                <Text
+                    as="h2"
+                    id={`${id}-deploy`}
+                    size={400}
+                    weight="semibold"
+                    className={classes.sectionHeading}>
+                    {locConstants.deployment.deployToCloud}
+                </Text>
+                <div className={classes.cardRow}>
+                    <Card
+                        className={classes.cardDiv}
+                        onClick={onLocalDatabaseDeploymentSelected}
+                        onKeyDown={(event) => {
+                            if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
+                                event.preventDefault();
+                                onLocalDatabaseDeploymentSelected();
+                            }
+                        }}
+                        tabIndex={0}
+                        role="button">
+                        <div className={classes.iconBadge}>
+                            <AzureSqlDatabaseIcon
+                                className={classes.azureSqlIcon}
+                                role="img"
+                                aria-label={locConstants.azureSqlDatabase.deployLocalDatabase}
+                            />
+                        </div>
+                        <div className={classes.content}>
+                            <Text className={classes.cardHeader}>
+                                {locConstants.azureSqlDatabase.deployLocalDatabase}
+                            </Text>
+                            <Text className={classes.cardDescription}>
+                                {locConstants.azureSqlDatabase.deployLocalDatabaseDescription}
                             </Text>
                         </div>
                     </Card>
