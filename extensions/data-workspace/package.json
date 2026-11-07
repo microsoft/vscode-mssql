@@ -21,9 +21,6 @@
     "bugs": {
         "url": "https://github.com/microsoft/vscode-mssql/issues"
     },
-    "extensionDependencies": [
-        "ms-mssql.mssql"
-    ],
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js data-workspace .",
         "build:extension": "tsc -p tsconfig.json",

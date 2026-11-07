@@ -5909,6 +5909,13 @@ export class LocConstants {
             ),
             featureQueryEditorTitle: l10n.t("Query Editor"),
             featureQueryEditorDescription: l10n.t("Write T-SQL with IntelliSense."),
+            featureQueryPerformanceDashboardTitle: l10n.t("Query Performance Dashboard"),
+            featureQueryPerformanceDashboardHeading: l10n.t(
+                "Query Performance Dashboard (Preview)",
+            ),
+            featureQueryPerformanceDashboardDescription: l10n.t(
+                "Use the Query Performance Dashboard to find query store insights, analyze performance trends, investigate execution plans, and optimize queries with GitHub Copilot.",
+            ),
             featureQueryPlansTitle: l10n.t("Query Plans"),
             featureQueryPlansDescription: l10n.t(
                 "Analyze execution plans with interactive node navigation",
@@ -6094,8 +6101,10 @@ export class LocConstants {
             learnMoreAboutTemplate: l10n.t("Learn more about this template"),
 
             videos: l10n.t("Videos"),
-            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
-            videoWhatsNewSubtitle: l10n.t("Agent skills, SQL formatter, and landing page"),
+            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension (v1.48)"),
+            videoWhatsNewSubtitle: l10n.t(
+                "Local Azure SQL Database container, query performance dashboard, and more",
+            ),
             videoGettingStartedTitle: l10n.t(
                 "Getting started with the MSSQL extension in 5 minutes",
             ),

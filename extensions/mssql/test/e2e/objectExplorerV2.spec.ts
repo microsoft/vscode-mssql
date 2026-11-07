@@ -94,7 +94,9 @@ test.describe("Object Explorer v2 view parity", () => {
             overview.getByRole("heading", { name: "SQL Server (mssql)", exact: true }),
         ).toBeVisible();
         await gettingStarted(preview).click({ button: "right" });
-        await page.getByRole("menuitem", { name: "Hide", exact: true }).click();
+        const hide = page.getByRole("menuitem", { name: "Hide", exact: true });
+        await hide.hover();
+        await hide.click();
         await expect(gettingStarted(preview)).toHaveCount(0);
         await expect(gettingStarted(classic)).toHaveCount(0);
         await preview.locator(".pane-header").hover();
