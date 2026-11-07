@@ -156,7 +156,13 @@ export class SpatialBasemapTileCache {
     private async writeFile(filePath: string, bytes: Uint8Array): Promise<void> {
         await this.onDisk(async () => {
             await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-            await fs.promises.writeFile(filePath, bytes);
+            const temporaryPath = `${filePath}.${crypto.randomBytes(6).toString("hex")}.tmp`;
+            try {
+                await fs.promises.writeFile(temporaryPath, bytes);
+                await fs.promises.rename(temporaryPath, filePath);
+            } finally {
+                await fs.promises.rm(temporaryPath, { force: true });
+            }
             this.bytesSinceEviction += bytes.byteLength;
             if (!this.maintenanceTimer) {
                 this.maintenanceTimer = setTimeout(() => {
