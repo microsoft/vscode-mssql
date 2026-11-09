@@ -1,5 +1,17 @@
 # Change Log
 
+> [!NOTE]
+> All SQL Database Projects functionality and contributions have moved into the main **SQL Server (mssql)** extension. The SQL Database Projects extension may be uninstalled without impact. If you must have it installed, use this version, as it is now an empty shell for compatibility purposes.
+
+## Version 1.9.1
+
+- Release date: November 18, 2026
+- Release status: GA
+
+### What's new in 1.9.1
+
+- Removed dependencies on all other extensions.
+
 ## Version 1.8.0
 
 - Release date: September 23, 2026
