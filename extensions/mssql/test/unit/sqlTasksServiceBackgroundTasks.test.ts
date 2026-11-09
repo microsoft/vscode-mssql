@@ -16,6 +16,9 @@ import {
     TaskInfo,
     TaskStatus,
     TaskProgressInfo,
+    onTaskCreated,
+    onTaskProgress,
+    onTaskCompleted,
 } from "../../src/services/sqlTasksService";
 import { TaskExecutionMode } from "../../src/enums";
 import {
@@ -106,6 +109,100 @@ suite("SqlTasksService Background Tasks Tests", () => {
         taskCreatedHandler(baseTaskInfo);
 
         expect(withProgressStub).to.not.have.been.called;
+    });
+
+    test("suppresses wizard task UI and success notifications while preserving lifecycle events", async () => {
+        const showInformation = sandbox.stub(vscode.window, "showInformationMessage");
+        const created = sandbox.spy();
+        const completed = sandbox.spy();
+        const progressed = sandbox.spy();
+        const createdSubscription = onTaskCreated(created);
+        const completedSubscription = onTaskCompleted(completed);
+        const progressSubscription = onTaskProgress(progressed);
+        const suppression = sqlTasksService.suppressTaskUI(
+            (task) => task.targetLocation === baseTaskInfo.targetLocation,
+        );
+        sqlTasksService.registerCompletionSuccessHandler({
+            operationName: baseTaskInfo.operationName!,
+            getTargetLocation: (task) => task.targetLocation,
+            getSuccessMessage: () => "Package created",
+        });
+        try {
+            taskCreatedHandler(baseTaskInfo);
+            suppression.dispose();
+            const progress: TaskProgressInfo = {
+                taskId: baseTaskInfo.taskId,
+                status: TaskStatus.Succeeded,
+                message: "Complete",
+            };
+            await taskStatusChangedHandler(progress);
+            expect(backgroundTasksServiceStub.registerTask).not.to.have.been.called;
+            expect(showInformation).not.to.have.been.called;
+            expect(created).to.have.been.calledWith(baseTaskInfo);
+            expect(completed).to.have.been.calledWith({ task: baseTaskInfo, progress });
+            expect(progressed).to.have.been.calledWith(progress);
+        } finally {
+            suppression.dispose();
+            createdSubscription.dispose();
+            completedSubscription.dispose();
+            progressSubscription.dispose();
+        }
+    });
+
+    test("suppresses failure and cancellation toasts for wizard-owned tasks", async () => {
+        const showInformation = sandbox.stub(vscode.window, "showInformationMessage");
+        const showWarning = sandbox.stub(vscode.window, "showWarningMessage");
+        const showError = sandbox.stub(vscode.window, "showErrorMessage");
+        const suppression = sqlTasksService.suppressTaskUI(
+            (task) => task.targetLocation === baseTaskInfo.targetLocation,
+        );
+        try {
+            for (const status of [TaskStatus.Failed, TaskStatus.Canceled]) {
+                taskCreatedHandler(baseTaskInfo);
+                await taskStatusChangedHandler({
+                    taskId: baseTaskInfo.taskId,
+                    status,
+                    message: "Extraction stopped",
+                });
+            }
+            expect(backgroundTasksServiceStub.registerTask).not.to.have.been.called;
+            expect(showInformation).not.to.have.been.called;
+            expect(showWarning).not.to.have.been.called;
+            expect(showError).not.to.have.been.called;
+        } finally {
+            suppression.dispose();
+        }
+    });
+
+    test("keeps unrelated operations visible and restores visibility after suppression is disposed", async () => {
+        const showInformation = sandbox.stub(vscode.window, "showInformationMessage");
+        const suppression = sqlTasksService.suppressTaskUI(
+            (task) => task.targetLocation === baseTaskInfo.targetLocation,
+        );
+        try {
+            const visible = {
+                ...baseTaskInfo,
+                taskId: "visible",
+                targetLocation: "/tmp/user-export.bacpac",
+            };
+            taskCreatedHandler(visible);
+            await taskStatusChangedHandler({
+                taskId: visible.taskId,
+                status: TaskStatus.Succeeded,
+                message: "Complete",
+            });
+            expect(backgroundTasksServiceStub.registerTask).to.have.been.calledWithMatch({
+                target: visible.targetLocation,
+            });
+            expect(showInformation).to.have.been.called;
+            suppression.dispose();
+            taskCreatedHandler(baseTaskInfo);
+            expect(backgroundTasksServiceStub.registerTask).to.have.been.calledWithMatch({
+                target: baseTaskInfo.targetLocation,
+            });
+        } finally {
+            suppression.dispose();
+        }
     });
 
     test("uses connection info in the secondary text for SQL tasks and keeps it in the tooltip", () => {

@@ -253,3 +253,10 @@ export function decodeQueryResultLinkFragment(fragment: string): string {
         return fragment;
     }
 }
+
+export function isLocalServer(server: string | undefined): boolean {
+    // Match the host, not a prefix such as localhost.example.com.
+    return /^(?:tcp:|np:|lpc:)?\s*(?:localhost|127(?:\.\d{1,3}){3}|\[::1\]|::1|\(local\)|\.)(?=$|[,\\])/i.test(
+        server?.trim() ?? "",
+    );
+}

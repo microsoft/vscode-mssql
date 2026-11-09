@@ -42,6 +42,7 @@ export const AdvancedOptionsDrawer = ({
     hostIp,
     tags,
     onTagsChange,
+    isLocalToCloud = false,
 }: {
     open: boolean;
     onClose: () => void;
@@ -52,6 +53,7 @@ export const AdvancedOptionsDrawer = ({
     hostIp: string;
     tags: TagEntry[];
     onTagsChange: (tags: TagEntry[]) => void;
+    isLocalToCloud?: boolean;
 }) => {
     const formStyles = useFormStyles();
     const [tagError, setTagError] = useState<string | undefined>(undefined);
@@ -59,7 +61,9 @@ export const AdvancedOptionsDrawer = ({
 
     const advancedComponents = Object.values(formComponents).filter(
         (component): component is AzureSqlDatabaseFormItemSpec =>
-            !!component && !!component.isAdvancedOption,
+            !!component &&
+            !!component.isAdvancedOption &&
+            (!isLocalToCloud || component.propertyName !== "dataSource"),
     );
 
     // Map component property names to their loading text

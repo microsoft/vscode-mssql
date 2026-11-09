@@ -189,6 +189,8 @@ import {
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { AgentPluginsInstaller, AgentSkillsDownloads } from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
+import type { LocalDatabaseSource } from "../sharedInterfaces/azureSqlDatabase";
+import { getLocalDatabaseSources } from "../deployment/localToCloudHelpers";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -412,6 +414,10 @@ export default class MainController implements vscode.Disposable {
                 await this.onClearPooledConnections();
             });
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
+            this.registerCommandWithArgs(Constants.cmdDeployDatabaseToAzure);
+            this._event.on(Constants.cmdDeployDatabaseToAzure, (node?: TreeNodeInfo) => {
+                this.onDeployDatabaseToAzure(node);
+            });
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string | undefined;
                 let initialDeploymentType: DeploymentType | undefined;
@@ -3419,6 +3425,7 @@ export default class MainController implements vscode.Disposable {
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
         containerConnect?: ContainerConnectAdapter,
+        initialLocalDatabaseSource?: LocalDatabaseSource,
     ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
@@ -3428,8 +3435,32 @@ export default class MainController implements vscode.Disposable {
             initialConnectionGroup,
             initialDeploymentType,
             containerConnect,
+            initialLocalDatabaseSource,
         );
         reactPanel.revealToForeground();
+    }
+
+    public onDeployDatabaseToAzure(node?: TreeNodeInfo): void {
+        const isDatabase =
+            node instanceof TreeNodeInfo &&
+            (node.nodeType === "Database" ||
+                node.context.subType === "Database" ||
+                node.context.subType === "DockerContainerDatabase");
+        const source = isDatabase
+            ? getLocalDatabaseSources([
+                  {
+                      ...node.connectionProfile,
+                      database: ObjectExplorerUtils.getDatabaseName(node),
+                  },
+              ])[0]
+            : undefined;
+        if (!source?.database) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.LocalToCloud.localDatabaseRequired,
+            );
+            return;
+        }
+        this.onDeployNewDatabase(node.connectionProfile.groupId, undefined, undefined, source);
     }
 
     /**

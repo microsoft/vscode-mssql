@@ -48,6 +48,8 @@ import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtil
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as notebookController from "../../src/notebooks/sqlNotebookController";
 import * as notebookCopyOutput from "../../src/notebooks/notebookCopyOutputProvider";
+import * as deploymentController from "../../src/deployment/deploymentWebviewController";
+import type { ContainerConnectAdapter } from "../../src/deployment/containerConnectAdapter";
 
 chai.use(sinonChai);
 
@@ -126,6 +128,102 @@ suite("MainController Tests", function () {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    suite("Deploy a local database to Azure", () => {
+        test("preserves the container adapter and local database source when opening deployment", () => {
+            stubTelemetry(sandbox);
+            const panel = sandbox.createStubInstance(
+                deploymentController.DeploymentWebviewController,
+            );
+            const create = sandbox
+                .stub(deploymentController, "DeploymentWebviewController")
+                .returns(panel);
+            const adapter: ContainerConnectAdapter = {
+                saveAndConnect: sandbox.stub().resolves("display-safe-connection-string"),
+            };
+            const source = {
+                id: "saved-local-profile",
+                profileName: "Local SQL",
+                server: "localhost,1433",
+                database: "Selected DB",
+                isConnected: true,
+            };
+
+            mainController.onDeployNewDatabase("local-group", undefined, adapter, source);
+
+            expect(create).to.have.been.calledWith(
+                context,
+                mainController,
+                "local-group",
+                undefined,
+                adapter,
+                source,
+            );
+            expect(panel.revealToForeground).to.have.been.called;
+        });
+
+        function databaseNode(server: string, subType?: string) {
+            const node = sandbox.createStubInstance(TreeNodeInfo);
+            const profile = new ConnectionProfile();
+            profile.id = "saved-profile-id";
+            profile.groupId = "local-group";
+            profile.profileName = "Local SQL";
+            profile.server = server;
+            profile.database = "master";
+            sandbox.stub(node, "connectionProfile").get(() => profile);
+            sandbox.stub(node, "nodeType").get(() => (subType ? "Server" : "Database"));
+            sandbox.stub(node, "context").get(() => ({
+                type: subType ? "Server" : "Database",
+                subType,
+                filterable: false,
+                hasFilters: false,
+            }));
+            return node;
+        }
+
+        for (const subType of [undefined, "Database", "DockerContainerDatabase"]) {
+            test(`preselects the database on a local ${subType ?? "database"} node using its profile identity`, () => {
+                const node = databaseNode("localhost,1433", subType);
+                sandbox
+                    .stub(ObjectExplorerUtils, "getDatabaseName")
+                    .withArgs(node)
+                    .returns("Selected DB");
+                const launch = sandbox.stub(mainController, "onDeployNewDatabase");
+                mainController.onDeployDatabaseToAzure(node);
+                expect(launch).to.have.been.calledWith(
+                    "local-group",
+                    undefined,
+                    undefined,
+                    sinon.match({
+                        id: "saved-profile-id",
+                        server: "localhost,1433",
+                        database: "Selected DB",
+                        profileName: "Local SQL",
+                    }),
+                );
+            });
+        }
+
+        test("rejects remote databases even when the command is invoked directly", () => {
+            const node = databaseNode("localhost.example.com");
+            sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns("Selected DB");
+            const launch = sandbox.stub(mainController, "onDeployNewDatabase");
+            mainController.onDeployDatabaseToAzure(node);
+            expect(launch).not.to.have.been.called;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                LocalizedConstants.LocalToCloud.localDatabaseRequired,
+            );
+        });
+
+        test("rejects a missing database node", () => {
+            const launch = sandbox.stub(mainController, "onDeployNewDatabase");
+            mainController.onDeployDatabaseToAzure();
+            expect(launch).not.to.have.been.called;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                LocalizedConstants.LocalToCloud.localDatabaseRequired,
+            );
+        });
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {

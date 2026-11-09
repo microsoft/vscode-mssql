@@ -26,9 +26,10 @@ test.describe("Azure SQL deployment options", () => {
             name: "Run in the cloud",
             exact: true,
         });
+        // The iframe exists before the cold, coverage-instrumented webview finishes bootstrapping.
         await expect(
             localSection.getByRole("heading", { name: "Run locally", level: 2 }),
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 30_000 });
         await expect(
             cloudSection.getByRole("heading", { name: "Run in the cloud", level: 2 }),
         ).toBeVisible();

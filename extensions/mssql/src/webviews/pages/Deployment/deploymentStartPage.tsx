@@ -20,6 +20,7 @@ import { LocalContainersDeploymentWizard } from "./LocalContainers/localContaine
 import { FabricDeploymentWizard } from "./FabricProvisioning/fabricDeploymentWizard";
 import { AzureSqlDatabaseDeploymentWizard } from "./AzureSqlDatabase/azureSqlDatabaseDeploymentWizard";
 import { AzureSqlDatabaseLocalContainerWizard } from "./AzureSqlDatabase/azureSqlDatabaseLocalContainerWizard";
+import { AzureSqlDatabaseSourcePage } from "./AzureSqlDatabase/azureSqlDatabaseSourcePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -42,9 +43,11 @@ export const DeploymentStartPage = () => {
     const deploymentType = useDeploymentSelector((s) => s.deploymentType);
     const deploymentTypeState = useDeploymentSelector((s) => s.deploymentTypeState);
     const initialDeploymentType = useDeploymentSelector((s) => s.initialDeploymentType);
+    const initialLocalDatabaseSource = useDeploymentSelector((s) => s.initialLocalDatabaseSource);
     const [activeDeploymentType, setActiveDeploymentType] = useState<DeploymentType>();
     const [pendingDeploymentType, setPendingDeploymentType] = useState<DeploymentType>();
     const [showAzureSqlContainer, setShowAzureSqlContainer] = useState(false);
+    const [showLocalDatabaseDeployment, setShowLocalDatabaseDeployment] = useState(false);
 
     const isLocalContainersStateReady = (state: unknown) =>
         Array.isArray((state as LocalContainersState | undefined)?.dockerSteps);
@@ -74,16 +77,22 @@ export const DeploymentStartPage = () => {
     useEffect(() => {
         if (
             hasAutoSelected.current ||
-            initialDeploymentType === undefined ||
+            (initialDeploymentType === undefined && !initialLocalDatabaseSource) ||
             loadState !== ApiStatus.Loaded ||
             !context
         ) {
             return;
         }
         hasAutoSelected.current = true;
-        setPendingDeploymentType(initialDeploymentType);
-        context.initializeDeploymentSpecifics(initialDeploymentType);
-    }, [context, initialDeploymentType, loadState]);
+        if (initialLocalDatabaseSource) {
+            setShowLocalDatabaseDeployment(true);
+            return;
+        }
+        if (initialDeploymentType !== undefined) {
+            setPendingDeploymentType(initialDeploymentType);
+            context.initializeDeploymentSpecifics(initialDeploymentType);
+        }
+    }, [context, initialDeploymentType, initialLocalDatabaseSource, loadState]);
 
     useEffect(() => {
         if (pendingDeploymentType === undefined || deploymentType !== pendingDeploymentType) {
@@ -183,6 +192,18 @@ export const DeploymentStartPage = () => {
         );
     }
 
+    if (
+        showLocalDatabaseDeployment ||
+        (!hasAutoSelected.current && initialLocalDatabaseSource && loadState === ApiStatus.Loaded)
+    ) {
+        return (
+            <AzureSqlDatabaseSourcePage
+                initialSource={initialLocalDatabaseSource}
+                onBack={() => setShowLocalDatabaseDeployment(false)}
+            />
+        );
+    }
+
     return (
         <div className={classes.outerDiv}>
             <DialogPageShell
@@ -208,6 +229,9 @@ export const DeploymentStartPage = () => {
                         selectedDeploymentType={pendingDeploymentType}
                         onDeploymentTypeChange={handleDeploymentTypeSelected}
                         onAzureSqlContainerSelected={() => setShowAzureSqlContainer(true)}
+                        onLocalDatabaseDeploymentSelected={() =>
+                            setShowLocalDatabaseDeployment(true)
+                        }
                     />
                 ) : (
                     <div style={{ minHeight: "240px" }}>

@@ -41,6 +41,8 @@ export interface WizardPageShellProps {
     subtitle: ReactNode;
     currentStep: number;
     totalSteps: number;
+    errorMessage?: string;
+    loadingMessage?: string;
     footerStart?: ReactNode;
     footerEnd?: ReactNode;
     maxContentWidth?: DialogPageShellContentWidth;
@@ -53,6 +55,8 @@ export const WizardPageShell = ({
     subtitle,
     currentStep,
     totalSteps,
+    errorMessage,
+    loadingMessage,
     footerStart,
     footerEnd,
     maxContentWidth = "medium",
@@ -67,6 +71,8 @@ export const WizardPageShell = ({
             icon={icon}
             title={title}
             subtitle={subtitle}
+            errorMessage={errorMessage}
+            loadingMessage={loadingMessage}
             showHeaderDivider={false}
             maxContentWidth={maxContentWidth}
             headerEnd={

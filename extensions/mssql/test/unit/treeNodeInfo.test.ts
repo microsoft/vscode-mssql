@@ -71,6 +71,28 @@ suite("TreeNodeInfo", () => {
         expect(node.loadingLabel).to.equal(newLabel);
     });
 
+    test("marks loopback profiles for local deployment without matching remote lookalikes", () => {
+        for (const server of [
+            "localhost,1433",
+            "tcp:127.0.0.1,1433",
+            "[::1],1433",
+            ".\\SQLEXPRESS",
+        ]) {
+            expect(createTreeNode({ server }).contextValue).to.include("localToCloud=true,");
+        }
+        for (const server of ["localhost.example.com", "127.0.0.1.example.com", "remote-server"]) {
+            expect(createTreeNode({ server }).contextValue).not.to.include("localToCloud=true,");
+        }
+    });
+
+    test("updates local deployment eligibility when a node's connection profile changes", () => {
+        const node = createTreeNode({ server: "localhost" });
+        node.filters = [];
+        expect(node.contextValue).to.include("localToCloud=true,");
+        node.updateConnectionProfile({ ...node.connectionProfile, server: "remote-server" });
+        expect(node.contextValue).not.to.include("localToCloud=true,");
+    });
+
     suite("updateEntraTokenInfo", () => {
         test("updates only Entra token fields when refreshed token is provided", () => {
             const oldToken = {
