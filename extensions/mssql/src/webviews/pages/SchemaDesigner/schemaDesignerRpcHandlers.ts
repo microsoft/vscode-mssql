@@ -1138,6 +1138,7 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                 unsupportedReasons: (entity.unsupportedReasons ?? []).map((reason) => {
                     switch (reason.type) {
                         case "noPrimaryKey":
+                        case "unnamedResultColumns":
                             return { type: reason.type };
                         case "unsupportedDataTypes":
                             return {
@@ -1449,6 +1450,8 @@ function formatUnsupportedEntityReasons(entity: Dab.DabEntityConfig): string {
                         reason.columns,
                         sourceTypeLabel,
                     );
+                case "unnamedResultColumns":
+                    return locConstants.schemaDesigner.unsupportedUnnamedResultColumns;
             }
         })
         .join("; ");

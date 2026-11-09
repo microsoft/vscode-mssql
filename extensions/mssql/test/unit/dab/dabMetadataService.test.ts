@@ -84,8 +84,14 @@ suite("DAB Metadata Service Tests", () => {
             undefined,
             options,
         );
+        await dabMetadataService.getDabViewSourceKeysByView(ownerUri, undefined, options);
+        await dabMetadataService.getDabStoredProcedureResultColumnsByProcedure(
+            ownerUri,
+            undefined,
+            options,
+        );
 
-        expect(sentQueries).to.have.length(6);
+        expect(sentQueries).to.have.length(8);
         expect(sentQueries.every((query) => query.includes("WITH (NOLOCK)"))).to.be.true;
     });
 
@@ -343,6 +349,87 @@ suite("DAB Metadata Service Tests", () => {
         expect(result.get("stored-procedure:dbo.GetUsers")).to.deep.equal([
             { name: "@userId", dataType: "int", ordinal: 1 },
             { name: "@includeInactive", dataType: "bit", ordinal: 2 },
+        ]);
+    });
+
+    test("should report table-valued parameters as table type", async () => {
+        const sentQueries: string[] = [];
+        mockClient.sendRequest.callsFake(async (_type: any, params: any) => {
+            sentQueries.push(params.queryString);
+            return { rows: [] };
+        });
+
+        await dabMetadataService.getDabStoredProcedureParametersByProcedure(ownerUri);
+        await dabMetadataService.getDabStoredProcedureParameters(ownerUri, "dbo", "GetUsers");
+
+        expect(sentQueries).to.have.length(2);
+        for (const query of sentQueries) {
+            expect(query).to.include("t.is_table_type = 1 THEN N'table type'");
+        }
+    });
+
+    test("should trace view keys to base table keys with browse information", async () => {
+        let sentQuery = "";
+        const sourceKey = (view: string, name: string, isHidden: boolean, table: string) => [
+            cell(view),
+            cell(name),
+            cell(isHidden ? "1" : "0"),
+            cell(table),
+        ];
+        mockClient.sendRequest.callsFake(async (_type: any, params: any) => {
+            sentQuery = params.queryString;
+            return {
+                rows: [
+                    // Every key is shown: the combined key identifies each row.
+                    sourceKey("view:dbo.OrderLines", "OrderId", false, "Db.dbo.OrderLines"),
+                    sourceKey("view:dbo.OrderLines", "LineNumber", false, "Db.dbo.OrderLines"),
+                    sourceKey("view:dbo.OrderLines", "ProductId", false, "Db.dbo.Products"),
+                    // Customers key is hidden, so only the Orders key is used.
+                    sourceKey("view:dbo.OrderSummary", "OrderKey", false, "Db.dbo.Orders"),
+                    sourceKey("view:dbo.OrderSummary", "CustomerId", true, "Db.dbo.Customers"),
+                    // Part of a composite key is hidden, so the visible part is not a key.
+                    sourceKey("view:dbo.LineNames", "OrderId", false, "Db.dbo.OrderLines"),
+                    sourceKey("view:dbo.LineNames", "LineNumber", true, "Db.dbo.OrderLines"),
+                    [cell("view:dbo.Broken"), cell("", true), cell("0"), cell("Db.dbo.T")],
+                ],
+            };
+        });
+
+        const result = await dabMetadataService.getDabViewSourceKeysByView(ownerUri);
+
+        expect(sentQuery).to.include("sys.dm_exec_describe_first_result_set(");
+        expect(sentQuery).to.include("r.is_part_of_unique_key = 1");
+        expect([...result.entries()]).to.deep.equal([
+            ["view:dbo.OrderLines", ["OrderId", "LineNumber", "ProductId"]],
+            ["view:dbo.OrderSummary", ["OrderKey"]],
+        ]);
+    });
+
+    test("should group stored procedure result columns and keep unnamed columns", async () => {
+        let sentQuery = "";
+        mockClient.sendRequest.callsFake(async (_type: any, params: any) => {
+            sentQuery = params.queryString;
+            return {
+                rows: [
+                    [cell("stored-procedure:dbo.GetUsers"), cell("Id"), cell("int"), cell("1")],
+                    [cell("stored-procedure:dbo.GetUsers"), cell("", true), cell("int"), cell("2")],
+                    [
+                        cell("stored-procedure:dbo.GetUsers"),
+                        cell("Broken"),
+                        cell("int"),
+                        cell("bad-ordinal"),
+                    ],
+                ],
+            };
+        });
+
+        const result =
+            await dabMetadataService.getDabStoredProcedureResultColumnsByProcedure(ownerUri);
+
+        expect(sentQuery).to.include("sys.dm_exec_describe_first_result_set_for_object");
+        expect(result.get("stored-procedure:dbo.GetUsers")).to.deep.equal([
+            { name: "Id", dataType: "int", ordinal: 1 },
+            { dataType: "int", ordinal: 2 },
         ]);
     });
 });

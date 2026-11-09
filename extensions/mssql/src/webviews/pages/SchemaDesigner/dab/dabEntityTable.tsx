@@ -130,6 +130,8 @@ function formatUnsupportedReasons(entity: Dab.DabEntityConfig): string {
                         reason.columns,
                         sourceTypeLabel,
                     );
+                case "unnamedResultColumns":
+                    return locConstants.schemaDesigner.unsupportedUnnamedResultColumns;
             }
         })
         .join("; ");
