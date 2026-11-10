@@ -6113,9 +6113,6 @@
     <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
       <source xml:lang="en">Free compute &amp; storage</source>
     </trans-unit>
-    <trans-unit id="++CODE++3ae46cf3de6a6415720c81f705c83ad66feef16b9f35cc169adb6230ded880c6">
-      <source xml:lang="en">Free limit</source>
-    </trans-unit>
     <trans-unit id="++CODE++c12cf70d21352437b716a76c78594849271e7699d8f37a01b10a4a3c7621270f">
       <source xml:lang="en">Free tier applied</source>
     </trans-unit>
@@ -9182,9 +9179,6 @@
     </trans-unit>
     <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
       <source xml:lang="en">Pause event collection</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6a00791357b71e962480d12c7e1efe9ea1203ba0de4da5d72566b260807a6f12">
-      <source xml:lang="en">Pause until next month</source>
     </trans-unit>
     <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
       <source xml:lang="en">Paused</source>
