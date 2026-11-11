@@ -4533,13 +4533,13 @@ export class Changelog {
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 
     // Event banner
-    public static sqlconEuDescription1 = l10n.t(
+    public static sqlconDescription1 = l10n.t(
         "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
     );
-    public static sqlconEuDescription2 = l10n.t(
-        "Use discount code {0} to save €200 on registration.",
+    public static sqlconDescription2 = l10n.t(
+        "Use discount code {0} to save $200 on registration.",
     );
-    public static sqlconEuRegister = l10n.t("Register");
+    public static sqlconRegister = l10n.t("Register");
     public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
     public static gettingStartedPageDescription = l10n.t(
         "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",

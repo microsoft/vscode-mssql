@@ -6426,6 +6426,16 @@ export class LocConstants {
             reportBug: l10n.t("Report a bug"),
             requestFeature: l10n.t("Request a feature"),
             joinDiscussions: l10n.t("Join the discussions"),
+
+            eventDates: l10n.t("Event dates"),
+            eventLocation: l10n.t("Event location"),
+            copyDiscountCode: (code: string) =>
+                l10n.t({
+                    message: "Copy discount code {0}",
+                    args: [code],
+                    comment: ["{0} is a registration discount code, e.g. VSCODE200"],
+                }),
+            discountCodeCopied: l10n.t("Discount code copied"),
         };
     }
 }

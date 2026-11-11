@@ -2442,7 +2442,7 @@
     "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
     "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
     "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.": "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
-    "Use discount code {0} to save €200 on registration.": "Use discount code {0} to save €200 on registration.",
+    "Use discount code {0} to save $200 on registration.": "Use discount code {0} to save $200 on registration.",
     "Register": "Register",
     "MSSQL Getting Started Page": "MSSQL Getting Started Page",
     "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.": "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
@@ -7224,5 +7224,12 @@
     "Read the docs on Microsoft Learn": "Read the docs on Microsoft Learn",
     "Join a free SQL + AI workshop": "Join a free SQL + AI workshop",
     "Report a bug": "Report a bug",
-    "Request a feature": "Request a feature"
+    "Request a feature": "Request a feature",
+    "Event dates": "Event dates",
+    "Event location": "Event location",
+    "Copy discount code {0}/{0} is a registration discount code, e.g. VSCODE200": {
+        "message": "Copy discount code {0}",
+        "comment": ["{0} is a registration discount code, e.g. VSCODE200"]
+    },
+    "Discount code copied": "Discount code copied"
 }
