@@ -138,45 +138,53 @@ suite("Status View Tests", () => {
 
     suite("SQLCMD mode status bar tests", () => {
         const fileUri = "file:///test.sql";
-        let enableSqlCmdByDefault: boolean;
+        let defaultSqlCmdMode: string | undefined;
 
         setup(() => {
-            enableSqlCmdByDefault = false;
+            defaultSqlCmdMode = undefined;
             sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
                 return createMockStatusBarItem();
             });
             sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 get: (key: string, defaultValue?: unknown) =>
-                    key === Constants.configEnableSqlCmdByDefault
-                        ? enableSqlCmdByDefault
+                    key === Constants.configDefaultSqlCmdMode && defaultSqlCmdMode !== undefined
+                        ? defaultSqlCmdMode
                         : defaultValue,
             } as unknown as vscode.WorkspaceConfiguration);
         });
 
-        test("editors start with SQLCMD mode on when enableSqlCmdByDefault is enabled", () => {
-            enableSqlCmdByDefault = true;
+        function expectInitialSqlCmdMode(expected: boolean): void {
             const statusView = new StatusView();
 
             statusView.sqlCmdModeChanged(fileUri);
 
-            expect(statusView.getSqlCmdMode(fileUri)).to.be.true;
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(expected);
             expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
-                LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+                expected
+                    ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+                    : LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
             );
             statusView.dispose();
+        }
+
+        test("editors start with SQLCMD mode on when defaultSqlCmdMode is enabled", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Enabled;
+            expectInitialSqlCmdMode(true);
         });
 
-        test("editors start with SQLCMD mode off when enableSqlCmdByDefault is disabled", () => {
-            const statusView = new StatusView();
+        test("editors start with SQLCMD mode off when defaultSqlCmdMode is disabled", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Disabled;
+            expectInitialSqlCmdMode(false);
+        });
 
-            statusView.sqlCmdModeChanged(fileUri);
+        test("editors start with SQLCMD mode off when defaultSqlCmdMode is not set", () => {
+            expectInitialSqlCmdMode(false);
+        });
 
-            expect(statusView.getSqlCmdMode(fileUri)).to.be.false;
-            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
-                LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
-            );
-            statusView.dispose();
+        test("editors start with SQLCMD mode off when defaultSqlCmdMode is unrecognized", () => {
+            defaultSqlCmdMode = "detect";
+            expectInitialSqlCmdMode(false);
         });
 
         test("connection state changes preserve the editor's SQLCMD mode", () => {

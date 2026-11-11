@@ -4216,10 +4216,18 @@
                         "description": "%mssql.openQueryResultsInTabByDefault.description%",
                         "scope": "application"
                     },
-                    "mssql.query.enableSqlCmdByDefault": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "%mssql.query.enableSqlCmdByDefault.description%",
+                    "mssql.query.defaultSqlCmdMode": {
+                        "type": "string",
+                        "default": "disabled",
+                        "enum": [
+                            "disabled",
+                            "enabled"
+                        ],
+                        "enumDescriptions": [
+                            "%mssql.query.defaultSqlCmdMode.disabled.description%",
+                            "%mssql.query.defaultSqlCmdMode.enabled.description%"
+                        ],
+                        "description": "%mssql.query.defaultSqlCmdMode.description%",
                         "scope": "resource"
                     },
                     "mssql.query.playCompletionSound": {

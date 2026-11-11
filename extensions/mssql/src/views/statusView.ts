@@ -164,10 +164,20 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
-        bar.isSqlCmd = vscode.workspace
-            .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
-            .get<boolean>(Constants.configEnableSqlCmdByDefault, false);
+        bar.isSqlCmd = this.getDefaultSqlCmdMode(fileUri);
         this._statusBars[fileUri] = bar;
+    }
+
+    /**
+     * Gets the initial SQLCMD mode for an editor from the `mssql.query.defaultSqlCmdMode`
+     * setting. Only `enabled` turns SQLCMD mode on; any other value leaves it off.
+     * @param fileUri URI of the editor
+     */
+    private getDefaultSqlCmdMode(fileUri: string): boolean {
+        const defaultMode = vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
+            .get<string>(Constants.configDefaultSqlCmdMode, Constants.DefaultSqlCmdMode.Disabled);
+        return defaultMode === Constants.DefaultSqlCmdMode.Enabled;
     }
 
     private destroyStatusBar(fileUri: string): void {
@@ -454,7 +464,7 @@ export default class StatusView implements vscode.Disposable {
 
     /**
      * Gets whether SQLCMD mode is enabled for the editor. Editors start with the
-     * `mssql.query.enableSqlCmdByDefault` setting value until SQLCMD mode is toggled.
+     * mode from the `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
      * @param fileUri URI of the editor
      */
     public getSqlCmdMode(fileUri: string): boolean {
