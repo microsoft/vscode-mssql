@@ -40,6 +40,7 @@ import {
 import { locConstants } from "../../src/webviews/common/locConstants";
 import { AzureSqlDatabaseInfoPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseInfoPage";
 import { AzureSqlDatabaseDeploymentComplete } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseDeploymentComplete";
+import { AzureSqlDatabaseReviewPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseReviewPage";
 
 chai.use(sinonChai);
 
@@ -132,9 +133,7 @@ suite("Azure SQL Database terminology", () => {
     test("renders the working free tier documentation link", () => {
         const markup = renderToStaticMarkup(createElement(AzureSqlDatabaseInfoPage));
 
-        expect(markup).to.include(
-            'href="https://learn.microsoft.com/azure/azure-sql/database/free-offer"',
-        );
+        expect(markup).to.include('href="https://aka.ms/sqlfreeoffer"');
         expect(markup).to.include(locConstants.azureSqlDatabase.learnMoreAboutFreeTier);
     });
 });
@@ -221,6 +220,33 @@ suite("Azure SQL Database reducers", () => {
         expect(reducer, `${name} reducer should be registered`).to.exist;
         return reducer!;
     }
+
+    test("describes the migration target as free tier in the review", () => {
+        const markup = renderToStaticMarkup(
+            createElement(AzureSqlDatabaseReviewPage, {
+                source: {
+                    id: "local-source",
+                    profileName: "Local connection",
+                    server: "localhost",
+                    database: "Local DB",
+                    isConnected: true,
+                },
+                result: {
+                    validationId: "validation-id",
+                    sourceId: "local-source",
+                    database: "Local DB",
+                    deploymentContent: "schemaOnly",
+                    target: "AzureSqlDatabase",
+                    status: "passed",
+                    diagnostics: [],
+                },
+                azureState: azureSqlState,
+            }),
+        );
+
+        expect(markup).to.include("Azure SQL Database · Free tier");
+        expect(markup).not.to.include("Free offer");
+    });
 
     for (const [name, administrators, expectedTypes] of [
         ["SQL-only", undefined, [AuthenticationType.SqlLogin]],

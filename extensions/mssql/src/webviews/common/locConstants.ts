@@ -3847,11 +3847,11 @@ export class LocConstants {
             ),
             deployLocalDatabase: l10n.t("Local database to Azure SQL Database (Preview)"),
             deployLocalDatabaseDescription: l10n.t(
-                "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.",
+                "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.",
             ),
             deployToAzureSql: l10n.t("Deploy a database to Azure SQL (Preview)"),
             deployToAzureSqlDescription: l10n.t(
-                "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
+                "Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
             ),
             sourceStep: l10n.t("Choose source database"),
             compatibilityStep: l10n.t("Verify Azure SQL compatibility"),
@@ -3981,7 +3981,7 @@ export class LocConstants {
             reviewDescription: l10n.t("Confirm what will be created, then deploy."),
             reviewSourceDescription: (engine: string, version: string) =>
                 l10n.t("Local database · {0} {1}", engine, version),
-            reviewTargetDescription: l10n.t("Azure SQL Database · Free offer"),
+            reviewTargetDescription: l10n.t("Azure SQL Database · Free tier"),
             reviewIncludes: l10n.t("Includes"),
             reviewIncludesObjects: (content: string, count: number) =>
                 count === 1
