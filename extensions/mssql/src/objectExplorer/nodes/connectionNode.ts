@@ -25,8 +25,8 @@ export const ICON_SERVER_DISCONNECTED = "Server_red";
 export const ICON_SERVER_CONNECTED = "Server_green";
 export const ICON_DATABASE_DISCONNECTED = "Database_red";
 export const ICON_DATABASE_CONNECTED = "Database_green";
-export const ICON_DOCKER_SERVER_DISCONNECTED = "DockerContainer_red";
-export const ICON_DOCKER_SERVER_CONNECTED = "DockerContainer_green";
+export const ICON_DOCKER_SERVER_DISCONNECTED = "Container_red";
+export const ICON_DOCKER_SERVER_CONNECTED = "Container_green";
 
 const createDisconnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
