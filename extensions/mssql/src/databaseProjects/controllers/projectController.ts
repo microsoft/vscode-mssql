@@ -563,15 +563,28 @@ export class ProjectsController {
      * code analysis rules are only discoverable once they have been restored, so this gives users
      * a way to restore without dropping to a terminal.
      * @param context a treeItem in a project's hierarchy, to be used to obtain a Project
+     * @returns true if the restore succeeded; false if it failed (the failure is shown to the user)
      */
-    public async restoreProject(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
+    public async restoreProject(treeNode: dataworkspace.WorkspaceTreeItem): Promise<boolean>;
     /**
      * Restores the NuGet packages referenced by a project.
      * @param project Project to restore
+     * @returns true if the restore succeeded; false if it failed (the failure is shown to the user)
      */
-    public async restoreProject(project: Project): Promise<void>;
-    public async restoreProject(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
-        const project: Project = await this.getProjectFromContext(context);
+    public async restoreProject(project: Project): Promise<boolean>;
+    /**
+     * Restores the NuGet packages referenced by a project.
+     * @param projectFilePath Path of the .sqlproj to restore
+     * @returns true if the restore succeeded; false if it failed (the failure is shown to the user)
+     */
+    public async restoreProject(projectFilePath: string): Promise<boolean>;
+    public async restoreProject(
+        context: Project | dataworkspace.WorkspaceTreeItem | string,
+    ): Promise<boolean> {
+        const project: Project =
+            typeof context === "string"
+                ? await Project.openProject(context)
+                : await this.getProjectFromContext(context);
         const startTime = new Date();
 
         try {
@@ -599,7 +612,7 @@ export class ProjectsController {
                     .send();
 
                 void vscode.window.showErrorMessage(SqlProjects.projRestoreFailed());
-                return;
+                return false;
             }
 
             TelemetryReporter.createActionEvent(
@@ -608,6 +621,7 @@ export class ProjectsController {
             )
                 .withAdditionalMeasurements({ duration })
                 .send();
+            return true;
         } catch (err) {
             TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
@@ -626,6 +640,7 @@ export class ProjectsController {
             } else {
                 void vscode.window.showErrorMessage(SqlProjects.projRestoreFailed(message));
             }
+            return false;
         }
     }
 

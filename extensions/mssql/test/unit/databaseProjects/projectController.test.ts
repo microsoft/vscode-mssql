@@ -1685,8 +1685,9 @@ suite("ProjectsController", function (): void {
                 );
                 const projController = new ProjectsController(testContext.outputChannel);
 
-                await projController.restoreProject(project);
+                const restored = await projController.restoreProject(project);
 
+                expect(restored, "a successful restore should report success").to.be.true;
                 expect(executeTaskStub.calledOnce, "a task should have been executed").to.be.true;
                 const task = executeTaskStub.firstCall.args[0] as vscode.Task;
                 expect(task.name, "task should be labelled as a restore").to.equal(
@@ -1713,8 +1714,9 @@ suite("ProjectsController", function (): void {
                 );
                 const projController = new ProjectsController(testContext.outputChannel);
 
-                await projController.restoreProject(project);
+                const restored = await projController.restoreProject(project);
 
+                expect(restored, "a failed restore should report failure").to.be.false;
                 expect(
                     showErrorMessageSpy.calledOnce,
                     "a failed restore should be surfaced to the user",
@@ -1722,6 +1724,26 @@ suite("ProjectsController", function (): void {
                 expect(showErrorMessageSpy.firstCall.args[0]).to.equal(
                     SqlProjects.projRestoreFailed(),
                 );
+            });
+
+            test("Should restore a project given its file path", async function (): Promise<void> {
+                sandbox.stub(NetCoreTool.prototype, "verifyNetCoreInstallation").resolves();
+                const executeTaskStub = stubTaskRun(0);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                const restored = await projController.restoreProject(project.projectFilePath);
+
+                expect(restored, "restoring by file path should report success").to.be.true;
+                const execution = (executeTaskStub.firstCall.args[0] as vscode.Task)
+                    .execution as vscode.ProcessExecution;
+                expect(execution.args, "should restore the project at that path").to.deep.equal([
+                    constants.restore,
+                    utils.getNonQuotedPath(project.projectFilePath),
+                ]);
             });
         });
 
