@@ -4228,6 +4228,12 @@
                         "description": "%mssql.query.completionSoundFile.description%",
                         "scope": "window"
                     },
+                    "mssql.query.errorSoundFile": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.query.errorSoundFile.description%",
+                        "scope": "window"
+                    },
                     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
                         "type": "boolean",
                         "default": false,
