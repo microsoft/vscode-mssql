@@ -1851,6 +1851,18 @@ export class LocConstants {
 
     public get userFeedback() {
         return {
+            primaryJobRole: l10n.t("Which of the following best describes your primary job role?"),
+            selectJobRole: l10n.t("Select a role (optional)"),
+            applicationDeveloper: l10n.t("Application Developer"),
+            databaseDeveloper: l10n.t("Database Developer"),
+            databaseAdministrator: l10n.t("Database Administrator"),
+            dataEngineer: l10n.t("Data Engineer"),
+            dataAnalyst: l10n.t("Data Analyst / BI Professional"),
+            dataScientist: l10n.t("Data Scientist"),
+            dataArchitect: l10n.t("Data Architect"),
+            itDevOpsProfessional: l10n.t("IT / DevOps Professional"),
+            otherJobRole: l10n.t("Other (Please specify)"),
+            specifyJobRole: l10n.t("Please specify your job role (optional)"),
             microsoftWouldLikeYourFeedback: l10n.t("Microsoft would like your feedback"),
             overallHowSatisfiedAreYouWithMSSQLExtension: l10n.t(
                 "Overall, how satisfied are you with the MSSQL extension?",

@@ -835,6 +835,9 @@
     <trans-unit id="++CODE++576111a7aee1dceb26cea96a10ff916ffb087796f8a5c1b6e97bcb16f47b01c3">
       <source xml:lang="en">Application (client) ID</source>
     </trans-unit>
+    <trans-unit id="++CODE++bb6565c0bc03c3f2c3151f1d701c97f0f1fb4e415ce3eecb849fde359cf8d263">
+      <source xml:lang="en">Application Developer</source>
+    </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
     </trans-unit>
@@ -3536,6 +3539,18 @@
       <source xml:lang="en">Data API builder {0} ready</source>
       <note>{0} is the Data API builder version</note>
     </trans-unit>
+    <trans-unit id="++CODE++52e420d4457a1675cc896e36b14eeb788ea1e9df32ba43389edf1f855c676c1e">
+      <source xml:lang="en">Data Analyst / BI Professional</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a29d734683d202c3aa8b17d2c417e91dbeeffb6b344f0d39df99a93ed690c78">
+      <source xml:lang="en">Data Architect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ebcb746306074cb63e2153348d44db590c7c668afac248e071bc5e3096e74dd6">
+      <source xml:lang="en">Data Engineer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d69b468e295fa01cdb3b7c3f0bd341149e70e8238d3d1033a8b5104c9d1e69cb">
+      <source xml:lang="en">Data Scientist</source>
+    </trans-unit>
     <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
       <source xml:lang="en">Data Source</source>
     </trans-unit>
@@ -3596,6 +3611,9 @@
       <source xml:lang="en">Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++b9609b9c2ee6b44e36bdaaa2a9731c6cd65d7ffcb84f8af196773ab0628d2e00">
+      <source xml:lang="en">Database Administrator</source>
+    </trans-unit>
     <trans-unit id="++CODE++8bd9b4bcb9d0a24051d3546010a0e23cc4dca9884dca0b6d96608d2cf6b60ea7">
       <source xml:lang="en">Database Audit Specifications</source>
     </trans-unit>
@@ -3604,6 +3622,9 @@
     </trans-unit>
     <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
       <source xml:lang="en">Database Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++36fe8217a4b3b644274074299e52b6b48711f75ae9f915c9a5706916f17e09fb">
+      <source xml:lang="en">Database Developer</source>
     </trans-unit>
     <trans-unit id="++CODE++7707874a8154778a0c34b6781d9a5a020c17a7f5ae860c1c3a32786950e6aa21">
       <source xml:lang="en">Database Hub doesn&apos;t track this kind of server or database.</source>
@@ -6483,6 +6504,9 @@
     <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
       <source xml:lang="en">IP address range</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b79a20cac5e40434ab95206e030f5c69fd286b383be530db972a8dce47d7fab">
+      <source xml:lang="en">IT / DevOps Professional</source>
+    </trans-unit>
     <trans-unit id="++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f">
       <source xml:lang="en">Identity</source>
     </trans-unit>
@@ -9029,6 +9053,9 @@
       <source xml:lang="en">Other</source>
       <note>The other wait categories</note>
     </trans-unit>
+    <trans-unit id="++CODE++c1b68d44978ad2b888788673cfccf0ea25e7aac7d4396c945b6f8c145c6f09c3">
+      <source xml:lang="en">Other (Please specify)</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba0f79f8e6b404bef26409b2931e81b2052e932cee9299698e54213e4b2dfe88">
       <source xml:lang="en">Other supported engines</source>
     </trans-unit>
@@ -9342,6 +9369,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
       <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac683d479f0f0d89c0fca7118b945fdf0e6f154236f88db9c66be31b385c663f">
+      <source xml:lang="en">Please specify your job role (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++ab1173eed1d477d9e951c2316a74d1923220e64d1bbaeadf03c88e20576c7450">
       <source xml:lang="en">Plugin</source>
@@ -11429,6 +11459,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f">
       <source xml:lang="en">Select a resource group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8f4a9114d44f73a76abbf79de2da14705b43c9f16cb5d81fbff0d2acf8f81496">
+      <source xml:lang="en">Select a role (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
@@ -14321,6 +14354,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e665368a7ddcbfc0773b209b289d596aa211d1746b8da0a3802464ede446cc70">
       <source xml:lang="en">Where the project will be created.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58260f4c62d0d01cd5631e06dfa74aa88c088e55ab812f6b9a24cf4f0d014ec0">
+      <source xml:lang="en">Which of the following best describes your primary job role?</source>
     </trans-unit>
     <trans-unit id="++CODE++f8d9319c3b029ab680834f0ad04e6fe566f3500828d6968ef7e420813be503c6">
       <source xml:lang="en">Why did this endpoint get slow?</source>
