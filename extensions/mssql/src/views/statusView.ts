@@ -34,6 +34,8 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
+    // Whether SQLCMD mode is enabled for the editor
+    public isSqlCmd: boolean;
 
     public currentLanguageServiceStatus: string;
     public queryTimer: NodeJS.Timeout;
@@ -162,7 +164,20 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
+        bar.isSqlCmd = this.getDefaultSqlCmdMode(fileUri);
         this._statusBars[fileUri] = bar;
+    }
+
+    /**
+     * Gets the initial SQLCMD mode for an editor from the `mssql.query.defaultSqlCmdMode`
+     * setting. Only `enabled` turns SQLCMD mode on; any other value leaves it off.
+     * @param fileUri URI of the editor
+     */
+    private getDefaultSqlCmdMode(fileUri: string): boolean {
+        const defaultMode = vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
+            .get<string>(Constants.configDefaultSqlCmdMode, Constants.DefaultSqlCmdMode.Disabled);
+        return defaultMode === Constants.DefaultSqlCmdMode.Enabled;
     }
 
     private destroyStatusBar(fileUri: string): void {
@@ -234,7 +249,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.color = undefined;
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = "";
-        this.sqlCmdModeChanged(fileUri, false);
+        this.sqlCmdModeChanged(fileUri);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
 
@@ -325,7 +340,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.color = await this.getConnectionColor(bar.connectionId);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.sqlCmdModeChanged(fileUri, false);
+        this.sqlCmdModeChanged(fileUri);
     }
 
     public async updateConnectionColors(): Promise<void> {
@@ -447,9 +462,26 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
     }
 
-    public sqlCmdModeChanged(fileUri: string, isSqlCmd: boolean = false): void {
+    /**
+     * Gets whether SQLCMD mode is enabled for the editor. Editors start with the
+     * mode from the `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
+     * @param fileUri URI of the editor
+     */
+    public getSqlCmdMode(fileUri: string): boolean {
+        return this.getStatusBar(fileUri).isSqlCmd;
+    }
+
+    /**
+     * Updates the SQLCMD mode status bar item for the editor.
+     * @param fileUri URI of the editor
+     * @param isSqlCmd new SQLCMD mode, or undefined to refresh the item with the current mode
+     */
+    public sqlCmdModeChanged(fileUri: string, isSqlCmd?: boolean): void {
         let bar = this.getStatusBar(fileUri);
-        bar.sqlCmdMode.text = isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off";
+        bar.isSqlCmd = isSqlCmd ?? bar.isSqlCmd;
+        bar.sqlCmdMode.text = bar.isSqlCmd
+            ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+            : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }
