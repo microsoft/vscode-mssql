@@ -19,6 +19,7 @@ import {
     getPlatformSafeFileEntryPath,
     systemDatabaseToString,
 } from "../../../src/databaseProjects/common/utils";
+import * as vscode from "vscode";
 import { Uri, window } from "vscode";
 import {
     IDacpacReferenceSettings,
@@ -1944,6 +1945,89 @@ suite("Project: properties", function (): void {
             project.projectGuid,
             "projectGuid should remain unchanged when user rejects the prompt",
         ).to.equal(constants.nullProjectGuid);
+    });
+
+    function stubGuidPromptSetting(enabled: boolean): sinon.SinonStub {
+        const update = sandbox.stub().resolves();
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: (key: string, defaultValue?: unknown) =>
+                key === constants.promptForMissingProjectGuidSetting ? enabled : defaultValue,
+            update,
+        } as unknown as vscode.WorkspaceConfiguration);
+        return update;
+    }
+
+    test("Should not prompt for a missing ProjectGuid when the setting is off", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
+        stubGuidPromptSetting(false);
+        const ensureGuid = sandbox.stub(project, "ensureValidProjectGuid").resolves();
+        const showInfoStub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
+
+        await Project.checkPromptProjectGuidStatus([project]);
+
+        expect(showInfoStub.called, "the prompt should not be shown").to.be.false;
+        expect(ensureGuid.called, "the project should not be changed").to.be.false;
+    });
+
+    test("Should turn off the missing ProjectGuid prompt when user picks Don't Ask Again", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
+        const update = stubGuidPromptSetting(true);
+        const ensureGuid = sandbox.stub(project, "ensureValidProjectGuid").resolves();
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            SqlProjects.DoNotAskAgain,
+        );
+
+        await Project.checkPromptProjectGuidStatus([project]);
+
+        expect(
+            update.calledWith(
+                constants.promptForMissingProjectGuidSetting,
+                false,
+                vscode.ConfigurationTarget.Global,
+            ),
+            "the setting should be turned off globally",
+        ).to.be.true;
+        expect(ensureGuid.called, "the project should not be changed").to.be.false;
+    });
+
+    test("Should treat the null GUID without braces as missing", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: "00000000-0000-0000-0000-000000000000" });
+
+        type ServiceHost = { sqlProjService: Record<string, unknown> };
+        const svc = (project as unknown as ServiceHost).sqlProjService;
+        svc["setProjectProperties"] = async () => ({ success: true });
+        const setProjectPropertiesStub = sandbox
+            .stub(svc, "setProjectProperties")
+            .resolves({ success: true });
+
+        await project.ensureValidProjectGuid();
+
+        expect(setProjectPropertiesStub.calledOnce, "a new GUID should be saved").to.be.true;
+        expect(project.projectGuid).to.match(
+            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
+        );
+    });
+
+    test("Should keep a valid ProjectGuid without braces", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        const existingGuid = "BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575";
+        Object.assign(project, { _projectGuid: existingGuid });
+
+        type ServiceHost = { sqlProjService: Record<string, unknown> };
+        const svc = (project as unknown as ServiceHost).sqlProjService;
+        svc["setProjectProperties"] = async () => ({ success: true });
+        const setProjectPropertiesStub = sandbox
+            .stub(svc, "setProjectProperties")
+            .resolves({ success: true });
+
+        await project.ensureValidProjectGuid();
+
+        expect(setProjectPropertiesStub.called, "the existing GUID should not be replaced").to.be
+            .false;
+        expect(project.projectGuid).to.equal(existingGuid);
     });
 });
 
