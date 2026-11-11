@@ -22,9 +22,12 @@ import {
     OpenPromptInChatRequest,
     OverviewLinkRequest,
     OverviewOpenSource,
+    OverviewActionId,
+    RunOverviewActionRequest,
     PrerequisiteStatus,
     AGENT_SKILL_PLUGINS,
 } from "../../src/sharedInterfaces/overview";
+import { DeploymentType } from "../../src/sharedInterfaces/deployment";
 import * as constants from "../../src/constants/constants";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import {
@@ -1146,6 +1149,30 @@ suite("Overview Webview Controller", () => {
         expect(copyError).to.be.instanceOf(Error);
         expect(await fs.promises.readFile(destination, "utf8")).to.equal("user tasks");
     });
+
+    for (const [action, deploymentType] of [
+        [OverviewActionId.NewAzureSqlContainer, DeploymentType.AzureSqlContainer],
+        [OverviewActionId.DeployLocalDatabase, DeploymentType.LocalToCloud],
+    ] as const) {
+        test(`opens the requested deployment flow for ${action}`, async () => {
+            const requestHandlers = new Map<string, (params: unknown) => Promise<unknown>>();
+            sandbox
+                .stub(OverviewWebviewController.prototype, "onRequest")
+                .callsFake((type, handler) => {
+                    requestHandlers.set(type.method, (params) =>
+                        Promise.resolve(handler(params as never, undefined as never)),
+                    );
+                });
+            controller = createController();
+
+            await requestHandlers.get(RunOverviewActionRequest.type.method)!(action);
+
+            expect(vscode.commands.executeCommand).to.have.been.calledWith(
+                constants.cmdDeployNewDatabase,
+                { deploymentType },
+            );
+        });
+    }
 
     test("opens a prompt in chat without sending it", async () => {
         const requestHandlers = new Map<string, (params: unknown) => Promise<unknown>>();

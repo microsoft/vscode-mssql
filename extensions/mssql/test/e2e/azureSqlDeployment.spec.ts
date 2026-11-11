@@ -126,5 +126,65 @@ test.describe("Azure SQL deployment options", () => {
         ).toBeVisible();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await expect(azureContainer).toBeVisible();
+        await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
+    });
+
+    test("opens each Create option from Getting Started in the requested order", async () => {
+        const { page } = getContext();
+        const options = [
+            {
+                name: "Local Azure SQL Database container (Preview)",
+                title: "Azure SQL Database developer container",
+            },
+            {
+                name: "Local SQL Server container",
+                title: "Create a Local Docker SQL Server",
+            },
+            { name: /Azure SQL Database\s*Free$/, title: "Create an Azure SQL Database" },
+            { name: "SQL database in Fabric", title: "Create a SQL database in Fabric" },
+            {
+                name: /Deploy local database to Azure SQL \(Preview\)$/,
+                title: "Deploy a database to Azure SQL (Preview)",
+            },
+        ];
+
+        for (const option of options) {
+            await runCommandFromPalette(
+                page,
+                "MS SQL: Open Getting Started",
+                "MS SQL: Open Getting Started",
+            );
+            const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+            await overview
+                .getByRole("button", { name: "More create options", exact: true })
+                .click();
+            await expect(overview.getByRole("menuitem")).toHaveText(
+                options.map(({ name }) => name),
+            );
+            await overview.getByRole("menuitem", { name: option.name, exact: true }).click();
+
+            const deployment = await getWebviewByTitle(page, "New Deployment");
+            await expect(deployment.getByText(option.title, { exact: true })).toBeVisible({
+                timeout: 30_000,
+            });
+            await deployment.getByRole("button", { name: "Previous", exact: true }).click();
+            await expect(
+                deployment.getByRole("heading", { name: "Run locally", level: 2 }),
+            ).toBeVisible();
+            await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
+        }
+
+        await runCommandFromPalette(
+            page,
+            "MS SQL: Open Getting Started",
+            "MS SQL: Open Getting Started",
+        );
+        const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+        await overview.getByRole("button", { name: "Create", exact: true }).click();
+        const deployment = await getWebviewByTitle(page, "New Deployment");
+        await expect(
+            deployment.getByRole("heading", { name: "Run locally", level: 2 }),
+        ).toBeVisible({ timeout: 30_000 });
+        await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
     });
 });

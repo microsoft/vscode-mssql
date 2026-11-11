@@ -10,6 +10,7 @@ import { locConstants } from "../../common/locConstants";
 import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
 import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
+import { AzureSqlDatabaseUploadIcon } from "../../common/icons/azureSqlDatabaseUpload";
 import { KeyCode } from "../../common/keys";
 import azureSqlContainerIcon from "../../media/azureSqlContainer.svg";
 
@@ -306,7 +307,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                         tabIndex={0}
                         role="button">
                         <div className={classes.iconBadge}>
-                            <AzureSqlDatabaseIcon
+                            <AzureSqlDatabaseUploadIcon
                                 className={classes.azureSqlIcon}
                                 role="img"
                                 aria-label={locConstants.azureSqlDatabase.deployLocalDatabase}
