@@ -258,6 +258,14 @@ export class Project implements ISqlProject {
             return;
         }
 
+        if (
+            !vscode.workspace
+                .getConfiguration()
+                .get<boolean>(constants.promptForMissingProjectGuidSetting, true)
+        ) {
+            return;
+        }
+
         const projectNames = uniqueProjects.map((p) => p.projectFileName);
         const message = SqlProjects.missingProjectGuids(uniqueProjects.length, projectNames);
 
@@ -265,9 +273,18 @@ export class Project implements ISqlProject {
             message,
             SqlProjects.addProjectGuidLabel,
             SqlProjects.noString,
+            SqlProjects.DoNotAskAgain,
         );
 
-        if (result === SqlProjects.addProjectGuidLabel) {
+        if (result === SqlProjects.DoNotAskAgain) {
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    constants.promptForMissingProjectGuidSetting,
+                    false,
+                    vscode.ConfigurationTarget.Global,
+                );
+        } else if (result === SqlProjects.addProjectGuidLabel) {
             for (const project of uniqueProjects) {
                 // Re-check at fix time: a project may have received a valid GUID between
                 // when the prompt was queued and when the user accepted (e.g. a reload
@@ -625,9 +642,11 @@ export class Project implements ISqlProject {
      * Returns true when the project is missing a valid GUID —
      * either because <ProjectGuid> was absent from the file (DacFx returns all-zeros)
      * or because it was explicitly set to the null GUID.
+     * DacFx returns the null GUID with braces in newer versions and without them in older ones.
      */
     private isMissingProjectGuid(): boolean {
-        return !this._projectGuid || this._projectGuid === constants.nullProjectGuid;
+        const guid = this._projectGuid?.trim().replace(/^\{(.*)\}$/, "$1");
+        return !guid || `{${guid}}` === constants.nullProjectGuid;
     }
 
     /**
