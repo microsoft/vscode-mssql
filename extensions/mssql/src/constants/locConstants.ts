@@ -4533,6 +4533,16 @@ export class Changelog {
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 
     // Event banner
+    public static sqlconSecondaryTitle = l10n.t({
+        message: "Microsoft SQL\nCOMMUNITY CONFERENCE",
+        comment: [
+            "Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name",
+        ],
+    });
+    public static sqlconLocation = l10n.t({
+        message: "ATLANTA",
+        comment: ["City where the SQLCON conference takes place, shown in capital letters"],
+    });
     public static sqlconDescription1 = l10n.t(
         "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
     );

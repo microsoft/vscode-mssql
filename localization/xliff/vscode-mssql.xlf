@@ -371,6 +371,10 @@
     <trans-unit id="++CODE++810a308ea3cf5aa3f49ed6152899a6baa212e12f047653d5523bf0190a1ade5f">
       <source xml:lang="en">ARM template</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0c25586444158c2cb90273ba82e525d66b2c3e57c4fa4717c0a9063919c556f">
+      <source xml:lang="en">ATLANTA</source>
+      <note>City where the SQLCON conference takes place, shown in capital letters</note>
+    </trans-unit>
     <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
       <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
@@ -7768,6 +7772,10 @@
     </trans-unit>
     <trans-unit id="++CODE++6f67c6b7d976471e27e4a2b1e9094af6edcf507ddaf858d7dffd4ad4c1a78ed9">
       <source xml:lang="en">Microsoft SQL migration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53a8c3571db8f710e8be4b6927008d07c6c1d1cc272efab045fd53c05d85ea9d">
+      <source xml:lang="en">Microsoft SQL&#10;COMMUNITY CONFERENCE</source>
+      <note>Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name</note>
     </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>

@@ -254,8 +254,8 @@ export const changelogConfig: ChangelogWebviewState = {
     event: {
         id: "sqlcon-atl-2027",
         mainTitle: "SQLCON",
-        secondaryTitle: "Microsoft SQL\nCOMMUNITY CONFERENCE",
-        location: { name: "ATLANTA", timezone: "-05:00" }, // keep timezone in UTC offset format "+HH:MM"
+        secondaryTitle: locConstants.Changelog.sqlconSecondaryTitle,
+        location: { name: locConstants.Changelog.sqlconLocation, timezone: "-05:00" }, // keep timezone in UTC offset format "+HH:MM"
         date: "2027-03-08", // keep YYYY-MM-DD format; front-end will "prettify" it
         endDate: "2027-03-12",
         actionButton: {
