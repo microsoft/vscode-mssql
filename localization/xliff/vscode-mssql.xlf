@@ -371,6 +371,10 @@
     <trans-unit id="++CODE++810a308ea3cf5aa3f49ed6152899a6baa212e12f047653d5523bf0190a1ade5f">
       <source xml:lang="en">ARM template</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0c25586444158c2cb90273ba82e525d66b2c3e57c4fa4717c0a9063919c556f">
+      <source xml:lang="en">ATLANTA</source>
+      <note>City where the SQLCON conference takes place, shown in capital letters</note>
+    </trans-unit>
     <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
       <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
@@ -3017,6 +3021,10 @@
     <trans-unit id="++CODE++b5b443f33da497ccf2678851978831b0e00e274513ff16f44c570776cb6cc34c">
       <source xml:lang="en">Copy data and save results to files</source>
     </trans-unit>
+    <trans-unit id="++CODE++67362d227418f63c09fd43b59de921a74bd827aece5e2aaceb9f0b2e218acae0">
+      <source xml:lang="en">Copy discount code {0}</source>
+      <note>{0} is a registration discount code, e.g. VSCODE200</note>
+    </trans-unit>
     <trans-unit id="++CODE++3445c4802a96131120ac2a8e228d505e08afc53b917172374c3810badc0407c7">
       <source xml:lang="en">Copy error details</source>
     </trans-unit>
@@ -4090,6 +4098,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++9c316baf4bc0cd767505d4289393c2b6c13a6afd7e9dcd0749abe356239a6ea0">
+      <source xml:lang="en">Discount code copied</source>
+    </trans-unit>
     <trans-unit id="++CODE++d4a33d5b78bccebe3f16843dc30e6c0f73b4eb6efb4e7114ddfebde7fa2c9954">
       <source xml:lang="en">Discover</source>
     </trans-unit>
@@ -4881,12 +4892,18 @@
     <trans-unit id="++CODE++4e1f49a9c8ae8a158434e647c0c410352d718984a4fcd144d26cca3c394caa02">
       <source xml:lang="en">Event</source>
     </trans-unit>
+    <trans-unit id="++CODE++9acef6c1ead712dbf4b0116230de8280ff327cdca2b431730a569bf86fd02aad">
+      <source xml:lang="en">Event dates</source>
+    </trans-unit>
     <trans-unit id="++CODE++ecc28160d0ef24af48ae00880dec04aaa156149bce2054ecd8f9fdf76842cf66">
       <source xml:lang="en">Event detail is no longer available (dropped from the live ring).</source>
     </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
       <note>{0} is the name of the profiler event</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2f46ea41687c41dc537bbc54b6ab94bf7a82ad66b07eb2b18b474875eb868a0d">
+      <source xml:lang="en">Event location</source>
     </trans-unit>
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>
@@ -7755,6 +7772,10 @@
     </trans-unit>
     <trans-unit id="++CODE++6f67c6b7d976471e27e4a2b1e9094af6edcf507ddaf858d7dffd4ad4c1a78ed9">
       <source xml:lang="en">Microsoft SQL migration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53a8c3571db8f710e8be4b6927008d07c6c1d1cc272efab045fd53c05d85ea9d">
+      <source xml:lang="en">Microsoft SQL&#10;COMMUNITY CONFERENCE</source>
+      <note>Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name</note>
     </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>
@@ -13882,8 +13903,8 @@
     <trans-unit id="++CODE++72f88b3f19d98ff8757d99f53ebc655f62758dbe6d5db7af04fc28c6d86eeb5f">
       <source xml:lang="en">Use default model</source>
     </trans-unit>
-    <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
-      <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
+    <trans-unit id="++CODE++792977506c2251d90b8f2d2e2131acca010a10913a4c12f5e5aece81f1bb5500">
+      <source xml:lang="en">Use discount code {0} to save $200 on registration.</source>
     </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
