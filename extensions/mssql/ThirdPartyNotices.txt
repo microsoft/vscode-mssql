@@ -15,7 +15,7 @@ otherwise.
 6.  Microsoft SQL Server 2016 Transact-SQL Language Service
 7.  dockerode (https://github.com/apocas/dockerode)
 8.  Notifications (https://github.com/akx/Notifications)
-9.  Error_01.wav (https://freesound.org/s/327738/)
+9.  Digital Error Pop (https://budgetpixel.com/sfx/digital-error-pop-8c30d19a)
 
 %% Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
@@ -887,13 +887,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 =========================================
 END OF iconv-lite@0.7.3 NOTICES, INFORMATION, AND LICENSE
 
-%% Error_01.wav NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+%% Digital Error Pop NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
-The query error sound is converted from:
-Error_01.wav by distillerystudio -- https://freesound.org/s/327738/ -- License: Attribution 3.0
+The query error sound is:
+“Digital Error Pop” by BudgetPixel AI (https://budgetpixel.com/sfx/digital-error-pop-8c30d19a) — CC BY 4.0
 
-The original sound is licensed under the Creative Commons Attribution 3.0 license:
-https://creativecommons.org/licenses/by/3.0/
+The original sound is licensed under the Creative Commons Attribution 4.0 license:
+https://creativecommons.org/licenses/by/4.0/
 
 =========================================
-END OF Error_01.wav NOTICES, INFORMATION, AND LICENSE
+END OF Digital Error Pop NOTICES, INFORMATION, AND LICENSE
