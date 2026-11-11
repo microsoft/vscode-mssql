@@ -104,6 +104,11 @@ const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, Telemetry
     [OverviewTelemetryEvent.WalkthroughOpened]: TelemetryActions.WalkthroughOpened,
     [OverviewTelemetryEvent.DiscoverCardOpened]: TelemetryActions.DiscoverCardOpened,
     [OverviewTelemetryEvent.PrerequisitesRechecked]: TelemetryActions.RecheckPrerequisites,
+    [OverviewTelemetryEvent.EventBannerShown]: TelemetryActions.EventBannerShown,
+    [OverviewTelemetryEvent.EventBannerRegisterClicked]:
+        TelemetryActions.EventBannerRegisterClicked,
+    [OverviewTelemetryEvent.EventBannerCodeCopied]: TelemetryActions.EventBannerCodeCopied,
+    [OverviewTelemetryEvent.EventBannerDismissed]: TelemetryActions.EventBannerDismissed,
 };
 
 /**

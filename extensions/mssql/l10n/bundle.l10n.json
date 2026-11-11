@@ -2441,8 +2441,18 @@
     "New to the MSSQL extension? Check out our quick-start guide.": "New to the MSSQL extension? Check out our quick-start guide.",
     "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
     "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
+    "Microsoft SQL\nCOMMUNITY CONFERENCE/Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name": {
+        "message": "Microsoft SQL\nCOMMUNITY CONFERENCE",
+        "comment": [
+            "Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name"
+        ]
+    },
+    "ATLANTA/City where the SQLCON conference takes place, shown in capital letters": {
+        "message": "ATLANTA",
+        "comment": ["City where the SQLCON conference takes place, shown in capital letters"]
+    },
     "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.": "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
-    "Use discount code {0} to save €200 on registration.": "Use discount code {0} to save €200 on registration.",
+    "Use discount code {0} to save $200 on registration.": "Use discount code {0} to save $200 on registration.",
     "Register": "Register",
     "MSSQL Getting Started Page": "MSSQL Getting Started Page",
     "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.": "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
@@ -7224,5 +7234,12 @@
     "Read the docs on Microsoft Learn": "Read the docs on Microsoft Learn",
     "Join a free SQL + AI workshop": "Join a free SQL + AI workshop",
     "Report a bug": "Report a bug",
-    "Request a feature": "Request a feature"
+    "Request a feature": "Request a feature",
+    "Event dates": "Event dates",
+    "Event location": "Event location",
+    "Copy discount code {0}/{0} is a registration discount code, e.g. VSCODE200": {
+        "message": "Copy discount code {0}",
+        "comment": ["{0} is a registration discount code, e.g. VSCODE200"]
+    },
+    "Discount code copied": "Discount code copied"
 }
