@@ -34,19 +34,10 @@ const useStyles = makeStyles({
         alignItems: "center",
         columnGap: "32px",
         rowGap: "16px",
-        padding: "20px 48px 20px 28px",
-        borderRadius: "8px",
+        padding: "20px 48px 20px 24px",
+        borderRadius: "4px",
         border: "1px solid var(--vscode-contrastBorder, transparent)",
         backgroundColor: `color-mix(in srgb, ${ACCENT} 10%, transparent)`,
-        "::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: 0,
-            width: "4px",
-            backgroundColor: ACCENT,
-        },
         "@media (max-width: 900px)": {
             gridTemplateColumns: "minmax(0, 1fr)",
             alignItems: "start",
@@ -55,24 +46,15 @@ const useStyles = makeStyles({
     identity: {
         display: "flex",
         flexDirection: "column",
-        gap: "6px",
-        paddingRight: "32px",
-        borderRight: "1px solid var(--vscode-widget-border, var(--vscode-panel-border))",
-        "@media (max-width: 900px)": {
-            paddingRight: 0,
-            borderRight: "none",
-        },
+        gap: "4px",
     },
     title: {
         fontSize: "30px",
         lineHeight: "32px",
-        fontWeight: 800,
-        letterSpacing: "0.02em",
-        backgroundImage:
-            "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
-        backgroundClip: "text",
-        WebkitBackgroundClip: "text",
-        color: "transparent",
+        fontWeight: 700,
+        // The button color is tuned as a fill behind text, so it is too dark as text on dark
+        // themes. Link color is tuned by each theme to read on the editor background.
+        color: "var(--vscode-textLink-foreground)",
     },
     subtitle: {
         fontSize: "14px",
@@ -84,20 +66,16 @@ const useStyles = makeStyles({
     meta: {
         display: "flex",
         flexWrap: "wrap",
-        gap: "6px",
-        marginTop: "6px",
+        columnGap: "16px",
+        rowGap: "4px",
+        marginTop: "4px",
     },
-    metaChip: {
+    metaItem: {
         display: "inline-flex",
         alignItems: "center",
         gap: "4px",
-        padding: "2px 8px",
-        borderRadius: "999px",
         fontSize: "13px",
-        fontWeight: 600,
         color: "var(--vscode-foreground)",
-        backgroundColor: `color-mix(in srgb, ${ACCENT} 14%, transparent)`,
-        border: "1px solid var(--vscode-contrastBorder, transparent)",
     },
     description: {
         display: "flex",
@@ -114,8 +92,8 @@ const useStyles = makeStyles({
         padding: "0 6px",
         minHeight: "20px",
         verticalAlign: "baseline",
-        borderRadius: "4px",
-        border: "1px solid transparent",
+        borderRadius: "2px",
+        border: "none",
         backgroundColor: "var(--vscode-textCodeBlock-background)",
         fontFamily: "var(--vscode-editor-font-family)",
         fontSize: "var(--vscode-editor-font-size)",
@@ -123,7 +101,7 @@ const useStyles = makeStyles({
         color: "var(--vscode-symbolIcon-classForeground)",
         cursor: "pointer",
         ":hover": {
-            border: "1px solid var(--vscode-symbolIcon-classForeground)",
+            textDecoration: "underline",
         },
         ":focus-visible": {
             outline: "1px solid var(--vscode-focusBorder)",
@@ -293,11 +271,11 @@ export const EventBanner = () => {
                 <Text className={classes.title}>{event.mainTitle}</Text>
                 <Text className={classes.subtitle}>{event.secondaryTitle}</Text>
                 <div className={classes.meta}>
-                    <span className={classes.metaChip} title={locConstants.overview.eventDates}>
+                    <span className={classes.metaItem} title={locConstants.overview.eventDates}>
                         <CalendarLtr16Regular aria-hidden />
                         {formatEventDateRange(event)}
                     </span>
-                    <span className={classes.metaChip} title={locConstants.overview.eventLocation}>
+                    <span className={classes.metaItem} title={locConstants.overview.eventLocation}>
                         <Location16Regular aria-hidden />
                         {event.location.name}
                     </span>
@@ -313,7 +291,6 @@ export const EventBanner = () => {
             <Button
                 className={classes.cta}
                 appearance="primary"
-                size="large"
                 icon={<ArrowRight16Regular />}
                 iconPosition="after"
                 onClick={register}>
