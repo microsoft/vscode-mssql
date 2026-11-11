@@ -17449,6 +17449,9 @@
     <trans-unit id="sqlDatabaseProjects.netCoreDoNotAsk">
       <source xml:lang="en">Whether to prompt the user to install .NET SDK when not detected.</source>
     </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.promptForMissingProjectGuid">
+      <source xml:lang="en">Whether to prompt to add a ProjectGuid to projects that don&apos;t have one. Turn this off for projects whose ProjectGuid is removed by another tool, such as Fabric Git integration.</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.microsoftBuildSqlVersion">
       <source xml:lang="en">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</source>
     </trans-unit>

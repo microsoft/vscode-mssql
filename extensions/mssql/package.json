@@ -5834,6 +5834,11 @@
                         "default": true,
                         "description": "%sqlDatabaseProjects.autoCreateFolders%"
                     },
+                    "sqlDatabaseProjects.promptForMissingProjectGuid": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%sqlDatabaseProjects.promptForMissingProjectGuid%"
+                    },
                     "sqlDatabaseProjects.findFileBehavior": {
                         "type": "string",
                         "enum": [
