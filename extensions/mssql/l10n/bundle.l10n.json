@@ -1662,6 +1662,8 @@
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
     "Connection error": "Connection error",
+    "SQLCMD: On": "SQLCMD: On",
+    "SQLCMD: Off": "SQLCMD: Off",
     "SPID: {0}/{0} is the server process ID (SPID) of the connection": {
         "message": "SPID: {0}",
         "comment": ["{0} is the server process ID (SPID) of the connection"]
@@ -4539,6 +4541,18 @@
         "message": "Collapse {0}",
         "comment": ["{0} is the name of an execution plan operation"]
     },
+    "Which of the following best describes your primary job role?": "Which of the following best describes your primary job role?",
+    "Select a role (optional)": "Select a role (optional)",
+    "Application Developer": "Application Developer",
+    "Database Developer": "Database Developer",
+    "Database Administrator": "Database Administrator",
+    "Data Engineer": "Data Engineer",
+    "Data Analyst / BI Professional": "Data Analyst / BI Professional",
+    "Data Scientist": "Data Scientist",
+    "Data Architect": "Data Architect",
+    "IT / DevOps Professional": "IT / DevOps Professional",
+    "Other (Please specify)": "Other (Please specify)",
+    "Please specify your job role (optional)": "Please specify your job role (optional)",
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Very Satisfied": "Very Satisfied",
     "Satisfied": "Satisfied",

@@ -756,6 +756,7 @@ export class SqlOutputContentProvider {
                 undefined,
                 this._getConnectionTelemetryInfo,
             );
+            queryRunner.isSqlCmd = statusView.getSqlCmdMode(uri);
             let isLiveRun = false;
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
@@ -1641,17 +1642,16 @@ export class SqlOutputContentProvider {
     }
 
     /**
-     * Switches SQLCMD Mode to on/off
-     * @param queryUri Uri of the query
+     * Sets SQLCMD mode on the editor's query runner, if one exists. Editors without a query runner
+     * pick up their SQLCMD mode from the status view when their runner is created.
+     * @param uri URI of the editor
+     * @param isSqlCmd whether SQLCMD mode should be enabled
      */
-    public toggleSqlCmd(uri: string): Thenable<boolean> {
+    public setSqlCmdMode(uri: string, isSqlCmd: boolean): void {
         const queryRunner = this.getQueryRunner(uri);
         if (queryRunner) {
-            return queryRunner.toggleSqlCmd().then((result) => {
-                return result;
-            });
+            queryRunner.isSqlCmd = isSqlCmd;
         }
-        return Promise.resolve(false);
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
