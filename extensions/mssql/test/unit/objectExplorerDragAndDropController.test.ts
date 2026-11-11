@@ -217,7 +217,9 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             (mockConnectionStore.connectionConfig.getConnectionById as sinon.SinonStub).resolves(
                 mockProfile,
             );
-            (mockConnectionStore.connectionConfig.updateConnection as sinon.SinonStub).resolves();
+            (mockConnectionStore.connectionConfig.updateConnection as sinon.SinonStub).resolves(
+                true,
+            );
 
             // Call handleDrop
             await controller.handleDrop(
@@ -236,6 +238,10 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                     .args[0][0].groupId,
                 "Updated connection groupId should match target group id",
             ).to.equal(mockGroup.id);
+            expect(mockProfile.groupId).to.equal(
+                "old-group-id",
+                "The source profile should not be mutated before the update succeeds",
+            );
         });
 
         test("should handle drop of connection group onto another connection group successfully", async () => {
@@ -277,7 +283,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             (mockConnectionStore.connectionConfig.getGroupById as sinon.SinonStub).returns(
                 mockSourceGroup,
             );
-            (mockConnectionStore.connectionConfig.updateGroup as sinon.SinonStub).resolves();
+            (mockConnectionStore.connectionConfig.updateGroup as sinon.SinonStub).resolves(true);
 
             // Call handleDrop
             await controller.handleDrop(
@@ -296,6 +302,10 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                     .parentId,
                 "Updated group parentId should match target group id",
             ).to.equal(mockTargetGroup.id);
+            expect(mockSourceGroup.parentId).to.equal(
+                "old-parent-id",
+                "The source group should not be mutated before the update succeeds",
+            );
         });
 
         test("should handle drop onto root (undefined target) successfully", async () => {
@@ -328,7 +338,9 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             (mockConnectionStore.connectionConfig.getConnectionById as sinon.SinonStub).resolves(
                 mockProfile,
             );
-            (mockConnectionStore.connectionConfig.updateConnection as sinon.SinonStub).resolves();
+            (mockConnectionStore.connectionConfig.updateConnection as sinon.SinonStub).resolves(
+                true,
+            );
 
             // Call handleDrop with undefined target (root)
             await controller.handleDrop(

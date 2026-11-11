@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../../utils/telemetryUtils";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
@@ -42,12 +43,18 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
         super();
     }
 
+    protected override getTelemetryContext(input: RunQueryToolParams) {
+        return getConnectionTelemetryInfo(this._connectionManager, input.connectionId);
+    }
+
     private sendQueryTelemetry(
         queryTypes: string[],
         queryIntent: string,
         phase: "prepare" | "execute",
+        connectionId: string,
     ) {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.RunQuery, {
+            ...getConnectionTelemetryInfo(this._connectionManager, connectionId),
             additionalProps: {
                 phase,
                 queryTypes: queryTypes?.join(",") || "unknown",
@@ -63,7 +70,7 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
         const { connectionId, query, queryTypes, queryIntent } = options.input;
 
         // Send query-specific telemetry (tool-level telemetry is handled by ToolBase)
-        this.sendQueryTelemetry(queryTypes, queryIntent, "execute");
+        this.sendQueryTelemetry(queryTypes, queryIntent, "execute", connectionId);
 
         try {
             const connInfo = this._connectionManager.getConnectionInfo(connectionId);
@@ -110,7 +117,7 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
         const { connectionId, query, queryTypes, queryIntent } = options.input;
 
         // Send query-specific telemetry for prepare phase to track what queries are proposed
-        this.sendQueryTelemetry(queryTypes, queryIntent, "prepare");
+        this.sendQueryTelemetry(queryTypes, queryIntent, "prepare", connectionId);
 
         const connInfo = this._connectionManager.getConnectionInfo(connectionId);
         const displayName = getDisplayNameForTool(connInfo);

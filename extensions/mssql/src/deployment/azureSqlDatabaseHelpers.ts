@@ -12,7 +12,14 @@ import {
 } from "@azure/arm-sql";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { AzureSqlDatabase, Common, ConnectionDialog } from "../constants/locConstants";
+import {
+    authTypeAzureActiveDirectory,
+    authTypeSql,
+    AzureSqlContainer,
+    AzureSqlDatabase,
+    Common,
+    ConnectionDialog,
+} from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import {
@@ -30,6 +37,7 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
@@ -153,6 +161,40 @@ function detectAuthType(server: Server): {
     };
 }
 
+function setAuthenticationOptions(state: asd.AzureSqlDatabaseState, authType: string): void {
+    const types =
+        authType === AuthenticationType.AzureMFAAndUser
+            ? [AuthenticationType.SqlLogin, AuthenticationType.AzureMFA]
+            : authType === AuthenticationType.AzureMFA
+              ? [AuthenticationType.AzureMFA]
+              : authType === AuthenticationType.SqlLogin
+                ? [AuthenticationType.SqlLogin]
+                : [];
+    if (!types.length) {
+        throw new Error(AzureSqlDatabase.serverAuthTypeUnknown);
+    }
+    const component = state.formComponents.authenticationType;
+    if (component) {
+        component.options = types.map((value) => ({
+            value,
+            displayName:
+                value === AuthenticationType.SqlLogin ? authTypeSql : authTypeAzureActiveDirectory,
+        }));
+        component.hidden = types.length === 1;
+    }
+    state.formState.authenticationType = types[0];
+}
+
+export function applyAuthenticationSelection(state: asd.AzureSqlDatabaseState): void {
+    state.formState.userName =
+        state.formState.authenticationType === AuthenticationType.SqlLogin
+            ? (getCachedServer(state, state.formState.serverName)?.administratorLogin ?? "")
+            : "";
+    state.formState.password = "";
+    state.formState.savePassword = false;
+    state.serverCreatedWithAuth = false;
+}
+
 /**
  * Applies auth settings to the form state based on the selected server's properties.
  * Clears stale credentials when the server changes.
@@ -168,7 +210,7 @@ export function applyServerAuthSettings(
 
     const server = getCachedServer(azureSqlState, serverName);
     if (!server) {
-        azureSqlState.formState.authenticationType = AuthenticationType.AzureMFA;
+        setAuthenticationOptions(azureSqlState, AuthenticationType.AzureMFA);
         azureSqlState.formState.userName = "";
         azureSqlState.formState.password = "";
         azureSqlState.formState.savePassword = false;
@@ -176,7 +218,7 @@ export function applyServerAuthSettings(
     }
 
     const { authType, adminLogin } = detectAuthType(server);
-    azureSqlState.formState.authenticationType = authType;
+    setAuthenticationOptions(azureSqlState, authType);
     azureSqlState.formState.userName = adminLogin;
     azureSqlState.formState.password = "";
     azureSqlState.formState.savePassword = false;
@@ -740,7 +782,7 @@ export function registerAzureSqlDatabaseReducers(
             azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.NotStarted;
 
             // Apply auth settings from the drawer to the main form
-            azureSqlState.formState.authenticationType = authenticationType as AuthenticationType;
+            setAuthenticationOptions(azureSqlState, authenticationType);
             if (
                 authenticationType === AuthenticationType.SqlLogin ||
                 authenticationType === AuthenticationType.AzureMFAAndUser
@@ -931,6 +973,7 @@ export async function connectToAzureSqlDatabase(
 ): Promise<void> {
     const state = deploymentController.state.deploymentTypeState as asd.AzureSqlDatabaseState;
     const startTime = Date.now();
+    let telemetryConnection: IConnectionDialogProfile | undefined;
     state.connectionLoadState = ApiStatus.Loading;
     state.canAddFirewallRule = false;
     state.firewallErrorMessage = "";
@@ -957,6 +1000,7 @@ export async function connectToAzureSqlDatabase(
                 : AuthenticationType.AzureMFA;
 
         connectionProfile.accountId = state.formState.accountId;
+        telemetryConnection = connectionProfile;
         connectionProfile.tenantId = state.formState.tenantId;
 
         // Acquire an Entra SQL access token so the connection starts with a
@@ -1053,6 +1097,7 @@ export async function connectToAzureSqlDatabase(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
                         {
+                            ...getConnectionTelemetryInfo(connManager, connectionProfile),
                             error: new Error("Failed to detect client IP for firewall rule"),
                             includeErrorMessage: false,
                         },
@@ -1091,6 +1136,7 @@ export async function connectToAzureSqlDatabase(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
                         {
+                            ...getConnectionTelemetryInfo(connManager, connectionProfile),
                             error: new Error(`Firewall rule creation failed: ${errorMsg}`),
                             includeErrorMessage: false,
                         },
@@ -1132,6 +1178,7 @@ export async function connectToAzureSqlDatabase(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
             {
+                ...getConnectionTelemetryInfo(connManager, connectionProfile),
                 additionalProps: {},
                 additionalMeasurements: {
                     connectToDatabaseLoadTimeInMs: Date.now() - startTime,
@@ -1146,7 +1193,14 @@ export async function connectToAzureSqlDatabase(
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            { error: err as Error, includeErrorMessage: false },
+            {
+                ...getConnectionTelemetryInfo(
+                    deploymentController.mainController.connectionManager,
+                    telemetryConnection,
+                ),
+                error: err as Error,
+                includeErrorMessage: false,
+            },
         );
     }
 
@@ -1539,6 +1593,23 @@ function setAzureSqlDatabaseFormComponents(
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.databaseNameIsRequired,
             }),
+        }),
+        authenticationType: createFormItem({
+            propertyName: "authenticationType",
+            type: FormItemType.Dropdown,
+            required: true,
+            label: AzureSqlDatabase.authenticationType,
+            options: [],
+            hidden: true,
+            validate: (state: asd.AzureSqlDatabaseState, value: string) => {
+                const isValid = !!state.formComponents.authenticationType?.options?.some(
+                    (option) => option.value === value,
+                );
+                return {
+                    isValid,
+                    validationMessage: isValid ? "" : AzureSqlContainer.invalidAuthenticationType,
+                };
+            },
         }),
         userName: createFormItem({
             propertyName: "userName",

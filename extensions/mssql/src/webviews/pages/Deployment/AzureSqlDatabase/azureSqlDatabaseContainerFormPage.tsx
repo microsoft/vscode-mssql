@@ -5,18 +5,22 @@
 
 import {
     Checkbox,
+    Dropdown,
     Field,
     InfoLabel,
     Input,
     Link,
     makeStyles,
+    Option,
     tokens,
 } from "@fluentui/react-components";
 import { useContext } from "react";
 import {
     AzureSqlContainerForm,
     AzureSqlContainerFormErrors,
+    isAzureSqlContainerEntraAuthentication,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 import { FormContextProps } from "../../../../sharedInterfaces/form";
 import { FormInput } from "../../../common/forms/form.component";
 import { CollapsibleSection } from "../../../common/collapsibleSection";
@@ -28,6 +32,12 @@ import {
     getSqlPasswordValidationError,
     SqlPasswordValidationError,
 } from "../../../../utils/sqlStringUtils";
+import { AzureSqlContainerEntraForm } from "./azureSqlContainerEntraForm";
+import {
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
+} from "../../../../sharedInterfaces/connectionGroup";
+import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 
 const useStyles = makeStyles({
     form: {
@@ -93,13 +103,20 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
     AzureSqlDatabaseContainerFormPageProps
 > = ({ form, errors, disabled, onChange }) => {
     const classes = useStyles();
+    const authenticationType = form.authenticationType ?? AuthenticationType.SqlLogin;
     const context = useContext(DeploymentContext);
     const groups = useDeploymentSelector((s) => s.connectionGroupOptions);
+    const dialog = useDeploymentSelector((s) => s.dialog);
     const groupOptions = groups.map((group) => ({
         value: group.value,
         text: group.displayName,
     }));
     const loc = locConstants.azureSqlContainer;
+    const isEntraAuthentication = isAzureSqlContainerEntraAuthentication(authenticationType);
+    const authenticationOptions = [
+        { value: AuthenticationType.SqlLogin, label: loc.sqlLogin },
+        { value: AuthenticationType.AzureMFA, label: loc.entraMfa },
+    ];
 
     if (!context) {
         return undefined;
@@ -126,14 +143,113 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
               ? loc.passwordComplexityError
               : undefined);
 
+    const authenticationField = (
+        <Field
+            label={label(
+                locConstants.azureSqlDatabase.authenticationType,
+                loc.authenticationTooltip,
+            )}
+            validationState={errors.authenticationType ? "error" : "none"}
+            validationMessage={errors.authenticationType}>
+            <Dropdown
+                size="small"
+                aria-label={locConstants.azureSqlDatabase.authenticationType}
+                selectedOptions={[authenticationType]}
+                value={
+                    authenticationOptions.find((option) => option.value === authenticationType)
+                        ?.label
+                }
+                disabled={disabled}
+                onOptionSelect={(_, data) => {
+                    if (
+                        data.optionValue === AuthenticationType.SqlLogin ||
+                        data.optionValue === AuthenticationType.AzureMFA
+                    ) {
+                        onChange({
+                            ...form,
+                            authenticationType: data.optionValue,
+                        });
+                    }
+                }}>
+                {authenticationOptions.map((option) => (
+                    <Option key={option.value} value={option.value}>
+                        {option.label}
+                    </Option>
+                ))}
+            </Dropdown>
+        </Field>
+    );
+
     return (
         <div className={classes.form}>
-            {/* SQL Login is the default; Entra authentication options will be added in a follow-up PR. */}
-            <Field label={label(locConstants.azureSqlDatabase.userName, loc.userNameTooltip)}>
+            {dialog?.type === "createConnectionGroup" && (
+                <ConnectionGroupDialog
+                    mode="modal"
+                    state={(dialog as CreateConnectionGroupDialogProps).props}
+                    saveConnectionGroup={context.createConnectionGroup}
+                    closeDialog={() => context.setConnectionGroupDialogState(false)}
+                />
+            )}
+            {isEntraAuthentication ? (
+                <AzureSqlContainerEntraForm
+                    form={form}
+                    errors={errors}
+                    disabled={disabled}
+                    onChange={(changes) => {
+                        const identityChanged =
+                            ("accountId" in changes && changes.accountId !== form.accountId) ||
+                            ("tenantId" in changes && changes.tenantId !== form.tenantId) ||
+                            ("applicationId" in changes &&
+                                changes.applicationId !== form.applicationId);
+                        onChange({
+                            ...form,
+                            ...changes,
+                            ...(identityChanged ? { servicePrincipalClientSecret: undefined } : {}),
+                        });
+                    }}>
+                    {authenticationField}
+                </AzureSqlContainerEntraForm>
+            ) : (
+                authenticationField
+            )}
+            {authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal && (
+                <Field
+                    label={label(
+                        loc.servicePrincipalClientSecret,
+                        loc.servicePrincipalClientSecretTooltip,
+                    )}
+                    required
+                    validationState={errors.servicePrincipalClientSecret ? "error" : "none"}
+                    validationMessage={errors.servicePrincipalClientSecret}>
+                    <Input
+                        size="small"
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder={loc.servicePrincipalClientSecretPlaceholder}
+                        value={form.servicePrincipalClientSecret ?? ""}
+                        disabled={disabled}
+                        onChange={(_, data) =>
+                            onChange({ ...form, servicePrincipalClientSecret: data.value })
+                        }
+                    />
+                </Field>
+            )}
+            <Field
+                label={label(
+                    isEntraAuthentication
+                        ? loc.sqlAdministratorUserName
+                        : locConstants.azureSqlDatabase.userName,
+                    loc.userNameTooltip,
+                )}>
                 <Input size="small" value="sa" readOnly />
             </Field>
             <Field
-                label={label(locConstants.azureSqlDatabase.password, loc.passwordTooltip)}
+                label={label(
+                    isEntraAuthentication
+                        ? loc.sqlAdministratorPassword
+                        : locConstants.azureSqlDatabase.password,
+                    loc.passwordTooltip,
+                )}
                 required
                 validationState={passwordValidationMessage ? "error" : "none"}
                 validationMessage={passwordValidationMessage}>
@@ -147,22 +263,24 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                     props={{ disabled, autoComplete: "new-password" }}
                 />
             </Field>
-            <div className={classes.savePasswordRow}>
-                <span className={classes.savePasswordLabel}>
-                    <InfoLabel info={loc.savePasswordTooltip}>
-                        {locConstants.azureSqlDatabase.savePassword}
-                    </InfoLabel>
-                </span>
-                <Checkbox
-                    size="medium"
-                    aria-label={locConstants.azureSqlDatabase.savePassword}
-                    checked={form.savePassword}
-                    disabled={disabled}
-                    onChange={(_, data) =>
-                        onChange({ ...form, savePassword: data.checked === true })
-                    }
-                />
-            </div>
+            {!isEntraAuthentication && (
+                <div className={classes.savePasswordRow}>
+                    <span className={classes.savePasswordLabel}>
+                        <InfoLabel info={loc.savePasswordTooltip}>
+                            {locConstants.azureSqlDatabase.savePassword}
+                        </InfoLabel>
+                    </span>
+                    <Checkbox
+                        size="medium"
+                        aria-label={locConstants.azureSqlDatabase.savePassword}
+                        checked={form.savePassword}
+                        disabled={disabled}
+                        onChange={(_, data) =>
+                            onChange({ ...form, savePassword: data.checked === true })
+                        }
+                    />
+                </div>
+            )}
             <Field label={label(loc.profileName, loc.profileNameTooltip)}>
                 <Input
                     size="small"
@@ -184,7 +302,13 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                     showPlaceholder={!form.groupId}
                     placeholder={loc.selectConnectionGroup}
                     disabled={disabled}
-                    onSelect={(option) => onChange({ ...form, groupId: option.value })}
+                    onSelect={(option) => {
+                        if (option.value === CREATE_NEW_GROUP_ID) {
+                            context.setConnectionGroupDialogState(true);
+                        } else {
+                            onChange({ ...form, groupId: option.value });
+                        }
+                    }}
                 />
             </Field>
             <CollapsibleSection title={locConstants.connectionDialog.advancedOptions} defaultOpen>

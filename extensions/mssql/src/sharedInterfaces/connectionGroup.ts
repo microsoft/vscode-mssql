@@ -40,7 +40,16 @@ export interface ConnectionGroupState {
     name: string;
     description?: string;
     color?: string;
+    parentId: string;
+    parentGroups: ConnectionGroupParentOption[];
     message?: string;
+}
+
+export interface ConnectionGroupParentOption {
+    id: string;
+    name: string;
+    color?: string;
+    isRoot?: boolean;
 }
 
 /**
@@ -51,6 +60,7 @@ export interface ConnectionGroupReducers {
         name: string;
         description?: string;
         color?: string;
+        parentId: string;
     };
 
     closeDialog: {};
@@ -68,4 +78,5 @@ export interface ConnectionGroupSpec {
     name: string;
     description?: string;
     color?: string;
+    parentId: string;
 }

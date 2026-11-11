@@ -1,0 +1,22 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/** OE v2 settings (oe_view_design §5). Validated readers; never raw-trusted. */
+
+import * as vscode from "vscode";
+
+export interface OeV2Settings {
+    readonly groupBySchema: boolean;
+    readonly showSystemDatabases: boolean;
+}
+
+export function oeV2Settings(): OeV2Settings {
+    const config = vscode.workspace.getConfiguration();
+    return {
+        groupBySchema: config.get<boolean>("mssql.objectExplorer.v2.groupBySchema", false) === true,
+        showSystemDatabases:
+            config.get<boolean>("mssql.objectExplorer.v2.showSystemDatabases", true) === true,
+    };
+}

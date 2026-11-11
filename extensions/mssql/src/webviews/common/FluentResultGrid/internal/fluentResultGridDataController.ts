@@ -19,7 +19,11 @@ import type {
     DbCellValue,
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
-import type { FluentResultGridDataSource } from "../types/fluentResultGridDataSource";
+import type {
+    FluentResultGridColumnWindow,
+    FluentResultGridDataSource,
+    FluentResultGridReadPurpose,
+} from "../types/fluentResultGridDataSource";
 import type { MaybePromise } from "../types/fluentResultGridPrimitives";
 import type { FluentResultGridState } from "../types/fluentResultGridState";
 import { FLUENT_RESULT_GRID_WINDOW_SIZE } from "./fluentResultGridConstants";
@@ -47,7 +51,12 @@ export interface FluentResultGridDataController {
     dataViewRef: MutableRefObject<FluentResultGridDataView<FluentResultGridDataRow> | undefined>;
     displayedRowCount: number;
     ensureAllRowsLoaded: () => Promise<SourceRow[] | undefined>;
-    fetchRowsFromSource: (offset: number, count: number) => Promise<SourceRow[]>;
+    fetchRowsFromSource: (
+        offset: number,
+        count: number,
+        columnWindow?: FluentResultGridColumnWindow,
+        readPurpose?: FluentResultGridReadPurpose,
+    ) => Promise<SourceRow[]>;
     filterStateRef: MutableRefObject<ColumnFilterMap>;
     hasActiveSort: () => boolean;
     hasActiveTransforms: () => boolean;
@@ -65,6 +74,7 @@ export function useFluentResultGridDataController({
     inMemoryDataProcessingThreshold,
     onInMemoryDataProcessingThresholdExceeded,
     restoreHorizontalScrollPosition,
+    windowSize,
 }: {
     dataSource: FluentResultGridDataSource;
     resultSetSummary: ResultSetSummary;
@@ -73,6 +83,8 @@ export function useFluentResultGridDataController({
     inMemoryDataProcessingThreshold: number;
     onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
     restoreHorizontalScrollPosition: (grid: SlickGrid, scrollLeft: number) => void;
+    /** Windowed-source fetch size (QO-7); default FLUENT_RESULT_GRID_WINDOW_SIZE. */
+    windowSize?: number;
 }): FluentResultGridDataController {
     const dataViewRef = useRef<FluentResultGridDataView<FluentResultGridDataRow> | undefined>(
         undefined,
@@ -90,12 +102,17 @@ export function useFluentResultGridDataController({
     const rowsDataSource = dataSource.kind === "rows" ? dataSource : undefined;
 
     const fetchRowsFromSource = useCallback(
-        async (offset: number, count: number): Promise<SourceRow[]> => {
+        async (
+            offset: number,
+            count: number,
+            columnWindow?: FluentResultGridColumnWindow,
+            readPurpose: FluentResultGridReadPurpose = "authoritative",
+        ): Promise<SourceRow[]> => {
             const currentDataSource = dataSourceRef.current;
             const rows =
                 currentDataSource.kind === "rows"
                     ? currentDataSource.rows.slice(offset, offset + count)
-                    : await currentDataSource.getRows(offset, count);
+                    : await currentDataSource.getRows(offset, count, columnWindow, readPurpose);
 
             return rows.map((cells, rowOffset) => ({
                 rowId: offset + rowOffset,
@@ -106,13 +123,20 @@ export function useFluentResultGridDataController({
     );
 
     const fetchRows = useCallback(
-        async (offset: number, count: number): Promise<DbCellValue[][]> => {
+        async (
+            offset: number,
+            count: number,
+            columnWindow?: FluentResultGridColumnWindow,
+            readPurpose?: FluentResultGridReadPurpose,
+        ): Promise<DbCellValue[][]> => {
             const transformedRows = transformedRowsRef.current;
             if (transformedRows) {
                 return transformedRows.slice(offset, offset + count).map((row) => row.cells);
             }
 
-            return (await fetchRowsFromSource(offset, count)).map((row) => row.cells);
+            return (await fetchRowsFromSource(offset, count, columnWindow, readPurpose)).map(
+                (row) => row.cells,
+            );
         },
         [fetchRowsFromSource],
     );
@@ -127,12 +151,16 @@ export function useFluentResultGridDataController({
                         dataSourceRef.current.kind === "windowed"
                             ? dataSourceRef.current.rowCount
                             : 0,
+                    columnWindowing:
+                        dataSourceRef.current.kind === "windowed"
+                            ? dataSourceRef.current.columnWindowing
+                            : undefined,
                     getRows: fetchRows,
                 } as const),
             columnCount: resultSetSummary.columnInfo.length,
-            windowSize: FLUENT_RESULT_GRID_WINDOW_SIZE,
+            windowSize: windowSize ?? FLUENT_RESULT_GRID_WINDOW_SIZE,
         });
-    }, [fetchRows, resultSetSummary.columnInfo.length, rowsDataSource]);
+    }, [fetchRows, resultSetSummary.columnInfo.length, rowsDataSource, windowSize]);
 
     const dataViewKeyRef = useRef(0);
     const previousDataViewRef = useRef(dataView);

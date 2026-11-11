@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import { Perf } from "../../src/perf/perfTelemetry";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import {
@@ -39,7 +40,7 @@ import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import * as Constants from "../../src/constants/constants";
 import { AccountStore } from "../../src/azure/accountStore";
@@ -240,6 +241,7 @@ suite("OE Service Tests", () => {
         });
 
         test("expandNode should handle standard node expansion successfully", async () => {
+            const marker = sandbox.stub(Perf, "marker");
             sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake((_: string) => undefined);
             // Mock node and session ID
             const mockNode = new TreeNodeInfo(
@@ -311,6 +313,10 @@ suite("OE Service Tests", () => {
             // Verify the result
             expect(result, "Expand node should return children").to.be.not.undefined;
             expect(result!.length, "Expand node should return 2 children").to.equal(2);
+            expect(marker).to.have.been.calledWithMatch("mssql.oe.expand.end", "end", {
+                childCount: 2,
+                error: false,
+            });
 
             // Verify telemetry was started correctly; constructor initialization may emit additional telemetry.
             expect(
@@ -458,6 +464,49 @@ suite("OE Service Tests", () => {
                 undefined,
                 undefined,
             );
+
+        for (const database of ["database-b", LocalizedConstants.defaultDatabaseLabel]) {
+            test(`expandNode scopes telemetry to ${database}`, async () => {
+                sandbox.stub(ObjectExplorerUtils, "iconPath").returns(undefined);
+                const node = makeExpandNode();
+                const profile = {
+                    id: "shared-profile",
+                    server: "localhost",
+                    database: "database-a",
+                } as IConnectionProfile;
+                sandbox.stub(node, "connectionProfile").get(() => profile);
+                sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns(database);
+                const targetDatabase =
+                    database === LocalizedConstants.defaultDatabaseLabel ? "" : database;
+                const serverInfo = { engineEditionId: 5 } as IServerInfo;
+                mockConnectionManager.getServerInfo
+                    .withArgs(profile, targetDatabase)
+                    .returns(serverInfo);
+                mockClient.sendRequest
+                    .withArgs(ExpandRequest.type, sinon.match.any)
+                    .callsFake(async () => {
+                        objectExplorerService.handleExpandNodeNotification({
+                            sessionId: "session123",
+                            nodePath: node.nodePath,
+                            nodes: [],
+                            errorMessage: "",
+                        });
+                        return true;
+                    });
+
+                await objectExplorerService.expandNode(node, "session123");
+
+                expect(startActivityStub).to.have.been.calledWithMatch(
+                    TelemetryViews.ObjectExplorer,
+                    TelemetryActions.ExpandNode,
+                    { connectionInfo: profile, serverInfo },
+                );
+                expect(mockConnectionManager.getServerInfo).to.have.been.calledWith(
+                    profile,
+                    targetDatabase,
+                );
+            });
+        }
 
         test("expandNode retries with a refresh and succeeds when a paused serverless database resumes", async () => {
             sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);

@@ -409,12 +409,6 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
-        /**
-         * True when the toolbar offers Deployments in place of Deploy. The
-         * deployments list starts a new deployment itself, so the flow behind
-         * Deploy stays reachable either way.
-         */
-        enableDeploymentsView?: boolean;
         isCopilotChatInstalled?: boolean;
         copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;
@@ -426,6 +420,13 @@ export namespace SchemaDesigner {
          * interfaces import this file, so it cannot import them back.
          */
         dabTargetSupport?: Record<string, DabTargetSupport>;
+        /**
+         * Set when a CLI deployment has to sign in to Microsoft Entra for
+         * itself, with the account the connection uses when it is known.
+         */
+        dabEntraSignIn?: { account?: string };
+        /** Database the designer is connected to, shown in the deployment dialog. */
+        dabDatabaseName?: string;
         initialFilterTables?: string[];
         currentFilteredTables?: string[];
         // When true, the Schema Designer renders as a read-only diagram —

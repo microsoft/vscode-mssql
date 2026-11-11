@@ -22,6 +22,7 @@ import {
 } from "../deploymentScripts";
 import { AddFirewallRuleDialogProps } from "../../../../sharedInterfaces/connectionDialog";
 import { AddFirewallRuleDialog } from "../../AddFirewallRule/addFirewallRule.component";
+import { AzureSqlDatabaseDeploymentComplete } from "./azureSqlDatabaseDeploymentComplete";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -171,6 +172,30 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const hasConnectionError = !!connectionErrorMessage;
 
     const deploymentSucceeded = provisionLoadState === ApiStatus.Loaded;
+    const deploymentComplete =
+        deploymentSucceeded &&
+        connectionLoadState === ApiStatus.Loaded &&
+        !hasConnectionError &&
+        !errorMessage;
+    const postDeploymentContent = (
+        <>
+            {connectionLoadState === ApiStatus.Loaded && connectionString && (
+                <ConnectToDatabaseCard connectionString={connectionString} />
+            )}
+            {deploymentSucceeded && (
+                <DeploymentScriptsCard
+                    scripts={scripts}
+                    onDownload={(content, fileName) =>
+                        context?.downloadDeploymentScript(content, fileName)
+                    }
+                    onAddToWorkspace={(content, fileName) =>
+                        context?.addDeploymentScriptToWorkspace(content, fileName)
+                    }
+                />
+            )}
+            {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
+        </>
+    );
 
     const stepStatus =
         provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
@@ -202,96 +227,116 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                     signIntoAzure={context.signIntoAzureForFirewallRule}
                 />
             )}
-            <div className={classes.innerDiv}>
-                <div className={classes.contentHeader}>
-                    {locConstants.azureSqlDatabase.provisioning} {databaseName}
-                </div>
-                <DeploymentStepCard
-                    status={stepStatus}
-                    title={getHeaderText()}
-                    className={classes.cardDiv}
-                    bodyClassName={classes.cardBody}>
-                    <div className={classes.cardContentDiv}>
-                        {errorMessage || connectionErrorMessage ? (
-                            <div className={classes.cardColumn} style={{ paddingRight: "20px" }}>
-                                <span className={classes.cardItemError}>
-                                    <span className={classes.cardItemLabel}>
-                                        {locConstants.common.error}:
-                                    </span>
-                                    {errorMessage || connectionErrorMessage}
-                                </span>
-                                {canAddFirewallRule && (
-                                    <Button
-                                        appearance="secondary"
-                                        className={classes.addFirewallRuleButton}
-                                        icon={<AddRegular />}
-                                        onClick={() => context?.openFirewallRuleDialog()}>
-                                        {locConstants.firewallRules.addFirewallRule}
-                                    </Button>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <div className={classes.cardColumn}>
-                                    <span className={classes.cardItem}>
-                                        <span className={classes.cardItemLabel}>
-                                            {locConstants.azureSqlDatabase.deploymentName}:
-                                        </span>
-                                        {databaseName}
-                                    </span>
-                                    <span className={classes.cardItem}>
-                                        <span className={classes.cardItemLabel}>
-                                            {locConstants.azureSqlDatabase.startTime}:
-                                        </span>
-                                        {deploymentStartTime}
-                                    </span>
-                                    <span className={classes.cardItem}>
-                                        <span className={classes.cardItemLabel}>
-                                            {locConstants.azureSqlDatabase.server}:
-                                        </span>
-                                        {serverName}
-                                    </span>
-                                </div>
-                                <div className={classes.cardColumn}>
-                                    <span className={classes.cardItem}>
-                                        <span className={classes.cardItemLabel}>
-                                            {locConstants.azureSqlDatabase.subscription}:
-                                        </span>
-                                        {subscriptionName}
-                                    </span>
-                                    <span className={classes.cardItem}>
-                                        <span className={classes.cardItemLabel}>
-                                            {locConstants.azureSqlDatabase.resourceGroup}:
-                                        </span>
-                                        {resourceGroup}
-                                    </span>
-                                    <span className={classes.cardItem}>
-                                        <span className={classes.cardItemLabel}>
-                                            {locConstants.azureSqlDatabase.region}:
-                                        </span>
-                                        {serverRegion}
-                                    </span>
-                                </div>
-                            </>
-                        )}
+            {deploymentComplete ? (
+                <AzureSqlDatabaseDeploymentComplete
+                    databaseName={databaseName ?? ""}
+                    metadata={[
+                        {
+                            label: locConstants.azureSqlDatabase.deploymentName,
+                            value: databaseName,
+                            sql: true,
+                        },
+                        {
+                            label: locConstants.azureSqlDatabase.startTime,
+                            value: deploymentStartTime,
+                        },
+                        {
+                            label: locConstants.azureSqlDatabase.server,
+                            value: serverName,
+                            sql: true,
+                        },
+                        {
+                            label: locConstants.azureSqlDatabase.subscription,
+                            value: subscriptionName,
+                        },
+                        {
+                            label: locConstants.azureSqlDatabase.resourceGroup,
+                            value: resourceGroup,
+                        },
+                        { label: locConstants.azureSqlDatabase.region, value: serverRegion },
+                    ]}>
+                    {postDeploymentContent}
+                </AzureSqlDatabaseDeploymentComplete>
+            ) : (
+                <div className={classes.innerDiv}>
+                    <div className={classes.contentHeader}>
+                        {locConstants.azureSqlDatabase.provisioning} {databaseName}
                     </div>
-                </DeploymentStepCard>
-                {connectionLoadState === ApiStatus.Loaded && connectionString && (
-                    <ConnectToDatabaseCard connectionString={connectionString} />
-                )}
-                {deploymentSucceeded && (
-                    <DeploymentScriptsCard
-                        scripts={scripts}
-                        onDownload={(content, fileName) =>
-                            context?.downloadDeploymentScript(content, fileName)
-                        }
-                        onAddToWorkspace={(content, fileName) =>
-                            context?.addDeploymentScriptToWorkspace(content, fileName)
-                        }
-                    />
-                )}
-                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
-            </div>
+                    <DeploymentStepCard
+                        status={stepStatus}
+                        title={getHeaderText()}
+                        className={classes.cardDiv}
+                        bodyClassName={classes.cardBody}>
+                        <div className={classes.cardContentDiv}>
+                            {errorMessage || connectionErrorMessage ? (
+                                <div
+                                    className={classes.cardColumn}
+                                    style={{ paddingRight: "20px" }}>
+                                    <span className={classes.cardItemError}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.common.error}:
+                                        </span>
+                                        {errorMessage || connectionErrorMessage}
+                                    </span>
+                                    {canAddFirewallRule && (
+                                        <Button
+                                            appearance="secondary"
+                                            className={classes.addFirewallRuleButton}
+                                            icon={<AddRegular />}
+                                            onClick={() => context?.openFirewallRuleDialog()}>
+                                            {locConstants.firewallRules.addFirewallRule}
+                                        </Button>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    <div className={classes.cardColumn}>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.azureSqlDatabase.deploymentName}:
+                                            </span>
+                                            {databaseName}
+                                        </span>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.azureSqlDatabase.startTime}:
+                                            </span>
+                                            {deploymentStartTime}
+                                        </span>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.azureSqlDatabase.server}:
+                                            </span>
+                                            {serverName}
+                                        </span>
+                                    </div>
+                                    <div className={classes.cardColumn}>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.azureSqlDatabase.subscription}:
+                                            </span>
+                                            {subscriptionName}
+                                        </span>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.azureSqlDatabase.resourceGroup}:
+                                            </span>
+                                            {resourceGroup}
+                                        </span>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.azureSqlDatabase.region}:
+                                            </span>
+                                            {serverRegion}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </DeploymentStepCard>
+                    {postDeploymentContent}
+                </div>
+            )}
         </div>
     );
 };

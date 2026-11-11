@@ -100,8 +100,11 @@ suite("PreviewFeaturesService", () => {
         for (const { globalEnabled, override, enabled } of [
             { globalEnabled: false, override: undefined, enabled: false },
             { globalEnabled: true, override: undefined, enabled: true },
+            { globalEnabled: false, override: null, enabled: false },
             { globalEnabled: true, override: null, enabled: true },
             { globalEnabled: false, override: true, enabled: true },
+            { globalEnabled: true, override: true, enabled: true },
+            { globalEnabled: false, override: false, enabled: false },
             { globalEnabled: true, override: false, enabled: false },
         ]) {
             test(`umbrella ${globalEnabled}, override ${override}: ${enabled}`, () => {
@@ -115,6 +118,26 @@ suite("PreviewFeaturesService", () => {
                 expect(service.isFeatureEnabled(PreviewFeature.LiveQueryStatistics)).to.equal(
                     enabled,
                 );
+            });
+        }
+    });
+
+    suite("multi-results", () => {
+        for (const { globalEnabled, setting, enabled } of [
+            { globalEnabled: true, setting: undefined, enabled: false },
+            { globalEnabled: true, setting: null, enabled: false },
+            { globalEnabled: true, setting: false, enabled: false },
+            { globalEnabled: false, setting: true, enabled: true },
+        ]) {
+            test(`umbrella ${globalEnabled}, setting ${setting}: ${enabled}`, () => {
+                getConfigurationStub.returns(
+                    createWorkspaceConfiguration({
+                        enableExperimentalFeatures: globalEnabled,
+                        [getPreviewConfigKey(PreviewFeature.MultiResults)]: setting,
+                    }),
+                );
+
+                expect(service.multiResultsEnabled).to.equal(enabled);
             });
         }
     });
@@ -160,6 +183,32 @@ suite("PreviewFeaturesService", () => {
                 service.isPrivatePreviewEnabled(
                     PrivatePreviewFeature.SqlDataPlane,
                     PrivatePreviewFeature.MetadataCache,
+                ),
+            ).to.be.true;
+        });
+
+        test("requires the SQL Data Plane path before Object Explorer v2", () => {
+            stubMssqlConfig(true, {}, { [PrivatePreviewFeature.ObjectExplorerV2]: true });
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.ObjectExplorerV2,
+                ),
+            ).to.be.false;
+
+            getConfigurationStub.reset();
+            stubMssqlConfig(
+                true,
+                {},
+                {
+                    [PrivatePreviewFeature.SqlDataPlane]: true,
+                    [PrivatePreviewFeature.ObjectExplorerV2]: true,
+                },
+            );
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.ObjectExplorerV2,
                 ),
             ).to.be.true;
         });

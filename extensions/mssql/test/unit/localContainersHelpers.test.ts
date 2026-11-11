@@ -7,14 +7,28 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
+import * as vscode from "vscode";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
+import {
+    containerConnectionMaxAttempts,
+    containerConnectionRetryDelayMs,
+    sa,
+    sqlAuthentication,
+} from "../../src/constants/constants";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import * as sqlServerContainer from "../../src/deployment/sqlServerContainer";
 import * as localContainersHelpers from "../../src/deployment/localContainersHelpers";
+import {
+    classicContainerConnectAdapter,
+    oeV2ContainerConnectAdapter,
+} from "../../src/deployment/containerConnectAdapter";
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import MainController from "../../src/controllers/mainController";
+import ConnectionManager from "../../src/controllers/connectionManager";
+import { ConnectionUI } from "../../src/views/connectionUI";
+import { IConnectionProfile } from "../../src/models/interfaces";
 import { stubTelemetry, stubUserSurvey } from "./utils";
 import { uuid } from "../e2e/baseFixtures";
 import {
@@ -63,7 +77,7 @@ suite("localContainers logic", () => {
                         saveProfile: sandbox.stub().resolves({}),
                     },
                     createConnectionDetails: sandbox.stub().returns({}),
-                    getConnectionString: sandbox.stub().resolves("Server=localhost,1433"),
+                    getConnectionString: sandbox.stub().resolves("Server=127.0.0.1,1433"),
                 },
                 createObjectExplorerSession: sandbox.stub().resolves({}),
             },
@@ -474,7 +488,7 @@ suite("localContainers logic", () => {
             const getConnectionStringStub = sandbox
                 .stub()
                 .withArgs(connectionDetails, false, false)
-                .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
+                .resolves("Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True");
 
             const mainController = {
                 connectionManager: {
@@ -493,11 +507,11 @@ suite("localContainers logic", () => {
             );
             expect(result).to.deep.equal({
                 success: true,
-                connectionString: "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+                connectionString: "Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True",
             });
             expect(connectStub).to.have.been.calledWithMatch(
-                sinon.match.string,
-                sinon.match.object,
+                "127.0.0.1,1433/c/deployment",
+                { server: "127.0.0.1,1433" },
                 {
                     shouldHandleErrors: false,
                 },
@@ -510,7 +524,7 @@ suite("localContainers logic", () => {
                 );
             }
             expect(saveProfileStub).to.have.been.calledWithMatch({
-                server: "localhost,1433",
+                server: "127.0.0.1,1433",
                 user: "SA",
             });
             expect(createSessionStub).to.have.been.calledWith(savedProfile);
@@ -535,7 +549,7 @@ suite("localContainers logic", () => {
         connectStub.onSecondCall().resolves(true);
         const disconnectStub = sandbox.stub().resolves();
         const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
-        const getConnectionStringStub = sandbox.stub().resolves("Server=localhost,1433");
+        const getConnectionStringStub = sandbox.stub().resolves("Server=127.0.0.1,1433");
 
         const mainController = {
             connectionManager: {
@@ -551,19 +565,223 @@ suite("localContainers logic", () => {
         const resultPromise = localContainersHelpers.addContainerConnection(
             dockerProfile,
             mainController,
+            classicContainerConnectAdapter(mainController),
         );
         await clock.tickAsync(3000);
 
         expect(await resultPromise).to.deep.equal({
             success: true,
-            connectionString: "Server=localhost,1433",
+            connectionString: "Server=127.0.0.1,1433",
         });
         expect(connectStub).to.have.been.calledTwice;
         expect(disconnectStub).to.have.been.called;
         expect(saveProfileStub).to.have.been.calledWithMatch({
-            server: "localhost,1433",
+            server: "127.0.0.1,1433",
         });
         expect(createSessionStub).to.have.been.calledWith(savedProfile);
+    });
+
+    test("OE v2 container adapter returns the safe connection string and uses the v2 tree", async () => {
+        const savedProfile = { id: "container-profile" };
+        const connectionDetails = { options: {} };
+        const saveProfileStub = sandbox.stub().callsFake(async (profile) => {
+            profile.password = "";
+            return savedProfile;
+        });
+        const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
+        const getConnectionStringStub = sandbox
+            .stub()
+            .withArgs(connectionDetails, false, false)
+            .resolves("Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True");
+        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
+        executeCommandStub
+            .withArgs("mssql.objectExplorerV2.connectProfileById", "container-profile")
+            .resolves(true);
+
+        const mainController = {
+            connectionManager: {
+                connectionUI: { saveProfile: saveProfileStub },
+                createConnectionDetails: createConnectionDetailsStub,
+                getConnectionString: getConnectionStringStub,
+            },
+            createObjectExplorerSession: sandbox.stub(),
+        } as unknown as MainController;
+
+        const connectionString = await oeV2ContainerConnectAdapter(mainController).saveAndConnect({
+            server: "127.0.0.1,1433",
+            authenticationType: sqlAuthentication,
+            user: sa,
+            password: "test-only-password",
+            savePassword: false,
+        } as any);
+
+        expect(connectionString).to.equal(
+            "Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True",
+        );
+        expect(executeCommandStub).to.have.been.calledWith(
+            "mssql.objectExplorerV2.connectProfileById",
+            "container-profile",
+            { password: "test-only-password", freshContainer: true },
+        );
+        expect(executeCommandStub).to.have.been.calledWith("mssql.objectExplorerV2.focus");
+        expect(mainController.createObjectExplorerSession).not.to.have.been.called;
+    });
+
+    test("addContainerConnection is honest about adapter failure and profile shape", async () => {
+        const dockerProfile = {
+            containerName: "c",
+            port: 1450,
+            profileName: "",
+            savePassword: false,
+        } as any;
+
+        let seen: any;
+        const okAdapter = {
+            saveAndConnect: async (profile: unknown) => {
+                seen = profile;
+                return "Server=127.0.0.1,1450;User ID=sa;Trust Server Certificate=True";
+            },
+        };
+        expect(
+            await localContainersHelpers.addContainerConnection(dockerProfile, okAdapter),
+        ).to.deep.equal({
+            success: true,
+            connectionString: "Server=127.0.0.1,1450;User ID=sa;Trust Server Certificate=True",
+        });
+        // The profile the seam receives is the container connection contract:
+        // IPv4 loopback,<port> / sa / SqlLogin / trusted cert / container marker.
+        expect(seen.server).to.equal("127.0.0.1,1450");
+        expect(seen.user).to.equal(sa);
+        expect(seen.authenticationType).to.equal(sqlAuthentication);
+        expect(seen.trustServerCertificate).to.equal(true);
+        expect(seen.containerName).to.equal("c");
+        expect(seen.profileName, "empty profile name falls back to container name").to.equal("c");
+
+        const failingAdapter = {
+            saveAndConnect: async () => {
+                throw new Error("connect failed");
+            },
+        };
+        expect(
+            await localContainersHelpers.addContainerConnection(dockerProfile, failingAdapter),
+        ).to.deep.equal({
+            success: false,
+            fullErrorText: "connect failed",
+        });
+    });
+
+    for (const [name, factory] of [
+        ["classic", classicContainerConnectAdapter],
+        ["OE v2", oeV2ContainerConnectAdapter],
+    ] as const) {
+        test(`${name} wizard retries reuse the profile saved before a failed connect`, async () => {
+            const savedIds = new Set<string>();
+            const saveProfile = sandbox.stub().callsFake(async (profile) => {
+                const saved = { ...profile, id: profile.id ?? uuid() };
+                savedIds.add(saved.id);
+                return saved;
+            });
+            const classicConnect = sandbox.stub();
+            classicConnect.onFirstCall().rejects(new Error("connect failed"));
+            classicConnect.onSecondCall().resolves();
+            const commands = sandbox.stub(vscode.commands, "executeCommand");
+            commands
+                .withArgs("mssql.objectExplorerV2.connectProfileById")
+                .onFirstCall()
+                .resolves(false);
+            commands
+                .withArgs("mssql.objectExplorerV2.connectProfileById")
+                .onSecondCall()
+                .resolves(true);
+            const owner = {
+                connectionManager: {
+                    connectionUI: { saveProfile },
+                    createConnectionDetails: sandbox.stub().returns({ options: {} }),
+                    getConnectionString: sandbox.stub().resolves("Server=127.0.0.1,1450"),
+                },
+                createObjectExplorerSession: classicConnect,
+            } as unknown as MainController;
+            const profile = {
+                containerName: "retry-container",
+                port: 1450,
+                profileName: "retry",
+                savePassword: false,
+            } as lc.DockerConnectionProfile;
+            const adapter = factory(owner);
+            expect(
+                (await localContainersHelpers.addContainerConnection(profile, adapter)).success,
+            ).to.equal(false);
+            expect(profile.id).to.be.a("string");
+            const savedId = profile.id;
+            expect(
+                (await localContainersHelpers.addContainerConnection(profile, adapter)).success,
+            ).to.equal(true);
+            expect(saveProfile.secondCall.args[0].id).to.equal(savedId);
+            expect(saveProfile.firstCall.args[0].server).to.equal("127.0.0.1,1450");
+            expect(saveProfile.secondCall.args[0].server).to.equal("127.0.0.1,1450");
+            expect(savedIds.size).to.equal(1);
+            expect(profile.id).to.equal(savedId);
+        });
+    }
+
+    test("addContainerConnection reports the final login error without exposing the password", async () => {
+        const clock = sandbox.useFakeTimers();
+        const mainController = sandbox.createStubInstance(MainController);
+        const connectionManager = sandbox.createStubInstance(ConnectionManager);
+        const connectionUI = sandbox.createStubInstance(ConnectionUI);
+        sandbox.stub(mainController, "connectionManager").get(() => connectionManager);
+        sandbox.stub(connectionManager, "connectionUI").get(() => connectionUI);
+        const dockerProfile = {
+            containerName: "container",
+            port: 1433,
+            password: "Example123!",
+            profileName: "",
+            savePassword: false,
+        } as lc.DockerConnectionProfile;
+        connectionManager.connect.rejects(
+            new Error(`Login failed with password ${dockerProfile.password}`),
+        );
+
+        const pending = localContainersHelpers.addContainerConnection(
+            dockerProfile,
+            mainController,
+        );
+        await clock.tickAsync(
+            containerConnectionRetryDelayMs * (Math.pow(2, containerConnectionMaxAttempts - 1) - 1),
+        );
+
+        expect(await pending).to.deep.equal({
+            success: false,
+            fullErrorText: "Login failed with password ******",
+        });
+        expect(connectionUI.saveProfile).not.to.have.been.called;
+        expect(mainController.createObjectExplorerSession).not.to.have.been.called;
+    });
+
+    test("addContainerConnection redacts adapter errors and retains the saved profile for retry", async () => {
+        const dockerProfile = {
+            containerName: "container",
+            port: 1433,
+            password: "Example123!",
+            profileName: "",
+            savePassword: false,
+        } as lc.DockerConnectionProfile;
+        const adapter = {
+            usesDataPlane: true,
+            saveAndConnect: async (profile: IConnectionProfile) => {
+                profile.id = "saved-container-profile";
+                profile.password = "";
+                throw new Error(`Login failed with password ${dockerProfile.password}`);
+            },
+        };
+
+        expect(
+            await localContainersHelpers.addContainerConnection(dockerProfile, adapter),
+        ).to.deep.equal({
+            success: false,
+            fullErrorText: "Login failed with password ******",
+        });
+        expect(dockerProfile.id).to.equal("saved-container-profile");
     });
 
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {

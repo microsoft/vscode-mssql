@@ -16,6 +16,8 @@
  */
 
 import { ChildProcess, spawn } from "child_process";
+import * as os from "os";
+import * as path from "path";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
@@ -26,6 +28,12 @@ const MAX_ENGINE_LOG_CHARS = 256_000;
 
 /** How long to wait for the engine to answer before giving up. */
 const ENGINE_READY_TIMEOUT_MS = 60_000;
+/**
+ * How long to wait for an engine this window launched, when the number of
+ * entities it loads is not known. The wait ends early as soon as the engine
+ * exits.
+ */
+const ENGINE_LAUNCH_READY_TIMEOUT_MS = 20 * 60_000;
 const ENGINE_READY_POLL_INTERVAL_MS = 1000;
 
 /** How long a single readiness or status probe may take. */
@@ -49,6 +57,8 @@ export interface DabCliCommandResult {
     engineLogs?: string;
     /** Process id of a successfully launched engine. */
     processId?: number;
+    /** Why the command failed, when it did. */
+    failureReason?: Dab.DabDeploymentFailureReason;
 }
 
 /** Environment a DAB engine process runs with. */
@@ -57,6 +67,11 @@ export interface DabCliProcessEnvironment {
     port: number;
     /** Connection string, resolved by the config's @env reference. */
     connectionString: string;
+    /**
+     * More variables for the engine, such as the Azure CLI it signs in to
+     * Microsoft Entra with.
+     */
+    extraEnvironment?: NodeJS.ProcessEnv;
 }
 
 /**
@@ -66,6 +81,7 @@ export interface DabCliProcessEnvironment {
 export function buildDabCliEnvironment(environment: DabCliProcessEnvironment): NodeJS.ProcessEnv {
     return {
         ...process.env,
+        ...environment.extraEnvironment,
         ASPNETCORE_URLS: `http://localhost:${environment.port}`,
         [Dab.DAB_CLI_CONNECTION_STRING_ENV_VAR]: environment.connectionString,
     };
@@ -84,55 +100,6 @@ function collectProcessOutput(child: ChildProcess): () => string {
     child.stdout?.on("data", append);
     child.stderr?.on("data", append);
     return () => output;
-}
-
-/**
- * Runs a DAB CLI command to completion and returns its output.
- * Used for short-lived commands such as `validate`, never for `start`.
- *
- * @param dotnetPath Path of the dotnet executable to run the CLI assembly with
- * @param assemblyPath Path of the CLI assembly
- * @param args Arguments to pass to the CLI
- * @param environment Port and connection string for the process
- */
-export async function runDabCliCommand(
-    dotnetPath: string,
-    assemblyPath: string,
-    args: string[],
-    environment: DabCliProcessEnvironment,
-): Promise<DabCliCommandResult> {
-    return new Promise<DabCliCommandResult>((resolve) => {
-        let child: ChildProcess;
-        try {
-            child = spawn(dotnetPath, [assemblyPath, ...args], {
-                env: buildDabCliEnvironment(environment),
-                windowsHide: true,
-            });
-        } catch (error) {
-            resolve({ success: false, error: getErrorMessage(error) });
-            return;
-        }
-
-        const getOutput = collectProcessOutput(child);
-
-        child.on("error", (error) => {
-            resolve({ success: false, error: getErrorMessage(error), engineLogs: getOutput() });
-        });
-
-        child.on("close", (code) => {
-            const engineLogs = getOutput().trim() || undefined;
-            resolve(
-                code === 0
-                    ? { success: true, engineLogs }
-                    : {
-                          success: false,
-                          error: LocalContainers.dabCliExitedWithCode(code),
-                          fullErrorText: engineLogs,
-                          engineLogs,
-                      },
-            );
-        });
-    });
 }
 
 /**
@@ -160,6 +127,7 @@ export async function startDabCliEngine(
             [assemblyPath, "start", "--config", configPath, "--no-https-redirect"],
             {
                 env: buildDabCliEnvironment(environment),
+                cwd: path.dirname(configPath),
                 detached: true,
                 windowsHide: true,
                 stdio: ["ignore", "pipe", "pipe"],
@@ -189,22 +157,44 @@ export async function startDabCliEngine(
 /**
  * Polls the engine's port until it answers.
  *
+ * An engine whose process id is known is waited for as long as it lives, up
+ * to a generous limit, because a large database takes minutes to load. One
+ * that exits fails the check straight away with its output.
+ *
  * @param port Port the engine publishes on
  * @param getLogs Optional accessor for engine output, included on failure
  * @param processId Process id of the engine just launched, when one is known
+ * @param onProgress Optional callback with the time spent waiting so far
+ * @param launchTimeoutMs How long to wait for the launched engine, when the
+ * caller knows how many entities it loads
  */
 export async function checkDabCliEngineReady(
     port: number,
     getLogs?: () => string,
     processId?: number,
+    onProgress?: (elapsedMs: number) => void,
+    launchTimeoutMs: number = ENGINE_LAUNCH_READY_TIMEOUT_MS,
 ): Promise<DabCliCommandResult> {
     const start = Date.now();
+    const timeoutMs = processId !== undefined ? launchTimeoutMs : ENGINE_READY_TIMEOUT_MS;
 
-    while (Date.now() - start < ENGINE_READY_TIMEOUT_MS) {
+    while (Date.now() - start < timeoutMs) {
         if (await isDabCliEngineResponding(port, processId)) {
             return { success: true };
         }
 
+        if (processId !== undefined && !isProcessAlive(processId)) {
+            const engineLogs = getLogs?.().trim() || undefined;
+            return {
+                success: false,
+                error: LocalContainers.dabCliEngineExited,
+                fullErrorText: engineLogs,
+                engineLogs,
+                failureReason: "engineExited",
+            };
+        }
+
+        onProgress?.(Date.now() - start);
         await new Promise((resolve) => setTimeout(resolve, ENGINE_READY_POLL_INTERVAL_MS));
     }
 
@@ -214,6 +204,7 @@ export async function checkDabCliEngineReady(
         error: LocalContainers.dabCliEngineReadyTimeout,
         fullErrorText: engineLogs,
         engineLogs,
+        failureReason: "engineReadyTimeout",
     };
 }
 
@@ -383,7 +374,13 @@ export async function getPortOwnership(port: number, processId: number): Promise
  */
 export async function getPortListenerPids(port: number): Promise<number[] | undefined> {
     if (process.platform === "win32") {
-        const output = await runCapturedCommand("netstat", ["-a", "-n", "-o", "-p", "tcp"]);
+        const output = await runCapturedCommand(getWindowsSystemTool("netstat.exe"), [
+            "-a",
+            "-n",
+            "-o",
+            "-p",
+            "tcp",
+        ]);
         return output === undefined ? undefined : parseNetstatListeners(output, port);
     }
 
@@ -462,12 +459,20 @@ export function parseSsListeners(output: string, port: number): number[] {
     return [...pids];
 }
 
-/** Runs a short-lived command and returns its stdout, or undefined when it could not run. */
+/** Full path of a Windows system tool. */
+export function getWindowsSystemTool(fileName: string): string {
+    return path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", fileName);
+}
+
+/**
+ * Runs a short-lived command and returns its stdout, or undefined when it could
+ * not run.
+ */
 async function runCapturedCommand(file: string, args: string[]): Promise<string | undefined> {
     return new Promise<string | undefined>((resolve) => {
         let child: ChildProcess;
         try {
-            child = spawn(file, args, { windowsHide: true });
+            child = spawn(file, args, { windowsHide: true, cwd: os.tmpdir() });
         } catch {
             resolve(undefined);
             return;
@@ -545,9 +550,11 @@ export async function stopDabCliEngine(
     try {
         if (process.platform === "win32") {
             await new Promise<void>((resolve, reject) => {
-                const taskkill = spawn("taskkill", ["/PID", `${processId}`, "/T", "/F"], {
-                    windowsHide: true,
-                });
+                const taskkill = spawn(
+                    getWindowsSystemTool("taskkill.exe"),
+                    ["/PID", `${processId}`, "/T", "/F"],
+                    { windowsHide: true },
+                );
 
                 let output = "";
                 taskkill.stdout?.on("data", (chunk: Buffer | string) => {

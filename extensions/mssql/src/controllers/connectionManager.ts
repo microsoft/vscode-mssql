@@ -18,7 +18,10 @@ import {
 } from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
+    clearVscodeEntraTokenCache,
     getCloudResourceEndpoint,
+    initializeVscodeEntraTokenCacheState,
+    isVscodeEntraTokenStale,
     MissingEntraAuthAccountError,
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
@@ -101,6 +104,9 @@ export class ConnectionInfo {
      */
     public connecting: boolean;
 
+    /** SQL Tools Service has finished loading this connection's IntelliSense metadata. */
+    public intelliSenseReady = false;
+
     /**
      * The MS SQL error number coming from the server
      */
@@ -154,6 +160,8 @@ export default class ConnectionManager {
     public readonly onConnectionsChanged: vscode.Event<void> =
         this._onConnectionsChangedEmitter.event;
 
+    private readonly _onIntelliSenseReadyEmitter = new vscode.EventEmitter<string>();
+
     private _onSuccessfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent> =
         new vscode.EventEmitter<ConnectionSuccessfulEvent>();
     public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
@@ -200,6 +208,10 @@ export default class ConnectionManager {
         }
 
         this._entraLogger = logger.withPrefix("Entra Auth");
+
+        if (context?.globalState) {
+            initializeVscodeEntraTokenCacheState(context.globalState);
+        }
 
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
@@ -518,11 +530,50 @@ export default class ConnectionManager {
     }
 
     /**
+     * Connection completion precedes IntelliSense metadata readiness. Definition
+     * lookups can wait here without delaying typing or query execution.
+     * The wait is bounded and ends if this connection is removed or replaced.
+     */
+    public waitForIntelliSenseReady(fileUri: string, timeoutMs: number): Promise<boolean> {
+        const connection = this._connections[fileUri];
+        if (!connection || !this.isConnected(fileUri)) {
+            return Promise.resolve(false);
+        }
+        if (connection.intelliSenseReady) {
+            return Promise.resolve(true);
+        }
+        return new Promise<boolean>((resolve) => {
+            const finish = () => {
+                clearTimeout(timer);
+                readySubscription.dispose();
+                connectionSubscription.dispose();
+                resolve(this._connections[fileUri] === connection && connection.intelliSenseReady);
+            };
+            const readySubscription = this._onIntelliSenseReadyEmitter.event((ownerUri) => {
+                if (ownerUri === fileUri) {
+                    finish();
+                }
+            });
+            const connectionSubscription = this.onConnectionsChanged(() => {
+                if (this._connections[fileUri] !== connection) {
+                    finish();
+                }
+            });
+            const timer = setTimeout(finish, timeoutMs);
+        });
+    }
+
+    /**
      * Public for testing purposes only.
      */
     public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
+            const connection = this._connections[event.ownerUri];
+            if (connection) {
+                connection.intelliSenseReady = true;
+                this._onIntelliSenseReadyEmitter.fire(event.ownerUri);
+            }
             this._statusView.languageServiceStatusChanged(
                 event.ownerUri,
                 LocalizedConstants.intelliSenseUpdatedStatus,
@@ -558,6 +609,8 @@ export default class ConnectionManager {
                     LocalizedConstants.msgYes,
                     LocalizedConstants.msgNo,
                 );
+                const connectionInfo = this.getConnectionInfoFromUri(event.ownerUri);
+                const serverInfo = this.getServerInfo(connectionInfo);
 
                 if (selectedOption === LocalizedConstants.msgYes) {
                     changeLanguageServiceForFile(
@@ -570,7 +623,11 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { additionalProps: { selectedOption: LocalizedConstants.msgYes } },
+                        {
+                            additionalProps: { selectedOption: LocalizedConstants.msgYes },
+                            connectionInfo,
+                            serverInfo,
+                        },
                     );
 
                     await vscode.workspace
@@ -591,13 +648,21 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { additionalProps: { selectedOption: LocalizedConstants.msgNo } },
+                        {
+                            additionalProps: { selectedOption: LocalizedConstants.msgNo },
+                            connectionInfo,
+                            serverInfo,
+                        },
                     );
                 } else {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { additionalProps: { selectedOption: LocalizedConstants.dismiss } },
+                        {
+                            additionalProps: { selectedOption: LocalizedConstants.dismiss },
+                            connectionInfo,
+                            serverInfo,
+                        },
                     );
                 }
             }
@@ -616,6 +681,17 @@ export default class ConnectionManager {
                 connectionInfo.credentials.server = event.connection.serverName;
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
+                connectionInfo.serverInfo = event.serverInfo
+                    ? {
+                          ...event.serverInfo,
+                          serverTypes: getServerTypes(connectionInfo.credentials),
+                      }
+                    : {
+                          ...connectionInfo.serverInfo,
+                          databaseServiceTier: undefined,
+                          databaseServiceObjective: undefined,
+                      };
+                self.cacheServerInfo(connectionInfo.credentials, connectionInfo.serverInfo);
 
                 void self._statusView.connectSuccess(
                     event.ownerUri,
@@ -644,6 +720,8 @@ export default class ConnectionManager {
         return (params: ConnectionContracts.RefreshTokenParams): void => {
             void (async () => {
                 const useVscodeAccountsForEntraMFA = !getUseMsalEntraMfaAuthConfig();
+                const connectionInfo = self.getConnectionInfoFromUri(params.uri);
+                const serverInfo = self.getServerInfo(connectionInfo);
 
                 // Always send a tokenRefreshed notification back to STS so it can unblock
                 // IntelliSense (via TokenUpdateUris). On failure, send empty token/expiresOn=0;
@@ -681,6 +759,8 @@ export default class ConnectionManager {
                                     ),
                                     includeErrorMessage: true,
                                     errorCode: "missingAccountId",
+                                    connectionInfo,
+                                    serverInfo,
                                     additionalProps: {
                                         useVscodeAccountsForEntraMFA: String(
                                             useVscodeAccountsForEntraMFA,
@@ -709,6 +789,8 @@ export default class ConnectionManager {
                                     error: new Error("Account not found in account store"),
                                     includeErrorMessage: true,
                                     errorCode: "accountNotFound",
+                                    connectionInfo,
+                                    serverInfo,
                                     additionalProps: {
                                         useVscodeAccountsForEntraMFA: String(
                                             useVscodeAccountsForEntraMFA,
@@ -749,6 +831,8 @@ export default class ConnectionManager {
                                 error: new Error("Token refresh did not produce a token"),
                                 includeErrorMessage: true,
                                 errorCode: "tokenNotRefreshed",
+                                connectionInfo,
+                                serverInfo,
                                 additionalProps: {
                                     useVscodeAccountsForEntraMFA: String(
                                         useVscodeAccountsForEntraMFA,
@@ -778,6 +862,8 @@ export default class ConnectionManager {
                                 ),
                                 includeErrorMessage: true,
                                 errorCode: "serviceClientUnavailable",
+                                connectionInfo,
+                                serverInfo,
                                 additionalProps: {
                                     useVscodeAccountsForEntraMFA: String(
                                         useVscodeAccountsForEntraMFA,
@@ -800,6 +886,8 @@ export default class ConnectionManager {
                         TelemetryViews.ConnectionManager,
                         TelemetryActions.RefreshTokenNotification,
                         {
+                            connectionInfo,
+                            serverInfo,
                             additionalProps: {
                                 useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
                             },
@@ -832,6 +920,8 @@ export default class ConnectionManager {
                                 error instanceof Error ? error : new Error(getErrorMessage(error)),
                             includeErrorMessage: false,
                             errorCode: "exception",
+                            connectionInfo,
+                            serverInfo,
                             additionalProps: {
                                 useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
                             },
@@ -1093,46 +1183,21 @@ export default class ConnectionManager {
     }
 
     private updateConnectionsContext() {
-        /**
-         * Making sure we keep encodings in the context. We need to convert the keys
-         * to Uri and back to string because the keys in _connections might have skipped encoding.
-         * This is done to match the behavior of how vscode core handles resource URIs in
-         * contexts.
-         * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
-         * TODO: aaskhan find the underlying issue that causes the mismatch in encoding and fix it.
-         */
+        // Pass Uri values so VS Code maps them to the window's resource URIs
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connections",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnected(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnected(key)),
+            ),
         );
 
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connecting",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnecting(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnecting(key)),
+            ),
         );
     }
 
@@ -1157,21 +1222,57 @@ export default class ConnectionManager {
     }
 
     /**
-     * Get the server info for a connection
-     * @param connectionCreds
+     * Gets cached server info with database-scoped metadata restricted to the requested database.
      */
-    public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
+    public getServerInfo(
+        connectionCredentials: IConnectionInfo,
+        databaseName?: string,
+    ): IServerInfo {
         if (!connectionCredentials) {
             return undefined;
         }
-        if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
-            return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
-        }
-        for (const connection of this._connectionCredentialsToServerInfoMap.keys()) {
-            if (Utils.isSameConnectionInfo(connection, connectionCredentials)) {
-                return this._connectionCredentialsToServerInfoMap.get(connection);
+        const targetDatabase = databaseName ?? connectionCredentials.database;
+        const targetConnection = { ...connectionCredentials, database: targetDatabase };
+        let fallbackServerInfo: IServerInfo | undefined;
+        for (const [connection, serverInfo] of this._connectionCredentialsToServerInfoMap) {
+            if (
+                targetDatabase &&
+                connection.database === targetDatabase &&
+                Utils.isSameConnectionInfo(connection, targetConnection)
+            ) {
+                return serverInfo;
+            }
+            if (
+                Utils.isSameConnectionInfo(
+                    { ...connection, database: undefined },
+                    { ...connectionCredentials, database: undefined },
+                )
+            ) {
+                fallbackServerInfo ??= serverInfo;
             }
         }
+        return fallbackServerInfo
+            ? {
+                  ...fallbackServerInfo,
+                  databaseServiceTier: undefined,
+                  databaseServiceObjective: undefined,
+              }
+            : undefined;
+    }
+
+    /**
+     * Replaces cached metadata for a connection/database and snapshots its mutable credentials.
+     */
+    private cacheServerInfo(credentials: IConnectionInfo, serverInfo: IServerInfo): void {
+        for (const connection of this._connectionCredentialsToServerInfoMap.keys()) {
+            if (
+                connection.database === credentials.database &&
+                Utils.isSameConnectionInfo(connection, credentials)
+            ) {
+                this._connectionCredentialsToServerInfoMap.delete(connection);
+            }
+        }
+        this._connectionCredentialsToServerInfoMap.set({ ...credentials }, serverInfo);
     }
 
     /**
@@ -1220,7 +1321,10 @@ export default class ConnectionManager {
         if (!getUseMsalEntraMfaAuthConfig()) {
             const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
 
+            const isStale = isVscodeEntraTokenStale(connectionInfo.azureAccountToken);
+
             if (
+                !isStale &&
                 AzureController.isTokenValid(
                     connectionInfo.azureAccountToken,
                     connectionInfo.expiresOn,
@@ -1233,7 +1337,9 @@ export default class ConnectionManager {
             }
 
             this._entraLogger?.debug(
-                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
+                isStale
+                    ? `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) was cached before the Entra token cache was cleared and needs to be refreshed.`
+                    : `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
             );
 
             const tokenInfo = await acquireTokenFromVscodeAccountForResource(
@@ -1266,6 +1372,8 @@ export default class ConnectionManager {
                     "Azure MFA connection missing accountId in refreshEntraTokenIfNeeded",
                 ),
                 includeErrorMessage: true,
+                connectionInfo,
+                serverInfo: this.getServerInfo(connectionInfo),
             });
             throw new Error(LocalizedConstants.cannotConnect);
         }
@@ -1548,6 +1656,8 @@ export default class ConnectionManager {
              * Connection was successful
              */
 
+            result.serverInfo.serverTypes = getServerTypes(connectionInfo.credentials);
+
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
             connectionActivity.end(ActivityStatus.Succeeded, {
                 connectionInfo: connectionInfo?.credentials,
@@ -1822,12 +1932,6 @@ export default class ConnectionManager {
          * Connection was successful
          */
 
-        // Saving server info to the map
-        this._connectionCredentialsToServerInfoMap.set(
-            connectionInfo.credentials,
-            result.serverInfo,
-        );
-
         let newCredentials: IConnectionInfo = <any>{};
         Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, connectionInfo.credentials);
 
@@ -1838,6 +1942,7 @@ export default class ConnectionManager {
         connectionInfo.connectionId = result.connectionId;
         connectionInfo.serverInfo = result.serverInfo;
         connectionInfo.credentials = newCredentials;
+        this.cacheServerInfo(newCredentials, result.serverInfo);
         connectionInfo.errorNumber = undefined;
         connectionInfo.errorMessage = undefined;
 
@@ -2050,6 +2155,10 @@ export default class ConnectionManager {
         const cancelActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.CancelConnection,
+            {
+                connectionInfo: this.getConnectionInfoFromUri(fileUri),
+                serverInfo: this.getServerInfo(this.getConnectionInfoFromUri(fileUri)),
+            },
         );
         let cancelRequestCompleted = false;
         setTimeout(() => {
@@ -2233,7 +2342,9 @@ export default class ConnectionManager {
         }
     }
 
-    public onClearAzureTokenCache(): void {
+    public async onClearAzureTokenCache(): Promise<void> {
+        this._keyVaultTokenCache.clear();
+        await clearVscodeEntraTokenCache();
         this.azureController.clearTokenCache();
         vscode.window.showInformationMessage(LocalizedConstants.Accounts.clearedEntraTokenCache);
     }
@@ -2355,7 +2466,11 @@ export default class ConnectionManager {
         // Cache check is independent of auth provider
         if (this._keyVaultTokenCache.has(cacheKey)) {
             const cached = this._keyVaultTokenCache.get(cacheKey)!;
-            if (AzureController.isTokenExpired(cached.expiresOn)) {
+            // A refresh in flight when the token cache was cleared can cache a pre-clear token.
+            if (
+                AzureController.isTokenExpired(cached.expiresOn) ||
+                (!getUseMsalEntraMfaAuthConfig() && isVscodeEntraTokenStale(cached.token))
+            ) {
                 this._keyVaultTokenCache.delete(cacheKey);
             } else {
                 return {

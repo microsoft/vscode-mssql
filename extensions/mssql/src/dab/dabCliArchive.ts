@@ -38,11 +38,14 @@ function resolveSafeEntryPath(destinationPath: string, entryName: string): strin
  * @param destinationPath Directory to extract into; created as needed
  * @param shouldExtract Optional filter over the archive's entry names, which use
  * forward slashes. Entries it rejects are skipped.
+ * @param onProgress Optional callback with the number of entries read so far
+ * and the number in the archive
  */
 export async function extractZipArchive(
     archivePath: string,
     destinationPath: string,
     shouldExtract?: (entryName: string) => boolean,
+    onProgress?: (entriesRead: number, entryCount: number) => void,
 ): Promise<void> {
     await fsPromises.mkdir(destinationPath, { recursive: true });
 
@@ -61,8 +64,10 @@ export async function extractZipArchive(
             zipFile.on("error", fail);
             zipFile.on("end", () => resolve());
 
+            let entriesRead = 0;
             zipFile.on("entry", (entry: yauzl.Entry) => {
                 const entryName = entry.fileName;
+                onProgress?.(++entriesRead, zipFile.entryCount);
 
                 if (shouldExtract && !shouldExtract(entryName)) {
                     zipFile.readEntry();

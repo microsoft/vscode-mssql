@@ -1,0 +1,9 @@
+{
+    "$comment": "Build-channel membership for non-production code areas. Each area under src/nonproduction/<area>/ lists the channels whose bundles INCLUDE its real implementation; every other channel gets the area's index.stub.ts and none of its sources reach the bundle or VSIX. Channels: development, internal, insiders, stable. See src/nonproduction/README.md.",
+    "areas": {
+        "sdkLanguageModels": {
+            "channels": ["development", "internal", "insiders"],
+            "description": "Direct Anthropic/OpenAI/xAI SDK language-model providers used for internal model testing. Stable ships Copilot-based models only; the direct-API hooks require separate security/compliance review before any external release."
+        }
+    }
+}

@@ -5,7 +5,7 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Button, Card, Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ErrorCircleRegular, GiftRegular, LockClosedRegular } from "@fluentui/react-icons";
+import { ErrorCircleRegular, LockClosedRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     AzureSqlDatabaseContextProps,
@@ -41,6 +41,9 @@ const useStyles = makeStyles({
         minHeight: "fit-content",
         padding: "4px 0 8px",
         boxSizing: "border-box",
+        "@media (max-width: 900px)": {
+            flexDirection: "column",
+        },
     },
     outerDiv: {
         display: "flex",
@@ -66,6 +69,16 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
         alignSelf: "flex-start",
+        position: "sticky",
+        top: "12px",
+        "@media (max-width: 900px)": {
+            position: "static",
+            flex: "0 0 auto",
+            width: "100%",
+        },
+        "@media (max-height: 650px)": {
+            position: "static",
+        },
     },
     sidebarCard: {
         display: "flex",
@@ -136,12 +149,14 @@ interface AzureSqlDatabaseFormPageProps {
     onValidated?: () => void;
     tags: TagEntry[];
     onTagsChange: (tags: TagEntry[]) => void;
+    isLocalToCloud?: boolean;
 }
 
 export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> = ({
     onValidated,
     tags,
     onTagsChange,
+    isLocalToCloud = false,
 }) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
@@ -169,6 +184,12 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const prevFormValidationLoadState = useRef(formValidationLoadState);
+
+    useEffect(() => {
+        if (isLocalToCloud && formState?.dataSource) {
+            context?.formAction({ propertyName: "dataSource", value: "", isAction: false });
+        }
+    }, [context, isLocalToCloud, formState?.dataSource]);
 
     useEffect(() => {
         const changed = prevFormValidationLoadState.current !== formValidationLoadState;
@@ -311,7 +332,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
         componentProps?: Record<string, unknown>,
     ) => {
         const component = formComponents[propertyName];
-        if (!component) return undefined;
+        if (!component || component.hidden) return undefined;
         return (
             <div className={classes.fieldContainer}>
                 <div style={{ width: component.componentWidth || "100%" }}>
@@ -378,6 +399,9 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                         onClick: () => context.setCreateServerDrawerState(true),
                     })}
                     {renderFormField("databaseName")}
+                    {renderFormField("authenticationType", {
+                        disabled: !isComponentReady("serverName"),
+                    })}
                     {formState.authenticationType !== AuthenticationType.AzureMFA &&
                         !serverCreatedWithAuth && (
                             <>
@@ -438,6 +462,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                         hostIp={hostIp ?? ""}
                         tags={tags}
                         onTagsChange={onTagsChange}
+                        isLocalToCloud={isLocalToCloud}
                     />
                 </div>
                 <div className={classes.bottomDiv} />
@@ -445,8 +470,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
             <div className={classes.sidebarDiv}>
                 <Card className={classes.sidebarCard}>
                     <span className={classes.sidebarCardHeader}>
-                        <GiftRegular fontSize={16} />
-                        {locConstants.azureSqlDatabase.freeOfferApplied}
+                        {locConstants.azureSqlDatabase.freeTierApplied}
                     </span>
                     <div className={classes.sidebarDivider} />
                     <Text size={200}>{locConstants.azureSqlDatabase.monthlyLimits}</Text>

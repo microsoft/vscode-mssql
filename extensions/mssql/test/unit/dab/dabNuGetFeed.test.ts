@@ -104,62 +104,27 @@ suite("DAB NuGet Feed Tests", () => {
     });
 
     suite("getNuGetConfigPaths", () => {
-        // An absolute path on whichever platform the tests run on. A
-        // Windows-shaped literal is a relative path on Linux and macOS, which
-        // the walk resolves against the working directory and then climbs, so
-        // the directories under test would be the runner's own.
-        const workspacePath = path.resolve(path.join(path.sep, "src", "project"));
+        test("reads only machine and user configuration", () => {
+            const paths = getNuGetConfigPaths();
+            expect(paths).to.not.be.empty;
 
-        /** Every directory the walk covers, from the filesystem root down. */
-        function walkedDirectories(): Set<string> {
-            const directories = new Set<string>();
-            let current = workspacePath;
+            // No NuGet.Config from the working folder or any folder above it.
+            const ancestors = new Set<string>();
+            let current = path.resolve(process.cwd());
             while (true) {
-                directories.add(current);
+                ancestors.add(current.toLowerCase());
                 const parent = path.dirname(current);
                 if (parent === current) {
-                    return directories;
+                    break;
                 }
                 current = parent;
             }
-        }
-
-        test("puts directory configuration after user configuration", () => {
-            const paths = getNuGetConfigPaths(workspacePath);
-
-            // Anything in the walked tree is directory configuration;
-            // everything else is machine or user level.
-            const directories = walkedDirectories();
-            const isDirectoryConfig = (candidate: string) =>
-                directories.has(path.dirname(candidate));
-
-            const lastNonDirectoryIndex = paths.reduce(
-                (last, candidate, index) => (isDirectoryConfig(candidate) ? last : index),
-                -1,
-            );
-            const firstDirectoryIndex = paths.findIndex(isDirectoryConfig);
-
-            expect(
-                firstDirectoryIndex,
-                "A config next to the project must be able to override the user's",
-            ).to.be.greaterThan(lastNonDirectoryIndex);
-        });
-
-        test("walks from the filesystem root down to the workspace", () => {
-            const paths = getNuGetConfigPaths(workspacePath);
-            const projectIndex = paths.findIndex(
-                (candidate) => path.dirname(candidate) === workspacePath,
-            );
-            const parentIndex = paths.findIndex(
-                (candidate) => path.dirname(candidate) === path.dirname(workspacePath),
-            );
-
-            expect(parentIndex, "The workspace's parent must be walked").to.be.greaterThan(-1);
-            expect(projectIndex).to.be.greaterThan(parentIndex);
-        });
-
-        test("needs no workspace", () => {
-            expect(getNuGetConfigPaths()).to.not.be.empty;
+            for (const candidate of paths) {
+                expect(
+                    ancestors.has(path.dirname(candidate).toLowerCase()),
+                    `${candidate} is directory configuration`,
+                ).to.be.false;
+            }
         });
     });
 
@@ -184,6 +149,23 @@ suite("DAB NuGet Feed Tests", () => {
             expect(
                 await resolveFlatContainerUrl("https://contoso.example/index.json", client),
             ).to.equal("https://contoso.example/flat2");
+        });
+
+        test("refuses a flat container that is not served over HTTPS", async () => {
+            const client = createHttpClient({
+                ok: true,
+                data: {
+                    resources: [
+                        {
+                            "@type": "PackageBaseAddress/3.0.0",
+                            "@id": "http://contoso.example/flat2/",
+                        },
+                    ],
+                },
+            });
+
+            expect(await resolveFlatContainerUrl("https://contoso.example/index.json", client)).to
+                .be.undefined;
         });
 
         test("returns undefined when the feed exposes no flat container", async () => {

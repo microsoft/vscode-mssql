@@ -11,6 +11,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { QueryHistoryNode, EmptyHistoryNode } from "./queryHistoryNode";
 import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import StatusView from "../views/statusView";
 import { IConnectionProfile } from "../models/interfaces";
@@ -67,10 +68,15 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     }
 
     refresh(ownerUri: string, timeStamp: Date, hasError: boolean): void {
+        const queryString = this.getQueryString(ownerUri);
+        // A run that failed before reading its text leaves nothing to show or reopen.
+        if (queryString === undefined) {
+            return;
+        }
+
         const timeStampString = timeStamp.toLocaleString();
         const historyNodeLabel = this.createHistoryNodeLabel(ownerUri);
         const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStampString);
-        const queryString = this.getQueryString(ownerUri);
         const connectionLabel = this.getConnectionLabel(ownerUri);
         const node = new QueryHistoryNode(
             historyNodeLabel,
@@ -118,9 +124,13 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
      * Shows the Query History List on the command palette
      */
     public async showQueryHistoryCommandPalette(): Promise<void | undefined> {
-        const options = this._queryHistoryNodes.map((node) =>
-            this._queryHistoryUI.convertToQuickPickItem(node),
-        );
+        const options = this._queryHistoryNodes
+            .filter((node): node is QueryHistoryNode => node instanceof QueryHistoryNode)
+            .map((node) => this._queryHistoryUI.convertToQuickPickItem(node));
+        if (options.length === 0) {
+            void vscode.window.showInformationMessage(LocalizedConstants.msgNoQueriesAvailable);
+            return undefined;
+        }
         let queryHistoryQuickPickItem =
             await this._queryHistoryUI.showQueryHistoryCommandPalette(options);
         if (queryHistoryQuickPickItem) {
@@ -231,9 +241,6 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
      * Creates the node label for a query history node
      */
     private createHistoryNodeLabel(ownerUri: string): string {
-        if (this.getQueryString(ownerUri) === undefined) {
-            return "";
-        }
         const queryString = Utils.limitStringSize(this.getQueryString(ownerUri)).trim();
         const connectionLabel = Utils.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
         return `${queryString} : ${connectionLabel}`;

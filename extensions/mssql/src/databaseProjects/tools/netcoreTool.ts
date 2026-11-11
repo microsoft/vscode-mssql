@@ -13,6 +13,7 @@ import { microsoftBuildSqlVersionKey } from "../common/constants";
 import * as utils from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
 import { SqlProjects } from "../../constants/locConstants";
+import { dotnetRuntimeExtensionId, extensionId } from "../../constants/constants";
 
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const NetCoreInstallLocationKey = "netCoreSDKLocation";
@@ -98,6 +99,89 @@ export class NetCoreTool extends ShellExecutionHelper {
 
     constructor(_outputChannel: vscode.OutputChannel) {
         super(_outputChannel);
+    }
+
+    public async acquireNetCoreSdk(): Promise<string> {
+        const configuredLocation = vscode.workspace
+            .getConfiguration(DBProjectConfigurationKey)
+            .get<string>(DotnetInstallLocationKey);
+        const candidates = new Set([
+            ...[
+                configuredLocation,
+                process.env.DOTNET_ROOT,
+                this.defaultLocalInstallLocationByDistribution,
+            ]
+                .filter((location): location is string => !!location)
+                .map((location) => path.join(location, dotnet)),
+            dotnet,
+        ]);
+        for (const executable of candidates) {
+            if (await this.hasSupportedSdk(executable)) {
+                return executable;
+            }
+        }
+
+        const extension = vscode.extensions.getExtension(dotnetRuntimeExtensionId);
+        if (!extension) {
+            throw new DotNetError(SqlProjects.DotnetSdkAcquisitionUnavailable);
+        }
+        await extension.activate();
+
+        const existingPath = await vscode.commands.executeCommand<string>("dotnet.findPath", {
+            acquireContext: {
+                version: `${semver.major(minSupportedNetCoreVersionForBuild)}.${semver.minor(minSupportedNetCoreVersionForBuild)}`,
+                requestingExtensionId: extensionId,
+                mode: "sdk",
+            },
+            versionSpecRequirement: "greater_than_or_equal",
+            rejectPreviews: true,
+        });
+        if (existingPath) {
+            await fs.promises.access(existingPath);
+            return existingPath;
+        }
+
+        this._outputChannel.appendLine(SqlProjects.AcquiringDotnetSdk);
+        const result = await vscode.commands.executeCommand<{ dotnetPath: string }>(
+            "dotnet.acquireGlobalSDK",
+            { version: "10.0", requestingExtensionId: extensionId, mode: "sdk" },
+        );
+        if (!result?.dotnetPath) {
+            throw new DotNetError(SqlProjects.DotnetSdkAcquisitionFailed);
+        }
+        await fs.promises.access(result.dotnetPath);
+        return result.dotnetPath;
+    }
+
+    private async hasSupportedSdk(executable: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            child_process.execFile(
+                executable,
+                ["--list-sdks"],
+                { windowsHide: true, timeout: 15_000, encoding: "utf8" },
+                (error, stdout) => {
+                    if (error) {
+                        if (error.code === "ENOENT" || error.code === "ENOTDIR") {
+                            resolve(false);
+                        } else {
+                            reject(error);
+                        }
+                        return;
+                    }
+                    resolve(
+                        stdout.split(/\r?\n/).some((line) => {
+                            const version = line.trim().match(/^(\S+)\s+\[.+\]$/)?.[1];
+                            return (
+                                !!version &&
+                                !!semver.valid(version) &&
+                                !semver.prerelease(version) &&
+                                semver.gte(version, minSupportedNetCoreVersionForBuild)
+                            );
+                        }),
+                    );
+                },
+            );
+        });
     }
 
     public async showInstallDialog(): Promise<void> {

@@ -9,7 +9,11 @@ class VsCodeApiFetcher {
     public vscodeApiInstance: WebviewApi<unknown>;
 
     constructor() {
-        this.vscodeApiInstance = acquireVsCodeApi<unknown>();
+        // A page may pre-acquire the API in an inline boot-error relay
+        // (acquireVsCodeApi throws if called twice) — reuse it if present.
+        const pre = (globalThis as { __vscodeApiPreAcquired?: WebviewApi<unknown> })
+            .__vscodeApiPreAcquired;
+        this.vscodeApiInstance = pre ?? acquireVsCodeApi<unknown>();
     }
 }
 

@@ -75,6 +75,9 @@ export function useFluentResultGridSlickLifecycle({
     detachFrozenPaneWheelHandler,
     emitStateChange,
     handleKeyDown,
+    onGridCreated,
+    onGridDisposed,
+    onGridRendered,
     onSelectionChange,
     onSelectionSummaryChange,
     persistScrollPosition,
@@ -89,6 +92,9 @@ export function useFluentResultGridSlickLifecycle({
     detachFrozenPaneWheelHandler: () => void;
     emitStateChange: (grid: SlickGrid) => void;
     handleKeyDown: (eventData: SlickEventData, args: { grid: SlickGrid }) => void;
+    onGridCreated?: FluentResultGridProps["onGridCreated"];
+    onGridDisposed?: FluentResultGridProps["onGridDisposed"];
+    onGridRendered?: FluentResultGridProps["onGridRendered"];
     onSelectionChange?: FluentResultGridProps["onSelectionChange"];
     onSelectionSummaryChange?: FluentResultGridProps["onSelectionSummaryChange"];
     persistScrollPosition: (grid: SlickGrid) => void;
@@ -100,7 +106,9 @@ export function useFluentResultGridSlickLifecycle({
     const selectionEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridStateEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const keyboardEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
+    const renderEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridMenuObserverRef = useRef<MutationObserver | undefined>(undefined);
+    const gridCreatedRef = useRef(false);
     const onSelectionChangeRef = useRef(onSelectionChange);
     const onSelectionSummaryChangeRef = useRef(onSelectionSummaryChange);
     const shouldSuppressSelectionSummaryChangeRef = useRef(shouldSuppressSelectionSummaryChange);
@@ -128,6 +136,12 @@ export function useFluentResultGridSlickLifecycle({
         ((eventData: SlickEventData, args: { grid: SlickGrid }) => void) | undefined
     >(undefined);
     handleKeyDownRef.current = handleKeyDown;
+    const onGridCreatedRef = useRef(onGridCreated);
+    const onGridDisposedRef = useRef(onGridDisposed);
+    const onGridRenderedRef = useRef(onGridRendered);
+    onGridCreatedRef.current = onGridCreated;
+    onGridDisposedRef.current = onGridDisposed;
+    onGridRenderedRef.current = onGridRendered;
 
     useEffect(() => {
         return () => {
@@ -138,16 +152,37 @@ export function useFluentResultGridSlickLifecycle({
             gridStateEventHandlerRef.current = undefined;
             keyboardEventHandlerRef.current?.unsubscribeAll();
             keyboardEventHandlerRef.current = undefined;
+            renderEventHandlerRef.current?.unsubscribeAll();
+            renderEventHandlerRef.current = undefined;
             publishSelectionSummary.cancel();
             gridMenuObserverRef.current?.disconnect();
             gridMenuObserverRef.current = undefined;
+            if (gridCreatedRef.current) {
+                gridCreatedRef.current = false;
+                onGridDisposedRef.current?.();
+            }
         };
-    }, [dataView, detachFrozenPaneWheelHandler, publishSelectionSummary]);
+    }, [detachFrozenPaneWheelHandler, publishSelectionSummary]);
+
+    // SlickGrid can retain its live instance while React swaps the custom
+    // data view (for example, a rerun changes a one-column readiness result
+    // into a 300-column result with the same logical id). Reattach the new
+    // view without tearing down the grid's render/keyboard/selection events.
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (grid) {
+            dataViewRef.current?.setGrid(grid);
+        }
+    }, [dataView, dataViewRef, reactGridRef]);
 
     const handleReactGridCreated = useCallback(
         (event: CustomEvent<SlickgridReactInstance>) => {
             const reactGrid = event.detail as ReactGridInstanceWithSharedService;
             const grid = reactGrid.slickGrid;
+            if (gridCreatedRef.current && reactGridRef.current !== reactGrid) {
+                onGridDisposedRef.current?.();
+                gridCreatedRef.current = false;
+            }
             reactGridRef.current = reactGrid;
             dataViewRef.current?.setGrid(grid);
             attachFrozenPaneWheelHandler(grid);
@@ -164,8 +199,13 @@ export function useFluentResultGridSlickLifecycle({
             gridStateEventHandlerRef.current = new SlickEventHandler();
             keyboardEventHandlerRef.current?.unsubscribeAll();
             keyboardEventHandlerRef.current = new SlickEventHandler();
+            renderEventHandlerRef.current?.unsubscribeAll();
+            renderEventHandlerRef.current = new SlickEventHandler();
             keyboardEventHandlerRef.current.subscribe(grid.onKeyDown, (eventData, args) => {
                 handleKeyDownRef.current?.(eventData as SlickEventData, args);
+            });
+            renderEventHandlerRef.current.subscribe(grid.onRendered, () => {
+                onGridRenderedRef.current?.();
             });
 
             const selectionModel = grid.getSelectionModel();
@@ -209,6 +249,8 @@ export function useFluentResultGridSlickLifecycle({
             grid.updateRowCount();
             grid.render();
             restoreCurrentInitialState(grid);
+            gridCreatedRef.current = true;
+            onGridCreatedRef.current?.();
         },
         [
             attachFrozenPaneWheelHandler,

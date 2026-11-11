@@ -30,6 +30,7 @@ export const disconnectedServerNodeType = "disconnectedServer";
 export const disconnected = "disconnected";
 export const serverLabel = "Server";
 export const disconnectedDockerContainer = "disconnectedDockerContainer";
+export const disconnectedDockerContainerDatabase = "disconnectedDockerContainerDatabase";
 export const dockerContainer = "DockerContainer";
 export const dockerContainerDatabase = "DockerContainerDatabase";
 export const databasesSubNodeType = "Databases";
@@ -43,6 +44,10 @@ export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open"
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
+export const cmdEnableFollowActiveEditor = "mssql.queryResults.enableFollowActiveEditor";
+export const cmdDisableFollowActiveEditor = "mssql.queryResults.disableFollowActiveEditor";
+export const cmdEnableMultiResults = "mssql.queryResults.enableMultiResults";
+export const cmdDisableMultiResults = "mssql.queryResults.disableMultiResults";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdConnectWithUriOwnership = "mssql.connectWithUriOwnership";
@@ -73,6 +78,7 @@ export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConne
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdSearchDatabase = "mssql.searchDatabase";
+export const cmdOpenPerformanceDashboard = "mssql.performance.openDashboard";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const triggerSchemaCompareAutomatic = "automatic";
@@ -89,6 +95,7 @@ export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
 export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
+export const cmdConnectionGroupCreateWithParent = "mssql.connectionGroups.createWithParent";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
@@ -151,6 +158,7 @@ export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDesignSchemaForTable = "mssql.schemaDesignerForTable";
 export const cmdBuildDataApi = "mssql.buildDataApi";
 export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
+export const cmdDeployDatabaseToAzure = "mssql.deployDatabaseToAzure";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
@@ -312,6 +320,16 @@ export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
+export const copilotQueryStoreStatusToolName = "mssql_query_store_status";
+export const copilotQueryStoreTopQueriesToolName = "mssql_query_store_top_queries";
+export const copilotQueryStoreQueryDetailsToolName = "mssql_query_store_query_details";
+export const copilotQueryStoreQueryHistoryToolName = "mssql_query_store_query_history";
+export const copilotQueryStorePlanForcingToolName = "mssql_query_store_plan_forcing";
+export const copilotQueryStoreVerifyForcedPlanToolName = "mssql_query_store_verify_forced_plan";
+export const copilotQueryStoreWaitStatsToolName = "mssql_query_store_wait_stats";
+export const copilotQueryStorePlanSummaryToolName = "mssql_query_store_plan_summary";
+export const copilotQueryStoreAnalyzeQueryToolName = "mssql_query_store_analyze_query";
+export const copilotOpenPerformanceDashboardToolName = "mssql_open_performance_dashboard";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
@@ -370,14 +388,14 @@ export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoM
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configStatusBarShowServerProcessId = "statusBar.showServerProcessId";
-export const configDabCliPackageFeedUrl = "mssql.dab.cliPackageFeedUrl";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
-export const configSchemaDesignerEnableDeploymentsView =
-    "mssql.schemaDesigner.enableDeploymentsView";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
+export const configQueryResultsFollowActiveEditor = "mssql.queryResults.followActiveEditor";
+/** Context key that is true while the results view shows the multi-results layout. */
+export const multiResultsActiveContextKey = "mssql.multiResults.active";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
@@ -498,3 +516,66 @@ export const operationIdDeployDacpac = "DeployOperation";
 
 // Code Analysis Constants
 export const codeAnalysisViewId = "codeAnalysis";
+
+// Inline SQL completions (ported from dev/karlb/completions)
+export const cmdCopilotInlineCompletionRefreshSchemaContext =
+    "mssql.copilot.inlineCompletion.refreshSchemaContext";
+export const cmdSetAnthropicSdkLanguageModelApiKey =
+    "mssql.copilot.sdkProviders.anthropic.setApiKey";
+export const cmdClearAnthropicSdkLanguageModelApiKey =
+    "mssql.copilot.sdkProviders.anthropic.clearApiKey";
+export const cmdSetOpenAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.openai.setApiKey";
+export const cmdClearOpenAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.openai.clearApiKey";
+export const cmdSetXAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.xai.setApiKey";
+export const cmdClearXAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.xai.clearApiKey";
+export const documentationLink = "https://aka.ms/vscode-mssql-docs";
+export const configCopilotInlineCompletionsEnabled = "mssql.copilot.inlineCompletions.enabled";
+export const configCopilotInlineCompletionsUseSchemaContext =
+    "mssql.copilot.inlineCompletions.useSchemaContext";
+export const configCopilotInlineCompletionsIncludeSqlDiagnostics =
+    "mssql.copilot.inlineCompletions.includeSqlDiagnostics";
+export const configCopilotInlineCompletionsProfile = "mssql.copilot.inlineCompletions.profile";
+export const configCopilotInlineCompletionsModelFamily =
+    "mssql.copilot.inlineCompletions.modelFamily";
+export const configCopilotInlineCompletionsContinuationModelFamily =
+    "mssql.copilot.inlineCompletions.continuationModelFamily";
+export const configCopilotInlineCompletionsModelVendors =
+    "mssql.copilot.inlineCompletions.modelVendors";
+export const configCopilotInlineCompletionsEnabledCategories =
+    "mssql.copilot.inlineCompletions.enabledCategories";
+export const configCopilotInlineCompletionsDebugRecordWhenClosed =
+    "mssql.copilot.inlineCompletions.debug.recordWhenClosed";
+export const configCopilotInlineCompletionsTraceCaptureEnabled =
+    "mssql.copilot.inlineCompletions.trace.captureEnabled";
+export const configCopilotInlineCompletionsTraceFolder =
+    "mssql.copilot.inlineCompletions.trace.folder";
+export const configCopilotInlineCompletionsTraceRedactPrompts =
+    "mssql.copilot.inlineCompletions.trace.redactPrompts";
+export const configCopilotInlineCompletionsTraceMaxFileSizeMB =
+    "mssql.copilot.inlineCompletions.trace.maxFileSizeMB";
+export const configCopilotSdkProvidersAnthropicEnabled =
+    "mssql.copilot.sdkProviders.anthropic.enabled";
+export const configCopilotSdkProvidersAnthropicAdditionalModels =
+    "mssql.copilot.sdkProviders.anthropic.additionalModels";
+export const configCopilotSdkProvidersAnthropicBaseUrl =
+    "mssql.copilot.sdkProviders.anthropic.baseUrl";
+export const configCopilotSdkProvidersAnthropicTimeout =
+    "mssql.copilot.sdkProviders.anthropic.timeout";
+export const configCopilotSdkProvidersAnthropicEnv = "mssql.copilot.sdkProviders.anthropic.env";
+export const configCopilotSdkProvidersOpenAiEnabled = "mssql.copilot.sdkProviders.openai.enabled";
+export const configCopilotSdkProvidersOpenAiAdditionalModels =
+    "mssql.copilot.sdkProviders.openai.additionalModels";
+export const configCopilotSdkProvidersOpenAiBaseUrl = "mssql.copilot.sdkProviders.openai.baseUrl";
+export const configCopilotSdkProvidersOpenAiTimeout = "mssql.copilot.sdkProviders.openai.timeout";
+export const configCopilotSdkProvidersOpenAiEnv = "mssql.copilot.sdkProviders.openai.env";
+export const configCopilotSdkProvidersXAiEnabled = "mssql.copilot.sdkProviders.xai.enabled";
+export const configCopilotSdkProvidersXAiAdditionalModels =
+    "mssql.copilot.sdkProviders.xai.additionalModels";
+export const configCopilotSdkProvidersXAiBaseUrl = "mssql.copilot.sdkProviders.xai.baseUrl";
+export const configCopilotSdkProvidersXAiTimeout = "mssql.copilot.sdkProviders.xai.timeout";
+export const configCopilotSdkProvidersXAiEnv = "mssql.copilot.sdkProviders.xai.env";
+
+export const configCopilotInlineCompletionsSchemaContext =
+    "mssql.copilot.inlineCompletions.schemaContext";
+export const configCopilotInlineCompletionsTraceJournalPrimary =
+    "mssql.copilot.inlineCompletions.trace.journalPrimary";

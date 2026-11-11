@@ -39,6 +39,8 @@ export type FluentResultGridActiveDataColumn = {
 
 export type FluentResultGridControllerOptions = FluentResultGridProps & {
     containerRef: RefObject<HTMLDivElement | null>;
+    /** Suffix for the grid's DOM ids, unique in the document. See FluentResultGrid. */
+    domId: string;
 };
 
 export interface FluentResultGridControllerResult {
@@ -51,6 +53,9 @@ export interface FluentResultGridControllerResult {
     frozenColumnIndex: number;
     clearSelection: () => void;
     focusGrid: () => void;
+    selectAll: () => "selected" | "alreadySelected" | false;
+    scrollToRow: (rowIndex: number) => boolean;
+    scrollToColumn: (columnIndex: number) => boolean;
     gridOptions: GridOption;
     handleBeforeHeaderCellDestroy: (event: CustomEvent) => void;
     handleClick: (event: CustomEvent) => void;

@@ -46,13 +46,13 @@ const FILTER_STRINGS = {
 };
 
 /**
- * Sorting, filtering, freezing and resizing for the preview results grid.
+ * Sorting, filtering, freezing and resizing for the results grid.
  *
  * Sort and filter state is read from the `data-sort-direction` and `data-filtered` attributes on
  * the header cell, and the frozen pane boundary from `data-frozen-index` on the grid root, so the
  * assertions do not depend on class names or on pixel geometry.
  */
-test.describe("MSSQL Extension - Preview Grid Columns", () => {
+test.describe("MSSQL Extension - Results Grid Columns", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 

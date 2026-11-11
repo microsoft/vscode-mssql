@@ -188,6 +188,168 @@ suite("DAB shared interface helpers", () => {
         ]);
     });
 
+    test("createDefaultConfigFromSources enables views without a key by falling back to the first usable column", () => {
+        const viewColumn = (name: string, dataType: string): Dab.DabColumnConfig => ({
+            id: `view:dbo.Totals:${name}`,
+            name,
+            dataType,
+            isPrimaryKey: false,
+            isSupported: Dab.isDataTypeSupportedForDab(dataType),
+            isExposed: true,
+        });
+        const config = Dab.createDefaultConfigFromSources([
+            createSourceObject({
+                id: "view:dbo.Totals",
+                sourceType: Dab.EntitySourceType.View,
+                sourceName: "Totals",
+                columns: [
+                    viewColumn("Notes", "ntext"),
+                    viewColumn("IsActive", "bit"),
+                    viewColumn("Region", "nvarchar"),
+                    viewColumn("Total", "money"),
+                ],
+                fields: undefined,
+            }),
+        ]);
+
+        const entity = config.entities[0];
+        expect(entity).to.include({ isEnabled: true, isSupported: true });
+        expect(entity.unsupportedReasons).to.equal(undefined);
+        expect(entity.fields?.filter((field) => field.isPrimaryKey)).to.deep.equal([
+            { name: "Region", isPrimaryKey: true },
+        ]);
+        expect(Dab.isEntityRestEnabled(entity)).to.equal(true);
+    });
+
+    test("createDefaultConfigFromSources keeps a view without key candidates disabled", () => {
+        const config = Dab.createDefaultConfigFromSources([
+            createSourceObject({
+                id: "view:dbo.Blobs",
+                sourceType: Dab.EntitySourceType.View,
+                sourceName: "Blobs",
+                columns: [
+                    {
+                        id: "view:dbo.Blobs:Content",
+                        name: "Content",
+                        dataType: "varbinary",
+                        isPrimaryKey: false,
+                        isSupported: true,
+                        isExposed: true,
+                    },
+                ],
+                fields: undefined,
+            }),
+        ]);
+
+        expect(config.entities[0]).to.include({ isEnabled: false, isSupported: true });
+        expect(config.entities[0].unsupportedReasons).to.deep.equal([{ type: "noPrimaryKey" }]);
+    });
+
+    test("createDefaultConfigFromSources blocks stored procedures that would stop DAB at startup", () => {
+        const procedure = (
+            name: string,
+            overrides: Partial<Dab.DabSourceObject>,
+        ): Dab.DabSourceObject =>
+            createSourceObject({
+                id: `stored-procedure:dbo.${name}`,
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                sourceName: name,
+                columns: [],
+                ...overrides,
+            });
+        const config = Dab.createDefaultConfigFromSources([
+            procedure("GetTotals", {
+                resultColumns: [
+                    { name: "Region", dataType: "nvarchar", ordinal: 1 },
+                    { dataType: "int", ordinal: 2 },
+                ],
+            }),
+            procedure("GetShapes", {
+                resultColumns: [{ name: "Shape", dataType: "geography", ordinal: 1 }],
+            }),
+            procedure("SaveLines", {
+                parameters: [{ name: "lines", dataType: "table type" }],
+            }),
+            procedure("RunReport", {
+                resultColumns: [{ name: "Total", dataType: "int", ordinal: 1 }],
+            }),
+            procedure("ArchiveOrders", { resultColumns: [] }),
+        ]);
+
+        const byName = new Map(config.entities.map((entity) => [entity.sourceName, entity]));
+        expect(byName.get("GetTotals")).to.include({ isEnabled: false, isSupported: false });
+        expect(byName.get("GetTotals")?.unsupportedReasons).to.deep.equal([
+            { type: "unnamedResultColumns" },
+        ]);
+        expect(byName.get("GetShapes")?.unsupportedReasons).to.deep.equal([
+            { type: "unsupportedDataTypes", columns: "Shape (geography)" },
+        ]);
+        expect(byName.get("SaveLines")?.unsupportedReasons).to.deep.equal([
+            { type: "unsupportedDataTypes", columns: "lines (table type)" },
+        ]);
+        expect(byName.get("RunReport")).to.include({ isEnabled: true, isSupported: true });
+        expect(byName.get("ArchiveOrders")).to.include({ isEnabled: true, isSupported: true });
+        expect(Dab.hasBlockingUnsupportedReason(byName.get("GetTotals")!)).to.equal(true);
+    });
+
+    test("syncConfigWithSources enables a saved view once its missing key resolves", () => {
+        const keylessView = createSourceObject({
+            id: "view:dbo.Report",
+            sourceType: Dab.EntitySourceType.View,
+            sourceName: "Report",
+            columns: [
+                {
+                    id: "view:dbo.Report:Content",
+                    name: "Content",
+                    dataType: "varbinary",
+                    isPrimaryKey: false,
+                    isSupported: true,
+                    isExposed: true,
+                },
+            ],
+            fields: undefined,
+        });
+        const savedConfig = Dab.createDefaultConfigFromSources([keylessView]);
+        expect(savedConfig.entities[0].isEnabled).to.equal(false);
+
+        const keyedView = createSourceObject({
+            ...keylessView,
+            columns: [
+                {
+                    id: "view:dbo.Report:ReportKey",
+                    name: "ReportKey",
+                    dataType: "int",
+                    isPrimaryKey: true,
+                    isSupported: true,
+                    isExposed: true,
+                },
+                ...keylessView.columns,
+            ],
+        });
+        const { config, changed } = Dab.syncConfigWithSources(savedConfig, [keyedView]);
+
+        expect(changed).to.equal(true);
+        expect(config.entities[0]).to.include({ isEnabled: true, isSupported: true });
+        expect(config.entities[0].unsupportedReasons).to.equal(undefined);
+        expect(Dab.isEntityRestEnabled(config.entities[0])).to.equal(true);
+        expect(Dab.isEntityGraphQLEnabled(config.entities[0])).to.equal(true);
+        expect(Dab.isEntityMcpEnabled(config.entities[0])).to.equal(true);
+    });
+
+    test("syncConfigWithSources keeps a saved view disabled when the user turned it off", () => {
+        const view = createSourceObject({
+            id: "view:dbo.ActiveUsers",
+            sourceType: Dab.EntitySourceType.View,
+            sourceName: "ActiveUsers",
+        });
+        const savedConfig = Dab.createDefaultConfigFromSources([view]);
+        savedConfig.entities[0].isEnabled = false;
+
+        const { config } = Dab.syncConfigWithSources(savedConfig, [view]);
+
+        expect(config.entities[0].isEnabled).to.equal(false);
+    });
+
     test("getEntityExposedApiTypes intersects global and entity API settings", () => {
         const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
         entity.advancedSettings = {
@@ -362,22 +524,43 @@ suite("DAB deployment step sequencing", () => {
             ).to.be.false;
         }
     });
+});
 
-    test("the default deployment state matches its target's steps", () => {
-        for (const target of targets) {
-            const state = Dab.createDefaultDeploymentState(target);
-            const steps = Dab.getDabDeploymentSteps(target);
+suite("DAB engine readiness wait", () => {
+    const minute = 60_000;
 
-            expect(state.target).to.equal(target);
-            expect(state.stepStatuses.map((status) => status.step)).to.deep.equal(steps);
-            expect(state.currentDeploymentStep, `${target} starts at its first step`).to.equal(
-                steps[0],
-            );
-        }
+    test("waits five minutes for an engine with no entities", () => {
+        expect(Dab.getDabEngineReadyTimeoutMs(0)).to.equal(5 * minute);
     });
 
-    test("the default deployment state is Docker when no target is given", () => {
-        expect(Dab.createDefaultDeploymentState().target).to.equal(Dab.DabDeploymentTarget.Docker);
+    test("waits longer for each entity the engine loads", () => {
+        // 321 entities took more than 19 minutes to load against a remote
+        // database, so their wait has to be well past that.
+        expect(Dab.getDabEngineReadyTimeoutMs(321)).to.equal(5 * minute + 321 * 6_000);
+        expect(Dab.getDabEngineReadyTimeoutMs(321)).to.be.greaterThan(30 * minute);
+    });
+
+    test("stops growing at two hours", () => {
+        expect(Dab.getDabEngineReadyTimeoutMs(100_000)).to.equal(120 * minute);
+    });
+
+    test("counts only the supported entities the deployment exposes", () => {
+        const exposed = {
+            isSupported: true,
+            advancedSettings: {},
+        } as unknown as Dab.DabEntityConfig;
+        const config = {
+            apiTypes: [Dab.ApiType.Rest],
+            entities: [
+                exposed,
+                exposed,
+                { ...exposed, isSupported: false },
+                { ...exposed, advancedSettings: { restEnabled: false } },
+            ],
+        } as unknown as Dab.DabConfig;
+
+        expect(Dab.getExposedDabEntityCount(config)).to.equal(2);
+        expect(Dab.getExposedDabEntityCount(undefined)).to.equal(0);
     });
 });
 
@@ -495,44 +678,11 @@ suite("DAB supported data types", () => {
 
     test("both deployment targets run one engine version", () => {
         expect(Dab.DAB_CLI_VERSION).to.equal(Dab.DAB_ENGINE_VERSION);
-        expect(Dab.DAB_CONTAINER_IMAGE).to.contain(`:${Dab.DAB_ENGINE_VERSION}`);
         expect(
             Dab.DAB_CONTAINER_IMAGE,
-            "A floating tag would let the container drift from the CLI",
-        ).to.not.contain(":latest");
-    });
-});
-
-suite("DAB deployment entry points", () => {
-    test("the deployments dialog is the default entry point", () => {
-        expect(Dab.createDefaultDeploymentState().entryPoint).to.equal(
-            Dab.DabDeploymentEntryPoint.Deployments,
-        );
-    });
-
-    test("the standalone flow keeps a completion step to finish on", () => {
-        // The toolbar's Deploy flow has no deployments list to return to, so
-        // the completion step has to remain reachable independently of it.
-        expect(Dab.DabDeploymentDialogStep.Complete).to.not.be.undefined;
-    });
-
-    test("a target's steps do not depend on the entry point", () => {
-        for (const target of [Dab.DabDeploymentTarget.Docker, Dab.DabDeploymentTarget.DabCli]) {
-            const steps = Dab.getDabDeploymentSteps(target);
-            for (const entryPoint of [
-                Dab.DabDeploymentEntryPoint.Standalone,
-                Dab.DabDeploymentEntryPoint.Deployments,
-            ]) {
-                const state = {
-                    ...Dab.createDefaultDeploymentState(target),
-                    entryPoint,
-                };
-                expect(
-                    state.stepStatuses.map((status) => status.step),
-                    `${target} from ${entryPoint}`,
-                ).to.deep.equal(steps);
-            }
-        }
+            "A tag can be moved to another image; only a digest names one build",
+        ).to.equal(`${Dab.DAB_CONTAINER_IMAGE_REPOSITORY}@${Dab.DAB_CONTAINER_IMAGE_DIGEST}`);
+        expect(Dab.DAB_CONTAINER_IMAGE_DIGEST).to.match(/^sha256:[0-9a-f]{64}$/);
     });
 });
 

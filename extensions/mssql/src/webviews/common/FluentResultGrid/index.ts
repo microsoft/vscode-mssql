@@ -30,8 +30,11 @@ export type {
 export { getFluentResultGridCommandTooltip } from "./types/fluentResultGridCommands";
 
 export type {
+    FluentResultGridColumnWindow,
+    FluentResultGridColumnWindowingOptions,
     FluentResultGridDataSource,
     FluentResultGridInMemoryDataSource,
+    FluentResultGridReadPurpose,
     FluentResultGridRow,
     FluentResultGridRows,
     FluentResultGridRowsResult,

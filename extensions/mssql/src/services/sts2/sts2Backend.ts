@@ -51,6 +51,7 @@ import {
     TruncatedCellEncoding,
     packBitmap,
 } from "../sqlDataPlane/api";
+import { isTransientSqlStartupError } from "../sqlDataPlane/connectionOpenErrors";
 import {
     STS2_ERROR_CODES,
     STS2_METHODS,
@@ -703,7 +704,10 @@ function mapOpenError(error: unknown): SqlDataPlaneError {
         });
     }
     return new SqlDataPlaneError(
-        DataPlaneErrorCodes.unavailable,
+        code === STS2_ERROR_CODES.connectionFailedNetwork &&
+        isTransientSqlStartupError(error instanceof Error ? error.message : undefined)
+            ? DataPlaneErrorCodes.transportClosed
+            : DataPlaneErrorCodes.unavailable,
         "SQL Tools Service v2 is unavailable.",
         true,
         {

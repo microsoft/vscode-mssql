@@ -33,7 +33,7 @@ const SHORTCUT_RUN_BUDGET_MS = 5 * 1000;
 /** Mirrors msgRunQueryInProgress in src/constants/locConstants.ts. */
 const QUERY_IN_PROGRESS_MESSAGE = "A query is already running for this editor session";
 
-test.describe("MSSQL Extension - Preview Grid Pane", () => {
+test.describe("MSSQL Extension - Results Grid Pane", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 
@@ -94,7 +94,7 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
 
     test("shows result count and switches between results and messages", async () => {
         const tabs = resultsFrame.getByTestId("results-tab-list");
-        const resultsTab = tabs.getByRole("tab", { name: "Results Preview (1)" });
+        const resultsTab = tabs.getByRole("tab", { name: "Results (1)" });
         const messagesTab = tabs.getByRole("tab", { name: "Messages" });
         await expect(resultsTab).toHaveAttribute("aria-selected", "true");
         await expect(grid).toHaveAttribute("data-row-count", String(MIXED_TYPES_ROW_COUNT));
@@ -161,8 +161,7 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await expect(tooltip).toContainText("Null:1");
     });
 
-    // The shortcut cases replace the staged result; nothing after them reads `grid`, and the
-    // classic-mode case re-runs the mixed-type fixture before it asserts on cells.
+    // The shortcut cases replace the staged result; nothing after them reads `grid`.
     test("the execute shortcut runs the edited text on every press, promptly", async () => {
         const { electronApp, page } = getContext();
 
@@ -211,9 +210,7 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await page.keyboard.press("Shift+Home");
         await runWithShortcut(page, "selected");
         await expect(
-            resultsFrame
-                .getByTestId("results-tab-list")
-                .getByRole("tab", { name: "Results Preview (1)" }),
+            resultsFrame.getByTestId("results-tab-list").getByRole("tab", { name: "Results (1)" }),
         ).toBeVisible();
     });
 
@@ -251,50 +248,6 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await expect(page.getByRole("button", { name: /Ln 3, Col/ })).toBeVisible();
     });
 
-    test("switches the preview grid to the classic results mode", async () => {
-        const { electronApp, page } = getContext();
-        await setQueryText(electronApp, page, MIXED_TYPES_QUERY);
-        await executeQueryAndWait(page);
-        await waitForResultGrid(resultsFrame, "0_0", MIXED_TYPES_ROW_COUNT);
-
-        await resultsFrame.getByRole("button", { name: "More Actions" }).click();
-        const previewSwitch = resultsFrame.getByTestId("preview-grid-switch");
-        await expect(previewSwitch).toHaveAttribute("aria-checked", "true");
-        await previewSwitch.click();
-
-        try {
-            await expect(
-                resultsFrame
-                    .getByTestId("results-tab-list")
-                    .getByRole("tab", { name: "Results (1)" }),
-            ).toBeVisible();
-            await expect(resultsFrame.getByTestId("summary-footer")).toHaveCount(0);
-            // Reuse the mode switch and staged mixed-type result to cover classic alignment.
-            const classicGrid = resultsFrame.locator('[id="gridContainter-0_0"]');
-            await expect(getCell(classicGrid, 0, 3)).toContainText("12.50");
-            await expect(getCell(classicGrid, 0, 0)).toHaveCSS("text-align", "right");
-            await expect(getCell(classicGrid, 0, 3)).toHaveCSS("text-align", "right");
-            await expect(getCell(classicGrid, 3, 3)).toHaveCSS("text-align", "right");
-            await expect(getCell(classicGrid, 0, 1)).not.toHaveCSS("text-align", "right");
-            await expect(getCell(classicGrid, 0, 2)).not.toHaveCSS("text-align", "right");
-        } finally {
-            // useSharedVsCodeLifecycle keeps this VS Code instance for the rest of the file, so
-            // classic results left on would run every later test against the wrong grid -- and
-            // quietly, because the classic view satisfies some of the same selectors.
-            //
-            // The switch is persistOnClick, so its menu is still open here and clicking More
-            // Actions again would toggle it shut rather than reopen it. Dismissing first makes
-            // this reachable from whatever state the assertions above left behind, and dismissing
-            // after leaves no menu sitting over the next test's toolbar.
-            await page.keyboard.press("Escape");
-            await resultsFrame.getByRole("button", { name: "More Actions" }).click();
-            await previewSwitch.click();
-            await expect(previewSwitch).toHaveAttribute("aria-checked", "true");
-            await page.keyboard.press("Escape");
-            await expect(resultsFrame.getByTestId("summary-footer")).toBeVisible();
-        }
-    });
-
     test("opens the result in a document tab", async () => {
         const { page } = getContext();
         await resultsFrame.getByRole("button", { name: "Open in New Tab" }).click();
@@ -329,14 +282,10 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             })
             .toBe(true);
 
-        // The tab is labelled by the grid in use: "Results Preview (n)" for the preview grid and
-        // "Results (n)" for the classic one (queryResultPane.tsx). This suite runs on the preview
-        // grid, so the classic label here only ever matched because the case above used to leave
-        // classic results switched on for the rest of the file.
         await expect(
             documentFrame!
                 .getByTestId("results-tab-list")
-                .getByRole("tab", { name: "Results Preview (1)" }),
+                .getByRole("tab", { name: "Results (1)" }),
         ).toBeVisible();
     });
 });

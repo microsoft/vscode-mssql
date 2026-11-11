@@ -72,7 +72,7 @@ export const AzureSqlDatabaseInfoPage: React.FC = () => {
 
     const links = [
         {
-            href: AzureSqlDatabaseLinks.freeOffer,
+            href: AzureSqlDatabaseLinks.freeTier,
             label: locConstants.azureSqlDatabase.learnMoreAboutFreeTier,
         },
         {

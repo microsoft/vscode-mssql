@@ -18,7 +18,9 @@ import {
     DACPAC_EXTENSION,
     BACPAC_EXTENSION,
 } from "../../src/controllers/dacpacDialogWebviewController";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
+import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
 import {
     CancelDacpacDialogWebviewNotification,
@@ -137,6 +139,51 @@ suite("DacpacDialogWebviewController", () => {
         );
         return controller;
     }
+
+    for (const [request, action] of [
+        [DeployDacpacWebviewRequest.type, TelemetryActions.DacpacDialogDeployDacpac],
+        [ExtractDacpacWebviewRequest.type, TelemetryActions.DacpacDialogExtractDacpac],
+        [ImportBacpacWebviewRequest.type, TelemetryActions.DacpacDialogImportBacpac],
+        [ExportBacpacWebviewRequest.type, TelemetryActions.DacpacDialogExportBacpac],
+    ] as const) {
+        test(`${action} omits metadata from a different target database`, async () => {
+            const startActivity = sandbox.spy(telemetry, "startActivity");
+            connectionManagerStub.getConnectionInfo.withArgs(ownerUri).returns(
+                Object.assign(new ConnectionInfo(), {
+                    credentials: { server: "test-server", database: "database-a" },
+                    serverInfo: {
+                        engineEditionId: 5,
+                        databaseServiceTier: "GeneralPurpose",
+                        databaseServiceObjective: "GP_Gen5_2",
+                    },
+                }),
+            );
+            const result = { success: true, operationId: "test-operation", errorMessage: "" };
+            dacFxServiceStub.deployDacpac.resolves(result);
+            dacFxServiceStub.extractDacpac.resolves(result);
+            dacFxServiceStub.importBacpac.resolves(result);
+            dacFxServiceStub.exportBacpac.resolves(result);
+            createController();
+
+            await requestHandlers.get(request.method)!({
+                ownerUri,
+                databaseName: "database-b",
+                packageFilePath: "/tmp/database.dacpac",
+                isNewDatabase: true,
+                applicationName: "test",
+                applicationVersion: "1.0",
+            });
+
+            const activity = startActivity.args.find((args) => args[1] === action);
+            expect(activity, "operation activity should be emitted").to.exist;
+            expect(activity?.[2]?.serverInfo).to.include({
+                engineEditionId: 5,
+                databaseServiceTier: undefined,
+                databaseServiceObjective: undefined,
+            });
+        });
+    }
+
     suite("Deployment Operations", () => {
         test("Publish DACPAC succeeds for new database", async () => {
             const mockResult: DacFxResult = {

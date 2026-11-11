@@ -15,8 +15,6 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
 import * as Utils from "../../src/models/utils";
-import { PreviewFeature } from "../../src/previews/previewService";
-import { stubPreviewService } from "./utils";
 
 suite("Status View Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -138,25 +136,6 @@ suite("Status View Tests", () => {
         statusView.dispose();
     });
 
-    test("executingQuery hides previous execution time", () => {
-        sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
-            return createMockStatusBarItem();
-        });
-        sandbox.stub(vscode.workspace, "getConfiguration").returns({
-            get: sandbox.stub().returns("off"),
-        } as unknown as vscode.WorkspaceConfiguration);
-
-        const statusView = new StatusView();
-        const fileUri = "test_uri";
-        sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
-        const executionTime = statusView["getStatusBar"](fileUri).executionTime;
-
-        statusView.executingQuery(fileUri);
-
-        expect(executionTime.hide).to.have.been.called;
-        statusView.dispose();
-    });
-
     suite("SQLCMD mode status bar tests", () => {
         const fileUri = "file:///test.sql";
         let enableSqlCmdByDefault: boolean;
@@ -225,27 +204,6 @@ suite("Status View Tests", () => {
         });
 
         test("executingQuery shows statusQuery when showQueryExecutionStatus is enabled (default)", () => {
-            sandbox.stub(vscode.workspace, "getConfiguration").returns({
-                get: sandbox.stub().callsFake((section: string, defaultValue: unknown) => {
-                    if (section === "editor") {
-                        return "off";
-                    }
-                    return defaultValue;
-                }),
-            } as unknown as vscode.WorkspaceConfiguration);
-
-            const statusView = new StatusView();
-            const statusQuery = statusView["getStatusBar"](fileUri).statusQuery;
-
-            statusView.executingQuery(fileUri);
-
-            expect(statusQuery.show).to.have.been.called;
-            expect(statusQuery.text).to.equal(LocalizedConstants.executeQueryLabel);
-            statusView.dispose();
-        });
-
-        test("executingQuery works when BetaResultsGrid is enabled and showQueryExecutionStatus is true", () => {
-            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 get: sandbox.stub().callsFake((section: string, defaultValue: unknown) => {
                     if (section === "editor") {
@@ -368,20 +326,30 @@ suite("Status View Tests", () => {
             statusView.dispose();
         });
 
-        test("setExecutionTime and showRowCount remain suppressed when BetaResultsGrid is enabled", () => {
-            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+        test("executedQuery stops the running query timer", () => {
+            const clock = sandbox.useFakeTimers();
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
-                get: sandbox.stub().returns("off"),
+                get: sandbox
+                    .stub()
+                    .callsFake((_section: string, defaultValue: unknown) => defaultValue),
             } as unknown as vscode.WorkspaceConfiguration);
 
             const statusView = new StatusView();
-            const bar = statusView["getStatusBar"](fileUri);
+            const statusQuery = statusView["getStatusBar"](fileUri).statusQuery;
 
-            statusView.setExecutionTime(fileUri, "0:05");
-            expect(bar.executionTime.show).to.not.have.been.called;
+            statusView.executingQuery(fileUri);
+            clock.tick(1000);
+            expect(statusQuery.text).to.equal(`${LocalizedConstants.executeQueryLabel} 0:01`);
 
-            statusView.showRowCount(fileUri, "(10 rows)");
-            expect(bar.rowCount.show).to.not.have.been.called;
+            statusView.executedQuery(fileUri);
+            clock.tick(200);
+            expect(statusQuery.hide).to.have.been.called;
+            (statusQuery.show as sinon.SinonStub).resetHistory();
+
+            clock.tick(5000);
+
+            expect(statusQuery.text).to.equal(LocalizedConstants.QueryExecutedLabel);
+            expect(statusQuery.show).to.not.have.been.called;
             statusView.dispose();
         });
     });

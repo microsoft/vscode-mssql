@@ -3,12 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useQueryResultSelector } from "./queryResultSelector";
 import { TextView } from "./textView";
-import * as qr from "../../../sharedInterfaces/queryResult";
 import { makeStyles } from "@fluentui/react-components";
-import { ACTIONBAR_WIDTH_PX } from "./table/table";
-import CommandBar from "./commandBar";
+import CommandBar, { ACTIONBAR_WIDTH_PX } from "./commandBar";
 
 const useStyles = makeStyles({
     textViewContainer: {
@@ -22,10 +19,6 @@ const useStyles = makeStyles({
 
 export const QueryResultsTextView = () => {
     const classes = useStyles();
-    const uri = useQueryResultSelector((state) => state.uri);
-    const viewMode =
-        useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
-        qr.QueryResultViewMode.Grid;
 
     return (
         <div className={classes.textViewContainer}>
@@ -37,7 +30,7 @@ export const QueryResultsTextView = () => {
                     }}>
                     <TextView />
                 </div>
-                <CommandBar uri={uri} viewMode={viewMode} />
+                <CommandBar />
             </div>
         </div>
     );

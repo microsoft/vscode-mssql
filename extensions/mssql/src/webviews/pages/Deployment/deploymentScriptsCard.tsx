@@ -93,6 +93,8 @@ export interface DeploymentScriptsCardProps {
     onDownload: (content: string, fileName: string) => void;
     /** Adds the given script content to the current workspace. */
     onAddToWorkspace: (content: string, fileName: string) => void;
+    expanded?: boolean;
+    description?: string;
 }
 
 /**
@@ -105,6 +107,8 @@ export const DeploymentScriptsCard: React.FC<DeploymentScriptsCardProps> = ({
     scripts,
     onDownload,
     onAddToWorkspace,
+    expanded = false,
+    description = locConstants.deploymentScripts.downloadDeploymentScriptsDescription,
 }) => {
     const classes = useStyles();
     const [cardOpen, setCardOpen] = useState(false);
@@ -118,40 +122,40 @@ export const DeploymentScriptsCard: React.FC<DeploymentScriptsCardProps> = ({
 
     return (
         <>
-            <Card className={classes.scriptsCard}>
+            <Card
+                className={classes.scriptsCard}
+                style={expanded ? { borderRadius: "8px", padding: "4px" } : undefined}>
                 <div className={classes.scriptsCardHeader}>
-                    <Button
-                        type="button"
-                        appearance="subtle"
-                        className={classes.scriptsChevronButton}
-                        aria-expanded={cardOpen}
-                        icon={
-                            cardOpen ? (
-                                <ChevronDownRegular className={classes.scriptsChevron} />
-                            ) : (
-                                <ChevronRightRegular className={classes.scriptsChevron} />
-                            )
-                        }
-                        onClick={() => setCardOpen((prev) => !prev)}
-                    />
+                    {!expanded && (
+                        <Button
+                            type="button"
+                            appearance="subtle"
+                            className={classes.scriptsChevronButton}
+                            aria-expanded={cardOpen}
+                            icon={
+                                cardOpen ? (
+                                    <ChevronDownRegular className={classes.scriptsChevron} />
+                                ) : (
+                                    <ChevronRightRegular className={classes.scriptsChevron} />
+                                )
+                            }
+                            onClick={() => setCardOpen((prev) => !prev)}
+                        />
+                    )}
                     <span className={classes.scriptsCardTitle}>
                         {locConstants.deploymentScripts.downloadDeploymentScriptsTitle}
                     </span>
-                    {!cardOpen && (
-                        <span
-                            className={classes.scriptsCardCollapsedText}
-                            title={
-                                locConstants.deploymentScripts.downloadDeploymentScriptsDescription
-                            }>
-                            {locConstants.deploymentScripts.downloadDeploymentScriptsDescription}
+                    {!expanded && !cardOpen && (
+                        <span className={classes.scriptsCardCollapsedText} title={description}>
+                            {description}
                         </span>
                     )}
                 </div>
-                {cardOpen && (
-                    <div className={classes.scriptsCardBody}>
-                        <span className={classes.scriptsCardText}>
-                            {locConstants.deploymentScripts.downloadDeploymentScriptsDescription}
-                        </span>
+                {(expanded || cardOpen) && (
+                    <div
+                        className={classes.scriptsCardBody}
+                        style={expanded ? { borderTop: "none", paddingTop: 0 } : undefined}>
+                        <span className={classes.scriptsCardText}>{description}</span>
                         <div className={classes.scriptsButtonRow}>
                             {scripts.map((script) => (
                                 <Button

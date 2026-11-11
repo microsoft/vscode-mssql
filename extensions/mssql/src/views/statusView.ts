@@ -15,7 +15,6 @@ import { getUriKey } from "../utils/utils";
 import { ConnectionInfo } from "../controllers/connectionManager";
 import { uriOwnershipCoordinator } from "../extension";
 import { getLogger } from "../models/logger";
-import { PreviewFeature, previewService } from "../previews/previewService";
 
 const logger = getLogger("StatusView");
 
@@ -37,10 +36,6 @@ class FileStatusBar {
     public sqlCmdMode: vscode.StatusBarItem;
     // Whether SQLCMD mode is enabled for the editor
     public isSqlCmd: boolean;
-    // Item for Row Count
-    public rowCount: vscode.StatusBarItem;
-    // Item for execution time
-    public executionTime: vscode.StatusBarItem;
 
     public currentLanguageServiceStatus: string;
     public queryTimer: NodeJS.Timeout;
@@ -93,10 +88,6 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                         this.updateServerProcessIdVisibility(fileUri, bar);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-                        if (!this.isInWebviewFooterEnabled) {
-                            this.showStatusBarItem(fileUri, bar.rowCount);
-                            this.showStatusBarItem(fileUri, bar.executionTime);
-                        }
                         if (this.isShowQueryExecutionStatusEnabled) {
                             this.showStatusBarItem(fileUri, bar.statusQuery);
                         } else {
@@ -118,8 +109,6 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusServerProcessId.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
-                this._statusBars[bar].executionTime.dispose();
-                this._statusBars[bar].rowCount.dispose();
                 if (this._statusBars[bar].queryTimer) {
                     clearInterval(this._statusBars[bar].queryTimer);
                 }
@@ -133,15 +122,6 @@ export default class StatusView implements vscode.Disposable {
 
     public setConnectionStore(connectionStore: ConnectionStore): void {
         this._connectionStore = connectionStore;
-    }
-
-    /**
-     * Whether the in-webview query results footer preview is enabled. When enabled, the
-     * row count and execution time status bar items are suppressed because the footer surfaces
-     * that information inside the results view.
-     */
-    private get isInWebviewFooterEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
     /**
@@ -187,8 +167,6 @@ export default class StatusView implements vscode.Disposable {
         bar.isSqlCmd = vscode.workspace
             .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
             .get<boolean>(Constants.configEnableSqlCmdByDefault, false);
-        bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
-        bar.executionTime = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 70);
         this._statusBars[fileUri] = bar;
     }
 
@@ -219,12 +197,6 @@ export default class StatusView implements vscode.Disposable {
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
             }
-            if (bar.rowCount) {
-                bar.rowCount.dispose();
-            }
-            if (bar.executionTime) {
-                bar.executionTime.dispose();
-            }
 
             delete this._statusBars[fileUri];
         }
@@ -247,10 +219,6 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.updateServerProcessIdVisibility(fileUri, bar);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-        if (!this.isInWebviewFooterEnabled) {
-            this.showStatusBarItem(fileUri, bar.rowCount);
-            this.showStatusBarItem(fileUri, bar.executionTime);
-        }
         if (this.isShowQueryExecutionStatusEnabled) {
             this.showStatusBarItem(fileUri, bar.statusQuery);
         } else {
@@ -277,8 +245,6 @@ export default class StatusView implements vscode.Disposable {
 
         this.hideStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.hideStatusBarItem(fileUri, bar.statusQuery);
-        this.hideStatusBarItem(fileUri, bar.rowCount);
-        this.hideStatusBarItem(fileUri, bar.executionTime);
         clearInterval(bar.queryTimer);
     }
 
@@ -426,7 +392,6 @@ export default class StatusView implements vscode.Disposable {
     public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         clearInterval(bar.queryTimer);
-        this.hideStatusBarItem(fileUri, bar.executionTime);
         if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
@@ -439,6 +404,7 @@ export default class StatusView implements vscode.Disposable {
 
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        clearInterval(bar.queryTimer);
         if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
@@ -448,16 +414,6 @@ export default class StatusView implements vscode.Disposable {
         setTimeout(() => {
             bar.statusQuery.hide();
         }, 200);
-    }
-
-    public setExecutionTime(fileUri: string, time: string): void {
-        let bar = this.getStatusBar(fileUri);
-        clearInterval(bar.queryTimer);
-        if (this.isInWebviewFooterEnabled) {
-            return;
-        }
-        bar.executionTime.text = time;
-        this.showStatusBarItem(fileUri, bar.executionTime);
     }
 
     public cancelingQuery(fileUri: string): void {
@@ -518,26 +474,6 @@ export default class StatusView implements vscode.Disposable {
             : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-    }
-
-    public showRowCount(fileUri: string, message?: string): void {
-        if (this.isInWebviewFooterEnabled) {
-            return;
-        }
-        let bar = this.getStatusBar(fileUri);
-        if (message && message.includes("row")) {
-            // Remove parentheses from start and end
-            bar.rowCount.text = message.replace("(", "").replace(")", "");
-        }
-        this.showStatusBarItem(fileUri, bar.rowCount);
-    }
-
-    public hideRowCount(fileUri: string, clear: boolean = false): void {
-        let bar = this.getStatusBar(fileUri);
-        if (clear) {
-            bar.rowCount.text = "";
-        }
-        bar.rowCount.hide();
     }
 
     public updateStatusMessage(
@@ -610,8 +546,6 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusServerProcessId.hide();
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
-            this._lastShownStatusBar.executionTime.hide();
-            this._lastShownStatusBar.rowCount.hide();
             this._lastShownStatusBar.sqlCmdMode.hide();
         }
     }
