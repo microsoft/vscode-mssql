@@ -1431,6 +1431,7 @@ suite("Local-to-cloud helpers", () => {
             controllerState.deploymentTypeState = state;
             controller = sandbox.createStubInstance(DeploymentWebviewController);
             sandbox.stub(controller, "state").value(controllerState);
+            sandbox.stub(controller, "workflowCorrelationId").get(() => "workflow-id");
             controller.validateDeploymentForm.resolves([]);
             main = sandbox.createStubInstance(MainController);
             controller.mainController = main;
@@ -1938,6 +1939,70 @@ suite("Local-to-cloud helpers", () => {
             expect(createDatabase).not.to.have.been.called;
         });
 
+        test("labels deployment telemetry with the workflow and its source then target connection", async () => {
+            const source = manager.activeConnections["selected-source"];
+            const target = Object.assign(new ConnectionInfo(), {
+                credentials: {
+                    server: "server.database.windows.net",
+                    database: "CloudInventory",
+                    authenticationType: AuthenticationType.SqlLogin,
+                },
+                serverInfo: { engineEditionId: 5 },
+            });
+            manager.getConnectionInfo.callsFake((uri: string) =>
+                uri === "selected-source"
+                    ? source
+                    : uri.startsWith("mssql-local-to-cloud-target:")
+                      ? target
+                      : undefined,
+            );
+
+            expect((await deploy()).status).to.equal("succeeded");
+
+            const sourceTelemetry = sinon.match({
+                connectionInfo: source.credentials,
+                additionalProps: sinon.match({ connectionRole: "source" }),
+            });
+            const targetTelemetry = sinon.match({
+                connectionInfo: target.credentials,
+                serverInfo: target.serverInfo,
+                additionalProps: sinon.match({ connectionRole: "target" }),
+            });
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.LocalToCloudDeployment,
+                TelemetryActions.StartLocalToCloudDeployment,
+                sinon.match({
+                    connectionInfo: source.credentials,
+                    additionalProps: {
+                        deploymentContent: "schemaOnly",
+                        workflowCorrelationId: "workflow-id",
+                        connectionRole: "source",
+                    },
+                }),
+            );
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.LocalToCloudDeployment,
+                TelemetryActions.FinishLocalToCloudDeployment,
+                sinon.match({
+                    connectionInfo: target.credentials,
+                    additionalProps: sinon.match({
+                        status: "succeeded",
+                        workflowCorrelationId: "workflow-id",
+                        connectionRole: "target",
+                    }),
+                }),
+            );
+            expect(controller.recordDeploymentStarted).to.have.been.calledOnceWith(
+                DeploymentType.LocalToCloud,
+                sourceTelemetry,
+            );
+            expect(controller.recordDeploymentCompleted).to.have.been.calledOnceWith(
+                DeploymentType.LocalToCloud,
+                BackgroundTaskState.Succeeded,
+                targetTelemetry,
+            );
+        });
+
         test("returns the same operation for repeated start requests without creating twice", async () => {
             const first = deploy();
             expect(deploy()).to.equal(first);
@@ -1962,7 +2027,12 @@ suite("Local-to-cloud helpers", () => {
                 expect(telemetry.sendActionEvent).to.have.been.calledWith(
                     TelemetryViews.LocalToCloudDeployment,
                     TelemetryActions.StartLocalToCloudDeployment,
-                    { additionalProps: { deploymentContent } },
+                    {
+                        additionalProps: {
+                            deploymentContent,
+                            workflowCorrelationId: "workflow-id",
+                        },
+                    },
                 );
                 expect(telemetry.sendActionEvent).to.have.been.calledWith(
                     TelemetryViews.LocalToCloudDeployment,
@@ -2033,9 +2103,14 @@ suite("Local-to-cloud helpers", () => {
                 expect(payload).not.to.have.property("error");
                 expect(Object.keys(payload.additionalProps)).to.satisfy((keys: string[]) =>
                     keys.every((key) =>
-                        ["deploymentContent", "stage", "status", "resourcesMayRemain"].includes(
-                            key,
-                        ),
+                        [
+                            "deploymentContent",
+                            "stage",
+                            "status",
+                            "resourcesMayRemain",
+                            "workflowCorrelationId",
+                            "connectionRole",
+                        ].includes(key),
                     ),
                 );
                 expect(Object.values(payload.additionalMeasurements ?? {})).to.satisfy(

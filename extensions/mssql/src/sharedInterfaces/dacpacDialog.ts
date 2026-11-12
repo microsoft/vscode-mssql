@@ -16,6 +16,26 @@ export enum DacPacDialogOperationType {
     Export = "export",
 }
 
+export enum DacpacDialogTelemetryEventName {
+    Opened = "Opened",
+    ConnectionReady = "ConnectionReady",
+    SubmitAttempted = "SubmitAttempted",
+    ValidationFailed = "ValidationFailed",
+    OperationStarted = "OperationStarted",
+    OperationCompleted = "OperationCompleted",
+    Cancelled = "Cancelled",
+    Closed = "Closed",
+    /** The dialog closed while an operation was still running; its completion ends the workflow. */
+    PanelClosed = "PanelClosed",
+}
+
+export interface DacpacDialogTelemetryParams {
+    eventName:
+        | DacpacDialogTelemetryEventName.SubmitAttempted
+        | DacpacDialogTelemetryEventName.ValidationFailed;
+    operationType: DacPacDialogOperationType;
+}
+
 /**
  * The state of the DacPacDialog Application webview
  */
@@ -255,6 +275,10 @@ export namespace ConnectToServerWebviewRequest {
  */
 export namespace CancelDacpacDialogWebviewNotification {
     export const type = new NotificationType<void>("dacpacDialog/cancel");
+}
+
+export namespace DacpacDialogTelemetryNotification {
+    export const type = new NotificationType<DacpacDialogTelemetryParams>("dacpacDialog/telemetry");
 }
 
 /**

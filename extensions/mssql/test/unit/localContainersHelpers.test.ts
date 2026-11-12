@@ -68,6 +68,9 @@ suite("localContainers logic", () => {
         deploymentController = {
             state: {},
             isDisposed: false,
+            workflowCorrelationId: "workflow-id",
+            recordDeploymentStarted: sandbox.stub(),
+            recordDeploymentCompleted: sandbox.stub(),
             mainController: {
                 backgroundTasksService,
                 connectionManager: {

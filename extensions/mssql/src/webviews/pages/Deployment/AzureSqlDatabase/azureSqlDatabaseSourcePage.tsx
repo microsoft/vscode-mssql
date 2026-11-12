@@ -190,7 +190,10 @@ export const AzureSqlDatabaseSourcePage = ({
         }
         setCloudPage("azure");
         if (!isAzureFormReady && azureState?.loadState !== ApiStatus.Loading) {
-            context.initializeDeploymentSpecifics(DeploymentType.AzureSqlDatabase);
+            context.initializeDeploymentSpecifics(
+                DeploymentType.AzureSqlDatabase,
+                DeploymentType.LocalToCloud,
+            );
         }
     };
     const startCompatibility = () => {
