@@ -72,11 +72,7 @@ suite("Object Explorer v2 command primitives (B19)", () => {
         ] as const) {
             expect(
                 tree.profiles.map((profile) => connectionNode(profile, { state }).icon),
-            ).to.deep.equal([
-                `Server_${suffix}`,
-                `Database_${suffix}`,
-                `DockerContainer_${suffix}`,
-            ]);
+            ).to.deep.equal([`Server_${suffix}`, `Database_${suffix}`, `Container_${suffix}`]);
         }
     });
 

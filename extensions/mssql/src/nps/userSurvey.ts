@@ -449,6 +449,15 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                 required: false,
                 placeholder: Loc.UserSurvey.privacyDisclaimer,
             },
+            {
+                type: "divider",
+            },
+            {
+                id: "jobRole",
+                type: "jobRole",
+                required: false,
+                otherAnswerId: "jobRoleOther",
+            },
         ],
     };
 }

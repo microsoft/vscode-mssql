@@ -1662,6 +1662,8 @@
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
     "Connection error": "Connection error",
+    "SQLCMD: On": "SQLCMD: On",
+    "SQLCMD: Off": "SQLCMD: Off",
     "SPID: {0}/{0} is the server process ID (SPID) of the connection": {
         "message": "SPID: {0}",
         "comment": ["{0} is the server process ID (SPID) of the connection"]
@@ -2447,8 +2449,18 @@
     "New to the MSSQL extension? Check out our quick-start guide.": "New to the MSSQL extension? Check out our quick-start guide.",
     "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
     "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
+    "Microsoft SQL\nCOMMUNITY CONFERENCE/Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name": {
+        "message": "Microsoft SQL\nCOMMUNITY CONFERENCE",
+        "comment": [
+            "Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name"
+        ]
+    },
+    "ATLANTA/City where the SQLCON conference takes place, shown in capital letters": {
+        "message": "ATLANTA",
+        "comment": ["City where the SQLCON conference takes place, shown in capital letters"]
+    },
     "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.": "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
-    "Use discount code {0} to save €200 on registration.": "Use discount code {0} to save €200 on registration.",
+    "Use discount code {0} to save $200 on registration.": "Use discount code {0} to save $200 on registration.",
     "Register": "Register",
     "MSSQL Getting Started Page": "MSSQL Getting Started Page",
     "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.": "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
@@ -4535,6 +4547,18 @@
         "message": "Collapse {0}",
         "comment": ["{0} is the name of an execution plan operation"]
     },
+    "Which of the following best describes your primary job role?": "Which of the following best describes your primary job role?",
+    "Select a role (optional)": "Select a role (optional)",
+    "Application Developer": "Application Developer",
+    "Database Developer": "Database Developer",
+    "Database Administrator": "Database Administrator",
+    "Data Engineer": "Data Engineer",
+    "Data Analyst / BI Professional": "Data Analyst / BI Professional",
+    "Data Scientist": "Data Scientist",
+    "Data Architect": "Data Architect",
+    "IT / DevOps Professional": "IT / DevOps Professional",
+    "Other (Please specify)": "Other (Please specify)",
+    "Please specify your job role (optional)": "Please specify your job role (optional)",
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Very Satisfied": "Very Satisfied",
     "Satisfied": "Satisfied",
@@ -5671,9 +5695,9 @@
     "Create an Azure SQL Database": "Create an Azure SQL Database",
     "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.": "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
     "Local database to Azure SQL Database (Preview)": "Local database to Azure SQL Database (Preview)",
-    "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.": "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.",
+    "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.": "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.",
     "Deploy a database to Azure SQL (Preview)": "Deploy a database to Azure SQL (Preview)",
-    "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.": "Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
+    "Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.": "Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
     "Choose source database": "Choose source database",
     "Verify Azure SQL compatibility": "Verify Azure SQL compatibility",
     "Compatibility": "Compatibility",
@@ -5763,7 +5787,7 @@
     "Review and deploy": "Review and deploy",
     "Confirm what will be created, then deploy.": "Confirm what will be created, then deploy.",
     "Local database · {0} {1}": "Local database · {0} {1}",
-    "Azure SQL Database · Free offer": "Azure SQL Database · Free offer",
+    "Azure SQL Database · Free tier": "Azure SQL Database · Free tier",
     "Includes": "Includes",
     "{0} · 1 object": "{0} · 1 object",
     "{0} · {1} objects": "{0} · {1} objects",
@@ -5775,8 +5799,6 @@
     "Ready for Azure SQL · 0 blocking": "Ready for Azure SQL · 0 blocking",
     "Ready for Azure SQL · 1 warning · 0 blocking": "Ready for Azure SQL · 1 warning · 0 blocking",
     "Ready for Azure SQL · {0} warnings · 0 blocking": "Ready for Azure SQL · {0} warnings · 0 blocking",
-    "Free limit": "Free limit",
-    "Pause until next month": "Pause until next month",
     "Azure location": "Azure location",
     "{0} · {1} · {2}/{0} is the Azure subscription; {1} is the resource group; {2} is the SQL server": {
         "message": "{0} · {1} · {2}",
@@ -5861,6 +5883,7 @@
     "Engine not detected": "Engine not detected",
     "Select a container engine": "Select a container engine",
     "Container engine detection failed.": "Container engine detection failed.",
+    "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.": "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
     "Unable to connect to {0}. Make sure it is running and retry./{0} is the name of a container engine": {
         "message": "Unable to connect to {0}. Make sure it is running and retry.",
         "comment": ["{0} is the name of a container engine"]
@@ -6991,8 +7014,10 @@
     },
     "Show release notes after updates": "Show release notes after updates",
     "Add connection": "Add connection",
-    "More deploy options": "More deploy options",
+    "More create options": "More create options",
+    "Local Azure SQL Database container (Preview)": "Local Azure SQL Database container (Preview)",
     "Local SQL Server container": "Local SQL Server container",
+    "Deploy local database to Azure SQL (Preview)": "Deploy local database to Azure SQL (Preview)",
     "Free": "Free",
     "More new options": "More new options",
     "New query": "New query",
@@ -7229,5 +7254,12 @@
     "Read the docs on Microsoft Learn": "Read the docs on Microsoft Learn",
     "Join a free SQL + AI workshop": "Join a free SQL + AI workshop",
     "Report a bug": "Report a bug",
-    "Request a feature": "Request a feature"
+    "Request a feature": "Request a feature",
+    "Event dates": "Event dates",
+    "Event location": "Event location",
+    "Copy discount code {0}/{0} is a registration discount code, e.g. VSCODE200": {
+        "message": "Copy discount code {0}",
+        "comment": ["{0} is a registration discount code, e.g. VSCODE200"]
+    },
+    "Discount code copied": "Discount code copied"
 }

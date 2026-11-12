@@ -6,14 +6,14 @@
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
 import { TreeNodeInfo } from "./treeNodeInfo";
-import { ObjectExplorerUtils } from "../objectExplorerUtils";
+import { IconUtils } from "../../utils/iconUtils";
 
 export class NoItemsNode extends vscode.TreeItem {
     constructor(private _parentNode: TreeNodeInfo) {
         super(LocalizedConstants.ObjectExplorer.NoItems, vscode.TreeItemCollapsibleState.None);
         this.iconPath = {
-            light: ObjectExplorerUtils.iconPath("NoItems_light"),
-            dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
+            light: IconUtils.getIcon("objectTypes", "NoItems_light.svg"),
+            dark: IconUtils.getIcon("objectTypes", "NoItems_dark.svg"),
         };
     }
 

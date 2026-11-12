@@ -371,6 +371,10 @@
     <trans-unit id="++CODE++810a308ea3cf5aa3f49ed6152899a6baa212e12f047653d5523bf0190a1ade5f">
       <source xml:lang="en">ARM template</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0c25586444158c2cb90273ba82e525d66b2c3e57c4fa4717c0a9063919c556f">
+      <source xml:lang="en">ATLANTA</source>
+      <note>City where the SQLCON conference takes place, shown in capital letters</note>
+    </trans-unit>
     <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
       <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
@@ -658,6 +662,9 @@
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f545aa57f78a315212ce8d19669341213bb4d998c8b9648ae1c6044086d06e4">
+      <source xml:lang="en">After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7cb0154423f4e208531c0ab32537384bffd7b92ace440743085f715a3a9042b7">
       <source xml:lang="en">Agent mode</source>
     </trans-unit>
@@ -834,6 +841,9 @@
     </trans-unit>
     <trans-unit id="++CODE++576111a7aee1dceb26cea96a10ff916ffb087796f8a5c1b6e97bcb16f47b01c3">
       <source xml:lang="en">Application (client) ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb6565c0bc03c3f2c3151f1d701c97f0f1fb4e415ce3eecb849fde359cf8d263">
+      <source xml:lang="en">Application Developer</source>
     </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
@@ -1170,8 +1180,8 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
-    <trans-unit id="++CODE++96654ef963adaf0e38bc588f6dc8622eba05f7b64ff2545b2f79d091c8b7477f">
-      <source xml:lang="en">Azure SQL Database · Free offer</source>
+    <trans-unit id="++CODE++76877a0b42006b7de3ef013e65ae9412823180bc2c7da5b5bc1fbbd4dfd162ba">
+      <source xml:lang="en">Azure SQL Database · Free tier</source>
     </trans-unit>
     <trans-unit id="++CODE++5f86b5c1fcc74565d367aa57714835e7aa082f59a4b063b1e24f441e6d5f247e">
       <source xml:lang="en">Azure SQL Dev Hub</source>
@@ -1871,8 +1881,8 @@
     <trans-unit id="++CODE++2e5f79bb94a8c40b3a103600323d7faee672abfb51f3c38679aab02fd4075a8d">
       <source xml:lang="en">Checking...</source>
     </trans-unit>
-    <trans-unit id="++CODE++c9a646880b6407fa3e553f23c34d213bc7e4bb166b322167dccd1c33617f47f0">
-      <source xml:lang="en">Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.</source>
+    <trans-unit id="++CODE++a1fb02a00cfacc8f4e60be92e03ecba3eedba5a49fb2911abaf3e4e7dff72373">
+      <source xml:lang="en">Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.</source>
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
@@ -3017,6 +3027,10 @@
     <trans-unit id="++CODE++b5b443f33da497ccf2678851978831b0e00e274513ff16f44c570776cb6cc34c">
       <source xml:lang="en">Copy data and save results to files</source>
     </trans-unit>
+    <trans-unit id="++CODE++67362d227418f63c09fd43b59de921a74bd827aece5e2aaceb9f0b2e218acae0">
+      <source xml:lang="en">Copy discount code {0}</source>
+      <note>{0} is a registration discount code, e.g. VSCODE200</note>
+    </trans-unit>
     <trans-unit id="++CODE++3445c4802a96131120ac2a8e228d505e08afc53b917172374c3810badc0407c7">
       <source xml:lang="en">Copy error details</source>
     </trans-unit>
@@ -3242,8 +3256,8 @@
     <trans-unit id="++CODE++477e49a037fdbc58507e0dd4b1d9b89896bbc8d8dfb513d120680ddd1c5c8d34">
       <source xml:lang="en">Create a database on your local SQL Server instance.</source>
     </trans-unit>
-    <trans-unit id="++CODE++fdb3df83b41286e717a4c9dd52bc833678247a3254aec052f3fcf484b9faa716">
-      <source xml:lang="en">Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.</source>
+    <trans-unit id="++CODE++77271edf16afc87caaf1595a456daa3bf1560bc1bf782d9aab48b5c5185924b2">
+      <source xml:lang="en">Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.</source>
     </trans-unit>
     <trans-unit id="++CODE++4e18c3ff33b564efde61c0544543d5e2f16e08aa89314ff3f32da35532e0e859">
       <source xml:lang="en">Create a local SQL Server container for your app.</source>
@@ -3539,6 +3553,18 @@
       <source xml:lang="en">Data API builder {0} ready</source>
       <note>{0} is the Data API builder version</note>
     </trans-unit>
+    <trans-unit id="++CODE++52e420d4457a1675cc896e36b14eeb788ea1e9df32ba43389edf1f855c676c1e">
+      <source xml:lang="en">Data Analyst / BI Professional</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a29d734683d202c3aa8b17d2c417e91dbeeffb6b344f0d39df99a93ed690c78">
+      <source xml:lang="en">Data Architect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ebcb746306074cb63e2153348d44db590c7c668afac248e071bc5e3096e74dd6">
+      <source xml:lang="en">Data Engineer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d69b468e295fa01cdb3b7c3f0bd341149e70e8238d3d1033a8b5104c9d1e69cb">
+      <source xml:lang="en">Data Scientist</source>
+    </trans-unit>
     <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
       <source xml:lang="en">Data Source</source>
     </trans-unit>
@@ -3599,6 +3625,9 @@
       <source xml:lang="en">Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++b9609b9c2ee6b44e36bdaaa2a9731c6cd65d7ffcb84f8af196773ab0628d2e00">
+      <source xml:lang="en">Database Administrator</source>
+    </trans-unit>
     <trans-unit id="++CODE++8bd9b4bcb9d0a24051d3546010a0e23cc4dca9884dca0b6d96608d2cf6b60ea7">
       <source xml:lang="en">Database Audit Specifications</source>
     </trans-unit>
@@ -3607,6 +3636,9 @@
     </trans-unit>
     <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
       <source xml:lang="en">Database Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++36fe8217a4b3b644274074299e52b6b48711f75ae9f915c9a5706916f17e09fb">
+      <source xml:lang="en">Database Developer</source>
     </trans-unit>
     <trans-unit id="++CODE++7707874a8154778a0c34b6781d9a5a020c17a7f5ae860c1c3a32786950e6aa21">
       <source xml:lang="en">Database Hub doesn&apos;t track this kind of server or database.</source>
@@ -3843,6 +3875,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4a1fec6bb23f4b53b3e6810ec85014caf866f6779f8c28a733fc034c63640a72">
       <source xml:lang="en">Deploy failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a363dd1d7b126252058e29f3e63b8befbce2a86982905a24c0b55e4addea2ca">
+      <source xml:lang="en">Deploy local database to Azure SQL (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++5fa5f06a3fb16046cc6023f3cc2a92d9a7024be5480836ad4d1ab5c884bada54">
       <source xml:lang="en">Deploy tables, views, and procedures without copying any rows. You can move data later.</source>
@@ -4095,6 +4130,9 @@
       <source xml:lang="en">Disconnecting from connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9c316baf4bc0cd767505d4289393c2b6c13a6afd7e9dcd0749abe356239a6ea0">
+      <source xml:lang="en">Discount code copied</source>
     </trans-unit>
     <trans-unit id="++CODE++d4a33d5b78bccebe3f16843dc30e6c0f73b4eb6efb4e7114ddfebde7fa2c9954">
       <source xml:lang="en">Discover</source>
@@ -4887,12 +4925,18 @@
     <trans-unit id="++CODE++4e1f49a9c8ae8a158434e647c0c410352d718984a4fcd144d26cca3c394caa02">
       <source xml:lang="en">Event</source>
     </trans-unit>
+    <trans-unit id="++CODE++9acef6c1ead712dbf4b0116230de8280ff327cdca2b431730a569bf86fd02aad">
+      <source xml:lang="en">Event dates</source>
+    </trans-unit>
     <trans-unit id="++CODE++ecc28160d0ef24af48ae00880dec04aaa156149bce2054ecd8f9fdf76842cf66">
       <source xml:lang="en">Event detail is no longer available (dropped from the live ring).</source>
     </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
       <note>{0} is the name of the profiler event</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2f46ea41687c41dc537bbc54b6ab94bf7a82ad66b07eb2b18b474875eb868a0d">
+      <source xml:lang="en">Event location</source>
     </trans-unit>
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>
@@ -6122,9 +6166,6 @@
     <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
       <source xml:lang="en">Free compute &amp; storage</source>
     </trans-unit>
-    <trans-unit id="++CODE++3ae46cf3de6a6415720c81f705c83ad66feef16b9f35cc169adb6230ded880c6">
-      <source xml:lang="en">Free limit</source>
-    </trans-unit>
     <trans-unit id="++CODE++c12cf70d21352437b716a76c78594849271e7699d8f37a01b10a4a3c7621270f">
       <source xml:lang="en">Free tier applied</source>
     </trans-unit>
@@ -6491,6 +6532,9 @@
     </trans-unit>
     <trans-unit id="++CODE++be9ee0cf4e3d4fdd1af6d17852b5e7ef78069590b49fe086652744f0157aa268">
       <source xml:lang="en">IP address range</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b79a20cac5e40434ab95206e030f5c69fd286b383be530db972a8dce47d7fab">
+      <source xml:lang="en">IT / DevOps Professional</source>
     </trans-unit>
     <trans-unit id="++CODE++999f23fcd7bec7075e54bb5dea0d9c548bfe7261f95b911ed8e23d2f4188724f">
       <source xml:lang="en">Identity</source>
@@ -7333,6 +7377,9 @@
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
     </trans-unit>
+    <trans-unit id="++CODE++4bbd034753059afe6cf796d443cf0c9de0670cb4fb3a03ac6ca92011d51487e8">
+      <source xml:lang="en">Local Azure SQL Database container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++3c8047e1144b0b498bd5fb4155a1f0e28ad14ed8f63892e2d20bf1fce56f921a">
       <source xml:lang="en">Local Azure SQL Database container, query performance dashboard, and more</source>
     </trans-unit>
@@ -7768,6 +7815,10 @@
     <trans-unit id="++CODE++6f67c6b7d976471e27e4a2b1e9094af6edcf507ddaf858d7dffd4ad4c1a78ed9">
       <source xml:lang="en">Microsoft SQL migration</source>
     </trans-unit>
+    <trans-unit id="++CODE++53a8c3571db8f710e8be4b6927008d07c6c1d1cc272efab045fd53c05d85ea9d">
+      <source xml:lang="en">Microsoft SQL&#10;COMMUNITY CONFERENCE</source>
+      <note>Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name</note>
+    </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>
     </trans-unit>
@@ -7885,8 +7936,8 @@
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
     </trans-unit>
-    <trans-unit id="++CODE++a96f15cc041bdfe5cbfba9f4d9a9b71cff27877e63bfd9cc20880c0cca63ba60">
-      <source xml:lang="en">More deploy options</source>
+    <trans-unit id="++CODE++aaac48ec8dcc28bfee227e38f7c8504c4d93d985093b840cbdfeb450b0c49dd9">
+      <source xml:lang="en">More create options</source>
     </trans-unit>
     <trans-unit id="++CODE++f47427ecd8b23cb11fe1987fbde7a7baca1d256cc8e2b165a5ec5a3105f32ec4">
       <source xml:lang="en">More new options</source>
@@ -9044,6 +9095,9 @@
       <source xml:lang="en">Other</source>
       <note>The other wait categories</note>
     </trans-unit>
+    <trans-unit id="++CODE++c1b68d44978ad2b888788673cfccf0ea25e7aac7d4396c945b6f8c145c6f09c3">
+      <source xml:lang="en">Other (Please specify)</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba0f79f8e6b404bef26409b2931e81b2052e932cee9299698e54213e4b2dfe88">
       <source xml:lang="en">Other supported engines</source>
     </trans-unit>
@@ -9197,9 +9251,6 @@
     </trans-unit>
     <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
       <source xml:lang="en">Pause event collection</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6a00791357b71e962480d12c7e1efe9ea1203ba0de4da5d72566b260807a6f12">
-      <source xml:lang="en">Pause until next month</source>
     </trans-unit>
     <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
       <source xml:lang="en">Paused</source>
@@ -9357,6 +9408,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
       <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac683d479f0f0d89c0fca7118b945fdf0e6f154236f88db9c66be31b385c663f">
+      <source xml:lang="en">Please specify your job role (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++ab1173eed1d477d9e951c2316a74d1923220e64d1bbaeadf03c88e20576c7450">
       <source xml:lang="en">Plugin</source>
@@ -10885,6 +10939,12 @@
     <trans-unit id="++CODE++a7e5c26c01b7c6e199165e627138d104755d24adb0ac611e42bc8b6787b7216c">
       <source xml:lang="en">SQLCMD variable name &apos;{0}&apos; cannot contain whitespace</source>
     </trans-unit>
+    <trans-unit id="++CODE++39c9ef4bd84eb6ddd9f5c378fa89815fcac712d62a25d50f1e062c22beae53e4">
+      <source xml:lang="en">SQLCMD: Off</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1a0d1ae14cd440c5c230fd6b80917303a6b0a2d78528b22b2d763c8ac3d855b">
+      <source xml:lang="en">SQLCMD: On</source>
+    </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
     </trans-unit>
@@ -11444,6 +11504,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f">
       <source xml:lang="en">Select a resource group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8f4a9114d44f73a76abbf79de2da14705b43c9f16cb5d81fbff0d2acf8f81496">
+      <source xml:lang="en">Select a role (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
@@ -13897,8 +13960,8 @@
     <trans-unit id="++CODE++72f88b3f19d98ff8757d99f53ebc655f62758dbe6d5db7af04fc28c6d86eeb5f">
       <source xml:lang="en">Use default model</source>
     </trans-unit>
-    <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
-      <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
+    <trans-unit id="++CODE++792977506c2251d90b8f2d2e2131acca010a10913a4c12f5e5aece81f1bb5500">
+      <source xml:lang="en">Use discount code {0} to save $200 on registration.</source>
     </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
@@ -14336,6 +14399,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e665368a7ddcbfc0773b209b289d596aa211d1746b8da0a3802464ede446cc70">
       <source xml:lang="en">Where the project will be created.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58260f4c62d0d01cd5631e06dfa74aa88c088e55ab812f6b9a24cf4f0d014ec0">
+      <source xml:lang="en">Which of the following best describes your primary job role?</source>
     </trans-unit>
     <trans-unit id="++CODE++f8d9319c3b029ab680834f0ad04e6fe566f3500828d6968ef7e420813be503c6">
       <source xml:lang="en">Why did this endpoint get slow?</source>
@@ -16048,6 +16114,9 @@
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
+    <trans-unit id="mssql.query.defaultSqlCmdMode.description">
+      <source xml:lang="en">Controls whether SQLCMD mode is enabled when a SQL editor is opened. Use the Toggle SQLCMD Mode command to change the mode for an individual editor.</source>
+    </trans-unit>
     <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
       <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
     </trans-unit>
@@ -17053,6 +17122,12 @@
     <trans-unit id="mssql.sqlToolsMcp.serverLabel">
       <source xml:lang="en">SQL Tools (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.query.defaultSqlCmdMode.disabled.description">
+      <source xml:lang="en">SQL editors open with SQLCMD mode disabled.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.defaultSqlCmdMode.enabled.description">
+      <source xml:lang="en">SQL editors open with SQLCMD mode enabled.</source>
+    </trans-unit>
     <trans-unit id="mssql.format.options.sqlEngineType">
       <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
     </trans-unit>
@@ -17442,6 +17517,9 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.netCoreDoNotAsk">
       <source xml:lang="en">Whether to prompt the user to install .NET SDK when not detected.</source>
+    </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.promptForMissingProjectGuid">
+      <source xml:lang="en">Whether to prompt to add a ProjectGuid to projects that don&apos;t have one. Turn this off for projects whose ProjectGuid is removed by another tool, such as Fabric Git integration.</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.microsoftBuildSqlVersion">
       <source xml:lang="en">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</source>

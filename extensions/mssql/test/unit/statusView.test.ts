@@ -136,6 +136,71 @@ suite("Status View Tests", () => {
         statusView.dispose();
     });
 
+    suite("SQLCMD mode status bar tests", () => {
+        const fileUri = "file:///test.sql";
+        let defaultSqlCmdMode: string | undefined;
+
+        setup(() => {
+            defaultSqlCmdMode = undefined;
+            sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
+                return createMockStatusBarItem();
+            });
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: (key: string, defaultValue?: unknown) =>
+                    key === Constants.configDefaultSqlCmdMode && defaultSqlCmdMode !== undefined
+                        ? defaultSqlCmdMode
+                        : defaultValue,
+            } as unknown as vscode.WorkspaceConfiguration);
+        });
+
+        function expectInitialSqlCmdMode(expected: boolean): void {
+            const statusView = new StatusView();
+
+            statusView.sqlCmdModeChanged(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(expected);
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                expected
+                    ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+                    : LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
+            );
+            statusView.dispose();
+        }
+
+        test("editors start with SQLCMD mode on when defaultSqlCmdMode is enabled", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Enabled;
+            expectInitialSqlCmdMode(true);
+        });
+
+        test("editors start with SQLCMD mode off when defaultSqlCmdMode is disabled", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Disabled;
+            expectInitialSqlCmdMode(false);
+        });
+
+        test("editors start with SQLCMD mode off when defaultSqlCmdMode is not set", () => {
+            expectInitialSqlCmdMode(false);
+        });
+
+        test("editors start with SQLCMD mode off when defaultSqlCmdMode is unrecognized", () => {
+            defaultSqlCmdMode = "detect";
+            expectInitialSqlCmdMode(false);
+        });
+
+        test("connection state changes preserve the editor's SQLCMD mode", () => {
+            const statusView = new StatusView();
+            statusView.sqlCmdModeChanged(fileUri, true);
+
+            statusView.setNotConnected(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.be.true;
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+            );
+            statusView.dispose();
+        });
+    });
+
     suite("Query execution status bar tests", () => {
         const fileUri = "test_uri";
 

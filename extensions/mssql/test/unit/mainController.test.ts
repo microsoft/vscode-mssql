@@ -44,6 +44,7 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as notebookController from "../../src/notebooks/sqlNotebookController";
@@ -272,6 +273,60 @@ suite("MainController Tests", function () {
         await controller.onManageProfiles();
 
         expect(connectionManager.onManageProfiles).to.have.been.called;
+    });
+
+    suite("onToggleSqlCmd Tests", () => {
+        const testUri = "file:///test/query.sql";
+        type ToggleSqlCmdAccess = {
+            onToggleSqlCmd(): void;
+            _outputContentProvider: { setSqlCmdMode: sinon.SinonStub };
+            _statusview: { getSqlCmdMode: sinon.SinonStub; sqlCmdModeChanged: sinon.SinonStub };
+        };
+        let controllerAccess: ToggleSqlCmdAccess;
+        let sendNotification: sinon.SinonStub;
+
+        setup(() => {
+            controllerAccess = mainController as unknown as ToggleSqlCmdAccess;
+            controllerAccess._outputContentProvider = { setSqlCmdMode: sandbox.stub() };
+            controllerAccess._statusview = {
+                getSqlCmdMode: sandbox.stub().returns(false),
+                sqlCmdModeChanged: sandbox.stub(),
+            };
+            sendNotification = sandbox.stub();
+            sandbox.stub(SqlToolsServiceClient, "instance").value({ sendNotification });
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+        });
+
+        test("toggles the editor's SQLCMD mode and notifies the language service", () => {
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
+
+            controllerAccess.onToggleSqlCmd();
+
+            expect(controllerAccess._outputContentProvider.setSqlCmdMode).to.have.been.calledWith(
+                testUri,
+                true,
+            );
+            expect(controllerAccess._statusview.sqlCmdModeChanged).to.have.been.calledWith(
+                testUri,
+                true,
+            );
+            expect(sendNotification).to.have.been.calledWith(
+                LanguageFlavorChangedNotification.type,
+                sinon.match({ uri: testUri, language: "sqlcmd" }),
+            );
+        });
+
+        test("warns and does nothing when the active editor is not a SQL file", () => {
+            sandbox.stub(Utils, "isEditingSqlFile").returns(false);
+
+            controllerAccess.onToggleSqlCmd();
+
+            expect(messageBoxes.showWarningMessage).to.have.been.calledWith(
+                LocalizedConstants.msgOpenSqlFile,
+            );
+            expect(controllerAccess._outputContentProvider.setSqlCmdMode).to.not.have.been.called;
+            expect(sendNotification).to.not.have.been.called;
+        });
     });
 
     test("sanitizeConnectionProfiles waits for connection settings initialization", async () => {

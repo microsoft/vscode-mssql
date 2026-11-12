@@ -25,8 +25,8 @@ export const ICON_SERVER_DISCONNECTED = "Server_red";
 export const ICON_SERVER_CONNECTED = "Server_green";
 export const ICON_DATABASE_DISCONNECTED = "Database_red";
 export const ICON_DATABASE_CONNECTED = "Database_green";
-export const ICON_DOCKER_SERVER_DISCONNECTED = "DockerContainer_red";
-export const ICON_DOCKER_SERVER_CONNECTED = "DockerContainer_green";
+export const ICON_DOCKER_SERVER_DISCONNECTED = "Container_red";
+export const ICON_DOCKER_SERVER_CONNECTED = "Container_green";
 
 const createDisconnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
@@ -316,12 +316,12 @@ export class ConnectionNode extends TreeNodeInfo {
         }
 
         // Update icon based on connection type
-        if (this.connectionProfile.database) {
+        if (this.connectionProfile.containerName) {
+            this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_DISCONNECTED);
+        } else if (this.connectionProfile.database) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_DISCONNECTED);
         } else {
-            let iconName = ICON_SERVER_DISCONNECTED;
-            if (this.connectionProfile.containerName) iconName = ICON_DOCKER_SERVER_DISCONNECTED;
-            this.iconPath = ObjectExplorerUtils.iconPath(iconName);
+            this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_DISCONNECTED);
         }
     }
 
