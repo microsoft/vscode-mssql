@@ -44,11 +44,6 @@ export function startProvisioningTask(
     return task;
 }
 
-/** Returns whether the controller has provisioning tasks that are still running. */
-export function hasActiveProvisioningTasks(controller: DeploymentWebviewController): boolean {
-    return (activeProvisioningTasks.get(controller)?.size ?? 0) > 0;
-}
-
 export function updateProvisioningTask(
     controller: DeploymentWebviewController,
     deploymentType: DeploymentType,

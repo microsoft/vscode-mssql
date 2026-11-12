@@ -39,6 +39,7 @@ import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
     AzureSqlDatabaseRequests,
+    LocalDatabaseCompatibilityResult,
     LocalDatabaseSource,
 } from "../sharedInterfaces/azureSqlDatabase";
 import { findFirstFavoriteOption } from "../sharedInterfaces/form";
@@ -46,14 +47,16 @@ import * as azureSql from "./azureSqlHelpers";
 import {
     sendActionEvent,
     startWorkflow,
+    type TelemetryEventOptions,
     type WorkflowStep,
     type WorkflowTelemetryObject,
 } from "extension-toolkit/vscode";
 import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
-import { hasActiveProvisioningTasks } from "./deploymentBackgroundTasks";
 import {
     AzureSqlCompatibilityBuilder,
     connectLocalDatabaseSource,
+    findActiveLocalSourceUri,
+    getLocalToCloudConnectionTelemetry,
     getLocalDatabaseProfileId,
     isAzureSqlDatabaseSource,
     getLocalDatabaseSources,
@@ -63,6 +66,7 @@ import {
 } from "./localToCloudHelpers";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { getMssqlOutputChannel } from "../models/logger";
+import { mergeTelemetryOptions } from "../utils/telemetryUtils";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
@@ -73,6 +77,8 @@ export enum DeploymentWorkflowEventName {
     Opened = "Opened",
     DeploymentTypeSelected = "DeploymentTypeSelected",
     ConfigurationReady = "ConfigurationReady",
+    SourceSelected = "SourceSelected",
+    CompatibilityValidated = "CompatibilityValidated",
     DeploymentStarted = "DeploymentStarted",
     DeploymentCompleted = "DeploymentCompleted",
     PanelClosed = "PanelClosed",
@@ -99,6 +105,27 @@ const DeploymentWorkflowStep = {
     },
 } as const;
 
+/** Local-to-cloud validates a source database first, so its ordinals are branch-relative. */
+const LocalToCloudWorkflowStep = {
+    [DeploymentWorkflowEventName.DeploymentTypeSelected]:
+        DeploymentWorkflowStep[DeploymentWorkflowEventName.DeploymentTypeSelected],
+    [DeploymentWorkflowEventName.SourceSelected]: { name: "Source", ordinal: 3 },
+    [DeploymentWorkflowEventName.CompatibilityValidated]: { name: "Compatibility", ordinal: 4 },
+    [DeploymentWorkflowEventName.ConfigurationReady]: { name: "Configuration", ordinal: 5 },
+    [DeploymentWorkflowEventName.DeploymentStarted]: { name: "Deployment", ordinal: 6 },
+    [DeploymentWorkflowEventName.DeploymentCompleted]: { name: "Deployment", ordinal: 6 },
+} as const;
+
+type DeploymentWorkflowStepEventName = keyof typeof LocalToCloudWorkflowStep;
+
+const CompatibilityOutcome: Record<LocalDatabaseCompatibilityResult["status"], string> = {
+    passed: "Succeeded",
+    warnings: "Succeeded",
+    blocked: "Failed",
+    error: "Failed",
+    cancelled: "Cancelled",
+};
+
 /**
  * Overarching controller for the deployment webview.
  * Since there's one overarching controller for all deployment types, but each deployment type has differently typed form states + webview states, there are two form states:
@@ -116,6 +143,8 @@ export class DeploymentWebviewController extends FormWebviewController<
     private readonly _workflow: WorkflowTelemetryObject;
     private _deploymentSucceeded = false;
     private _panelDisposed = false;
+    /** Deployments that are still running, which may outlive the panel. */
+    private readonly _runningDeployments = new Set<DeploymentType>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -170,10 +199,14 @@ export class DeploymentWebviewController extends FormWebviewController<
         this.registerReducer("initializeDeploymentSpecifics", async (state, payload) => {
             let newDeploymentTypeState: DeploymentTypeState;
             state.deploymentType = payload.deploymentType;
-            this.recordDeploymentWorkflowEvent(
-                DeploymentWorkflowEventName.DeploymentTypeSelected,
-                payload.deploymentType,
-            );
+            // Local-to-cloud reuses the Azure SQL Database form but is its own workflow branch.
+            const workflowDeploymentType = payload.workflowDeploymentType ?? payload.deploymentType;
+            if (workflowDeploymentType === payload.deploymentType) {
+                this.recordDeploymentWorkflowEvent(
+                    DeploymentWorkflowEventName.DeploymentTypeSelected,
+                    payload.deploymentType,
+                );
+            }
             state.deploymentTypeState.loadState = ApiStatus.Loading;
             this.updateState(state);
             const selectedGroupId = state?.formState?.groupId;
@@ -223,7 +256,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             }
             this.recordDeploymentWorkflowEvent(
                 DeploymentWorkflowEventName.ConfigurationReady,
-                payload.deploymentType,
+                workflowDeploymentType,
             );
             return state;
         });
@@ -412,6 +445,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             new vscode.Disposable(() => {
                 if (localWizardOpenedAt !== undefined) {
                     sendActionEvent(TelemetryViews.LocalToCloudDeployment, TelemetryActions.Close, {
+                        additionalProps: { workflowCorrelationId: this.workflowCorrelationId },
                         additionalMeasurements: {
                             durationInMs: performance.now() - localWizardOpenedAt,
                         },
@@ -428,6 +462,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.mainController.dacFxService,
             new AzureSqlCompatibilityBuilder(compatibilityOutput),
             this.logger,
+            this.workflowCorrelationId,
         );
         const deployment = new LocalDatabaseDeploymentService(
             this,
@@ -461,14 +496,28 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (deployment.isRunning) {
                 throw new Error(LocalToCloud.invalidDeployment);
             }
-            return compatibility.validate(request, (progress) => {
-                void this.sendNotification(
-                    AzureSqlDatabaseRequests.LocalDatabaseCompatibilityProgress,
-                    progress,
-                ).catch((error) =>
-                    this.logger.error("Failed to report compatibility progress.", error),
-                );
-            });
+            return compatibility
+                .validate(request, (progress) => {
+                    void this.sendNotification(
+                        AzureSqlDatabaseRequests.LocalDatabaseCompatibilityProgress,
+                        progress,
+                    ).catch((error) =>
+                        this.logger.error("Failed to report compatibility progress.", error),
+                    );
+                })
+                .then((result) => {
+                    this.recordDeploymentWorkflowEvent(
+                        DeploymentWorkflowEventName.CompatibilityValidated,
+                        DeploymentType.LocalToCloud,
+                        {
+                            outcome: CompatibilityOutcome[result.status],
+                            telemetry: this.getLocalSourceTelemetry(request.sourceId, {
+                                validationStatus: result.status,
+                            }),
+                        },
+                    );
+                    return result;
+                });
         });
         this.onRequest(
             AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility,
@@ -481,7 +530,13 @@ export class DeploymentWebviewController extends FormWebviewController<
         this.onRequest(AzureSqlDatabaseRequests.GetLocalDatabaseSources, async () => {
             if (localWizardOpenedAt === undefined) {
                 localWizardOpenedAt = performance.now();
-                sendActionEvent(TelemetryViews.LocalToCloudDeployment, TelemetryActions.Open);
+                sendActionEvent(TelemetryViews.LocalToCloudDeployment, TelemetryActions.Open, {
+                    additionalProps: { workflowCorrelationId: this.workflowCorrelationId },
+                });
+                this.recordDeploymentWorkflowEvent(
+                    DeploymentWorkflowEventName.DeploymentTypeSelected,
+                    DeploymentType.LocalToCloud,
+                );
             }
             const manager = this.mainController.connectionManager;
             const connections = await manager.connectionStore.readAllConnections();
@@ -536,7 +591,13 @@ export class DeploymentWebviewController extends FormWebviewController<
                 );
                 pendingConnections.set(key, request);
                 try {
-                    return await request;
+                    const source = await request;
+                    this.recordDeploymentWorkflowEvent(
+                        DeploymentWorkflowEventName.SourceSelected,
+                        DeploymentType.LocalToCloud,
+                        { telemetry: this.getLocalSourceTelemetry(source.id) },
+                    );
+                    return source;
                 } finally {
                     pendingConnections.delete(key);
                 }
@@ -577,48 +638,84 @@ export class DeploymentWebviewController extends FormWebviewController<
         return this._workflow.correlationId;
     }
 
-    public recordDeploymentStarted(deploymentType: DeploymentType): void {
+    /**
+     * Records the start of a deployment that may outlive the panel.
+     * @param telemetry Connection metadata for the deployment, when known.
+     */
+    public recordDeploymentStarted(
+        deploymentType: DeploymentType,
+        telemetry?: TelemetryEventOptions,
+    ): void {
+        this._runningDeployments.add(deploymentType);
         this.recordDeploymentWorkflowEvent(
             DeploymentWorkflowEventName.DeploymentStarted,
             deploymentType,
+            { telemetry },
         );
     }
 
+    /**
+     * Records a deployment's outcome. Once the panel has closed, the last running deployment's
+     * completion ends the workflow.
+     * @param telemetry Connection metadata for the deployment, when known.
+     */
     public recordDeploymentCompleted(
         deploymentType: DeploymentType,
         outcome: BackgroundTaskState,
+        telemetry?: TelemetryEventOptions,
     ): void {
+        this._runningDeployments.delete(deploymentType);
         this._deploymentSucceeded =
             outcome === BackgroundTaskState.Succeeded ||
             outcome === BackgroundTaskState.SucceededWithWarning;
-        // Provisioning outlives the panel; once it was closed, the completion ends the workflow.
-        const endWorkflow = this._panelDisposed && !hasActiveProvisioningTasks(this);
         this.recordDeploymentWorkflowEvent(
             DeploymentWorkflowEventName.DeploymentCompleted,
             deploymentType,
-            outcome,
-            endWorkflow,
+            {
+                outcome,
+                telemetry,
+                end: this._panelDisposed && this._runningDeployments.size === 0,
+            },
         );
     }
 
     private recordDeploymentWorkflowEvent(
-        eventName: Exclude<
-            DeploymentWorkflowEventName,
-            DeploymentWorkflowEventName.Closed | DeploymentWorkflowEventName.PanelClosed
-        >,
+        eventName: DeploymentWorkflowStepEventName,
         deploymentType: DeploymentType,
-        outcome?: string,
-        endWorkflow = false,
+        {
+            outcome,
+            telemetry = {},
+            end = false,
+        }: { outcome?: string; telemetry?: TelemetryEventOptions; end?: boolean } = {},
     ): void {
+        const steps: Partial<Record<DeploymentWorkflowStepEventName, WorkflowStep>> =
+            deploymentType === DeploymentType.LocalToCloud
+                ? LocalToCloudWorkflowStep
+                : DeploymentWorkflowStep;
         const step: WorkflowStep = {
-            ...DeploymentWorkflowStep[eventName],
+            ...(steps[eventName] ?? { name: eventName }),
             branch: DeploymentType[deploymentType],
         };
-        if (endWorkflow) {
-            this._workflow.end(eventName, { step, outcome });
+        const options = { ...telemetry, step, outcome };
+        if (end) {
+            this._workflow.end(eventName, options);
         } else {
-            this._workflow.record(eventName, { step, outcome });
+            this._workflow.record(eventName, options);
         }
+    }
+
+    /** Source connection metadata for a local-to-cloud workflow event. */
+    private getLocalSourceTelemetry(
+        sourceId: string,
+        additionalProps: Record<string, string> = {},
+    ): TelemetryEventOptions {
+        const manager = this.mainController.connectionManager;
+        const telemetry = getLocalToCloudConnectionTelemetry(
+            manager,
+            "source",
+            findActiveLocalSourceUri(manager, sourceId),
+        );
+        return mergeTelemetryOptions(telemetry, { additionalProps });
     }
 
     async updateItemVisibility() {}
@@ -721,12 +818,11 @@ export class DeploymentWebviewController extends FormWebviewController<
     public override dispose(): void {
         if (!this._panelDisposed) {
             this._panelDisposed = true;
-            const step = this._workflow.currentStep && {
-                ...this._workflow.currentStep,
-                branch: DeploymentType[this.state.deploymentType],
-            };
-            if (hasActiveProvisioningTasks(this)) {
-                // Provisioning continues in the background; its completion ends the workflow.
+            // The current step already carries the workflow branch, which may differ from the
+            // form's deployment type (local-to-cloud uses the Azure SQL Database form).
+            const step = this._workflow.currentStep;
+            if (this._runningDeployments.size > 0) {
+                // Deployments continue in the background; the last completion ends the workflow.
                 this._workflow.record(DeploymentWorkflowEventName.PanelClosed, { step });
             } else {
                 this._workflow.end(DeploymentWorkflowEventName.Closed, {

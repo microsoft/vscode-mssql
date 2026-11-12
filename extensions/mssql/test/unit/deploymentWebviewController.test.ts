@@ -16,7 +16,10 @@ import { WebviewPanelController } from "../../src/controllers/webviewPanelContro
 import * as localContainers from "../../src/deployment/localContainersHelpers";
 import { DeploymentType, DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { LocalContainersState } from "../../src/sharedInterfaces/localContainers";
-import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
+import {
+    AzureSqlDatabaseRequests,
+    AzureSqlDatabaseState,
+} from "../../src/sharedInterfaces/azureSqlDatabase";
 import {
     completeProvisioningTask,
     startProvisioningTask,
@@ -36,9 +39,11 @@ import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connect
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { CredentialsQuickPickItemType } from "../../src/models/interfaces";
-import type { IServerInfo } from "vscode-mssql";
+import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as azureSql from "../../src/deployment/azureSqlHelpers";
+import * as azureSqlDatabaseHelpers from "../../src/deployment/azureSqlDatabaseHelpers";
+import * as localToCloudHelpers from "../../src/deployment/localToCloudHelpers";
 import * as logger from "../../src/models/logger";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import {
@@ -74,7 +79,6 @@ suite("Deployment webview controller", () => {
             registerLocalWizardHandlers());
         closePanel = sandbox.stub();
         sandbox.stub(controller, "panel").get(() => ({ dispose: closePanel }));
-        sandbox.stub(controller, "workflowCorrelationId").get(() => "workflow-id");
         close = controller.registerReducer.getCalls().find((call) => call.args[0] === "dispose")!
             .args[1] as typeof close;
     });
@@ -115,6 +119,7 @@ suite("Deployment webview controller", () => {
         sandbox.stub(manager, "activeConnections").get(() => activeConnections);
         sandbox.stub(main, "connectionManager").get(() => manager);
         controller.mainController = main;
+        sandbox.stub(controller, "workflowCorrelationId").get(() => "workflow-id");
         DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
         return { controller, disposables, manager, store, activeConnections };
     }
@@ -227,6 +232,7 @@ suite("Deployment webview controller", () => {
         expect(telemetry.sendActionEvent).to.have.been.calledWith(
             TelemetryViews.LocalToCloudDeployment,
             TelemetryActions.Open,
+            { additionalProps: { workflowCorrelationId: "workflow-id" } },
         );
         const opened = telemetry.sendActionEvent.getCalls().map((call) => call.args);
         await handler(undefined, token);
@@ -237,7 +243,106 @@ suite("Deployment webview controller", () => {
         expect(telemetry.sendActionEvent).to.have.been.calledWith(
             TelemetryViews.LocalToCloudDeployment,
             TelemetryActions.Close,
-            sinon.match({ additionalMeasurements: { durationInMs: sinon.match.number } }),
+            sinon.match({
+                additionalProps: { workflowCorrelationId: "workflow-id" },
+                additionalMeasurements: { durationInMs: sinon.match.number },
+            }),
+        );
+        expect(controller["recordDeploymentWorkflowEvent"]).to.have.been.calledOnceWithExactly(
+            DeploymentWorkflowEventName.DeploymentTypeSelected,
+            DeploymentType.LocalToCloud,
+        );
+    });
+
+    test("records local-to-cloud source and compatibility steps with the source connection", async () => {
+        const sourceProfile = {
+            server: "localhost,1433",
+            database: "Inventory",
+        } as IConnectionInfo;
+        const sourceConnection = Object.assign(new ConnectionInfo(), {
+            connectionId: "source-connection",
+            credentials: sourceProfile,
+        });
+        activeConnections["source-uri"] = sourceConnection;
+        manager.isConnected.withArgs("source-uri").returns(true);
+        manager.getConnectionInfo.withArgs("source-uri").returns(sourceConnection);
+        (controller["getLocalSourceTelemetry"] as sinon.SinonStub).callThrough();
+        sandbox.stub(localToCloudHelpers, "connectLocalDatabaseSource").resolves({
+            id: "source-connection",
+            profileName: "Inventory",
+            server: "localhost,1433",
+            database: "Inventory",
+            isConnected: true,
+        });
+        sandbox.stub(LocalDatabaseCompatibilityService.prototype, "validate").resolves({
+            validationId: "validation",
+            sourceId: "source-connection",
+            deploymentContent: "schemaOnly",
+            database: "Inventory",
+            target: "AzureSqlDatabase",
+            status: "blocked",
+            diagnostics: [],
+        });
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+        const handler = (method: string) =>
+            controller.onRequest.getCalls().find((call) => call.args[0].method === method)!.args[1];
+
+        await handler(AzureSqlDatabaseRequests.ConnectLocalDatabaseSource.method)(
+            { id: "saved-source", database: "Inventory" },
+            token,
+        );
+        await handler(AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility.method)(
+            {
+                validationId: "validation",
+                sourceId: "source-connection",
+                deploymentContent: "schemaOnly",
+            },
+            token,
+        );
+
+        const sourceTelemetry = {
+            connectionInfo: sourceProfile,
+            serverInfo: undefined,
+            additionalProps: { connectionRole: "source" },
+        };
+        expect(controller["recordDeploymentWorkflowEvent"]).to.have.been.calledWithExactly(
+            DeploymentWorkflowEventName.SourceSelected,
+            DeploymentType.LocalToCloud,
+            { telemetry: sourceTelemetry },
+        );
+        expect(controller["recordDeploymentWorkflowEvent"]).to.have.been.calledWithExactly(
+            DeploymentWorkflowEventName.CompatibilityValidated,
+            DeploymentType.LocalToCloud,
+            {
+                outcome: "Failed",
+                telemetry: {
+                    ...sourceTelemetry,
+                    additionalProps: { connectionRole: "source", validationStatus: "blocked" },
+                },
+            },
+        );
+    });
+
+    test("attributes the local-to-cloud Azure form to the local-to-cloud workflow branch", async () => {
+        const azureState = new AzureSqlDatabaseState();
+        sandbox
+            .stub(azureSqlDatabaseHelpers, "initializeAzureSqlDatabaseState")
+            .resolves(azureState);
+        const initialize = controller.registerReducer
+            .getCalls()
+            .find((call) => call.args[0] === "initializeDeploymentSpecifics")!.args[1];
+
+        await initialize(new DeploymentWebviewState(), {
+            deploymentType: DeploymentType.AzureSqlDatabase,
+            workflowDeploymentType: DeploymentType.LocalToCloud,
+        });
+
+        expect(controller["recordDeploymentWorkflowEvent"]).to.have.been.calledOnceWithExactly(
+            DeploymentWorkflowEventName.ConfigurationReady,
+            DeploymentType.LocalToCloud,
         );
     });
 
@@ -558,6 +663,7 @@ suite("Deployment webview controller", () => {
             },
             _panelDisposed: { value: false, writable: true },
             _deploymentSucceeded: { value: false, writable: true },
+            _runningDeployments: { value: new Set<DeploymentType>() },
             state: { value: state },
             mainController: {
                 value: {
@@ -605,6 +711,55 @@ suite("Deployment webview controller", () => {
         expect(events[3]).to.include({
             outcome: BackgroundTaskState.Failed,
             branch: DeploymentType[DeploymentType.LocalContainers],
+        });
+        expect(workflowController["_workflow"].isEnded).to.be.true;
+    });
+
+    test("local-to-cloud deployment outliving the panel ends the workflow with its target connection", () => {
+        const workflowController = createWorkflowController();
+        const sourceTelemetry = {
+            connectionInfo: { server: "localhost,1433" } as IConnectionInfo,
+            additionalProps: { connectionRole: "source" },
+        };
+        const targetTelemetry = {
+            connectionInfo: { server: "server.database.windows.net" } as IConnectionInfo,
+            serverInfo: { engineEditionId: 5 } as IServerInfo,
+            additionalProps: { connectionRole: "target" },
+        };
+
+        workflowController.recordDeploymentStarted(DeploymentType.LocalToCloud, sourceTelemetry);
+        workflowController.dispose();
+        workflowController.recordDeploymentCompleted(
+            DeploymentType.LocalToCloud,
+            BackgroundTaskState.Succeeded,
+            targetTelemetry,
+        );
+
+        const events = telemetry.sendActionEvent
+            .getCalls()
+            .filter((call) => call.args[1] === TelemetryActions.DeploymentWorkflow)
+            .map((call) => call.args[2]);
+        expect(events.map((event) => event.additionalProps.eventName)).to.deep.equal([
+            DeploymentWorkflowEventName.Opened,
+            DeploymentWorkflowEventName.DeploymentStarted,
+            DeploymentWorkflowEventName.PanelClosed,
+            DeploymentWorkflowEventName.DeploymentCompleted,
+        ]);
+        expect(events[1].connectionInfo).to.equal(sourceTelemetry.connectionInfo);
+        expect(events[1].additionalProps).to.include({
+            branch: "LocalToCloud",
+            stepName: "Deployment",
+            stepOrdinal: "6",
+            connectionRole: "source",
+        });
+        expect(events[2].additionalProps).to.include({ branch: "LocalToCloud" });
+        expect(events[3].connectionInfo).to.equal(targetTelemetry.connectionInfo);
+        expect(events[3].serverInfo).to.equal(targetTelemetry.serverInfo);
+        expect(events[3].additionalProps).to.include({
+            outcome: BackgroundTaskState.Succeeded,
+            branch: "LocalToCloud",
+            stepOrdinal: "6",
+            connectionRole: "target",
         });
         expect(workflowController["_workflow"].isEnded).to.be.true;
     });
