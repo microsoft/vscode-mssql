@@ -5877,6 +5877,7 @@
     "Engine not detected": "Engine not detected",
     "Select a container engine": "Select a container engine",
     "Container engine detection failed.": "Container engine detection failed.",
+    "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.": "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
     "Unable to connect to {0}. Make sure it is running and retry./{0} is the name of a container engine": {
         "message": "Unable to connect to {0}. Make sure it is running and retry.",
         "comment": ["{0} is the name of a container engine"]
