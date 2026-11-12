@@ -7,16 +7,16 @@
 
 ### What's new in 1.48.0
 
-- Released the Query Results Grid as generally available (GA), with filtering, column visibility, and frozen columns. The classic grid and the `mssql.preview.betaResultsGrid` opt-out setting have been removed
-- Introduced a multi-results layout (Preview) for viewing query results side by side, resizing panes, and following or pinning the active editor's results. Enable with `mssql.preview.multiResults`
-- Introduced the Query Performance Dashboard (Preview), enabled by default, for exploring Query Store queries, execution history, waits, and plans, with plan comparison, plan forcing, and GitHub Copilot integration
-- Added local Azure SQL Database containers (Preview), including Microsoft Entra authentication, and a Deploy database to Azure SQL (Preview) workflow for moving local databases to Azure SQL Database
-- Enabled Live Query Statistics by default, showing execution progress and row counts while queries run
-- Improved Query History by recording query text when executing the current statement and aligning the execution plan display
-- Unified Data API builder deployment management in the Deployments view
-- Added nested connection group creation and fixed visibility of connection profiles defined in dev containers without an ID or group
-- Improved Microsoft Entra authentication by fixing repeated sign-in prompts and clearing cached tokens for VS Code accounts
-- Fixed query editor toolbar actions for SQL files in remote windows
+- Added local Azure SQL Database containers (Preview), allowing users to create and manage containers in a few clicks
+- Added a Deploy database to Azure SQL (Preview) workflow, helping users move local databases to a new free Azure SQL Database
+- Introduced the Query Performance Dashboard (Preview) for exploring Query Store top and regressed queries, waits, and plans, with plan forcing and GitHub Copilot integration
+- Released the Query Results Grid as generally available (GA), with filtering, column visibility, and frozen columns. The classic grid has been removed
+- Introduced a multi-results layout (Preview) for viewing query results side by side. Enable with `mssql.preview.multiResults`
+- Enabled Live Query Statistics by default. Select "Enable Live Query Statistics" in the query editor toolbar to watch progress and row counts while queries run
+- Improved Data API builder with a Deployments view for redeploying and managing deployments, and a DAB CLI target that runs without Docker and supports Microsoft Entra authentication
+- Added an option to open SQL editors in SQLCMD mode by default. Enable with `mssql.query.defaultSqlCmdMode`
+- Added nested connection group creation in Object Explorer, and improved Query History to record the text of current statement runs
+- Fixed issues with clearing the Microsoft Entra token cache, showing dev container connection profiles, and query editor toolbar actions in remote windows
 
 ## Version 1.47.0
 
