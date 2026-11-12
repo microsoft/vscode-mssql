@@ -16,6 +16,9 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { stubGetCapabilitiesRequest, stubLogger } from "./utils";
+import * as vscode from "vscode";
+import * as Constants from "../../src/constants/constants";
+import { DeploymentType } from "../../src/sharedInterfaces/deployment";
 
 chai.use(sinonChai);
 
@@ -278,6 +281,68 @@ suite("MssqlProtocolHandler Tests", () => {
                 trustServerCertificate: true,
             });
             expect(connectProfileStub).to.not.have.been.called;
+        });
+    });
+
+    suite("Deployment commands", () => {
+        let executeCommandStub: sinon.SinonStub;
+
+        setup(() => {
+            executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+        });
+
+        test("Should open the Azure SQL Database wizard", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/deploy?type=azureSqlDatabase"),
+            );
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                Constants.cmdDeployNewDatabase,
+                { deploymentType: DeploymentType.AzureSqlDatabase },
+            );
+            expect(openConnectionDialogStub).to.not.have.been.called;
+        });
+
+        test("Should open the SQL Server container wizard, matching the type case-insensitively", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/deploy?type=SQLServerContainer&source=docs"),
+            );
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                Constants.cmdDeployNewDatabase,
+                { deploymentType: DeploymentType.LocalContainers },
+            );
+            expect(openConnectionDialogStub).to.not.have.been.called;
+        });
+
+        test("Should open the Azure SQL container wizard", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/deploy?type=azureSqlContainer"),
+            );
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                Constants.cmdDeployNewDatabase,
+                { deploymentType: DeploymentType.AzureSqlContainer },
+            );
+            expect(openConnectionDialogStub).to.not.have.been.called;
+        });
+
+        test("Should open the deployment chooser when no type is given", async () => {
+            await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/deploy"));
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                Constants.cmdDeployNewDatabase,
+            );
+        });
+
+        test("Should open the deployment chooser for an unknown type", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/deploy?type=notAType"),
+            );
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                Constants.cmdDeployNewDatabase,
+            );
         });
     });
 
