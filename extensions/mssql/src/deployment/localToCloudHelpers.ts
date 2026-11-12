@@ -5,7 +5,11 @@
 
 import { KnownAlwaysEncryptedEnclaveType } from "@azure/arm-sql";
 import { DOMParser } from "@xmldom/xmldom";
-import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    type TelemetryEventOptions,
+} from "extension-toolkit/vscode";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -14,7 +18,7 @@ import * as path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { env, Uri, type Disposable, type OutputChannel } from "vscode";
 import { RequestType } from "vscode-languageclient";
-import type { DacFxResult, IServerInfo, SimpleExecuteResult } from "vscode-mssql";
+import type { DacFxResult, IConnectionInfo, IServerInfo, SimpleExecuteResult } from "vscode-mssql";
 import * as yauzl from "yauzl";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import {
@@ -69,6 +73,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage, isLocalServer } from "../utils/utils";
 import { isSystemDatabase } from "../utils/databaseUtils";
+import { getConnectionTelemetryInfo, mergeTelemetryOptions } from "../utils/telemetryUtils";
 import type { DeploymentWebviewController } from "./deploymentWebviewController";
 
 //#region Local database sources
@@ -93,6 +98,39 @@ export function getLocalDatabaseProfileId(connection: ConnectionInfo): string {
         connection.credentials.id
         ? connection.credentials.id
         : connection.connectionId;
+}
+
+/** Which side of a local-to-cloud deployment a connection's telemetry describes. */
+export type LocalToCloudConnectionRole = "source" | "target";
+
+/**
+ * Returns connection telemetry for an active connection, labelled with its deployment role so
+ * source and target metadata can be told apart. Returns no options when the connection is unknown.
+ */
+export function getLocalToCloudConnectionTelemetry(
+    manager: ConnectionManager,
+    role: LocalToCloudConnectionRole,
+    connection: string | IConnectionInfo | undefined,
+    databaseName?: string,
+): TelemetryEventOptions {
+    const { connectionInfo, serverInfo } = getConnectionTelemetryInfo(
+        manager,
+        connection,
+        databaseName,
+    );
+    return connectionInfo
+        ? { connectionInfo, serverInfo, additionalProps: { connectionRole: role } }
+        : {};
+}
+
+/** Returns the owner URI of the active connection for a local deployment source. */
+export function findActiveLocalSourceUri(
+    manager: ConnectionManager,
+    sourceId: string,
+): string | undefined {
+    return Object.entries(manager.activeConnections).find(
+        ([uri, connection]) => connection.connectionId === sourceId && manager.isConnected(uri),
+    )?.[0];
 }
 
 export async function connectLocalDatabaseSource(
@@ -511,6 +549,7 @@ export class LocalDatabaseCompatibilityService {
         private readonly dacFx: DacFxService,
         private readonly builder: AzureSqlCompatibilityBuilder,
         private readonly logger: ILogger,
+        private readonly workflowCorrelationId?: string,
     ) {}
 
     public async copyValidatedPackage(
@@ -612,15 +651,28 @@ export class LocalDatabaseCompatibilityService {
         const { request, abort } = operation;
         const startedAt = performance.now();
         let stage: LocalDatabaseCompatibilityStage | "preparing" | "cleanup" = "preparing";
+        const commonTelemetry = mergeTelemetryOptions(
+            this.workflowCorrelationId
+                ? { additionalProps: { workflowCorrelationId: this.workflowCorrelationId } }
+                : {},
+            getLocalToCloudConnectionTelemetry(
+                this.manager,
+                "source",
+                findActiveLocalSourceUri(this.manager, request.sourceId),
+            ),
+        );
         sendActionEvent(
             TelemetryViews.LocalToCloudDeployment,
             TelemetryActions.ValidateLocalDatabaseCompatibility,
-            {
-                additionalProps: {
-                    deploymentContent: request.deploymentContent,
-                    status: "started",
+            mergeTelemetryOptions(
+                {
+                    additionalProps: {
+                        deploymentContent: request.deploymentContent,
+                        status: "started",
+                    },
                 },
-            },
+                commonTelemetry,
+            ),
         );
         const reportProgress = (value: LocalDatabaseCompatibilityStage) => {
             abort.signal.throwIfAborted();
@@ -628,7 +680,10 @@ export class LocalDatabaseCompatibilityService {
             sendActionEvent(
                 TelemetryViews.LocalToCloudDeployment,
                 TelemetryActions.LocalDatabaseCompatibilityStage,
-                { additionalProps: { deploymentContent: request.deploymentContent, stage } },
+                mergeTelemetryOptions(
+                    { additionalProps: { deploymentContent: request.deploymentContent, stage } },
+                    commonTelemetry,
+                ),
             );
             onProgress?.({ validationId: request.validationId, stage });
         };
@@ -814,22 +869,26 @@ export class LocalDatabaseCompatibilityService {
             }
             taskSuppression?.dispose();
         }
-        const telemetryOptions = {
-            additionalProps: {
-                deploymentContent: request.deploymentContent,
-                status: result.status,
-                stage,
+        const telemetryOptions = mergeTelemetryOptions(
+            {
+                additionalProps: {
+                    deploymentContent: request.deploymentContent,
+                    status: result.status,
+                    stage,
+                },
+                additionalMeasurements: {
+                    durationInMs: performance.now() - startedAt,
+                    errorCount: result.diagnostics.filter((item) => item.severity === "error")
+                        .length,
+                    warningCount: result.diagnostics.filter((item) => item.severity === "warning")
+                        .length,
+                    ...(result.objectsValidated !== undefined
+                        ? { objectsValidated: result.objectsValidated }
+                        : {}),
+                },
             },
-            additionalMeasurements: {
-                durationInMs: performance.now() - startedAt,
-                errorCount: result.diagnostics.filter((item) => item.severity === "error").length,
-                warningCount: result.diagnostics.filter((item) => item.severity === "warning")
-                    .length,
-                ...(result.objectsValidated !== undefined
-                    ? { objectsValidated: result.objectsValidated }
-                    : {}),
-            },
-        };
+            commonTelemetry,
+        );
         if (result.status === "error") {
             sendErrorEvent(
                 TelemetryViews.LocalToCloudDeployment,
@@ -1023,6 +1082,14 @@ export class LocalDatabaseDeploymentService {
             throw new Error(LocalToCloud.invalidDeployment);
         }
         const startedAt = performance.now();
+        const postDeploymentTelemetry = mergeTelemetryOptions(
+            { additionalProps: { workflowCorrelationId: this.controller.workflowCorrelationId } },
+            getLocalToCloudConnectionTelemetry(
+                this.controller.mainController.connectionManager,
+                "target",
+                destination.profile,
+            ),
+        );
         try {
             if (action === "copyConnectionString") {
                 const manager = this.controller.mainController.connectionManager;
@@ -1043,21 +1110,27 @@ export class LocalDatabaseDeploymentService {
             sendActionEvent(
                 TelemetryViews.LocalToCloudDeployment,
                 TelemetryActions.LocalToCloudPostDeploymentAction,
-                {
-                    additionalProps: { action, status: "succeeded" },
-                    additionalMeasurements: { durationInMs: performance.now() - startedAt },
-                },
+                mergeTelemetryOptions(
+                    {
+                        additionalProps: { action, status: "succeeded" },
+                        additionalMeasurements: { durationInMs: performance.now() - startedAt },
+                    },
+                    postDeploymentTelemetry,
+                ),
             );
         } catch (error) {
             sendErrorEvent(
                 TelemetryViews.LocalToCloudDeployment,
                 TelemetryActions.LocalToCloudPostDeploymentAction,
-                {
-                    errorType: "PostDeploymentActionFailed",
-                    includeErrorMessage: false,
-                    additionalProps: { action, status: "error" },
-                    additionalMeasurements: { durationInMs: performance.now() - startedAt },
-                },
+                mergeTelemetryOptions(
+                    {
+                        errorType: "PostDeploymentActionFailed",
+                        includeErrorMessage: false,
+                        additionalProps: { action, status: "error" },
+                        additionalMeasurements: { durationInMs: performance.now() - startedAt },
+                    },
+                    postDeploymentTelemetry,
+                ),
             );
             throw error;
         }
@@ -1072,14 +1145,29 @@ export class LocalDatabaseDeploymentService {
         const startedAt = performance.now();
         let currentStage: LocalDatabaseDeploymentStage = "authenticating";
         let failureStage: LocalDatabaseDeploymentStage | "cleanup" | undefined;
-        sendActionEvent(
-            TelemetryViews.LocalToCloudDeployment,
-            TelemetryActions.StartLocalToCloudDeployment,
-            { additionalProps: { deploymentContent: request.deploymentContent } },
-        );
         const signal = abort.signal;
         const main = this.controller.mainController;
         const manager = main.connectionManager;
+        const workflowTelemetry = {
+            additionalProps: { workflowCorrelationId: this.controller.workflowCorrelationId },
+        };
+        const sourceTelemetry = getLocalToCloudConnectionTelemetry(
+            manager,
+            "source",
+            findActiveLocalSourceUri(manager, request.sourceId),
+        );
+        // Target metadata replaces the source's once the new database is connected.
+        let connectionTelemetry = sourceTelemetry;
+        sendActionEvent(
+            TelemetryViews.LocalToCloudDeployment,
+            TelemetryActions.StartLocalToCloudDeployment,
+            mergeTelemetryOptions(
+                { additionalProps: { deploymentContent: request.deploymentContent } },
+                workflowTelemetry,
+                connectionTelemetry,
+            ),
+        );
+        this.controller.recordDeploymentStarted(DeploymentType.LocalToCloud, sourceTelemetry);
         const form = state.formState;
         const title = LocalToCloud.deployingDatabase(form.databaseName);
         const backgroundTask = main.backgroundTasksService.registerTask({
@@ -1139,16 +1227,20 @@ export class LocalDatabaseDeploymentService {
                 sendActionEvent(
                     TelemetryViews.LocalToCloudDeployment,
                     TelemetryActions.LocalToCloudDeploymentStage,
-                    {
-                        additionalProps: {
-                            deploymentContent: request.deploymentContent,
-                            stage,
-                            status,
+                    mergeTelemetryOptions(
+                        {
+                            additionalProps: {
+                                deploymentContent: request.deploymentContent,
+                                stage,
+                                status,
+                            },
+                            additionalMeasurements: {
+                                durationInMs: performance.now() - stageStartedAt,
+                            },
                         },
-                        additionalMeasurements: {
-                            durationInMs: performance.now() - stageStartedAt,
-                        },
-                    },
+                        workflowTelemetry,
+                        connectionTelemetry,
+                    ),
                 );
             }
         };
@@ -1479,6 +1571,12 @@ export class LocalDatabaseDeploymentService {
                     await delay(30_000, undefined, { signal });
                 }
             });
+            connectionTelemetry = getLocalToCloudConnectionTelemetry(
+                manager,
+                "target",
+                targetUri,
+                form.databaseName,
+            );
             const withData = request.deploymentContent === "schemaAndData";
             await run(withData ? "importingData" : "publishingSchema", async () => {
                 const targetEmpty = await query(targetUri, emptyTargetQuery);
@@ -1603,34 +1701,37 @@ export class LocalDatabaseDeploymentService {
         if (result.status === "succeeded") {
             this.output.appendLine(LocalToCloud.deploymentSucceeded);
         }
-        backgroundTask.complete(
+        const taskState =
             result.status === "succeeded"
                 ? BackgroundTaskState.Succeeded
                 : result.status === "cancelled"
                   ? BackgroundTaskState.Canceled
-                  : BackgroundTaskState.Failed,
+                  : BackgroundTaskState.Failed;
+        backgroundTask.complete(taskState, {
+            message:
+                result.status === "succeeded"
+                    ? LocalToCloud.deploymentSucceeded
+                    : result.errorMessage,
+        });
+        const telemetryOptions = mergeTelemetryOptions(
             {
-                message:
-                    result.status === "succeeded"
-                        ? LocalToCloud.deploymentSucceeded
-                        : result.errorMessage,
+                additionalProps: {
+                    deploymentContent: request.deploymentContent,
+                    status: result.status,
+                    stage: failureStage ?? currentStage,
+                    resourcesMayRemain: String(result.resourcesMayRemain),
+                },
+                additionalMeasurements: {
+                    durationInMs: performance.now() - startedAt,
+                    completedStageCount: completedStages.length,
+                    ...(result.objectsDeployed !== undefined
+                        ? { objectsDeployed: result.objectsDeployed }
+                        : {}),
+                },
             },
+            workflowTelemetry,
+            connectionTelemetry,
         );
-        const telemetryOptions = {
-            additionalProps: {
-                deploymentContent: request.deploymentContent,
-                status: result.status,
-                stage: failureStage ?? currentStage,
-                resourcesMayRemain: String(result.resourcesMayRemain),
-            },
-            additionalMeasurements: {
-                durationInMs: performance.now() - startedAt,
-                completedStageCount: completedStages.length,
-                ...(result.objectsDeployed !== undefined
-                    ? { objectsDeployed: result.objectsDeployed }
-                    : {}),
-            },
-        };
         if (result.status === "error") {
             sendErrorEvent(
                 TelemetryViews.LocalToCloudDeployment,
@@ -1648,6 +1749,11 @@ export class LocalDatabaseDeploymentService {
                 telemetryOptions,
             );
         }
+        this.controller.recordDeploymentCompleted(
+            DeploymentType.LocalToCloud,
+            taskState,
+            connectionTelemetry,
+        );
         return result;
     }
 

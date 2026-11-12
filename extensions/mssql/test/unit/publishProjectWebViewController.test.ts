@@ -33,8 +33,9 @@ import { uuid } from "../e2e/baseFixtures";
 import { ConnectionDetails } from "vscode-mssql";
 import * as constants from "../../src/constants/constants";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
-import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { ServerType } from "../../src/models/connectionInfo";
+import { SqlProjectWorkflowEventName } from "../../src/databaseProjects/common/projectWorkflowTelemetry";
 import { Deferred } from "../../src/protocol";
 import { UserSurvey } from "../../src/nps/userSurvey";
 
@@ -132,6 +133,26 @@ suite("PublishProjectWebViewController Tests", () => {
     }
 
     /**
+     * Returns the additional properties of SQL project workflow events sent through the stub.
+     */
+    function getWorkflowEvents(sendActionEventStub: sinon.SinonStub): Record<string, string>[] {
+        return sendActionEventStub.args
+            .filter((args) => args[1] === TelemetryActions.SqlProjectWorkflow)
+            .map((args) => args[2]?.additionalProps as Record<string, string>);
+    }
+
+    /**
+     * Makes panel disposal dispose the controller, as the real panel's onDidDispose handler does.
+     */
+    function disposeControllerWithPanel(controller: PublishProjectWebViewController): void {
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: () => controller.dispose() },
+            writable: true,
+            configurable: true,
+        });
+    }
+
+    /**
      * Helper to get reducer handlers from controller, avoiding repeated casts.
      */
     function getReducerHandlers(
@@ -155,6 +176,27 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(components.serverName, "serverName component should exist").to.exist;
         expect(components.databaseName, "databaseName component should exist").to.exist;
         expect(components.publishTarget, "publishTarget component should exist").to.exist;
+    });
+
+    test("constructor records the publish dialog workflow step", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = createTestController("c:/work/WorkflowProject.sqlproj");
+
+        await controller.initialized.promise;
+
+        const workflowCall = sendActionEventStub.args.find(
+            (args) =>
+                args[0] === TelemetryViews.SqlProjects &&
+                args[1] === TelemetryActions.SqlProjectWorkflow,
+        );
+        expect(workflowCall).to.exist;
+        expect(workflowCall![2]?.additionalProps).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishDialogOpened,
+            stepName: "Publish",
+            stepOrdinal: "3",
+        });
+
+        controller.dispose();
     });
 
     test("reducer handlers are registered on construction", async () => {
@@ -971,6 +1013,68 @@ suite("PublishProjectWebViewController Tests", () => {
             "isPublish parameter should be false for script generation",
         ).to.be.false;
     });
+
+    test("generate script records build and script generation instead of cancelling", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = createTestController("c:/work/GenerateScriptWorkflow.sqlproj");
+        await controller.initialized.promise;
+        controller["_connectionUri"] = "mssql://test-connection-uri";
+        sandbox
+            .stub(controller["_projectController"], "buildProject")
+            .resolves("/path/to/project.dacpac");
+        mockDacFxService.generateDeployScript.resolves({
+            success: true,
+            errorMessage: "",
+            operationId: "",
+        });
+        disposeControllerWithPanel(controller);
+        const executeSpy = sandbox.spy(
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (
+                    state: unknown,
+                    isPublish: boolean,
+                ) => Promise<void>;
+            },
+            "executePublishAndGenerateScript",
+        );
+
+        await getReducerHandlers(controller).get("generatePublishScript")(controller.state, {});
+        await executeSpy.firstCall.returnValue;
+        controller.dispose();
+
+        const events = getWorkflowEvents(sendActionEventStub);
+        expect(events.map((event) => event.eventName)).to.deep.equal([
+            SqlProjectWorkflowEventName.PublishDialogOpened,
+            SqlProjectWorkflowEventName.ScriptGenerationStarted,
+            SqlProjectWorkflowEventName.BuildStarted,
+            SqlProjectWorkflowEventName.BuildCompleted,
+            SqlProjectWorkflowEventName.ScriptGenerationCompleted,
+        ]);
+        expect(events[3].outcome).to.equal("Succeeded");
+        expect(events[4].outcome).to.equal("Succeeded");
+        expect(events.every((event) => event.operationId === controller["_operationId"])).to.be
+            .true;
+    });
+
+    test("failed publish dialog build records a failed build", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = createTestController("c:/work/FailedBuildWorkflow.sqlproj");
+        await controller.initialized.promise;
+        sandbox
+            .stub(controller["_projectController"], "buildProject")
+            .rejects(new Error("Build failed"));
+
+        const dacpacPath = await controller["buildProject"](controller.state);
+
+        expect(dacpacPath).to.be.undefined;
+        const [started, completed] = getWorkflowEvents(sendActionEventStub).slice(-2);
+        expect(started).to.include({ eventName: SqlProjectWorkflowEventName.BuildStarted });
+        expect(completed).to.include({
+            eventName: SqlProjectWorkflowEventName.BuildCompleted,
+            outcome: "Failed",
+            operationId: controller["_operationId"],
+        });
+    });
     //#endregion
 
     //#region Publish Tests
@@ -1234,8 +1338,10 @@ suite("PublishProjectWebViewController Tests", () => {
     /**
      * Helper function to create controller and set up common container publish form state
      */
-    async function setupContainerPublishState(): Promise<PublishProjectWebViewController> {
-        const controller = createTestController();
+    async function setupContainerPublishState(
+        projectPath?: string,
+    ): Promise<PublishProjectWebViewController> {
+        const controller = createTestController(projectPath);
         await controller.initialized.promise;
 
         controller.state.formState.publishTarget = PublishTarget.LocalContainer;
@@ -1392,6 +1498,80 @@ suite("PublishProjectWebViewController Tests", () => {
         validateContainerPublishError(newState, updateStateSpy, "Unexpected network failure");
     });
 
+    test("closing after a failed container publish ends the workflow as failed", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = await setupContainerPublishState(
+            "c:/work/FailedContainerWorkflow.sqlproj",
+        );
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .resolves({ success: false, error: "Docker is not installed" });
+
+        await getReducerHandlers(controller).get("publishNow")(controller.state, {});
+        controller.dispose();
+        controller.dispose();
+
+        const events = getWorkflowEvents(sendActionEventStub);
+        expect(events.at(-2)).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishCompleted,
+            outcome: "Failed",
+        });
+        expect(events.at(-1)).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishDialogClosed,
+            outcome: "Failed",
+            operationId: controller["_operationId"],
+        });
+        expect(
+            events.filter(
+                (event) => event.eventName === SqlProjectWorkflowEventName.PublishDialogClosed,
+            ),
+        ).to.have.lengthOf(1);
+    });
+
+    test("a successful container publish retry ends the workflow as succeeded", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = await setupContainerPublishState(
+            "c:/work/RetriedContainerWorkflow.sqlproj",
+        );
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .onFirstCall()
+            .resolves({ success: false, error: "Docker is not running" })
+            .onSecondCall()
+            .resolves({ success: true });
+        sandbox
+            .stub(controller, "prepareContainerConfiguration" as keyof typeof controller)
+            .resolves({ containerName: "test-container", port: 1433 });
+        sandbox.stub(controller, "createDockerContainer" as keyof typeof controller).resolves({
+            success: true,
+            connectionUri: "mssql://publish-container-test-container",
+        });
+        sandbox
+            .stub(controller["_projectController"], "buildProject")
+            .resolves("/path/to/project.dacpac");
+        mockDacFxService.deployDacpac.resolves({
+            success: true,
+            errorMessage: "",
+            operationId: "",
+        });
+        disposeControllerWithPanel(controller);
+        const publishNow = getReducerHandlers(controller).get("publishNow");
+
+        await publishNow(controller.state, {});
+        await publishNow(controller.state, {});
+
+        const events = getWorkflowEvents(sendActionEventStub);
+        expect(events.at(-1)).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishCompleted,
+            outcome: "Succeeded",
+        });
+        expect(
+            events.some(
+                (event) => event.eventName === SqlProjectWorkflowEventName.PublishDialogClosed,
+            ),
+        ).to.be.false;
+    });
+
     test("createDockerContainer succeeds on second attempt after transient auth failure", async () => {
         const controller = createTestController();
         await controller.initialized.promise;
@@ -1538,8 +1718,15 @@ suite("PublishProjectWebViewController Tests", () => {
             operationId: "",
         });
 
-        const controller = createTestController();
+        const controller = createTestController("c:/work/TelemetryPayloadProject.sqlproj");
         await controller.initialized.promise;
+        const workflowCorrelationId = sendActionEventStub.args.find(
+            (args) =>
+                args[1] === TelemetryActions.SqlProjectWorkflow &&
+                args[2]?.additionalProps?.eventName ===
+                    SqlProjectWorkflowEventName.PublishDialogOpened,
+        )?.[2]?.additionalProps?.workflowCorrelationId;
+        expect(workflowCorrelationId).to.be.a("string");
 
         const expectedServerTypes = `${ServerType.Azure},${ServerType.Sql}`;
         controller["_connectionUri"] = "mssql://azure-connection";
@@ -1572,8 +1759,21 @@ suite("PublishProjectWebViewController Tests", () => {
         );
         expect(publishCall, "PublishProject telemetry should be emitted").to.exist;
         expect(publishCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
+        const publishWorkflowCall = sendActionEventStub.args
+            .filter(
+                (args) =>
+                    args[1] === TelemetryActions.SqlProjectWorkflow &&
+                    args[2]?.additionalProps?.eventName ===
+                        SqlProjectWorkflowEventName.PublishCompleted &&
+                    args[2]?.additionalProps?.workflowCorrelationId === workflowCorrelationId,
+            )
+            .at(-1);
+        expect(publishWorkflowCall, "Publish workflow completion should be emitted").to.exist;
+        expect(publishWorkflowCall![2]?.additionalProps?.outcome).to.equal("Succeeded");
         expect(publishCall[2]?.connectionInfo).to.equal(connectionInfo);
         expect(publishCall[2]?.serverInfo).to.equal(serverInfo);
+        expect(publishWorkflowCall![2]?.connectionInfo).to.equal(connectionInfo);
+        expect(publishWorkflowCall![2]?.serverInfo).to.equal(serverInfo);
 
         // Verify GenerateScript failure event includes serverTypes (exercises the !result.success path)
         await controller["generateDeploymentScript"](
