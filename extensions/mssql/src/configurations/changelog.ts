@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { AzureSqlDatabaseLinks } from "../sharedInterfaces/azureSqlDatabase";
 import { ChangelogActionId, ChangelogWebviewState } from "../sharedInterfaces/changelog";
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
@@ -13,8 +14,45 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
-                title: locConstants.Changelog.gettingStartedPageTitle,
-                description: locConstants.Changelog.gettingStartedPageDescription,
+                title: locConstants.Changelog.azureSqlContainerTitle,
+                description: locConstants.Changelog.azureSqlContainerDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: ChangelogActionId.DeployNewDatabase,
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: AzureSqlDatabaseLinks.developerContainerOverview,
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.localToCloudTitle,
+                description: locConstants.Changelog.localToCloudDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: ChangelogActionId.DeployNewDatabase,
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.queryPerformanceDashboardTitle,
+                description: locConstants.Changelog.queryPerformanceDashboardDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-querystore-docs",
+                    },
+                ],
             },
             {
                 title: locConstants.Changelog.sqlFormatterTitle,
@@ -24,22 +62,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-formatter",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.shortcutsConfigurationTitle,
-                description: locConstants.Changelog.shortcutsConfigurationDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.tryIt,
-                        type: "command",
-                        value: ChangelogActionId.OpenShortcutsConfiguration,
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-shortcuts-configuration",
                     },
                 ],
             },
@@ -56,22 +78,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-azuresql-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.sqlNotebooksTitle,
-                description: locConstants.Changelog.sqlNotebooksDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.tryIt,
-                        type: "command",
-                        value: ChangelogActionId.CreateNotebook,
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-sql-notebooks",
                     },
                 ],
             },
