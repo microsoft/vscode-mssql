@@ -7,7 +7,11 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
-import { deploymentTypesByUriType, MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
+import {
+    deploymentTypesByUriType,
+    getUriSource,
+    MssqlProtocolHandler,
+} from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
 import MainController from "../../src/controllers/mainController";
@@ -15,7 +19,8 @@ import { uuid } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
-import { stubGetCapabilitiesRequest, stubLogger } from "./utils";
+import { stubGetCapabilitiesRequest, stubLogger, stubTelemetry } from "./utils";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
 import { DeploymentType } from "../../src/sharedInterfaces/deployment";
@@ -29,6 +34,7 @@ suite("MssqlProtocolHandler Tests", () => {
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let openConnectionDialogStub: sinon.SinonStub;
     let connectProfileStub: sinon.SinonStub;
+    let sendActionEventStub: sinon.SinonStub;
 
     const testServer = "TestServer";
     const testDatabase = "TestDatabase";
@@ -38,6 +44,7 @@ suite("MssqlProtocolHandler Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubLogger(sandbox);
+        sendActionEventStub = stubTelemetry(sandbox).sendActionEvent;
         mockMainController = sandbox.createStubInstance(MainController);
 
         sqlToolsServiceClientMock = stubGetCapabilitiesRequest(sandbox);
@@ -371,6 +378,76 @@ suite("MssqlProtocolHandler Tests", () => {
             expect(executeCommandStub).to.have.been.calledOnceWithExactly(
                 Constants.cmdDeployNewDatabase,
             );
+        });
+    });
+
+    suite("Usage events", () => {
+        setup(() => {
+            sandbox.stub(vscode.commands, "executeCommand").resolves();
+        });
+
+        const expectEvent = (props: Record<string, string>) =>
+            expect(sendActionEventStub).to.have.been.calledOnceWithExactly(
+                TelemetryViews.ProtocolHandler,
+                TelemetryActions.Invoke,
+                { additionalProps: props },
+            );
+
+        test("Should record the deployment page and source", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/deploy?type=azureSqlDatabase&source=Docs"),
+            );
+
+            expectEvent({ action: "/deploy", source: "docs", deploymentType: "AzureSqlDatabase" });
+        });
+
+        test("Should record the chooser when no type is given", async () => {
+            await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/deploy"));
+
+            expectEvent({ action: "/deploy", source: "unknown", deploymentType: "chooser" });
+        });
+
+        test("Should not record the raw value of an unknown type", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/deploy?type=someone@example.com"),
+            );
+
+            expectEvent({ action: "/deploy", source: "unknown", deploymentType: "unrecognized" });
+        });
+
+        test("Should not add deployment properties to other commands", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/openConnectionDialog?source=blog"),
+            );
+
+            expectEvent({ action: "/openConnectionDialog", source: "blog" });
+        });
+    });
+
+    suite("getUriSource", () => {
+        const sourceOf = (query: string) =>
+            getUriSource(Uri.parse(`vscode://ms-mssql.mssql/deploy?${query}`));
+
+        test("Should return unknown when source is missing or empty", () => {
+            expect(sourceOf("")).to.equal("unknown");
+            expect(sourceOf("source=")).to.equal("unknown");
+        });
+
+        test("Should keep and lowercase identifier-like values", () => {
+            expect(sourceOf("source=Docs")).to.equal("docs");
+            expect(sourceOf("source=learn.microsoft-com_2")).to.equal("learn.microsoft-com_2");
+        });
+
+        test("Should replace free text, URLs, and long values with invalid", () => {
+            expect(sourceOf(`source=${encodeURIComponent("someone@example.com")}`)).to.equal(
+                "invalid",
+            );
+            expect(sourceOf(`source=${encodeURIComponent("https://example.com/a")}`)).to.equal(
+                "invalid",
+            );
+            expect(sourceOf("source=has%20space")).to.equal("invalid");
+            expect(sourceOf(`source=${"a".repeat(65)}`)).to.equal("invalid");
+            expect(sourceOf(`source=${"a".repeat(64)}`)).to.equal("a".repeat(64));
         });
     });
 

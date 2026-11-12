@@ -42,6 +42,26 @@ export const deploymentTypesByUriType: Readonly<Record<string, DeploymentType>> 
     localtocloud: DeploymentType.LocalToCloud,
 };
 
+/** Longer `source` values are recorded as "invalid" rather than kept. */
+const maxSourceLength = 64;
+const sourcePattern = /^[a-z0-9][a-z0-9._-]*$/i;
+
+/**
+ * Reads the `source` parameter a link can carry to say where it was published, for example
+ * `?source=docs`. The value is free text from outside the extension, so only a short
+ * identifier-like value is kept (lowercased); anything else is recorded as "invalid".
+ */
+export function getUriSource(uri: vscode.Uri): string {
+    const source = new URLSearchParams(uri.query).get("source");
+    if (!source) {
+        return "unknown";
+    }
+
+    return source.length <= maxSourceLength && sourcePattern.test(source)
+        ? source.toLowerCase()
+        : "invalid";
+}
+
 interface ConnectionOptionProperty {
     name: keyof IConnectionInfo;
     type: "string" | "number" | "boolean" | "category" | "password";
@@ -77,6 +97,7 @@ export class MssqlProtocolHandler {
 
         try {
             let handled = false;
+            let commandProps: Record<string, string> = {};
             switch (uri.path) {
                 // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
                 case Command.connect:
@@ -93,7 +114,7 @@ export class MssqlProtocolHandler {
                 // Open the deployment wizard on the page for the requested type, or on the chooser
                 // if no recognized type is given.
                 case Command.deploy:
-                    await this.handleDeployCommand(uri);
+                    commandProps = await this.handleDeployCommand(uri);
                     handled = true;
                     break;
 
@@ -114,7 +135,8 @@ export class MssqlProtocolHandler {
                 sendActionEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
                     additionalProps: {
                         action: uri.path,
-                        source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                        source: getUriSource(uri),
+                        ...commandProps,
                     },
                 });
             } else {
@@ -128,13 +150,20 @@ export class MssqlProtocolHandler {
                 includeErrorMessage: false,
                 additionalProps: {
                     command: uri.path,
-                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                    source: getUriSource(uri),
                 },
             });
         }
     }
 
-    private async handleDeployCommand(uri: vscode.Uri): Promise<void> {
+    /**
+     * Opens the deployment wizard for the URI's `type`.
+     *
+     * @returns The page that was opened, as `deploymentType`: the deployment type's name, "chooser"
+     * when no type was given, or "unrecognized" when the type is not one we know. The raw `type`
+     * value is not returned because it is free text from outside the extension.
+     */
+    private async handleDeployCommand(uri: vscode.Uri): Promise<Record<string, string>> {
         const type = new URLSearchParams(uri.query).get("type");
         const deploymentType = type ? deploymentTypesByUriType[type.toLowerCase()] : undefined;
 
@@ -148,6 +177,15 @@ export class MssqlProtocolHandler {
             Constants.cmdDeployNewDatabase,
             ...(deploymentType === undefined ? [] : [{ deploymentType }]),
         );
+
+        return {
+            deploymentType:
+                deploymentType !== undefined
+                    ? DeploymentType[deploymentType]
+                    : type
+                      ? "unrecognized"
+                      : "chooser",
+        };
     }
 
     private async handleOpenConnectionDialogCommand(uri: vscode.Uri) {
