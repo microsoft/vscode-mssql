@@ -369,6 +369,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         eventName: DacpacDialogStepEventName,
         operationType: dacpacDialog.DacPacDialogOperationType,
         outcome?: "Succeeded" | "Failed" | "Cancelled",
+        additionalProps?: Record<string, string>,
     ): void {
         this._workflow.record(eventName, {
             step: {
@@ -376,6 +377,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                 branch: operationType,
             },
             outcome,
+            additionalProps,
         });
     }
 
@@ -399,16 +401,19 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         operationType: dacpacDialog.DacPacDialogOperationType,
         outcome: "Succeeded" | "Failed",
         error?: Error,
+        operationId?: string,
     ): void {
+        const operationProps = operationId ? { operationId } : undefined;
         if (outcome === "Succeeded") {
-            activity.end(ActivityStatus.Succeeded);
+            activity.end(ActivityStatus.Succeeded, { additionalProps: operationProps });
         } else {
-            activity.endFailed(error, false);
+            activity.endFailed(error, false, undefined, undefined, operationProps);
         }
         this.recordWorkflowEvent(
             dacpacDialog.DacpacDialogTelemetryEventName.OperationCompleted,
             operationType,
             outcome,
+            operationProps,
         );
     }
 
@@ -447,6 +452,8 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     activity,
                     dacpacDialog.DacPacDialogOperationType.Deploy,
                     "Succeeded",
+                    undefined,
+                    result.operationId,
                 );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -460,6 +467,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     dacpacDialog.DacPacDialogOperationType.Deploy,
                     "Failed",
                     new Error(result.errorMessage || "Deploy operation failed"),
+                    result.operationId,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -519,6 +527,8 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     activity,
                     dacpacDialog.DacPacDialogOperationType.Extract,
                     "Succeeded",
+                    undefined,
+                    result.operationId,
                 );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -532,6 +542,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     dacpacDialog.DacPacDialogOperationType.Extract,
                     "Failed",
                     new Error(result.errorMessage || "Extract operation failed"),
+                    result.operationId,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -589,6 +600,8 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     activity,
                     dacpacDialog.DacPacDialogOperationType.Import,
                     "Succeeded",
+                    undefined,
+                    result.operationId,
                 );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -602,6 +615,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     dacpacDialog.DacPacDialogOperationType.Import,
                     "Failed",
                     new Error(result.errorMessage || "Import operation failed"),
+                    result.operationId,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -659,6 +673,8 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     activity,
                     dacpacDialog.DacPacDialogOperationType.Export,
                     "Succeeded",
+                    undefined,
+                    result.operationId,
                 );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -672,6 +688,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     dacpacDialog.DacPacDialogOperationType.Export,
                     "Failed",
                     new Error(result.errorMessage || "Export operation failed"),
+                    result.operationId,
                 );
                 this.dialogResult.resolve(appResult);
             }

@@ -652,6 +652,8 @@ suite("Azure SQL container configuration", () => {
         });
         const controller = {
             isDisposed: false,
+            recordDeploymentStarted: sandbox.stub(),
+            recordDeploymentCompleted: sandbox.stub(),
             mainController: {
                 backgroundTasksService: { registerTask },
             },

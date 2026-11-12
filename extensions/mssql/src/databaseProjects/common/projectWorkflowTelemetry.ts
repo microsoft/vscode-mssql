@@ -18,10 +18,12 @@ export enum SqlProjectWorkflowEventName {
     PublishDialogOpened = "PublishDialogOpened",
     PublishStarted = "PublishStarted",
     PublishCompleted = "PublishCompleted",
+    ScriptGenerationStarted = "ScriptGenerationStarted",
+    ScriptGenerationCompleted = "ScriptGenerationCompleted",
     PublishDialogClosed = "PublishDialogClosed",
 }
 
-interface SqlProjectWorkflowEventOptions {
+export interface SqlProjectWorkflowEventOptions {
     outcome?: string;
     additionalProps?: TelemetryEventProperties;
 }
@@ -33,6 +35,8 @@ const SqlProjectWorkflowStep = {
     [SqlProjectWorkflowEventName.PublishDialogOpened]: { name: "Publish", ordinal: 3 },
     [SqlProjectWorkflowEventName.PublishStarted]: { name: "Publish", ordinal: 3 },
     [SqlProjectWorkflowEventName.PublishCompleted]: { name: "Publish", ordinal: 3 },
+    [SqlProjectWorkflowEventName.ScriptGenerationStarted]: { name: "Publish", ordinal: 3 },
+    [SqlProjectWorkflowEventName.ScriptGenerationCompleted]: { name: "Publish", ordinal: 3 },
     [SqlProjectWorkflowEventName.PublishDialogClosed]: { name: "Publish", ordinal: 3 },
 } as const;
 

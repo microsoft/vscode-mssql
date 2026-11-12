@@ -46,6 +46,7 @@ const activeLocalContainerDeployments = new WeakMap<DeploymentWebviewController,
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
     selectedGroupId: string | undefined,
+    workflowCorrelationId?: string,
 ): Promise<lc.LocalContainersState> {
     const startTime = Date.now();
     const state = new lc.LocalContainersState();
@@ -69,7 +70,7 @@ export async function initializeLocalContainersState(
         TelemetryViews.LocalContainers,
         TelemetryActions.StartLocalContainersDeployment,
         {
-            additionalProps: {},
+            additionalProps: { ...(workflowCorrelationId && { workflowCorrelationId }) },
             additionalMeasurements: {
                 localContainersInitTimeInMs: Date.now() - startTime,
             },
@@ -95,6 +96,10 @@ export function registerLocalContainersReducers(deploymentController: Deployment
                                         ? error
                                         : new Error(getErrorMessage(error)),
                                 includeErrorMessage: true,
+                                additionalProps: {
+                                    workflowCorrelationId:
+                                        deploymentController.workflowCorrelationId,
+                                },
                             },
                         );
                     })
@@ -123,6 +128,7 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RetryDockerStep, {
             additionalProps: {
                 dockerStep: lc.DockerStepOrder[currentStepNumber],
+                workflowCorrelationId: deploymentController.workflowCorrelationId,
             },
         });
         state.deploymentTypeState = localContainersState;
@@ -156,6 +162,7 @@ export function registerLocalContainersReducers(deploymentController: Deployment
             sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.SubmitContainerForm, {
                 additionalProps: {
                     hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
                 },
             });
         }
@@ -265,6 +272,7 @@ async function completeLocalContainerStep(
     const telemetryProperties: Record<string, string> = {
         dockerStep: lc.DockerStepOrder[currentStepNumber],
         containerVersion: localContainersState.formState.version,
+        workflowCorrelationId: deploymentController.workflowCorrelationId,
     };
     const telemetryMeasures: Record<string, number> = {
         timeToCompleteStepInMs: Date.now() - stepStartTime,
@@ -389,7 +397,10 @@ export async function validatePort(port: string): Promise<boolean> {
     return newPort === portNumber;
 }
 
-export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainersState): void {
+export function sendLocalContainersCloseEventTelemetry(
+    state: lc.LocalContainersState,
+    workflowCorrelationId?: string,
+): void {
     sendActionEvent(
         TelemetryViews.LocalContainers,
         TelemetryActions.FinishLocalContainersDeployment,
@@ -399,6 +410,7 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
                 currentStep: lc.DockerStepOrder[state.currentDockerStep],
                 currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
                 currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+                ...(workflowCorrelationId && { workflowCorrelationId }),
             },
         },
     );

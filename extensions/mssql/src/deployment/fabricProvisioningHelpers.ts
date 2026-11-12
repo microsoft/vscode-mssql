@@ -91,7 +91,7 @@ export async function initializeFabricProvisioningState(
         TelemetryViews.FabricProvisioning,
         TelemetryActions.StartFabricProvisioningDeployment,
         {
-            additionalProps: {},
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
             additionalMeasurements: {
                 localContainersInitTimeInMs: Date.now() - startTime,
             },
@@ -453,7 +453,7 @@ export async function getWorkspaces(
             "";
         updateFabricProvisioningState(deploymentController, state);
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
-            additionalProps: {},
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
             additionalMeasurements: {
                 numWorkspaces: state.workspaces.length,
                 workspaceLoadTimeInMs: Date.now() - startTime,
@@ -464,6 +464,7 @@ export async function getWorkspaces(
         sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
             error: err,
             includeErrorMessage: false,
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
         });
         updateFabricProvisioningState(deploymentController, state);
     }
@@ -547,7 +548,9 @@ export async function sortWorkspacesByPermission(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetPermissionsForWorkspaces,
             {
-                additionalProps: {},
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     workspacePermissionsLoadTimeInMs: Date.now() - startTime,
                 },
@@ -677,7 +680,9 @@ export async function provisionDatabase(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
             {
-                additionalProps: {},
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     provisionDatabaseLoadTimeInMs: Date.now() - startTime,
                 },
@@ -697,7 +702,13 @@ export async function provisionDatabase(
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
-            { error: err, includeErrorMessage: false },
+            {
+                error: err,
+                includeErrorMessage: false,
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
+            },
         );
     }
 }
@@ -757,7 +768,9 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
             {
-                additionalProps: {},
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     connectToDatabaseLoadTimeInMs: Date.now() - startTime,
                 },
@@ -771,13 +784,22 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            { error: err, includeErrorMessage: false },
+            {
+                error: err,
+                includeErrorMessage: false,
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
+            },
         );
     }
     updateFabricProvisioningState(deploymentController, state);
 }
 
-export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvisioningState): void {
+export function sendFabricProvisioningCloseEventTelemetry(
+    state: fp.FabricProvisioningState,
+    workflowCorrelationId?: string,
+): void {
     sendActionEvent(
         TelemetryViews.FabricProvisioning,
         TelemetryActions.FinishFabricProvisioningDeployment,
@@ -788,6 +810,7 @@ export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvis
                 errorMessage: state.errorMessage,
                 provisionState: state.provisionLoadState,
                 connectionState: state.connectionLoadState,
+                ...(workflowCorrelationId && { workflowCorrelationId }),
             },
         },
     );

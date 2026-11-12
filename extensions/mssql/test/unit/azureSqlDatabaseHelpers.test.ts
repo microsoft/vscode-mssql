@@ -129,6 +129,7 @@ suite("Azure SQL Database reducers", () => {
         reducers = new Map();
         controller = sandbox.createStubInstance(DeploymentWebviewController);
         sandbox.stub(controller, "state").value(controllerState);
+        sandbox.stub(controller, "workflowCorrelationId").get(() => "workflow-id");
         completeTaskStub = sandbox.stub();
         const taskHandle: BackgroundTaskHandle = {
             id: "azure-provisioning-task",

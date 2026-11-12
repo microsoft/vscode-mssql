@@ -57,6 +57,9 @@ suite("Fabric Provisioning logic", () => {
 
         deploymentController = {
             isDisposed: false,
+            workflowCorrelationId: "workflow-id",
+            recordDeploymentStarted: sandbox.stub(),
+            recordDeploymentCompleted: sandbox.stub(),
             mainController: {
                 backgroundTasksService,
                 azureAccountService: {

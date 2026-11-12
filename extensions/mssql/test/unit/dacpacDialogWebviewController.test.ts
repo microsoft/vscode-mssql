@@ -197,6 +197,7 @@ suite("DacpacDialogWebviewController", () => {
                 stepName: DacpacDialogTelemetryEventName.OperationCompleted,
                 stepOrdinal: "5",
                 branch: DacPacDialogOperationType.Deploy,
+                operationId: "operation-123",
             });
             expect(completed?.workflowCorrelationId).to.equal(started?.workflowCorrelationId);
         });

@@ -45,6 +45,7 @@ import {
     type WorkflowTelemetryObject,
 } from "extension-toolkit/vscode";
 import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
+import { hasActiveProvisioningTasks } from "./deploymentBackgroundTasks";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
@@ -57,6 +58,7 @@ export enum DeploymentWorkflowEventName {
     ConfigurationReady = "ConfigurationReady",
     DeploymentStarted = "DeploymentStarted",
     DeploymentCompleted = "DeploymentCompleted",
+    PanelClosed = "PanelClosed",
     Closed = "Closed",
 }
 
@@ -94,6 +96,7 @@ export class DeploymentWebviewController extends FormWebviewController<
     requiredInputs: DeploymentFormItemSpec[];
     private readonly _workflow: WorkflowTelemetryObject;
     private _deploymentSucceeded = false;
+    private _panelDisposed = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -152,6 +155,7 @@ export class DeploymentWebviewController extends FormWebviewController<
                 newDeploymentTypeState = await localContainers.initializeLocalContainersState(
                     state.connectionGroupOptions,
                     selectedGroupId,
+                    this.workflowCorrelationId,
                 );
             } else if (payload.deploymentType === DeploymentType.FabricProvisioning) {
                 newDeploymentTypeState = await fabricProvisioning.initializeFabricProvisioningState(
@@ -283,15 +287,20 @@ export class DeploymentWebviewController extends FormWebviewController<
                     const localState = state.deploymentTypeState as LocalContainersState;
                     // The Azure container wizard does not initialize the legacy Docker state.
                     if (localState.dockerSteps) {
-                        localContainers.sendLocalContainersCloseEventTelemetry(localState);
+                        localContainers.sendLocalContainersCloseEventTelemetry(
+                            localState,
+                            this.workflowCorrelationId,
+                        );
                     }
                 } else if (state.deploymentType === DeploymentType.FabricProvisioning) {
                     fabricProvisioning.sendFabricProvisioningCloseEventTelemetry(
                         state.deploymentTypeState as FabricProvisioningState,
+                        this.workflowCorrelationId,
                     );
                 } else if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
                     azureSqlDatabase.sendAzureSqlDatabaseCloseEventTelemetry(
                         state.deploymentTypeState as AzureSqlDatabaseState,
+                        this.workflowCorrelationId,
                     );
                 }
             } finally {
@@ -384,6 +393,11 @@ export class DeploymentWebviewController extends FormWebviewController<
         return `${DeploymentType[deploymentType]}.${propertyName}`;
     }
 
+    /** Correlation ID of the deployment workflow, for joining deployment-specific telemetry. */
+    public get workflowCorrelationId(): string {
+        return this._workflow.correlationId;
+    }
+
     public recordDeploymentStarted(deploymentType: DeploymentType): void {
         this.recordDeploymentWorkflowEvent(
             DeploymentWorkflowEventName.DeploymentStarted,
@@ -398,23 +412,34 @@ export class DeploymentWebviewController extends FormWebviewController<
         this._deploymentSucceeded =
             outcome === BackgroundTaskState.Succeeded ||
             outcome === BackgroundTaskState.SucceededWithWarning;
+        // Provisioning outlives the panel; once it was closed, the completion ends the workflow.
+        const endWorkflow = this._panelDisposed && !hasActiveProvisioningTasks(this);
         this.recordDeploymentWorkflowEvent(
             DeploymentWorkflowEventName.DeploymentCompleted,
             deploymentType,
             outcome,
+            endWorkflow,
         );
     }
 
     private recordDeploymentWorkflowEvent(
-        eventName: Exclude<DeploymentWorkflowEventName, DeploymentWorkflowEventName.Closed>,
+        eventName: Exclude<
+            DeploymentWorkflowEventName,
+            DeploymentWorkflowEventName.Closed | DeploymentWorkflowEventName.PanelClosed
+        >,
         deploymentType: DeploymentType,
         outcome?: string,
+        endWorkflow = false,
     ): void {
         const step: WorkflowStep = {
             ...DeploymentWorkflowStep[eventName],
             branch: DeploymentType[deploymentType],
         };
-        this._workflow.record(eventName, { step, outcome });
+        if (endWorkflow) {
+            this._workflow.end(eventName, { step, outcome });
+        } else {
+            this._workflow.record(eventName, { step, outcome });
+        }
     }
 
     async updateItemVisibility() {}
@@ -506,13 +531,22 @@ export class DeploymentWebviewController extends FormWebviewController<
     }
 
     public override dispose(): void {
-        this._workflow.end(DeploymentWorkflowEventName.Closed, {
-            outcome: this._deploymentSucceeded ? "Succeeded" : "Cancelled",
-            step: this._workflow.currentStep && {
+        if (!this._panelDisposed) {
+            this._panelDisposed = true;
+            const step = this._workflow.currentStep && {
                 ...this._workflow.currentStep,
                 branch: DeploymentType[this.state.deploymentType],
-            },
-        });
+            };
+            if (hasActiveProvisioningTasks(this)) {
+                // Provisioning continues in the background; its completion ends the workflow.
+                this._workflow.record(DeploymentWorkflowEventName.PanelClosed, { step });
+            } else {
+                this._workflow.end(DeploymentWorkflowEventName.Closed, {
+                    outcome: this._deploymentSucceeded ? "Succeeded" : "Cancelled",
+                    step,
+                });
+            }
+        }
         super.dispose();
     }
 }

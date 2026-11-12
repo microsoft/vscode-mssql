@@ -129,6 +129,26 @@ suite("PublishProjectWebViewController Tests", () => {
     }
 
     /**
+     * Returns the additional properties of SQL project workflow events sent through the stub.
+     */
+    function getWorkflowEvents(sendActionEventStub: sinon.SinonStub): Record<string, string>[] {
+        return sendActionEventStub.args
+            .filter((args) => args[1] === TelemetryActions.SqlProjectWorkflow)
+            .map((args) => args[2]?.additionalProps as Record<string, string>);
+    }
+
+    /**
+     * Makes panel disposal dispose the controller, as the real panel's onDidDispose handler does.
+     */
+    function disposeControllerWithPanel(controller: PublishProjectWebViewController): void {
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: () => controller.dispose() },
+            writable: true,
+            configurable: true,
+        });
+    }
+
+    /**
      * Helper to get reducer handlers from controller, avoiding repeated casts.
      */
     function getReducerHandlers(
@@ -989,6 +1009,68 @@ suite("PublishProjectWebViewController Tests", () => {
             "isPublish parameter should be false for script generation",
         ).to.be.false;
     });
+
+    test("generate script records build and script generation instead of cancelling", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = createTestController("c:/work/GenerateScriptWorkflow.sqlproj");
+        await controller.initialized.promise;
+        controller["_connectionUri"] = "mssql://test-connection-uri";
+        sandbox
+            .stub(controller["_projectController"], "buildProject")
+            .resolves("/path/to/project.dacpac");
+        mockDacFxService.generateDeployScript.resolves({
+            success: true,
+            errorMessage: "",
+            operationId: "",
+        });
+        disposeControllerWithPanel(controller);
+        const executeSpy = sandbox.spy(
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (
+                    state: unknown,
+                    isPublish: boolean,
+                ) => Promise<void>;
+            },
+            "executePublishAndGenerateScript",
+        );
+
+        await getReducerHandlers(controller).get("generatePublishScript")(controller.state, {});
+        await executeSpy.firstCall.returnValue;
+        controller.dispose();
+
+        const events = getWorkflowEvents(sendActionEventStub);
+        expect(events.map((event) => event.eventName)).to.deep.equal([
+            SqlProjectWorkflowEventName.PublishDialogOpened,
+            SqlProjectWorkflowEventName.ScriptGenerationStarted,
+            SqlProjectWorkflowEventName.BuildStarted,
+            SqlProjectWorkflowEventName.BuildCompleted,
+            SqlProjectWorkflowEventName.ScriptGenerationCompleted,
+        ]);
+        expect(events[3].outcome).to.equal("Succeeded");
+        expect(events[4].outcome).to.equal("Succeeded");
+        expect(events.every((event) => event.operationId === controller["_operationId"])).to.be
+            .true;
+    });
+
+    test("failed publish dialog build records a failed build", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = createTestController("c:/work/FailedBuildWorkflow.sqlproj");
+        await controller.initialized.promise;
+        sandbox
+            .stub(controller["_projectController"], "buildProject")
+            .rejects(new Error("Build failed"));
+
+        const dacpacPath = await controller["buildProject"](controller.state);
+
+        expect(dacpacPath).to.be.undefined;
+        const [started, completed] = getWorkflowEvents(sendActionEventStub).slice(-2);
+        expect(started).to.include({ eventName: SqlProjectWorkflowEventName.BuildStarted });
+        expect(completed).to.include({
+            eventName: SqlProjectWorkflowEventName.BuildCompleted,
+            outcome: "Failed",
+            operationId: controller["_operationId"],
+        });
+    });
     //#endregion
 
     //#region Publish Tests
@@ -1252,8 +1334,10 @@ suite("PublishProjectWebViewController Tests", () => {
     /**
      * Helper function to create controller and set up common container publish form state
      */
-    async function setupContainerPublishState(): Promise<PublishProjectWebViewController> {
-        const controller = createTestController();
+    async function setupContainerPublishState(
+        projectPath?: string,
+    ): Promise<PublishProjectWebViewController> {
+        const controller = createTestController(projectPath);
         await controller.initialized.promise;
 
         controller.state.formState.publishTarget = PublishTarget.LocalContainer;
@@ -1408,6 +1492,80 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Validate error state
         validateContainerPublishError(newState, updateStateSpy, "Unexpected network failure");
+    });
+
+    test("closing after a failed container publish ends the workflow as failed", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = await setupContainerPublishState(
+            "c:/work/FailedContainerWorkflow.sqlproj",
+        );
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .resolves({ success: false, error: "Docker is not installed" });
+
+        await getReducerHandlers(controller).get("publishNow")(controller.state, {});
+        controller.dispose();
+        controller.dispose();
+
+        const events = getWorkflowEvents(sendActionEventStub);
+        expect(events.at(-2)).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishCompleted,
+            outcome: "Failed",
+        });
+        expect(events.at(-1)).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishDialogClosed,
+            outcome: "Failed",
+            operationId: controller["_operationId"],
+        });
+        expect(
+            events.filter(
+                (event) => event.eventName === SqlProjectWorkflowEventName.PublishDialogClosed,
+            ),
+        ).to.have.lengthOf(1);
+    });
+
+    test("a successful container publish retry ends the workflow as succeeded", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = await setupContainerPublishState(
+            "c:/work/RetriedContainerWorkflow.sqlproj",
+        );
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .onFirstCall()
+            .resolves({ success: false, error: "Docker is not running" })
+            .onSecondCall()
+            .resolves({ success: true });
+        sandbox
+            .stub(controller, "prepareContainerConfiguration" as keyof typeof controller)
+            .resolves({ containerName: "test-container", port: 1433 });
+        sandbox.stub(controller, "createDockerContainer" as keyof typeof controller).resolves({
+            success: true,
+            connectionUri: "mssql://publish-container-test-container",
+        });
+        sandbox
+            .stub(controller["_projectController"], "buildProject")
+            .resolves("/path/to/project.dacpac");
+        mockDacFxService.deployDacpac.resolves({
+            success: true,
+            errorMessage: "",
+            operationId: "",
+        });
+        disposeControllerWithPanel(controller);
+        const publishNow = getReducerHandlers(controller).get("publishNow");
+
+        await publishNow(controller.state, {});
+        await publishNow(controller.state, {});
+
+        const events = getWorkflowEvents(sendActionEventStub);
+        expect(events.at(-1)).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishCompleted,
+            outcome: "Succeeded",
+        });
+        expect(
+            events.some(
+                (event) => event.eventName === SqlProjectWorkflowEventName.PublishDialogClosed,
+            ),
+        ).to.be.false;
     });
 
     test("createDockerContainer succeeds on second attempt after transient auth failure", async () => {
