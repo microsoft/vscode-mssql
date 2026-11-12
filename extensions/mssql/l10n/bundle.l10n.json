@@ -5793,8 +5793,6 @@
     "Ready for Azure SQL · 0 blocking": "Ready for Azure SQL · 0 blocking",
     "Ready for Azure SQL · 1 warning · 0 blocking": "Ready for Azure SQL · 1 warning · 0 blocking",
     "Ready for Azure SQL · {0} warnings · 0 blocking": "Ready for Azure SQL · {0} warnings · 0 blocking",
-    "Free limit": "Free limit",
-    "Pause until next month": "Pause until next month",
     "Azure location": "Azure location",
     "{0} · {1} · {2}/{0} is the Azure subscription; {1} is the resource group; {2} is the SQL server": {
         "message": "{0} · {1} · {2}",

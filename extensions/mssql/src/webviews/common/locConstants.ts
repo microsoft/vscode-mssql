@@ -4012,8 +4012,6 @@ export class LocConstants {
                           "Ready for Azure SQL · {0} warnings · 0 blocking",
                           count.toLocaleString(),
                       ),
-            reviewFreeLimit: l10n.t("Free limit"),
-            reviewPauseUntilNextMonth: l10n.t("Pause until next month"),
             reviewAzureLocation: l10n.t("Azure location"),
             reviewAzureDestination: (subscription: string, resourceGroup: string, server: string) =>
                 l10n.t({
