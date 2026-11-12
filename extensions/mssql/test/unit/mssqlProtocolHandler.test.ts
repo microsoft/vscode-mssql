@@ -7,7 +7,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
-import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
+import { deploymentTypesByUriType, MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
 import MainController from "../../src/controllers/mainController";
@@ -325,6 +325,34 @@ suite("MssqlProtocolHandler Tests", () => {
                 { deploymentType: DeploymentType.AzureSqlContainer },
             );
             expect(openConnectionDialogStub).to.not.have.been.called;
+        });
+
+        const typeCases: [string, DeploymentType][] = [
+            ["fabricSqlDatabase", DeploymentType.FabricProvisioning],
+            ["localToCloud", DeploymentType.LocalToCloud],
+        ];
+        for (const [type, deploymentType] of typeCases) {
+            test(`Should open the ${DeploymentType[deploymentType]} wizard for type=${type}`, async () => {
+                await mssqlProtocolHandler.handleUri(
+                    Uri.parse(`vscode://ms-mssql.mssql/deploy?type=${type}`),
+                );
+
+                expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                    Constants.cmdDeployNewDatabase,
+                    { deploymentType },
+                );
+            });
+        }
+
+        test("Should map every deployment type that has a wizard", () => {
+            // A new DeploymentType needs a deep link name, or an entry here explaining why not.
+            const typesWithoutWizard = [DeploymentType.DevContainer];
+            const expected = Object.values(DeploymentType)
+                .filter((value): value is DeploymentType => typeof value === "number")
+                .filter((value) => !typesWithoutWizard.includes(value))
+                .sort();
+
+            expect(Object.values(deploymentTypesByUriType).sort()).to.deep.equal(expected);
         });
 
         test("Should open the deployment chooser when no type is given", async () => {

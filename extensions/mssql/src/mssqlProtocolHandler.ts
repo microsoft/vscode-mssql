@@ -29,12 +29,17 @@ enum Command {
 
 /**
  * Values accepted by the `type` parameter of the `/deploy` URI, mapped to the wizard page they open.
- * Matched case-insensitively.
+ * Matched case-insensitively. These names are a public contract (they appear in docs and links),
+ * so keep them stable even if the enum members are renamed.
+ *
+ * `DeploymentType.DevContainer` is intentionally absent: it has no deployment wizard.
  */
-const deploymentTypesByUriType: Record<string, DeploymentType> = {
+export const deploymentTypesByUriType: Readonly<Record<string, DeploymentType>> = {
     azuresqldatabase: DeploymentType.AzureSqlDatabase,
     sqlservercontainer: DeploymentType.LocalContainers,
     azuresqlcontainer: DeploymentType.AzureSqlContainer,
+    fabricsqldatabase: DeploymentType.FabricProvisioning,
+    localtocloud: DeploymentType.LocalToCloud,
 };
 
 interface ConnectionOptionProperty {
@@ -61,6 +66,8 @@ export class MssqlProtocolHandler {
      * - vscode://ms-mssql.mssql/deploy?type=azureSqlDatabase
      * - vscode://ms-mssql.mssql/deploy?type=sqlServerContainer
      * - vscode://ms-mssql.mssql/deploy?type=azureSqlContainer
+     * - vscode://ms-mssql.mssql/deploy?type=fabricSqlDatabase
+     * - vscode://ms-mssql.mssql/deploy?type=localToCloud
      *
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
