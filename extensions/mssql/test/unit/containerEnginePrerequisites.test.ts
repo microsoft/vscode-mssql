@@ -138,4 +138,21 @@ suite("Container engine prerequisites", () => {
         expect(results[detectedEngine].success).to.be.true;
         expect(results[ContainerEngine.Docker].success).to.be.false;
     });
+
+    test("detects a newly installed engine on a subsequent scan instead of caching failures", async () => {
+        const execute = sandbox
+            .stub(containerEngine, "executeContainerEngineCommand")
+            .rejects(new Error("Engine not found"));
+
+        const firstScan = await detectContainerEngines();
+        expect(Object.values(firstScan).every((result) => !result.success)).to.be.true;
+
+        execute
+            .withArgs({ executable: "docker", args: ["--version"] }, 15_000)
+            .resolves({ stdout: "Docker version", stderr: "" });
+
+        const secondScan = await detectContainerEngines();
+        expect(secondScan[ContainerEngine.Docker]).to.deep.equal({ success: true });
+        expect(secondScan[ContainerEngine.Podman].success).to.be.false;
+    });
 });

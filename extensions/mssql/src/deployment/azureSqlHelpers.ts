@@ -50,6 +50,7 @@ import {
 import * as vscode from "vscode";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
+import fixPath from "fix-path";
 export { executeContainerEngineCommand } from "../docker/containerEngine";
 
 export const defaultAzureSqlContainerName = "azure_sql_db_container";
@@ -521,6 +522,7 @@ export async function detectContainerEngines(
 export async function detectContainerEngines(
     checkPrerequisite = checkContainerEnginePrerequisite,
 ): Promise<Record<ContainerEngine, ContainerEnginePrerequisiteResult>> {
+    fixPath();
     const detectionResults = await Promise.all(
         Object.values(ContainerEngine).map(async (engine) => {
             const result = await checkPrerequisite(

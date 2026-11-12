@@ -6,6 +6,7 @@
 import { test, expect } from "./baseFixtures";
 import { getWebviewByTitle, runCommandFromPalette } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
 
 test.describe("Azure SQL deployment options", () => {
     const getContext = useSharedVsCodeLifecycle({
@@ -21,6 +22,57 @@ test.describe("Azure SQL deployment options", () => {
         const { page } = getContext();
         await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
         const deployment = await getWebviewByTitle(page, "New Deployment");
+        const body = await deployment.locator("body").elementHandle();
+        const frame = await body!.ownerFrame();
+        await frame!.evaluate((engines) => {
+            let attempt = 0;
+            const original = Object.getOwnPropertyDescriptor(MessageEvent.prototype, "data")!;
+            const responses = new WeakMap<MessageEvent, unknown>();
+            // Replace detection responses as the RPC reader reads them, before it resolves requests.
+            Object.defineProperty(MessageEvent.prototype, "data", {
+                ...original,
+                get(this: MessageEvent) {
+                    if (responses.has(this)) {
+                        return responses.get(this);
+                    }
+                    const message = original.get!.call(this) as {
+                        id?: number | string;
+                        result?: Record<string, { success?: boolean }>;
+                    };
+                    if (
+                        !message?.result ||
+                        !engines.every(
+                            (engine) => typeof message.result?.[engine]?.success === "boolean",
+                        )
+                    ) {
+                        return message;
+                    }
+                    attempt++;
+                    if (attempt > 2) {
+                        Object.defineProperty(MessageEvent.prototype, "data", original);
+                        return message;
+                    }
+                    const response =
+                        attempt === 1
+                            ? {
+                                  ...message,
+                                  result: Object.fromEntries(
+                                      engines.map((engine) => [engine, { success: false }]),
+                                  ),
+                              }
+                            : {
+                                  jsonrpc: "2.0",
+                                  id: message.id,
+                                  error: {
+                                      code: -32603,
+                                      message: "Temporary engine detection failure",
+                                  },
+                              };
+                    responses.set(this, response);
+                    return response;
+                },
+            });
+        }, Object.values(ContainerEngine));
         const localSection = deployment.getByRole("region", { name: "Run locally", exact: true });
         const cloudSection = deployment.getByRole("region", {
             name: "Run in the cloud",
@@ -64,6 +116,17 @@ test.describe("Azure SQL deployment options", () => {
         ).toBeVisible();
         const next = deployment.getByRole("button", { name: "Next", exact: true });
         await next.click();
+        await expect(
+            deployment.getByText("Install a container engine to continue", { exact: true }),
+        ).toBeVisible();
+        await expect(next).toBeDisabled();
+        const retryDetection = deployment.getByRole("button", { name: "Retry", exact: true });
+        await retryDetection.click();
+        await expect(
+            deployment.getByText("Container engine detection failed.", { exact: true }),
+        ).toBeVisible();
+        await expect(next).toBeDisabled();
+        await retryDetection.click();
         await expect(next).toBeEnabled({ timeout: 60_000 });
         await next.click();
         await deployment.getByRole("combobox", { name: "Authentication Type" }).click();
