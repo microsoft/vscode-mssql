@@ -137,12 +137,12 @@ export function connectionNode(
         icon:
             facts.state === "connected"
                 ? containerName
-                    ? "DockerContainer_green"
+                    ? "Container_green"
                     : profile.database
                       ? "Database_green"
                       : "Server_green"
                 : containerName
-                  ? "DockerContainer_red"
+                  ? "Container_red"
                   : profile.database
                     ? "Database_red"
                     : "Server_red",
