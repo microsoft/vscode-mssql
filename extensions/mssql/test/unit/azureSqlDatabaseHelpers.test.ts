@@ -133,9 +133,7 @@ suite("Azure SQL Database terminology", () => {
     test("renders the working free tier documentation link", () => {
         const markup = renderToStaticMarkup(createElement(AzureSqlDatabaseInfoPage));
 
-        expect(markup).to.include(
-            'href="https://learn.microsoft.com/azure/azure-sql/database/free-offer"',
-        );
+        expect(markup).to.include('href="https://aka.ms/sqlfreeoffer"');
         expect(markup).to.include(locConstants.azureSqlDatabase.learnMoreAboutFreeTier);
     });
 });
