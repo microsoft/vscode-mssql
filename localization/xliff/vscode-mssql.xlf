@@ -3293,6 +3293,9 @@
     <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
       <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6712c572e47e76d3cc1d7813f49813addea375a28013d4bfe3b6344650721ddc">
+      <source xml:lang="en">Create and manage local Azure SQL Database containers in just a few clicks, so you can develop and test locally using the Azure SQL Database engine—no credit card or Azure subscription required.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9fc87f0fbf5eabd421ad4e4774e1c249b6d1b299b30eee856842672298146168">
       <source xml:lang="en">Create and manage tables with a visual interface</source>
     </trans-unit>
@@ -3866,6 +3869,9 @@
     </trans-unit>
     <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
       <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa7246b0f888c02cb0019ee700f60b4eb5692d23b9f74520dd0dce2dec59e363">
+      <source xml:lang="en">Deploy database to Azure SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++4a1fec6bb23f4b53b3e6810ec85014caf866f6779f8c28a733fc034c63640a72">
       <source xml:lang="en">Deploy failed</source>
@@ -5140,6 +5146,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a88ccd187ea6fb8203734e55c16919d4ef81b89154ce353848ca96837f80c619">
       <source xml:lang="en">Explore in Object Explorer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d347964e6bbf9016b1e136dd7087add6e60ad268e8e73080688fae8b75fcef68">
+      <source xml:lang="en">Explore performance insights, analyze trends, investigate execution plans, and optimize queries with GitHub Copilot using the new Query Performance Dashboard, powered by Query Store.</source>
     </trans-unit>
     <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
       <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
@@ -7374,6 +7383,9 @@
     <trans-unit id="++CODE++3c8047e1144b0b498bd5fb4155a1f0e28ad14ed8f63892e2d20bf1fce56f921a">
       <source xml:lang="en">Local Azure SQL Database container, query performance dashboard, and more</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd1a4b39d22fb2c94b0be3d834cfb6a5b75e6f62853cd6b7db03c072c2f62a09">
+      <source xml:lang="en">Local Azure SQL Database containers</source>
+    </trans-unit>
     <trans-unit id="++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd">
       <source xml:lang="en">Local Docker container</source>
     </trans-unit>
@@ -7950,6 +7962,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1359626e7b6964345896285446db7977e67469251bb0cc52808db2a85ed940c1">
       <source xml:lang="en">Move Up</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc4f5c83ec4a36251f41d7101d1a063af710ccb4578ef5444868408a3f1e3539">
+      <source xml:lang="en">Move a database from a local SQL container to Azure SQL Database with a guided wizard that validates compatibility, then deploys the schema, or schema and data.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d5283fdd2a43acc64170f29dc3d6892ffe9c36f84adf2a0fdcaf19c869f5e72">
       <source xml:lang="en">Move and expand the active grid selection</source>
