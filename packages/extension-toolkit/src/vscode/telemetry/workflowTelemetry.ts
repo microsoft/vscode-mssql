@@ -45,6 +45,10 @@ export interface WorkflowTelemetryObject {
     readonly isEnded: boolean;
     record(eventName: string, options?: WorkflowEventOptions): boolean;
     end(eventName: string, options?: WorkflowEventOptions): boolean;
+    /**
+     * Starts an activity correlated with this workflow. The activity reports independently of the
+     * workflow's lifetime, so an operation that outlives the workflow still reports its result.
+     */
     startChildActivity(telemetryAction: string, options?: StartActivityOptions): ActivityObject;
 }
 

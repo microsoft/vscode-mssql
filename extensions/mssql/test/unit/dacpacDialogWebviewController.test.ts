@@ -1124,6 +1124,38 @@ suite("DacpacDialogWebviewController", () => {
             });
         });
     });
+    suite("Closing during an operation", () => {
+        test("an operation outliving the dialog ends the workflow with its outcome", async () => {
+            let finishDeploy!: (result: DacFxResult) => void;
+            dacFxServiceStub.deployDacpac.returns(
+                new Promise<DacFxResult>((resolve) => (finishDeploy = resolve)),
+            );
+            createController();
+
+            const deploy = requestHandlers.get(DeployDacpacWebviewRequest.type.method)!({
+                ownerUri,
+                databaseName: "Database",
+                packageFilePath: "/tmp/database.dacpac",
+                isNewDatabase: true,
+            });
+            controller.dispose();
+            controller.dispose();
+            finishDeploy({ success: true, errorMessage: "", operationId: "operation-123" });
+            await deploy;
+
+            expect(workflowEvents().map((event) => event.eventName)).to.deep.equal([
+                DacpacDialogTelemetryEventName.Opened,
+                DacpacDialogTelemetryEventName.OperationStarted,
+                DacpacDialogTelemetryEventName.PanelClosed,
+                DacpacDialogTelemetryEventName.OperationCompleted,
+            ]);
+            expect(workflowEvents().at(-1)).to.include({
+                outcome: "Succeeded",
+                operationId: "operation-123",
+            });
+            expect(controller["_workflow"].isEnded).to.be.true;
+        });
+    });
     suite("Deploy to Existing Database Confirmation", () => {
         test("confirmation dialog shows and returns confirmed=true when user clicks Deploy", async () => {
             createController();

@@ -81,6 +81,7 @@ type DacpacDialogStepEventName = Exclude<
     dacpacDialog.DacpacDialogTelemetryEventName,
     | dacpacDialog.DacpacDialogTelemetryEventName.Cancelled
     | dacpacDialog.DacpacDialogTelemetryEventName.Closed
+    | dacpacDialog.DacpacDialogTelemetryEventName.PanelClosed
 >;
 
 /**
@@ -94,6 +95,9 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 > {
     private _ownerUri: string;
     private readonly _workflow: WorkflowTelemetryObject;
+    /** DacFx operations still running; they continue after the dialog closes. */
+    private _operationsInProgress = 0;
+    private _dialogClosed = false;
 
     protected override get telemetryContext() {
         return getConnectionTelemetryInfo(this.connectionManager, this._ownerUri);
@@ -353,14 +357,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
         // Cancel operation notification handler
         this.onNotification(dacpacDialog.CancelDacpacDialogWebviewNotification.type, () => {
-            this._workflow.end(dacpacDialog.DacpacDialogTelemetryEventName.Cancelled, {
-                ...this.telemetryContext,
-                outcome: "Cancelled",
-                step: this._workflow.currentStep && {
-                    ...this._workflow.currentStep,
-                    branch: this.state.operationType,
-                },
-            });
+            this.closeWorkflow(dacpacDialog.DacpacDialogTelemetryEventName.Cancelled, "Cancelled");
             this.dialogResult.resolve(undefined);
             this.panel.dispose();
         });
@@ -368,14 +365,13 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         this.onNotification(
             dacpacDialog.DacpacDialogTelemetryNotification.type,
             (params: dacpacDialog.DacpacDialogTelemetryParams) => {
-                this.recordWorkflowEvent(
-                    params.eventName,
-                    params.operationType,
-                    params.eventName ===
+                this.recordWorkflowEvent(params.eventName, params.operationType, {
+                    outcome:
+                        params.eventName ===
                         dacpacDialog.DacpacDialogTelemetryEventName.ValidationFailed
-                        ? "Failed"
-                        : undefined,
-                );
+                            ? "Failed"
+                            : undefined,
+                });
             },
         );
     }
@@ -386,11 +382,20 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     private recordWorkflowEvent(
         eventName: DacpacDialogStepEventName,
         operationType: dacpacDialog.DacPacDialogOperationType,
-        outcome?: "Succeeded" | "Failed" | "Cancelled",
-        additionalProps?: Record<string, string>,
-        connectionContext: TelemetryEventOptions = this.telemetryContext,
+        {
+            outcome,
+            additionalProps,
+            connectionContext = this.telemetryContext,
+            end = false,
+        }: {
+            outcome?: "Succeeded" | "Failed" | "Cancelled";
+            additionalProps?: Record<string, string>;
+            connectionContext?: TelemetryEventOptions;
+            /** Ends the workflow with this event instead of recording an intermediate step. */
+            end?: boolean;
+        } = {},
     ): void {
-        this._workflow.record(eventName, {
+        const options = {
             ...connectionContext,
             step: {
                 ...DacpacDialogWorkflowStep[eventName],
@@ -398,7 +403,40 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             },
             outcome,
             additionalProps,
-        });
+        };
+        if (end) {
+            this._workflow.end(eventName, options);
+        } else {
+            this._workflow.record(eventName, options);
+        }
+    }
+
+    /**
+     * Ends the workflow when the dialog is cancelled or closed. A running DacFx operation outlives
+     * the dialog, so the workflow stays open and the operation's completion ends it instead.
+     */
+    private closeWorkflow(
+        eventName:
+            | dacpacDialog.DacpacDialogTelemetryEventName.Cancelled
+            | dacpacDialog.DacpacDialogTelemetryEventName.Closed,
+        outcome?: "Cancelled",
+    ): void {
+        if (this._dialogClosed) {
+            return;
+        }
+        this._dialogClosed = true;
+        const options = {
+            ...this.telemetryContext,
+            step: this._workflow.currentStep && {
+                ...this._workflow.currentStep,
+                branch: this.state.operationType,
+            },
+        };
+        if (this._operationsInProgress > 0) {
+            this._workflow.record(dacpacDialog.DacpacDialogTelemetryEventName.PanelClosed, options);
+        } else {
+            this._workflow.end(eventName, { ...options, outcome });
+        }
     }
 
     /**
@@ -420,12 +458,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             ...connectionContext,
             additionalProps,
         });
+        this._operationsInProgress++;
         this.recordWorkflowEvent(
             dacpacDialog.DacpacDialogTelemetryEventName.OperationStarted,
             operationType,
-            undefined,
-            undefined,
-            connectionContext,
+            { connectionContext },
         );
         return { activity, operationType, connectionContext };
     }
@@ -442,12 +479,16 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         } else {
             operation.activity.endFailed(error, false, undefined, undefined, operationProps);
         }
+        this._operationsInProgress--;
         this.recordWorkflowEvent(
             dacpacDialog.DacpacDialogTelemetryEventName.OperationCompleted,
             operation.operationType,
-            outcome,
-            operationProps,
-            operation.connectionContext,
+            {
+                outcome,
+                additionalProps: operationProps,
+                connectionContext: operation.connectionContext,
+                end: this._dialogClosed && this._operationsInProgress === 0,
+            },
         );
     }
 
@@ -1242,13 +1283,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     }
 
     public override dispose(): void {
-        this._workflow.end(dacpacDialog.DacpacDialogTelemetryEventName.Closed, {
-            ...this.telemetryContext,
-            step: this._workflow.currentStep && {
-                ...this._workflow.currentStep,
-                branch: this.state.operationType,
-            },
-        });
+        this.closeWorkflow(dacpacDialog.DacpacDialogTelemetryEventName.Closed);
         super.dispose();
     }
 }

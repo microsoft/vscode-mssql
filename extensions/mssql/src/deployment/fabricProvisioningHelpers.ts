@@ -117,6 +117,7 @@ export function registerFabricProvisioningReducers(
         const fabricProvisioningState = await handleWorkspaceFormAction(
             state.deploymentTypeState as fp.FabricProvisioningState,
             payload.workspaceId,
+            deploymentController.workflowCorrelationId,
         );
         state.deploymentTypeState = fabricProvisioningState;
         state.formState = fabricProvisioningState.formState;
@@ -138,6 +139,7 @@ export function registerFabricProvisioningReducers(
         fabricProvisioningState = await handleWorkspaceFormAction(
             fabricProvisioningState,
             fabricProvisioningState.formState.workspace,
+            deploymentController.workflowCorrelationId,
         );
         updateFabricProvisioningState(deploymentController, fabricProvisioningState);
 
@@ -475,7 +477,9 @@ export async function getRoleForWorkspace(
     state: fp.FabricProvisioningState,
     workspace: IWorkspace,
     tenantId?: string,
+    workflowCorrelationId?: string,
 ): Promise<IWorkspace> {
+    const workflowProps = workflowCorrelationId ? { workflowCorrelationId } : {};
     if (state.formState.tenantId === "" && !tenantId) return;
     workspace.role = WorkspaceRole.Viewer;
     const startTime = Date.now();
@@ -495,7 +499,7 @@ export async function getRoleForWorkspace(
             }
         }
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
-            additionalProps: {},
+            additionalProps: workflowProps,
             additionalMeasurements: {
                 workspaceRoleLoadTimeInMs: Date.now() - startTime,
             },
@@ -505,6 +509,7 @@ export async function getRoleForWorkspace(
         sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
             error: err,
             includeErrorMessage: false,
+            additionalProps: workflowProps,
         });
     }
     return workspace;
@@ -533,7 +538,12 @@ export async function sortWorkspacesByPermission(
     if (workspaces.length < WORKSPACE_ROLE_REQUEST_LIMIT) {
         const workspacesWithRoles = await Promise.all(
             workspaces.map(async (workspace) => {
-                return await getRoleForWorkspace(state, workspace, tenantId);
+                return await getRoleForWorkspace(
+                    state,
+                    workspace,
+                    tenantId,
+                    deploymentController.workflowCorrelationId,
+                );
             }),
         );
 
@@ -573,6 +583,7 @@ export async function sortWorkspacesByPermission(
 export async function handleWorkspaceFormAction(
     state: fp.FabricProvisioningState,
     workspaceId: string,
+    workflowCorrelationId?: string,
 ): Promise<fp.FabricProvisioningState> {
     // Clean up "databaseName" error if new workspace is selected
     state.formErrors = state.formErrors.filter((err) => err !== "databaseName");
@@ -589,6 +600,7 @@ export async function handleWorkspaceFormAction(
             state,
             workspace,
             state.formState.tenantId,
+            workflowCorrelationId,
         );
 
         // Add workspace to respective role list
@@ -623,7 +635,7 @@ export async function handleWorkspaceFormAction(
             (database) => database.displayName,
         );
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetFabricDatabases, {
-            additionalProps: {},
+            additionalProps: workflowCorrelationId ? { workflowCorrelationId } : {},
             additionalMeasurements: {
                 fabricDatabasesLoadTimeInMs: Date.now() - startTime,
             },

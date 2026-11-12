@@ -25,6 +25,8 @@ export enum DacpacDialogTelemetryEventName {
     OperationCompleted = "OperationCompleted",
     Cancelled = "Cancelled",
     Closed = "Closed",
+    /** The dialog closed while an operation was still running; its completion ends the workflow. */
+    PanelClosed = "PanelClosed",
 }
 
 export interface DacpacDialogTelemetryParams {
