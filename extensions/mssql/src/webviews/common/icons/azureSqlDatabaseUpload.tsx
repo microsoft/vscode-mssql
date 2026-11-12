@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import { forwardRef, SVGAttributes } from "react";
 import { ArrowUp16Regular } from "@fluentui/react-icons";
 import { AzureSqlDatabaseIcon } from "./azureSqlDatabase";
 
 export const AzureSqlDatabaseUploadIcon = Object.assign(
-    React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => (
+    forwardRef<SVGSVGElement, SVGAttributes<SVGElement>>((props, ref) => (
         <svg
             ref={ref}
             xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             {...props}>
             <AzureSqlDatabaseIcon width="22" height="22" aria-hidden="true" />

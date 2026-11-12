@@ -84,8 +84,12 @@ export const DeploymentStartPage = () => {
             return;
         }
         hasAutoSelected.current = true;
-        if (initialLocalDatabaseSource) {
+        if (initialLocalDatabaseSource || initialDeploymentType === DeploymentType.LocalToCloud) {
             setShowLocalDatabaseDeployment(true);
+            return;
+        }
+        if (initialDeploymentType === DeploymentType.AzureSqlContainer) {
+            setShowAzureSqlContainer(true);
             return;
         }
         if (initialDeploymentType !== undefined) {
