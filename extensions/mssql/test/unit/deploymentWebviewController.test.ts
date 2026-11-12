@@ -9,11 +9,19 @@ import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import * as localContainers from "../../src/deployment/localContainersHelpers";
-import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
+import { DeploymentType, DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { LocalContainersState } from "../../src/sharedInterfaces/localContainers";
 import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { stubTelemetry } from "./utils";
 import { createWorkspaceConfiguration } from "./stubs";
+import {
+    completeProvisioningTask,
+    startProvisioningTask,
+} from "../../src/deployment/deploymentBackgroundTasks";
+import {
+    BackgroundTaskHandle,
+    BackgroundTaskState,
+} from "../../src/backgroundTasks/backgroundTasksService";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -94,5 +102,40 @@ suite("Deployment webview controller", () => {
         expect(reportedError).to.equal(error);
         expect(closePanel).to.have.been.called;
         expect(controller.dispose).to.have.been.called;
+    });
+
+    test("provisioning tasks record deployment workflow transitions", () => {
+        const task = {
+            complete: sandbox.stub(),
+        } as unknown as BackgroundTaskHandle;
+        const registerTask = sandbox.stub().returns(task);
+        Object.defineProperty(controller, "mainController", {
+            value: {
+                backgroundTasksService: {
+                    registerTask,
+                },
+            },
+        });
+
+        startProvisioningTask(
+            controller,
+            DeploymentType.LocalContainers,
+            "Provisioning",
+            "container",
+        );
+        completeProvisioningTask(
+            controller,
+            DeploymentType.LocalContainers,
+            BackgroundTaskState.Succeeded,
+            "Complete",
+        );
+
+        expect(controller.recordDeploymentStarted).to.have.been.calledWith(
+            DeploymentType.LocalContainers,
+        );
+        expect(controller.recordDeploymentCompleted).to.have.been.calledWith(
+            DeploymentType.LocalContainers,
+            BackgroundTaskState.Succeeded,
+        );
     });
 });

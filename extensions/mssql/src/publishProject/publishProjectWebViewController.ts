@@ -48,6 +48,11 @@ import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/lo
 import MainController from "../controllers/mainController";
 import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import {
+    completeSqlProjectWorkflow,
+    recordSqlProjectWorkflowEvent,
+    SqlProjectWorkflowEventName,
+} from "../databaseProjects/common/projectWorkflowTelemetry";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -72,6 +77,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private readonly _projectController: ProjectController;
     private readonly _mainController: MainController;
     private readonly _operationId: string;
+    private _publishInProgress = false;
+    private _workflowCompleted = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -127,6 +134,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._projectController = new ProjectController();
         this._mainController = mainController;
         this._operationId = generateOperationId();
+        recordSqlProjectWorkflowEvent(
+            projectFilePath,
+            SqlProjectWorkflowEventName.PublishDialogOpened,
+        );
 
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishDialogOpened, {
@@ -200,7 +211,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacpacPath: string,
         databaseName: string,
         upgradeExisting: boolean,
-    ): Promise<void> {
+    ): Promise<boolean> {
         // Ensure deployment options are loaded before executing DacFx operations.
         await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
@@ -225,8 +236,20 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         serverTypes: this._serverTypes,
                     },
                 });
+                completeSqlProjectWorkflow(
+                    state.projectFilePath,
+                    SqlProjectWorkflowEventName.PublishCompleted,
+                    {
+                        outcome: "Succeeded",
+                        additionalProps: {
+                            publishTarget: state.formState.publishTarget,
+                        },
+                    },
+                );
+                this._workflowCompleted = true;
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
+                return true;
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
                     error: new Error(getErrorMessage(result.errorMessage)),
@@ -237,8 +260,26 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         serverTypes: this._serverTypes,
                     },
                 });
+                completeSqlProjectWorkflow(
+                    state.projectFilePath,
+                    SqlProjectWorkflowEventName.PublishCompleted,
+                    {
+                        outcome: "Failed",
+                        additionalProps: {
+                            publishTarget: state.formState.publishTarget,
+                        },
+                    },
+                );
+                this._workflowCompleted = true;
+                return false;
             }
         } catch (error) {
+            if (this._workflowCompleted) {
+                this.logger.warn(
+                    `Publish succeeded, but post-publish processing failed: ${getErrorMessage(error)}`,
+                );
+                return true;
+            }
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
@@ -248,6 +289,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     serverTypes: this._serverTypes,
                 },
             });
+            completeSqlProjectWorkflow(
+                state.projectFilePath,
+                SqlProjectWorkflowEventName.PublishCompleted,
+                {
+                    outcome: "Failed",
+                    additionalProps: {
+                        publishTarget: state.formState.publishTarget,
+                    },
+                },
+            );
+            this._workflowCompleted = true;
+            return false;
         }
     }
 
@@ -341,6 +394,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Step 1: Build the project
         const dacpacPath = await this.buildProject(state);
         if (!dacpacPath) {
+            if (isPublish) {
+                completeSqlProjectWorkflow(
+                    state.projectFilePath,
+                    SqlProjectWorkflowEventName.PublishCompleted,
+                    { outcome: "Failed" },
+                );
+                this._workflowCompleted = true;
+                this._publishInProgress = false;
+            }
             return;
         }
 
@@ -350,6 +412,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Step 3: Execute publish or generate script
         if (isPublish) {
             await this.publishToDatabase(state, dacpacPath, databaseName, upgradeExisting);
+            this._publishInProgress = false;
         } else {
             await this.generateDeploymentScript(state, dacpacPath, databaseName);
         }
@@ -859,6 +922,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
+            this._publishInProgress = true;
+            recordSqlProjectWorkflowEvent(
+                state.projectFilePath,
+                SqlProjectWorkflowEventName.PublishStarted,
+                {
+                    additionalProps: {
+                        publishTarget: state.formState.publishTarget,
+                    },
+                },
+            );
             // Check if publishing to local container
             if (state.formState.publishTarget === PublishTarget.LocalContainer) {
                 // Keep panel open to show progress through all steps
@@ -896,6 +969,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             intent: "error",
                         };
                         state.inProgress = false;
+                        this._publishInProgress = false;
+                        recordSqlProjectWorkflowEvent(
+                            state.projectFilePath,
+                            SqlProjectWorkflowEventName.PublishCompleted,
+                            { outcome: "Failed" },
+                        );
                         this.updateState(state);
                         return state;
                     }
@@ -940,6 +1019,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             intent: "error",
                         };
                         state.inProgress = false;
+                        this._publishInProgress = false;
+                        recordSqlProjectWorkflowEvent(
+                            state.projectFilePath,
+                            SqlProjectWorkflowEventName.PublishCompleted,
+                            { outcome: "Failed" },
+                        );
                         this.updateState(state);
                         return state;
                     }
@@ -953,6 +1038,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     if (!dacpacPath) {
                         // Note: buildProject already sends its own telemetry on failure
                         state.inProgress = false;
+                        this._publishInProgress = false;
+                        recordSqlProjectWorkflowEvent(
+                            state.projectFilePath,
+                            SqlProjectWorkflowEventName.PublishCompleted,
+                            { outcome: "Failed" },
+                        );
                         this.updateState(state);
                         return state;
                     }
@@ -966,6 +1057,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
 
                     state.inProgress = false;
+                    this._publishInProgress = false;
                     this.panel?.dispose();
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
@@ -982,6 +1074,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         intent: "error",
                     };
                     state.inProgress = false;
+                    this._publishInProgress = false;
+                    recordSqlProjectWorkflowEvent(
+                        state.projectFilePath,
+                        SqlProjectWorkflowEventName.PublishCompleted,
+                        { outcome: "Failed" },
+                    );
                     this.updateState(state);
                 }
 
@@ -1752,5 +1850,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
             hasValidationErrors || hasMissingRequiredValues || !sqlCmdVariablesValid;
 
         return erroredInputs;
+    }
+
+    public override dispose(): void {
+        if (!this._publishInProgress && !this._workflowCompleted) {
+            completeSqlProjectWorkflow(
+                this.state.projectFilePath,
+                SqlProjectWorkflowEventName.PublishDialogClosed,
+                { outcome: "Cancelled" },
+            );
+        }
+        super.dispose();
     }
 }

@@ -33,8 +33,9 @@ import { uuid } from "../e2e/baseFixtures";
 import { ConnectionDetails } from "vscode-mssql";
 import * as constants from "../../src/constants/constants";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
-import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { ServerType } from "../../src/models/connectionInfo";
+import { SqlProjectWorkflowEventName } from "../../src/databaseProjects/common/projectWorkflowTelemetry";
 
 chai.use(sinonChai);
 
@@ -151,6 +152,27 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(components.serverName, "serverName component should exist").to.exist;
         expect(components.databaseName, "databaseName component should exist").to.exist;
         expect(components.publishTarget, "publishTarget component should exist").to.exist;
+    });
+
+    test("constructor records the publish dialog workflow step", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const controller = createTestController("c:/work/WorkflowProject.sqlproj");
+
+        await controller.initialized.promise;
+
+        const workflowCall = sendActionEventStub.args.find(
+            (args) =>
+                args[0] === TelemetryViews.SqlProjects &&
+                args[1] === TelemetryActions.SqlProjectWorkflow,
+        );
+        expect(workflowCall).to.exist;
+        expect(workflowCall![2]?.additionalProps).to.include({
+            eventName: SqlProjectWorkflowEventName.PublishDialogOpened,
+            stepName: "Publish",
+            stepOrdinal: "3",
+        });
+
+        controller.dispose();
     });
 
     test("reducer handlers are registered on construction", async () => {
@@ -1534,8 +1556,15 @@ suite("PublishProjectWebViewController Tests", () => {
             operationId: "",
         });
 
-        const controller = createTestController();
+        const controller = createTestController("c:/work/TelemetryPayloadProject.sqlproj");
         await controller.initialized.promise;
+        const workflowCorrelationId = sendActionEventStub.args.find(
+            (args) =>
+                args[1] === TelemetryActions.SqlProjectWorkflow &&
+                args[2]?.additionalProps?.eventName ===
+                    SqlProjectWorkflowEventName.PublishDialogOpened,
+        )?.[2]?.additionalProps?.workflowCorrelationId;
+        expect(workflowCorrelationId).to.be.a("string");
 
         const expectedServerTypes = `${ServerType.Azure},${ServerType.Sql}`;
         controller["_connectionUri"] = "mssql://azure-connection";
@@ -1553,6 +1582,17 @@ suite("PublishProjectWebViewController Tests", () => {
         );
         expect(publishCall, "PublishProject telemetry should be emitted").to.exist;
         expect(publishCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
+        const publishWorkflowCall = sendActionEventStub.args
+            .filter(
+                (args) =>
+                    args[1] === TelemetryActions.SqlProjectWorkflow &&
+                    args[2]?.additionalProps?.eventName ===
+                        SqlProjectWorkflowEventName.PublishCompleted &&
+                    args[2]?.additionalProps?.workflowCorrelationId === workflowCorrelationId,
+            )
+            .at(-1);
+        expect(publishWorkflowCall, "Publish workflow completion should be emitted").to.exist;
+        expect(publishWorkflowCall![2]?.additionalProps?.outcome).to.equal("Succeeded");
 
         // Verify GenerateScript failure event includes serverTypes (exercises the !result.success path)
         await controller["generateDeploymentScript"](

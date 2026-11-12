@@ -20,7 +20,7 @@ import {
     DeploymentType,
     DeploymentTypeState,
 } from "../sharedInterfaces/deployment";
-import { TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersHelpers";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
@@ -39,11 +39,46 @@ import {
 } from "../sharedInterfaces/azureSqlDatabase";
 import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 import * as azureSql from "./azureSqlHelpers";
+import {
+    startWorkflow,
+    type WorkflowStep,
+    type WorkflowTelemetryObject,
+} from "extension-toolkit/vscode";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
 
 type DeploymentFavorites = Record<string, string[]>;
+
+export enum DeploymentWorkflowEventName {
+    Opened = "Opened",
+    DeploymentTypeSelected = "DeploymentTypeSelected",
+    ConfigurationReady = "ConfigurationReady",
+    DeploymentStarted = "DeploymentStarted",
+    DeploymentCompleted = "DeploymentCompleted",
+    Closed = "Closed",
+}
+
+const DeploymentWorkflowStep = {
+    [DeploymentWorkflowEventName.Opened]: { name: "Opened", ordinal: 1 },
+    [DeploymentWorkflowEventName.DeploymentTypeSelected]: {
+        name: "DeploymentTypeSelected",
+        ordinal: 2,
+    },
+    [DeploymentWorkflowEventName.ConfigurationReady]: {
+        name: "Configuration",
+        ordinal: 3,
+    },
+    [DeploymentWorkflowEventName.DeploymentStarted]: {
+        name: "Deployment",
+        ordinal: 4,
+    },
+    [DeploymentWorkflowEventName.DeploymentCompleted]: {
+        name: "Deployment",
+        ordinal: 4,
+    },
+} as const;
 
 /**
  * Overarching controller for the deployment webview.
@@ -57,6 +92,9 @@ export class DeploymentWebviewController extends FormWebviewController<
     DeploymentReducers
 > {
     requiredInputs: DeploymentFormItemSpec[];
+    private readonly _workflow: WorkflowTelemetryObject;
+    private _deploymentSucceeded = false;
+
     constructor(
         context: vscode.ExtensionContext,
         // Main controller is used to connect to the container after creation
@@ -72,6 +110,12 @@ export class DeploymentWebviewController extends FormWebviewController<
                 light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
             },
         });
+        this._workflow = startWorkflow(
+            TelemetryViews.Deployment,
+            TelemetryActions.DeploymentWorkflow,
+            DeploymentWorkflowEventName.Opened,
+            { step: DeploymentWorkflowStep[DeploymentWorkflowEventName.Opened] },
+        );
         void this.initialize(initialConnectionGroup, initialDeploymentType);
     }
 
@@ -95,6 +139,10 @@ export class DeploymentWebviewController extends FormWebviewController<
         this.registerReducer("initializeDeploymentSpecifics", async (state, payload) => {
             let newDeploymentTypeState: DeploymentTypeState;
             state.deploymentType = payload.deploymentType;
+            this.recordDeploymentWorkflowEvent(
+                DeploymentWorkflowEventName.DeploymentTypeSelected,
+                payload.deploymentType,
+            );
             state.deploymentTypeState.loadState = ApiStatus.Loading;
             this.updateState(state);
             const selectedGroupId = state?.formState?.groupId;
@@ -141,6 +189,10 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (payload.deploymentType === DeploymentType.FabricProvisioning) {
                 void fabricProvisioning.getWorkspaces(this);
             }
+            this.recordDeploymentWorkflowEvent(
+                DeploymentWorkflowEventName.ConfigurationReady,
+                payload.deploymentType,
+            );
             return state;
         });
 
@@ -332,6 +384,39 @@ export class DeploymentWebviewController extends FormWebviewController<
         return `${DeploymentType[deploymentType]}.${propertyName}`;
     }
 
+    public recordDeploymentStarted(deploymentType: DeploymentType): void {
+        this.recordDeploymentWorkflowEvent(
+            DeploymentWorkflowEventName.DeploymentStarted,
+            deploymentType,
+        );
+    }
+
+    public recordDeploymentCompleted(
+        deploymentType: DeploymentType,
+        outcome: BackgroundTaskState,
+    ): void {
+        this._deploymentSucceeded =
+            outcome === BackgroundTaskState.Succeeded ||
+            outcome === BackgroundTaskState.SucceededWithWarning;
+        this.recordDeploymentWorkflowEvent(
+            DeploymentWorkflowEventName.DeploymentCompleted,
+            deploymentType,
+            outcome,
+        );
+    }
+
+    private recordDeploymentWorkflowEvent(
+        eventName: Exclude<DeploymentWorkflowEventName, DeploymentWorkflowEventName.Closed>,
+        deploymentType: DeploymentType,
+        outcome?: string,
+    ): void {
+        const step: WorkflowStep = {
+            ...DeploymentWorkflowStep[eventName],
+            branch: DeploymentType[deploymentType],
+        };
+        this._workflow.record(eventName, { step, outcome });
+    }
+
     async updateItemVisibility() {}
 
     protected getActiveFormComponents(
@@ -418,5 +503,16 @@ export class DeploymentWebviewController extends FormWebviewController<
             }
         }
         return errors;
+    }
+
+    public override dispose(): void {
+        this._workflow.end(DeploymentWorkflowEventName.Closed, {
+            outcome: this._deploymentSucceeded ? "Succeeded" : "Cancelled",
+            step: this._workflow.currentStep && {
+                ...this._workflow.currentStep,
+                branch: DeploymentType[this.state.deploymentType],
+            },
+        });
+        super.dispose();
     }
 }

@@ -41,6 +41,12 @@ import {
     TelemetryViews,
 } from "../../../src/databaseProjects/common/telemetry";
 import type { TelemetryEvent } from "extension-toolkit/vscode";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
+import { SqlProjectWorkflowEventName } from "../../../src/databaseProjects/common/projectWorkflowTelemetry";
+import {
+    TelemetryActions as MssqlTelemetryActions,
+    TelemetryViews as MssqlTelemetryViews,
+} from "../../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -424,6 +430,7 @@ suite("ProjectsController", function (): void {
             });
 
             test("Should create new sqlproj file with correct specified target platform", async function (): Promise<void> {
+                const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
                 const projController = new ProjectsController(testContext.outputChannel);
                 const projFileDir = await testUtils.generateTestFolderPath(this.test);
                 const projTargetPlatform = SqlTargetPlatform.sqlAzure; // default is SQL Server 2022
@@ -443,6 +450,18 @@ suite("ProjectsController", function (): void {
                 expect(constants.getTargetPlatformFromVersion(projTargetVersion)).to.equal(
                     projTargetPlatform,
                 );
+                const workflowCall = sendActionEventStub.args.find(
+                    (args) =>
+                        args[0] === MssqlTelemetryViews.SqlProjects &&
+                        args[1] === MssqlTelemetryActions.SqlProjectWorkflow,
+                );
+                expect(workflowCall).to.exist;
+                expect(workflowCall![2]?.additionalProps).to.include({
+                    eventName: SqlProjectWorkflowEventName.ProjectCreated,
+                    stepName: "New",
+                    stepOrdinal: "1",
+                    outcome: "Succeeded",
+                });
             });
 
             test("Should create new edge project with expected template files", async function (): Promise<void> {
