@@ -95,7 +95,7 @@
         "@fluentui/react-timepicker-compat": "0.4.32",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@monaco-editor/react": "^4.6.0",
-        "@playwright/test": "1.58.2",
+        "@playwright/test": "1.64.1",
         "@tanstack/react-virtual": "^3.13.12",
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
