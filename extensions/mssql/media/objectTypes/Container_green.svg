@@ -1,0 +1,17 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
+        <rect width="16" height="16" fill="white" />
+        <circle cx="12.5" cy="12.5" r="4.2" fill="black" />
+    </mask>
+    <g
+        mask="url(#cut)"
+        stroke="#424242"
+        stroke-width="1.2"
+        stroke-linejoin="round"
+        stroke-linecap="round">
+        <path d="M7 1.5L12.5 4.5V10.5L7 13.5L1.5 10.5V4.5L7 1.5Z" />
+        <path d="M1.5 4.5L7 7.5L12.5 4.5" />
+        <path d="M7 7.5V13.5" />
+    </g>
+    <circle cx="12.5" cy="12.5" r="3" fill="#2EA043" />
+</svg>

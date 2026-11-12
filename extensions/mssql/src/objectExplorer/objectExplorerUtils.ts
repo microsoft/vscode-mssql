@@ -18,7 +18,15 @@ export class ObjectExplorerUtils {
      * @param nodeType The type of node to get the icon for
      * @returns The path to the icon for the node type
      */
-    public static iconPath(nodeType: string): vscode.Uri | undefined {
+    public static iconPath(
+        nodeType: string,
+    ): vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined {
+        if (nodeType === "Container_green" || nodeType === "Container_red") {
+            return {
+                light: IconUtils.getIcon("objectTypes", `${nodeType}.svg`),
+                dark: IconUtils.getIcon("objectTypes", `${nodeType}_dark.svg`),
+            };
+        }
         return IconUtils.getIcon("objectTypes", `${nodeType}.svg`);
     }
 
