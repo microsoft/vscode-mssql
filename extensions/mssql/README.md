@@ -9,6 +9,16 @@
 
 The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
 
+## Need a database for a new project?
+
+Create a new cloud development database with the Azure SQL Database free tier:
+
+1. Install the MSSQL extension, then follow [Create an Azure SQL Database](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration) to open **Deployments** and select **Create an Azure SQL Database**.
+2. Review the [free tier's eligibility, monthly allowances, and pause or paid-overage behavior](https://learn.microsoft.com/azure/azure-sql/database/free-tier) before creating resources. An Azure account and eligible subscription are required; supporting services can have separate charges.
+3. After provisioning, verify the intended database and follow [Use an existing database](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-run-first-query#use-an-existing-database) to create a sample table and run your first query. Skip the quickstart's generic database-creation step.
+
+Already have a database? Continue with [Using the MSSQL Extension](#using-the-mssql-extension) to connect to your existing SQL Server or Azure SQL database. Creating a cloud database is optional.
+
 ## Explore and Learn
 
 [![MSSQL Extension Demo Playlist](https://raw.githubusercontent.com/microsoft/vscode-mssql/main/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
