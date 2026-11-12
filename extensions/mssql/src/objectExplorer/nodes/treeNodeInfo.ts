@@ -11,7 +11,7 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
-import { removeUndefinedProperties, uuid } from "../../utils/utils";
+import { isLocalServer, removeUndefinedProperties, uuid } from "../../utils/utils";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -52,7 +52,6 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     ) {
         super(label, collapsibleState);
         this._originalLabel = label;
-        this.context = context;
         this._nodePath = nodePath;
         this._nodeStatus = nodeStatus;
         this._nodeType = nodeType;
@@ -63,6 +62,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._metadata = objectMetadata;
         this._filters = filters;
         this._nodeSubType = nodeSubType;
+        this.context = context;
         if (this._nodeSubType) {
             this.iconPath = ObjectExplorerUtils.iconPath(`${this._nodeType}_${this._nodeSubType}`);
         } else {
@@ -239,7 +239,16 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     public set context(value: vscodeMssql.TreeNodeContextValue) {
-        this.contextValue = this._convertToContextValue(value);
+        if (!value) {
+            this.contextValue = "";
+            return;
+        }
+        const context: vscodeMssql.TreeNodeContextValue & { localToCloud?: boolean } = { ...value };
+        delete context.localToCloud;
+        if (isLocalServer(this._connectionProfile?.server)) {
+            context.localToCloud = true;
+        }
+        this.contextValue = this._convertToContextValue(context);
     }
 
     public set loadingLabel(value: string | undefined) {
@@ -248,6 +257,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     public updateConnectionProfile(value: IConnectionProfile): void {
         this._connectionProfile = value;
+        this.context = this.context;
     }
 
     public updateEntraTokenInfo(updatedCredentials: vscodeMssql.IConnectionInfo): void {

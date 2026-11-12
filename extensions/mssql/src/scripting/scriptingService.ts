@@ -5,6 +5,7 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import {
     ScriptingRequest,
     IScriptingParams,
@@ -212,7 +213,7 @@ export class ScriptingService {
 
         try {
             const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-            let connectionCreds = node.connectionProfile;
+            const connectionCreds = { ...node.connectionProfile };
             const databaseName = ObjectExplorerUtils.getDatabaseName(node);
             if (
                 !this._connectionManager.isConnected(nodeUri) ||
@@ -239,6 +240,9 @@ export class ScriptingService {
                     }
                 }
             }
+            scriptTelemetryActivity.update(
+                getConnectionTelemetryInfo(this._connectionManager, nodeUri),
+            );
 
             // Get scripting object first to validate it exists
             let scriptingObject = this.getScriptingObjectFromNode(node);
@@ -493,6 +497,7 @@ export class ScriptingService {
             TelemetryViews.ScriptingService,
             TelemetryActions.Script,
             {
+                ...getConnectionTelemetryInfo(this._connectionManager, scriptingParams.ownerURI),
                 additionalProps: {
                     operation: this.stringifyScriptOperation(scriptingParams.operation),
                 },

@@ -6,7 +6,7 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { AuthenticationType } from "./connectionDialog";
 import { SchemaDesigner } from "./schemaDesigner";
-import { ApiStatus, Status } from "./webview";
+import { Status } from "./webview";
 
 /**
  * Data API builder (DAB) interfaces for webview-extension communication
@@ -136,6 +136,16 @@ export namespace Dab {
 
     export interface DabStoredProcedureParameterMetadata {
         name: string;
+        dataType: string;
+        ordinal: number;
+    }
+
+    /**
+     * A column of the first result set of a stored procedure, as DAB reads it at startup.
+     * The name is missing for an expression without an alias.
+     */
+    export interface DabStoredProcedureResultColumnMetadata {
+        name?: string;
         dataType: string;
         ordinal: number;
     }
@@ -295,6 +305,10 @@ export namespace Dab {
         columns: DabColumnConfig[];
         fields?: DabFieldConfig[];
         parameters?: DabParameterConfig[];
+        /**
+         * First result set of a stored procedure. Used only to validate the procedure.
+         */
+        resultColumns?: DabStoredProcedureResultColumnMetadata[];
     }
 
     /**
@@ -666,23 +680,6 @@ export namespace Dab {
      * same channel, so starting it before the delete has landed would race the
      * two writes against each other.
      */
-    export interface DiscardPendingCliEngineParams {
-        /** Port the engine was told to publish on. */
-        port: number;
-    }
-
-    /**
-     * Stops a CLI engine that started but never finished deploying. The engine
-     * is detached and is only tracked once the last step succeeds, so a failure
-     * in between would otherwise leave it running and holding the port that the
-     * retry is about to ask for.
-     */
-    export namespace DiscardPendingCliEngineRequest {
-        export const type = new RequestType<DiscardPendingCliEngineParams, void, void>(
-            "dab/discardPendingCliEngine",
-        );
-    }
-
     export namespace ResetConfigRequest {
         export const type = new RequestType<void, void, void>("dab/resetConfig");
     }
@@ -791,7 +788,25 @@ export namespace Dab {
      * The :latest tag cannot be used for that, since it tracks the newest
      * stable and would leave the container behind the CLI.
      */
-    export const DAB_CONTAINER_IMAGE = `mcr.microsoft.com/azure-databases/data-api-builder:${DAB_ENGINE_VERSION}`;
+    export const DAB_CONTAINER_IMAGE_REPOSITORY =
+        "mcr.microsoft.com/azure-databases/data-api-builder";
+
+    /**
+     * Digest of the image index tagged {@link DAB_ENGINE_VERSION}. A tag can be
+     * moved to another image after release; a digest names exactly one, so the
+     * container always runs the build the designer was made for. Look it up
+     * with `docker buildx imagetools inspect <repository>:<version>` when the
+     * engine version changes.
+     */
+    export const DAB_CONTAINER_IMAGE_DIGEST =
+        "sha256:d07e3e1ce53bdf84d3a4a0a4ce12e44f0b902e7316c782a3d682fbe074509c0b";
+
+    /**
+     * DAB container image, pinned to the digest of the
+     * `${DAB_ENGINE_VERSION}` release. The digest alone is used, without the
+     * tag, because that is the form every Docker client resolves the same way.
+     */
+    export const DAB_CONTAINER_IMAGE = `${DAB_CONTAINER_IMAGE_REPOSITORY}@${DAB_CONTAINER_IMAGE_DIGEST}`;
 
     /**
      * Platform to use when pulling the DAB container image.
@@ -804,11 +819,6 @@ export namespace Dab {
      * Default port for DAB container
      */
     export const DAB_DEFAULT_PORT = 5000;
-
-    /**
-     * Default container name prefix for DAB
-     */
-    export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
     /** Prefix every generated deployment name carries. */
     export const DAB_DEPLOYMENT_NAME_PREFIX = "DAB";
@@ -857,8 +867,8 @@ export namespace Dab {
 
     /**
      * Default flat container the CLI package is downloaded from. Environments
-     * that disable nuget.org in favor of a mirror override this through the
-     * `mssql.dab.cliPackageFeedUrl` setting.
+     * that disable nuget.org in favor of a mirror override this through their
+     * NuGet configuration.
      */
     export const DAB_CLI_DEFAULT_PACKAGE_FEED_URL = "https://api.nuget.org/v3-flatcontainer";
 
@@ -895,21 +905,56 @@ export namespace Dab {
         startCliEngine = 9,
         /** Check if the DAB engine is answering */
         checkCliEngine = 10,
+        /** Get an Azure CLI the engine can sign in to Microsoft Entra with */
+        acquireAzureCli = 11,
+        /** Sign that Azure CLI in to Microsoft Entra */
+        signInEntra = 12,
     }
 
     /**
-     * Top-level view of the deployments dialog. The dialog either lists the
-     * deployments tracked for this database, asks which target to deploy to,
-     * or runs the deployment wizard in place.
+     * Steps that only run when the engine has to sign in to Microsoft Entra
+     * for itself, because the connection string carries no credential.
      */
-    export enum DabDeploymentDialogView {
-        /** Tracked deployments, with their live container state. */
-        List = 0,
-        /** Target picker shown after "Create new". */
-        TargetSelection = 1,
-        /** Prerequisite checks, parameter input, progress, and completion. */
-        Wizard = 2,
+    export const dabEntraSignInSteps: readonly DabDeploymentStepOrder[] = [
+        DabDeploymentStepOrder.acquireAzureCli,
+        DabDeploymentStepOrder.signInEntra,
+    ];
+
+    /**
+     * How far a long step has got. Downloads and unpacks count up to a known
+     * total; an install reports the percentage it has done.
+     */
+    export type DabDeploymentStepProgress =
+        | { phase: "download"; completed: number; total?: number }
+        | { phase: "unpack"; completed: number; total: number }
+        | { phase: "install"; percent: number }
+        | { phase: "starting"; elapsedSeconds: number };
+
+    /** Which optional steps a deployment runs. */
+    export interface DabDeploymentStepOptions {
+        /** True when the engine signs in to Microsoft Entra through the Azure CLI. */
+        entraSignIn?: boolean;
     }
+
+    /** A choice the user makes to finish a step that is waiting for them. */
+    export enum DabDeploymentStepAction {
+        /** Sign in through a browser. */
+        SignIn = "signIn",
+        /** Start a device code sign-in, which reports a code to enter. */
+        SignInWithCode = "signInWithCode",
+        /** Wait for a device code sign-in to finish. */
+        AwaitSignIn = "awaitSignIn",
+    }
+
+    /** What a step that is waiting for the user needs from them. */
+    export type DabDeploymentStepPrompt =
+        | { kind: "entraSignIn"; account?: string }
+        | {
+              kind: "entraDeviceCode";
+              account?: string;
+              userCode: string;
+              verificationUri: string;
+          };
 
     /**
      * Where a deployment runs. Only local Docker is supported today; the picker
@@ -920,21 +965,6 @@ export namespace Dab {
         Docker = "docker",
         /** DAB runs as a local process, started by the DAB CLI. */
         DabCli = "dabCli",
-    }
-
-    /**
-     * How the deployment flow was entered.
-     *
-     * Deploying from the toolbar is a self-contained flow that ends on its own
-     * completion screen; the deployments dialog owns a list to return to. The
-     * distinction lets the deployments experience be switched off without
-     * leaving the toolbar's Deploy button with nowhere to finish.
-     */
-    export enum DabDeploymentEntryPoint {
-        /** The toolbar's Deploy button, with no deployments list behind it. */
-        Standalone = "standalone",
-        /** The deployments dialog. */
-        Deployments = "deployments",
     }
 
     /**
@@ -970,12 +1000,17 @@ export namespace Dab {
             ],
         },
         [DabDeploymentTarget.DabCli]: {
+            // Acquiring the CLI also resolves the runtime it needs, since the
+            // package's runtimeconfig is what names the runtime version.
             prerequisites: [
                 DabDeploymentStepOrder.acquireDabCli,
-                DabDeploymentStepOrder.checkDotnetRuntime,
+                DabDeploymentStepOrder.acquireAzureCli,
+                DabDeploymentStepOrder.signInEntra,
             ],
+            // Starting the engine writes its config first. There is no separate
+            // validate step: it would load every entity's metadata from the
+            // database, and starting the engine loads it all again.
             deployment: [
-                DabDeploymentStepOrder.validateCliConfig,
                 DabDeploymentStepOrder.startCliEngine,
                 DabDeploymentStepOrder.checkCliEngine,
             ],
@@ -1102,9 +1137,14 @@ export namespace Dab {
     }
 
     /** Every step a target runs, in order. */
-    export function getDabDeploymentSteps(target: DabDeploymentTarget): DabDeploymentStepOrder[] {
+    export function getDabDeploymentSteps(
+        target: DabDeploymentTarget,
+        options: DabDeploymentStepOptions = {},
+    ): DabDeploymentStepOrder[] {
         const steps = dabDeploymentStepsByTarget[target];
-        return [...steps.prerequisites, ...steps.deployment];
+        return [...steps.prerequisites, ...steps.deployment].filter(
+            (step) => options.entraSignIn || !dabEntraSignInSteps.includes(step),
+        );
     }
 
     /** True when the step belongs to the target's prerequisite phase. */
@@ -1119,8 +1159,9 @@ export namespace Dab {
     export function getNextDabDeploymentStep(
         target: DabDeploymentTarget,
         step: DabDeploymentStepOrder,
+        options: DabDeploymentStepOptions = {},
     ): DabDeploymentStepOrder | undefined {
-        const steps = getDabDeploymentSteps(target);
+        const steps = getDabDeploymentSteps(target, options);
         return steps[steps.indexOf(step) + 1];
     }
 
@@ -1131,22 +1172,6 @@ export namespace Dab {
     ): boolean {
         const deploymentSteps = dabDeploymentStepsByTarget[target].deployment;
         return deploymentSteps[deploymentSteps.length - 1] === step;
-    }
-
-    /**
-     * Enumeration representing the current view/step in the deployment dialog
-     */
-    export enum DabDeploymentDialogStep {
-        /** Initial confirmation dialog */
-        Confirmation = 0,
-        /** Docker prerequisites check */
-        Prerequisites = 1,
-        /** Parameter input form (container name, port) */
-        ParameterInput = 2,
-        /** Deployment progress steps */
-        Deployment = 3,
-        /** Completion or error state, shown only by the standalone flow */
-        Complete = 4,
     }
 
     /**
@@ -1181,62 +1206,14 @@ export namespace Dab {
         fullErrorText?: string;
     }
 
-    /**
-     * State tracking for the DAB deployment process
-     */
+    /** State of the deployment dialog. */
     export interface DabDeploymentState {
         /**
          * Whether the deployment dialog is open
          */
         isDialogOpen: boolean;
-        /**
-         * Which of the dialog's top-level views is showing
-         */
-        dialogView: DabDeploymentDialogView;
-        /**
-         * Where the wizard is deploying to. Decides which steps run.
-         */
-        target: DabDeploymentTarget;
-        /**
-         * How the flow was entered, which decides where it finishes.
-         */
-        entryPoint: DabDeploymentEntryPoint;
-        /**
-         * Whether the wizard is creating a container or redeploying one
-         */
-        mode: DabDeploymentMode;
-        /**
-         * Tracked deployment the wizard is redeploying, when in redeploy mode
-         */
-        activeDeploymentId?: string;
-        /**
-         * Current dialog step
-         */
-        dialogStep: DabDeploymentDialogStep;
-        /**
-         * Current deployment step (when in Deployment dialog step)
-         */
-        currentDeploymentStep: DabDeploymentStepOrder;
-        /**
-         * Deployment parameters from user input
-         */
-        params: DabDeploymentParams;
-        /**
-         * Status of each deployment step
-         */
-        stepStatuses: DabDeploymentStepStatus[];
-        /**
-         * Whether deployment is in progress
-         */
-        isDeploying: boolean;
-        /**
-         * URL where the API is accessible after successful deployment
-         */
-        apiUrl?: string;
-        /**
-         * Error message if deployment failed
-         */
-        error?: string;
+        /** Opens the deployment view on its configuration changes. */
+        showChanges?: boolean;
     }
 
     /**
@@ -1264,41 +1241,31 @@ export namespace Dab {
          * Text for the error link
          */
         errorLinkText?: string;
+        /** One line about the finished step, such as the version it set up. */
+        detail?: string;
+        /** Set while the step waits for the user, with what it needs from them. */
+        prompt?: DabDeploymentStepPrompt;
+        /** Why the step failed, set alongside the message of a failed step. */
+        failureReason?: DabDeploymentFailureReason;
+        /** The user's answer the step is working on, so the row can say what is happening. */
+        action?: DabDeploymentStepAction;
+        /** How far the running step has got, when it reports progress. */
+        progress?: DabDeploymentStepProgress;
     }
 
     /**
      * Creates a default deployment state
      */
-    export function createDefaultDeploymentState(
-        target: DabDeploymentTarget = DabDeploymentTarget.Docker,
-    ): DabDeploymentState {
-        const steps = getDabDeploymentSteps(target);
-        return {
-            isDialogOpen: false,
-            dialogView: DabDeploymentDialogView.List,
-            target,
-            entryPoint: DabDeploymentEntryPoint.Deployments,
-            mode: DabDeploymentMode.Create,
-            dialogStep: DabDeploymentDialogStep.Confirmation,
-            currentDeploymentStep: steps[0],
-            params: {
-                // Left blank: the settings form asks the extension for a
-                // generated name on mount, so seeding a placeholder here would
-                // only flash a name that is about to be replaced.
-                containerName: "",
-                port: DAB_DEFAULT_PORT,
-            },
-            stepStatuses: steps.map((step) => ({ step, status: ApiStatus.NotStarted })),
-            isDeploying: false,
-        };
+    export function createDefaultDeploymentState(): DabDeploymentState {
+        return { isDialogOpen: false };
     }
 
     // ============================================
-    // Deployment Requests (Webview -> Extension)
+    // Deployment Steps
     // ============================================
 
     /**
-     * Request to run a specific deployment step
+     * What one deployment step runs with
      */
     export interface RunDeploymentStepParams {
         /**
@@ -1310,8 +1277,6 @@ export namespace Dab {
          * predate the CLI target.
          */
         target?: DabDeploymentTarget;
-        /** The dialog that started this deployment, for bounded telemetry. */
-        entryPoint?: DabDeploymentEntryPoint;
         /**
          * Deployment parameters (needed for some steps)
          */
@@ -1325,6 +1290,8 @@ export namespace Dab {
          * updates that tracking record instead of adding a new one.
          */
         deploymentId?: string;
+        /** The user's answer to a step that was waiting for them. */
+        action?: DabDeploymentStepAction;
     }
 
     export interface RunDeploymentStepResponse {
@@ -1356,73 +1323,64 @@ export namespace Dab {
          * API URL (returned after successful container start)
          */
         apiUrl?: string;
-    }
-
-    export namespace RunDeploymentStepRequest {
-        export const type = new RequestType<
-            RunDeploymentStepParams,
-            RunDeploymentStepResponse,
-            void
-        >("dab/runDeploymentStep");
-    }
-
-    /**
-     * Request to validate deployment parameters
-     */
-    export interface ValidateDeploymentParamsParams {
+        /** One line about the finished step, such as the version it set up. */
+        detail?: string;
         /**
-         * Container name to validate
+         * Set when the step cannot finish without the user. The step is not a
+         * failure: it waits, and runs again with the action the user picks.
          */
-        containerName: string;
-        /**
-         * Port to validate
-         */
-        port: number;
-    }
-
-    export interface ValidateDeploymentParamsResponse {
-        /**
-         * Whether the container name is valid and unique
-         */
-        isContainerNameValid: boolean;
-        /**
-         * Validated/suggested container name (may be auto-generated if input was empty)
-         */
-        validatedContainerName: string;
-        /**
-         * Error message for container name if invalid
-         */
-        containerNameError?: string;
-        /**
-         * Whether the port is valid and available
-         */
-        isPortValid: boolean;
-        /**
-         * Suggested available port (may differ from input if port was in use)
-         */
-        suggestedPort: number;
-        /**
-         * Error message for port if invalid
-         */
-        portError?: string;
-    }
-
-    export namespace ValidateDeploymentParamsRequest {
-        export const type = new RequestType<
-            ValidateDeploymentParamsParams,
-            ValidateDeploymentParamsResponse,
-            void
-        >("dab/validateDeploymentParams");
+        prompt?: DabDeploymentStepPrompt;
+        /** Why the step failed, when it did. */
+        failureReason?: DabDeploymentFailureReason;
+        /** How a setup step was satisfied, when it succeeded. */
+        setup?: DabDeploymentStepSetup;
     }
 
     /**
-     * Request to stop and clean up a DAB container
+     * Why a deployment step failed, as a fixed code. Unlike the message shown
+     * to the user, it never carries a path, server, account, or error text.
      */
-    export interface StopDeploymentParams {
-        /**
-         * Name of the container to stop
-         */
-        containerName: string;
+    export type DabDeploymentFailureReason =
+        | "cliDownloadFailed"
+        | "cliVerificationFailed"
+        | "cliUnsupportedPlatform"
+        | "cliAcquisitionFailed"
+        | "dotnetNotFound"
+        | "azureCliDownloadFailed"
+        | "azureCliVerificationFailed"
+        | "azureCliPythonMissing"
+        | "azureCliInstallFailed"
+        | "azureCliNotReady"
+        | "signInCodeUnavailable"
+        | "signInFailed"
+        | "configGenerationFailed"
+        | "configWriteFailed"
+        | "engineStartFailed"
+        | "engineExited"
+        | "engineReadyTimeout"
+        | "databaseConnectionFailed"
+        | "dockerNotInstalled"
+        | "dockerStartFailed"
+        | "dockerEngineNotReady"
+        | "imagePullFailed"
+        | "containerStartFailed"
+        | "containerNotReady"
+        | "portInUse"
+        | "noFreePort"
+        | "teardownFailed"
+        | "targetUnsupported"
+        | "prerequisiteMissing"
+        | "exception";
+
+    /**
+     * How a setup step was satisfied, in fixed values: a copy reused from an
+     * earlier deployment or one fetched now, and how the user signed in.
+     */
+    export interface DabDeploymentStepSetup {
+        cli?: "cached" | "downloaded";
+        runtime?: "managed" | "path";
+        azureCli?: "existing" | "installed";
+        signIn?: "existing" | "browser" | "deviceCode";
     }
 
     export interface StopDeploymentResponse {
@@ -1434,12 +1392,6 @@ export namespace Dab {
          * Error message if stopping failed
          */
         error?: string;
-    }
-
-    export namespace StopDeploymentRequest {
-        export const type = new RequestType<StopDeploymentParams, StopDeploymentResponse, void>(
-            "dab/stopDeployment",
-        );
     }
 
     /**
@@ -1541,6 +1493,33 @@ export namespace Dab {
         isConfigOutdated: boolean;
         /** Base URL the API is published on. */
         apiUrl: string;
+        /** True when the config the deployment was made with was kept, so it can be compared. */
+        hasConfigSnapshot: boolean;
+    }
+
+    export interface GetDeploymentChangesParams {
+        deploymentId: string;
+        /** Current designer config, compared with the one the deployment runs. */
+        config: DabConfig;
+    }
+
+    export interface GetDeploymentChangesResponse {
+        /** Config file the deployment was made with; missing when it was not kept. */
+        deployedConfig?: string;
+        /** Config file the current designer config produces. */
+        currentConfig: string;
+    }
+
+    /**
+     * The config file a deployment runs and the one the current config would
+     * produce, both with the connection string replaced by a placeholder.
+     */
+    export namespace GetDeploymentChangesRequest {
+        export const type = new RequestType<
+            GetDeploymentChangesParams,
+            GetDeploymentChangesResponse,
+            void
+        >("dab/getDeploymentChanges");
     }
 
     export interface GetDeploymentsParams {
@@ -1596,31 +1575,149 @@ export namespace Dab {
         );
     }
 
-    export interface PrepareRedeploymentResponse extends DeploymentActionResponse {
+    export interface PrepareDeploymentParams {
+        /** Where to deploy. Ignored when redeploying, which keeps the original target. */
+        target: DabDeploymentTarget;
+        /** Deployment to replace with the current config, when one exists. */
+        deploymentId?: string;
         /**
-         * Name and port to redeploy with. Present only on success.
+         * Port chosen for a first deployment. The deployment fails rather than
+         * moving to another port when this one has been taken since.
          */
+        port?: number;
+    }
+
+    export interface PrepareDeploymentResponse extends DeploymentActionResponse {
+        /** Name and port to deploy with. Present only on success. */
         params?: DabDeploymentParams;
-        /**
-         * Target to redeploy to, so the wizard runs the steps this deployment
-         * was originally made with. Present only on success.
-         */
-        target?: DabDeploymentTarget;
+        /** Why no name and port could be picked, when they could not. */
+        failureReason?: DabDeploymentFailureReason;
+    }
+
+    // ============================================
+    // Deployment runs
+    // ============================================
+
+    /** Where a deployment run stands. */
+    export enum DabDeploymentRunStatus {
+        Running = "running",
+        /** A step needs the user, such as a sign-in. */
+        Waiting = "waiting",
+        Failed = "failed",
+        Succeeded = "succeeded",
+        Canceled = "canceled",
     }
 
     /**
-     * Verifies the deployment's port is still free and removes the existing
-     * container so the normal deployment steps can recreate it under the same
-     * name and port. Fails without touching the container when the port has
-     * been taken by something else.
+     * A deployment the extension runs from start to finish. It belongs to the
+     * extension rather than to the dialog, so it keeps going when the designer
+     * is closed and is picked up again when it is reopened.
      */
-    export namespace PrepareRedeploymentRequest {
-        export const type = new RequestType<
-            DeploymentActionParams,
-            PrepareRedeploymentResponse,
-            void
-        >("dab/prepareRedeployment");
+    export interface DabDeploymentRunState {
+        runId: string;
+        target: DabDeploymentTarget;
+        mode: DabDeploymentMode;
+        status: DabDeploymentRunStatus;
+        stepStatuses: DabDeploymentStepStatus[];
+        /** Name and port, once the prerequisites have passed and they are picked. */
+        params?: DabDeploymentParams;
     }
+
+    export interface StartDeploymentRunParams {
+        target: DabDeploymentTarget;
+        /** Deployment to replace with the current config, when one exists. */
+        deploymentId?: string;
+        /** Port chosen for a first deployment. */
+        port?: number;
+        config: DabConfig;
+    }
+
+    /** Starts a deployment run, or returns the one already in progress. */
+    export namespace StartDeploymentRunRequest {
+        export const type = new RequestType<StartDeploymentRunParams, DabDeploymentRunState, void>(
+            "dab/startDeploymentRun",
+        );
+    }
+
+    export interface GetDeploymentRunResponse {
+        run?: DabDeploymentRunState;
+    }
+
+    /** The deployment run for this database, if there is one to show. */
+    export namespace GetDeploymentRunRequest {
+        export const type = new RequestType<void, GetDeploymentRunResponse, void>(
+            "dab/getDeploymentRun",
+        );
+    }
+
+    export interface DeploymentRunActionParams {
+        runId: string;
+    }
+
+    export interface RespondToDeploymentStepParams extends DeploymentRunActionParams {
+        step: DabDeploymentStepOrder;
+        action: DabDeploymentStepAction;
+    }
+
+    /** Answers a step that is waiting for the user. */
+    export namespace RespondToDeploymentStepRequest {
+        export const type = new RequestType<RespondToDeploymentStepParams, void, void>(
+            "dab/respondToDeploymentStep",
+        );
+    }
+
+    /** Runs a failed deployment again from the step that failed. */
+    export namespace RetryDeploymentRunRequest {
+        export const type = new RequestType<DeploymentRunActionParams, void, void>(
+            "dab/retryDeploymentRun",
+        );
+    }
+
+    /** Stops a deployment run and removes what it left half done. */
+    export namespace CancelDeploymentRunRequest {
+        export const type = new RequestType<DeploymentRunActionParams, void, void>(
+            "dab/cancelDeploymentRun",
+        );
+    }
+
+    /** Forgets a finished run, so the dialog shows the deployment again. */
+    export namespace DismissDeploymentRunRequest {
+        export const type = new RequestType<DeploymentRunActionParams, void, void>(
+            "dab/dismissDeploymentRun",
+        );
+    }
+
+    /** The deployment run changed (Extension -> Webview). */
+    export namespace DeploymentRunChangedNotification {
+        export const type = new NotificationType<DabDeploymentRunState>("dab/deploymentRunChanged");
+    }
+
+    export interface CheckDeploymentPortParams {
+        /** Port to check. When left out, the first free port is suggested. */
+        port?: number;
+    }
+
+    export interface CheckDeploymentPortResponse {
+        /** The checked port, or the suggested one. Undefined when no port is free. */
+        port?: number;
+        /** Whether the port is free and no other DAB deployment owns it. */
+        isAvailable: boolean;
+        /** Why the port cannot be used. */
+        error?: string;
+    }
+
+    /**
+     * Suggests the first free port for a first deployment, or checks one the
+     * user typed. Ports owned by the deployments of any database count as taken.
+     */
+    export namespace CheckDeploymentPortRequest {
+        export const type = new RequestType<
+            CheckDeploymentPortParams,
+            CheckDeploymentPortResponse,
+            void
+        >("dab/checkDeploymentPort");
+    }
+
     // ============================================
     // Service interface
     // ============================================
@@ -1664,16 +1761,6 @@ export namespace Dab {
         ): Promise<RunDeploymentStepResponse>;
 
         /**
-         * Validates deployment parameters (container name and port)
-         * @param containerName The container name to validate
-         * @param port The port to validate
-         */
-        validateDeploymentParams(
-            containerName: string,
-            port: number,
-        ): Promise<ValidateDeploymentParamsResponse>;
-
-        /**
          * Stops and removes a DAB container
          * @param containerName Name of the container to stop
          */
@@ -1710,6 +1797,17 @@ export namespace Dab {
          * @param port The host port to check
          */
         isPortAvailable(port: number): Promise<boolean>;
+
+        /**
+         * Finds the first free port from the preferred one, skipping ports that
+         * other DAB deployments own. Returns undefined when no port is free.
+         * @param preferredPort Port to start the search from
+         * @param reservedPorts Ports to skip even when nothing holds them right now
+         */
+        findAvailablePort(
+            preferredPort: number,
+            reservedPorts?: Iterable<number>,
+        ): Promise<number | undefined>;
     }
 
     // ============================================
@@ -1722,11 +1820,14 @@ export namespace Dab {
      */
     export type DabUnsupportedReason =
         | { type: "noPrimaryKey" }
-        | { type: "unsupportedDataTypes"; columns: string };
+        | { type: "unsupportedDataTypes"; columns: string }
+        | { type: "unnamedResultColumns" };
 
     /**
      * SQL Server data types that are not supported by Data API builder.
      * Documented at https://learn.microsoft.com/en-us/azure/data-api-builder/feature-availability#unsupported-data-types
+     * "table type" is how the metadata reports a table-valued parameter, which DAB
+     * cannot map and which stops it at startup.
      */
     export const DAB_UNSUPPORTED_DATA_TYPES = [
         "sys.geography",
@@ -1735,6 +1836,7 @@ export namespace Dab {
         "rowversion",
         "sql_variant",
         "xml",
+        "table type",
     ];
 
     function normalizeDataTypeName(dataType?: string): string | undefined {
@@ -1814,30 +1916,41 @@ export namespace Dab {
             reasons.push({ type: "noPrimaryKey" });
         }
 
+        // DAB reads the first result set of each stored procedure at startup. A
+        // column it cannot map or a column without a name stops the whole runtime,
+        // so these procedures are blocked instead of breaking every other entity.
+        const resultColumns = sourceObject.resultColumns ?? [];
         const unsupportedColumns = [
-            ...sourceObject.columns.filter((c) => isUnsupportedDataType(c.dataType)),
+            ...sourceObject.columns
+                .filter((c) => isUnsupportedDataType(c.dataType))
+                .map((c) => ({ name: c.name, dataType: c.dataType })),
             ...(sourceObject.parameters ?? [])
                 .filter((parameter) => isUnsupportedDataType(parameter.dataType))
-                .map(
-                    (parameter): DabColumnConfig => ({
-                        id: parameter.name,
-                        name: parameter.name,
-                        dataType: parameter.dataType ?? "",
-                        isPrimaryKey: false,
-                        isSupported: false,
-                        isExposed: true,
-                    }),
-                ),
+                .map((parameter) => ({
+                    name: parameter.name,
+                    dataType: parameter.dataType ?? "",
+                })),
+            ...resultColumns
+                .filter((column) => !!column.name && isUnsupportedDataType(column.dataType))
+                .map((column) => ({ name: column.name ?? "", dataType: column.dataType })),
         ];
         if (unsupportedColumns.length > 0) {
             const details = unsupportedColumns.map((c) => `${c.name} (${c.dataType})`).join(", ");
             reasons.push({ type: "unsupportedDataTypes", columns: details });
         }
 
-        const hasBlockingReason = reasons.some((reason) => reason.type === "unsupportedDataTypes");
+        if (resultColumns.some((column) => !column.name?.trim())) {
+            reasons.push({ type: "unnamedResultColumns" });
+        }
+
+        const hasBlockingReason = reasons.some(isBlockingUnsupportedReason);
         return reasons.length > 0
             ? { isSupported: !hasBlockingReason, reasons }
             : { isSupported: true };
+    }
+
+    function isBlockingUnsupportedReason(reason: DabUnsupportedReason): boolean {
+        return reason.type !== "noPrimaryKey";
     }
 
     /**
@@ -1912,7 +2025,39 @@ export namespace Dab {
             return new Set(idSuffixColumns.map((column) => normalizeDabIdentifier(column.name)));
         }
 
+        // DAB does not start when a table or view has no key, so fall back to the
+        // first column that can identify a row. The key may not be unique, but the
+        // entity stays usable and the user can pick a better key.
+        const fallbackColumn = supportedColumns.find((column) =>
+            isKeyCandidateDataType(column.dataType),
+        );
+        if (fallbackColumn) {
+            return new Set([normalizeDabIdentifier(fallbackColumn.name)]);
+        }
+
         return new Set();
+    }
+
+    /**
+     * Types that cannot be compared, sorted, or matched exactly, so they make a poor
+     * key for DAB lookups and pagination.
+     */
+    const NON_KEY_DATA_TYPE_NAMES = new Set([
+        "text",
+        "ntext",
+        "image",
+        "binary",
+        "varbinary",
+        "json",
+        "vector",
+        "bit",
+        "float",
+        "real",
+    ]);
+
+    function isKeyCandidateDataType(dataType?: string): boolean {
+        const normalized = normalizeDataTypeName(dataType);
+        return !!normalized && !NON_KEY_DATA_TYPE_NAMES.has(normalized);
     }
 
     const crudActions = [
@@ -2085,6 +2230,38 @@ export namespace Dab {
         return isEntityEffectivelyExposed(entity);
     }
 
+    /** Entities a deployment serves, which is what the engine loads before it answers. */
+    export function getExposedDabEntityCount(config: DabConfig | null | undefined): number {
+        return (config?.entities ?? []).filter(
+            (entity) => entity.isSupported && isEntityEffectivelyExposed(entity, config?.apiTypes),
+        ).length;
+    }
+
+    /** Wait for an engine that serves no entities. */
+    const DAB_ENGINE_READY_BASE_TIMEOUT_MS = 5 * 60_000;
+    /**
+     * Extra wait for each entity. The engine reads each entity's metadata from
+     * the database, one at a time, before it answers. Against a remote database
+     * that has been seen to take more than 3 seconds an entity.
+     */
+    const DAB_ENGINE_READY_PER_ENTITY_MS = 6_000;
+    /** Longest wait, however many entities there are. */
+    const DAB_ENGINE_READY_MAX_TIMEOUT_MS = 2 * 60 * 60_000;
+
+    /**
+     * How long to wait for a newly started engine to answer. The wait grows
+     * with the number of entities the engine loads before it answers.
+     *
+     * @param entityCount Entities the deployment serves
+     */
+    export function getDabEngineReadyTimeoutMs(entityCount: number): number {
+        return Math.min(
+            DAB_ENGINE_READY_BASE_TIMEOUT_MS +
+                Math.max(entityCount, 0) * DAB_ENGINE_READY_PER_ENTITY_MS,
+            DAB_ENGINE_READY_MAX_TIMEOUT_MS,
+        );
+    }
+
     export function hasLogicalKey(entity: DabEntityConfig): boolean {
         if (entity.sourceType === EntitySourceType.StoredProcedure) {
             return true;
@@ -2123,9 +2300,7 @@ export namespace Dab {
     }
 
     export function hasBlockingUnsupportedReason(entity: DabEntityConfig): boolean {
-        return (entity.unsupportedReasons ?? []).some(
-            (reason) => reason.type === "unsupportedDataTypes",
-        );
+        return (entity.unsupportedReasons ?? []).some(isBlockingUnsupportedReason);
     }
 
     export function hasFixableKeyWarning(entity: DabEntityConfig): boolean {
@@ -2464,7 +2639,12 @@ export namespace Dab {
                               }) as SchemaDesigner.Column,
                       ),
                   );
-        return {
+        const fields = syncFieldsWithSource(entity.fields, {
+            ...sourceObject,
+            columns: syncedColumns.columns,
+        });
+        const advancedSettings = normalizeAdvancedSettings(entity);
+        const syncedEntity: DabEntityConfig = {
             ...entity,
             id: sourceObject.id,
             sourceType: sourceObject.sourceType,
@@ -2474,15 +2654,30 @@ export namespace Dab {
             isSupported,
             unsupportedReasons: reasons,
             columns: syncedColumns.columns,
-            fields: syncFieldsWithSource(entity.fields, {
-                ...sourceObject,
-                columns: syncedColumns.columns,
-            }),
+            fields,
             parameters: syncParametersWithSource(entity.parameters, sourceObject.parameters),
-            advancedSettings: normalizeAdvancedSettings(entity),
+            advancedSettings,
             // Entities with blocking unsupported types must remain disabled until the schema is fixed.
             isEnabled: !isSupported ? false : entity.isEnabled,
         };
+
+        // An entity that was left out only because no key was found is turned on
+        // once a key resolves, the same as a new entity with that key would be.
+        const wasExcludedForMissingKey =
+            !entity.isEnabled &&
+            (entity.unsupportedReasons ?? []).some((reason) => reason.type === "noPrimaryKey");
+        if (wasExcludedForMissingKey && isSupported && hasLogicalKey(syncedEntity)) {
+            syncedEntity.isEnabled = true;
+            syncedEntity.advancedSettings = {
+                ...advancedSettings,
+                restEnabled: true,
+                graphQLEnabled: true,
+                mcpEnabled: true,
+                mcpDmlToolsEnabled: true,
+            };
+        }
+
+        return syncedEntity;
     }
 
     export function syncConfigWithSources(

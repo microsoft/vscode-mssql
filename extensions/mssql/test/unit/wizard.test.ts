@@ -8,6 +8,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as sinon from "sinon";
 import { Wizard } from "../../src/webviews/common/wizard";
+import { WizardPageShell } from "../../src/webviews/common/wizardPageShell";
 import { locConstants } from "../../src/webviews/common/locConstants";
 
 suite("Wizard cancellation", () => {
@@ -18,6 +19,22 @@ suite("Wizard cancellation", () => {
     });
 
     teardown(() => sandbox.restore());
+
+    test("keeps errors and loading status visible in the standard wizard shell", () => {
+        const markup = renderToStaticMarkup(
+            createElement(WizardPageShell, {
+                title: "Deployment",
+                subtitle: "Azure",
+                currentStep: 3,
+                totalSteps: 5,
+                errorMessage: "Azure settings could not be loaded",
+                loadingMessage: "Loading Azure settings",
+                children: null,
+            }),
+        );
+        expect(markup).to.include("Azure settings could not be loaded");
+        expect(markup).to.include("Loading Azure settings");
+    });
 
     for (const canGoBack of [false, true]) {
         test(`honors the provisioning page's Previous availability when ${canGoBack}`, () => {

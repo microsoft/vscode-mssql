@@ -143,6 +143,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
         });
 
         mockConnectionManager = {
+            getServerInfo: sandbox.stub(),
+            getConnectionInfo: sandbox.stub(),
             isConnected: sandbox.stub().returns(true),
             isConnecting: sandbox.stub().returns(false),
             connect: sandbox.stub().resolves(),

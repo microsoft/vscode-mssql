@@ -15,6 +15,8 @@ import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
+import StatusView from "../../src/views/statusView";
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -89,6 +91,7 @@ suite("SqlDocumentService Tests", () => {
         const mockOutputContentProvider = {
             onDidCloseTextDocument: sandbox.stub().resolves(),
             updateQueryRunnerUri: sandbox.stub().resolves(),
+            isInMultiResultsList: sandbox.stub().returns(false),
         } as any;
         mainController["_outputContentProvider"] = mockOutputContentProvider;
         sqlDocumentService["_outputContentProvider"] = mockOutputContentProvider;
@@ -731,14 +734,62 @@ suite("SqlDocumentService Tests", () => {
 
         // Should not have tried to connect since this is a recently renamed/saved file
         expect(connectionManager.connect).to.not.have.been.called;
-        // The URI should be removed from the set after processing
-        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(docKey)).to.be.false;
     }).timeout(5000);
+
+    suite("SQLCMD mode on open", () => {
+        let sendNotificationStub: sinon.SinonStub;
+
+        function stubSqlCmdMode(isSqlCmd: boolean): void {
+            sqlDocumentService["_statusview"] = {
+                languageFlavorChanged: sandbox.stub(),
+                getSqlCmdMode: sandbox.stub().returns(isSqlCmd),
+            } as unknown as StatusView;
+        }
+
+        setup(() => {
+            sendNotificationStub = sandbox.stub();
+            (SqlToolsServerClient.instance as unknown as Record<string, unknown>).sendNotification =
+                sendNotificationStub;
+            sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
+        });
+
+        test("sends the SQLCMD language flavor when the editor is in SQLCMD mode", async () => {
+            stubSqlCmdMode(true);
+            const doc = mockTextDocument("file:///sqlcmd.sql");
+
+            await openSqlDocumentAfterSaveOrRenameDelay(doc);
+
+            expect(sendNotificationStub).to.have.been.calledWith(
+                LanguageFlavorChangedNotification.type,
+                sinon.match({ uri: doc.uri.toString(), language: "sqlcmd" }),
+            );
+        });
+
+        test("does not send a language flavor when the editor is not in SQLCMD mode", async () => {
+            stubSqlCmdMode(false);
+
+            await openSqlDocumentAfterSaveOrRenameDelay(mockTextDocument("file:///plain.sql"));
+
+            expect(sendNotificationStub).to.not.have.been.called;
+        });
+
+        test("sends the SQLCMD language flavor for documents transferred by rename or save", async () => {
+            stubSqlCmdMode(true);
+            const doc = mockTextDocument("file:///saved.sql");
+            sqlDocumentService["_newUriFromRenameOrSave"].add(doc.uri.toString());
+
+            await openSqlDocumentAfterSaveOrRenameDelay(doc);
+
+            expect(sendNotificationStub).to.have.been.calledWith(
+                LanguageFlavorChangedNotification.type,
+                sinon.match({ uri: doc.uri.toString(), language: "sqlcmd" }),
+            );
+        });
+    });
 
     test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {
         const hideStatusBarStub = sandbox.stub();
         const updateStatusBarStub = sandbox.stub();
-        const updateSelectionSummaryStub = sandbox.stub();
         const updateResultsOnActiveEditorChangeStub = sandbox.stub();
         sqlDocumentService["_statusview"] = {
             hideLastShownStatusBar: hideStatusBarStub,
@@ -746,7 +797,6 @@ suite("SqlDocumentService Tests", () => {
         } as any;
         sqlDocumentService["_outputContentProvider"] = {
             queryResultWebviewController: {
-                updateSelectionSummary: updateSelectionSummaryStub,
                 updateResultsOnActiveEditorChange: updateResultsOnActiveEditorChangeStub,
             },
         } as any;
@@ -756,10 +806,8 @@ suite("SqlDocumentService Tests", () => {
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
         expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(undefined);
-        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
-        updateSelectionSummaryStub.resetHistory();
         updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 2: editor.document is undefined
@@ -768,10 +816,8 @@ suite("SqlDocumentService Tests", () => {
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
         expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithoutDoc);
-        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
-        updateSelectionSummaryStub.resetHistory();
         updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 3: connection manager returns undefined (no connection)
@@ -1087,7 +1133,7 @@ suite("SqlDocumentService Tests", () => {
             });
 
             expect(mockLanguageFlavorChanged).to.have.been.calledOnce;
-            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
+            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWithExactly(sinon.match.string);
         });
     });
 

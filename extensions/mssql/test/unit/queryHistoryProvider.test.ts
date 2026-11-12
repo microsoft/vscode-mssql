@@ -16,6 +16,7 @@ import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvi
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 import type { IConnectionProfile } from "../../src/models/interfaces";
 import { initializeIconUtils } from "./utils";
 import { createWorkspaceConfiguration } from "./stubs";
@@ -112,7 +113,7 @@ suite("QueryHistoryProvider persistence", () => {
     }
 
     function createQueryRunnerStub(
-        queryString: string,
+        queryString: string | undefined,
     ): ReturnType<SqlOutputContentProvider["getQueryRunner"]> {
         const queryRunner: QueryRunnerStub = {
             getQueryString: sandbox.stub().returns(queryString),
@@ -487,6 +488,64 @@ suite("QueryHistoryProvider persistence", () => {
         const payload = await getPersistedHistoryPayload();
         expect(payload.nodes).to.have.lengthOf(10);
         expect(payload.nodes[0].queryString).to.equal(longQuery);
+    });
+
+    test("does not add a row for a run without query text", async () => {
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        connectionManagerStub.getConnectionInfo.returns(
+            createConnectionResult({
+                server: "localhost",
+                database: "master",
+                authenticationType: Constants.sqlAuthentication,
+                user: "sa",
+            }),
+        );
+        outputContentProviderStub.getQueryRunner.returns(createQueryRunnerStub(undefined));
+
+        provider.refresh("file:///test.sql", new Date(2025, 0, 15), true);
+
+        const children = provider.getChildren();
+        expect(children).to.have.lengthOf(1);
+        expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
+    });
+
+    test("command palette reports an empty history instead of failing", async () => {
+        const showInformationMessage = sandbox.stub(vscode.window, "showInformationMessage");
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        await provider.showQueryHistoryCommandPalette();
+
+        expect(showInformationMessage).to.have.been.calledOnceWithExactly(
+            LocalizedConstants.msgNoQueriesAvailable,
+        );
+        expect(prompterStub.promptSingle).to.not.have.been.called;
+    });
+
+    test("command palette lists recorded queries", async () => {
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        connectionManagerStub.getConnectionInfo.returns(
+            createConnectionResult({
+                server: "localhost",
+                database: "master",
+                authenticationType: Constants.sqlAuthentication,
+                user: "sa",
+            }),
+        );
+        outputContentProviderStub.getQueryRunner.returns(createQueryRunnerStub("SELECT 1"));
+        prompterStub.promptSingle.resolves(undefined);
+        provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
+
+        await provider.showQueryHistoryCommandPalette();
+
+        const question = prompterStub.promptSingle.firstCall.args[0];
+        expect(
+            (question.choices as vscode.QuickPickItem[]).map((item) => item.label),
+        ).to.deep.equal(["SELECT 1"]);
     });
 
     test("clears persisted file when no history nodes remain", async () => {

@@ -74,6 +74,11 @@ export interface AzureSqlDatabaseScriptParams {
     subscriptionName?: string;
     /** Resource group name, used for informational header comments. */
     resourceGroup?: string;
+    serverResourceId?: string;
+    location?: string;
+    tags?: Record<string, string>;
+    maintenanceConfig?: string;
+    enableAlwaysEncrypted?: boolean;
 }
 
 /**
@@ -96,7 +101,17 @@ export function generateAzureSqlDatabaseBicep(params: AzureSqlDatabaseScriptPara
 
 resource sqlDatabase 'Microsoft.Sql/servers/databases@${SQL_API_VERSION}' = {
   name: '${serverName}/${databaseName}'
-  location: resourceGroup().location
+  location: ${params.location ? `'${escapeBicepString(params.location)}'` : "resourceGroup().location"}
+${
+    params.tags
+        ? `  tags: {\n${Object.entries(params.tags)
+              .map(
+                  ([key, value]) =>
+                      `    '${escapeBicepString(key)}': '${escapeBicepString(value)}'`,
+              )
+              .join("\n")}\n  }\n`
+        : ""
+}\
   sku: {
     name: '${sku.name}'
     tier: '${sku.tier}'
@@ -110,6 +125,9 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@${SQL_API_VERSION}' = {
     useFreeLimit: true
     freeLimitExhaustionBehavior: '${freeLimitBehavior}'
     autoPauseDelay: ${DEFAULT_AUTO_PAUSE_DELAY}
+${params.serverResourceId ? `    minCapacity: ${DEFAULT_MIN_CAPACITY}\n` : ""}\
+${params.maintenanceConfig ? `    maintenanceConfigurationId: '${escapeBicepString(params.maintenanceConfig)}'\n` : ""}\
+${params.enableAlwaysEncrypted ? "    preferredEnclaveType: 'Default'\n" : ""}\
   }
 }
 `;
@@ -134,7 +152,8 @@ export function generateAzureSqlDatabaseArm(params: AzureSqlDatabaseScriptParams
                 type: "Microsoft.Sql/servers/databases",
                 apiVersion: SQL_API_VERSION,
                 name: `${serverName}/${databaseName}`,
-                location: "[resourceGroup().location]",
+                location: params.location || "[resourceGroup().location]",
+                ...(params.tags ? { tags: params.tags } : {}),
                 sku: {
                     name: sku.name,
                     tier: sku.tier,
@@ -151,6 +170,10 @@ export function generateAzureSqlDatabaseArm(params: AzureSqlDatabaseScriptParams
                     freeLimitExhaustionBehavior: freeLimitBehavior,
                     autoPauseDelay: DEFAULT_AUTO_PAUSE_DELAY,
                     minCapacity: DEFAULT_MIN_CAPACITY,
+                    ...(params.maintenanceConfig
+                        ? { maintenanceConfigurationId: params.maintenanceConfig }
+                        : {}),
+                    ...(params.enableAlwaysEncrypted ? { preferredEnclaveType: "Default" } : {}),
                 },
             },
         ],
@@ -164,6 +187,48 @@ export function generateAzureSqlDatabaseArm(params: AzureSqlDatabaseScriptParams
  * Database based on the provisioning form values.
  */
 export function generateAzureSqlDatabaseTerraform(params: AzureSqlDatabaseScriptParams): string {
+    if (params.serverResourceId) {
+        const resource = JSON.parse(generateAzureSqlDatabaseArm(params)).resources[0] as {
+            sku: ReturnType<typeof getServerlessSku>;
+            properties: Record<string, unknown>;
+        };
+        const hclString = (value: string) => `"${escapeTerraformString(value)}"`;
+        return `terraform {
+  required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "azapi" {}
+
+resource "azapi_resource" "database" {
+  type      = "Microsoft.Sql/servers/databases@${SQL_API_VERSION}"
+  name      = ${hclString(params.databaseName || "mySqlDatabase")}
+  parent_id = ${hclString(params.serverResourceId)}
+  location  = ${hclString(params.location || "")}
+  tags = {
+${Object.entries(params.tags ?? {})
+    .map(([key, value]) => `    ${hclString(key)} = ${hclString(value)}`)
+    .join("\n")}
+  }
+  body = {
+    sku = {
+${Object.entries(resource.sku)
+    .map(([key, value]) => `      ${key} = ${typeof value === "string" ? hclString(value) : value}`)
+    .join("\n")}
+    }
+    properties = {
+${Object.entries(resource.properties)
+    .map(([key, value]) => `      ${key} = ${typeof value === "string" ? hclString(value) : value}`)
+    .join("\n")}
+    }
+  }
+}
+`;
+    }
     // Terraform resource/reference labels must be valid identifiers.
     const toTerraformId = (value: string | undefined, fallback: string): string => {
         const sanitized = (value ?? "").replace(/[^a-zA-Z0-9_]/g, "_");

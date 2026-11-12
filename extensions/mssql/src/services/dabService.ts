@@ -28,10 +28,13 @@ import {
     startDabDockerContainer,
     stopAndRemoveDabContainer,
     stopDabContainer,
-    validateDabContainerName,
 } from "../dab/dabContainer";
 import { DabCliRunner, DAB_CLI_CONFIG_FILE_NAME } from "../dab/dabCliRunner";
-import { isDabCliEngineResponding, stopDabCliEngine } from "../dab/dabCliProcess";
+import {
+    DabCliProcessEnvironment,
+    isDabCliEngineResponding,
+    stopDabCliEngine,
+} from "../dab/dabCliProcess";
 import { ILogger } from "../sharedInterfaces/logger";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
@@ -49,6 +52,21 @@ const SQL_SERVER_CONNECTION_PROPERTY_PATTERN =
  * stored with a deployment stays comparable across connections and sessions.
  */
 const CONFIG_HASH_CONNECTION_PLACEHOLDER = "<connection-string>";
+
+/**
+ * The failure code of each Docker step. A failure with a cause of its own,
+ * such as a config that could not be generated, sets its code first.
+ */
+const dockerStepFailureReasons: Partial<
+    Record<Dab.DabDeploymentStepOrder, Dab.DabDeploymentFailureReason>
+> = {
+    [Dab.DabDeploymentStepOrder.dockerInstallation]: "dockerNotInstalled",
+    [Dab.DabDeploymentStepOrder.startDockerDesktop]: "dockerStartFailed",
+    [Dab.DabDeploymentStepOrder.checkDockerEngine]: "dockerEngineNotReady",
+    [Dab.DabDeploymentStepOrder.pullImage]: "imagePullFailed",
+    [Dab.DabDeploymentStepOrder.startContainer]: "containerStartFailed",
+    [Dab.DabDeploymentStepOrder.checkContainer]: "containerNotReady",
+};
 
 /**
  * Serializes a parsed config with object keys in a stable order. Array order is
@@ -139,50 +157,18 @@ export class DabService implements Dab.IDabService {
                 return {
                     success: false,
                     error: configResponse.error,
+                    failureReason: "configGenerationFailed",
                 };
             }
             configContent = configResponse.configContent;
         }
 
-        return this.executeDeploymentStep(step, params, configContent);
-    }
-
-    /**
-     * Validates deployment parameters (container name and port).
-     *
-     * @param containerName The container name to validate
-     * @param port The port to validate
-     */
-    public async validateDeploymentParams(
-        containerName: string,
-        port: number,
-        trackedNames: string[] = [],
-    ): Promise<Dab.ValidateDeploymentParamsResponse> {
-        const containerNameValidation = await validateDabContainerName(containerName);
-        // Docker only knows about its own containers, so a name a CLI
-        // deployment already holds would otherwise read as free and take over
-        // that deployment's record.
-        const isNameTracked = trackedNames.includes(containerName);
-        const isContainerNameValid = containerNameValidation === containerName && !isNameTracked;
-
-        const availablePort = await findAvailableDabPort(port);
-        // A negative result means the scan found nothing free. Suggesting it
-        // would put -1 in the port field, so the requested port is echoed back
-        // and reported as unusable instead.
-        const foundPort = availablePort >= 0;
-        const suggestedPort = foundPort ? availablePort : port;
-        const isPortValid = foundPort && availablePort === port;
-
-        return {
-            isContainerNameValid,
-            validatedContainerName: containerNameValidation,
-            containerNameError: isContainerNameValid
-                ? undefined
-                : LocalContainers.dabContainerNameInvalidOrInUse,
-            isPortValid,
-            suggestedPort,
-            portError: isPortValid ? undefined : LocalContainers.dabPortAlreadyInUse(port),
-        };
+        return this.executeDeploymentStep(
+            step,
+            params,
+            configContent,
+            Dab.getExposedDabEntityCount(config),
+        );
     }
 
     /**
@@ -196,6 +182,19 @@ export class DabService implements Dab.IDabService {
             success: result.success ?? false,
             error: result.error,
         };
+    }
+
+    /**
+     * The DAB config file this configuration would produce, with the connection
+     * string replaced by a placeholder. Kept with a deployment so its config
+     * can later be compared with the current one without exposing a secret.
+     *
+     * @param config The DAB configuration to render
+     */
+    public buildConfigSnapshot(config: Dab.DabConfig): string {
+        return this._configFileBuilder.build(config, {
+            connectionString: CONFIG_HASH_CONNECTION_PLACEHOLDER,
+        });
     }
 
     /**
@@ -264,6 +263,21 @@ export class DabService implements Dab.IDabService {
         return isDabPortAvailable(port);
     }
 
+    /**
+     * Finds the first free port from the preferred one, skipping ports that
+     * other DAB deployments own. Returns undefined when no port is free.
+     *
+     * @param preferredPort Port to start the search from
+     * @param reservedPorts Ports to skip even when nothing holds them right now
+     */
+    public async findAvailablePort(
+        preferredPort: number,
+        reservedPorts: Iterable<number> = [],
+    ): Promise<number | undefined> {
+        const port = await findAvailableDabPort(preferredPort, undefined, reservedPorts);
+        return port >= 0 ? port : undefined;
+    }
+
     // #region DAB CLI target
 
     /**
@@ -305,6 +319,8 @@ export class DabService implements Dab.IDabService {
      * @param configPath Where the generated config lives for this deployment
      * @param authenticationType Authentication type of the connection, which
      * decides what the engine is given to sign in with
+     * @param options The user's answer to a step waiting for them, and the
+     * Microsoft Entra tenant and account the connection signs in with
      */
     public async runCliDeploymentStep(
         step: Dab.DabDeploymentStepOrder,
@@ -313,6 +329,11 @@ export class DabService implements Dab.IDabService {
         connectionInfo?: Dab.DabConnectionInfo,
         configPath?: string,
         authenticationType?: string,
+        options: {
+            action?: Dab.DabDeploymentStepAction;
+            entra?: { tenantId?: string; account?: string };
+            onProgress?: (progress: Dab.DabDeploymentStepProgress) => void;
+        } = {},
     ): Promise<Dab.RunDeploymentStepResponse & { processId?: number }> {
         const runner = this.cliRunner;
         if (!runner) {
@@ -321,47 +342,51 @@ export class DabService implements Dab.IDabService {
 
         switch (step) {
             case Dab.DabDeploymentStepOrder.acquireDabCli:
-                return runner.acquireCli();
+                return runner.prepareCli();
 
             case Dab.DabDeploymentStepOrder.checkDotnetRuntime:
                 return runner.resolveRuntime();
 
-            case Dab.DabDeploymentStepOrder.validateCliConfig: {
+            case Dab.DabDeploymentStepOrder.acquireAzureCli:
+                return runner.prepareAzureCli(options.onProgress);
+
+            case Dab.DabDeploymentStepOrder.signInEntra:
+                return runner.signInEntra(options.action, options.entra ?? {});
+
+            case Dab.DabDeploymentStepOrder.startCliEngine: {
                 if (!params || !config || !connectionInfo || !configPath) {
                     return { success: false, error: LocalContainers.dabCliStartMissingParams };
                 }
 
                 const generated = this.generateCliConfig(config);
                 if (!generated.success) {
-                    return { success: false, error: generated.error };
+                    return {
+                        success: false,
+                        error: generated.error,
+                        failureReason: "configGenerationFailed",
+                    };
                 }
 
-                return runner.validateConfig(
-                    configPath,
-                    generated.configContent,
-                    {
-                        port: params.port,
-                        connectionString: Dab.buildDabCliConnectionString(
-                            connectionInfo.connectionString,
-                            authenticationType,
-                        ),
-                    },
+                const environment = await this.getCliEngineEnvironment(
+                    runner,
+                    params.port,
+                    connectionInfo,
                     authenticationType,
                 );
-            }
-
-            case Dab.DabDeploymentStepOrder.startCliEngine: {
-                if (!params || !connectionInfo || !configPath) {
-                    return { success: false, error: LocalContainers.dabCliStartMissingParams };
+                if (!environment) {
+                    return {
+                        success: false,
+                        error: LocalContainers.dabAzureCliNotReady,
+                        failureReason: "azureCliNotReady",
+                    };
                 }
 
-                return runner.startEngine(configPath, {
-                    port: params.port,
-                    connectionString: Dab.buildDabCliConnectionString(
-                        connectionInfo.connectionString,
-                        authenticationType,
-                    ),
-                });
+                const writeResult = await runner.writeConfig(configPath, generated.configContent);
+                if (!writeResult.success) {
+                    return writeResult;
+                }
+
+                return runner.startEngine(configPath, environment);
             }
 
             case Dab.DabDeploymentStepOrder.checkCliEngine: {
@@ -369,7 +394,11 @@ export class DabService implements Dab.IDabService {
                     return { success: false, error: LocalContainers.dabCliStartMissingParams };
                 }
 
-                return runner.checkEngine(params.port);
+                return runner.checkEngine(params.port, undefined, {
+                    authenticationType,
+                    onProgress: options.onProgress,
+                    entityCount: Dab.getExposedDabEntityCount(config),
+                });
             }
 
             default:
@@ -444,13 +473,17 @@ export class DabService implements Dab.IDabService {
             return { success: false, error: runtimeResult.error };
         }
 
-        const startResult = await runner.startEngine(record.configPath, {
-            port: record.port,
-            connectionString: Dab.buildDabCliConnectionString(
-                connectionInfo.connectionString,
-                authenticationType,
-            ),
-        });
+        const environment = await this.getCliEngineEnvironment(
+            runner,
+            record.port,
+            connectionInfo,
+            authenticationType,
+        );
+        if (!environment) {
+            return { success: false, error: LocalContainers.dabAzureCliNotReady };
+        }
+
+        const startResult = await runner.startEngine(record.configPath, environment);
         if (!startResult.success) {
             return { success: false, error: startResult.error };
         }
@@ -459,6 +492,40 @@ export class DabService implements Dab.IDabService {
         return readyResult.success
             ? { success: true, processId: startResult.processId }
             : { success: false, error: readyResult.error };
+    }
+
+    /** Stops a Microsoft Entra sign-in the user walked away from. */
+    public cancelCliSignIn(): void {
+        this.cliRunner?.cancelSignIn();
+    }
+
+    /**
+     * The environment a CLI engine runs with. A connection that signs in to
+     * Microsoft Entra for itself also needs the Azure CLI it signs in with,
+     * and undefined is returned when that Azure CLI is not set up.
+     */
+    private async getCliEngineEnvironment(
+        runner: DabCliRunner,
+        port: number,
+        connectionInfo: Dab.DabConnectionInfo,
+        authenticationType: string | undefined,
+    ): Promise<DabCliProcessEnvironment | undefined> {
+        let extraEnvironment: NodeJS.ProcessEnv | undefined;
+        if (Dab.usesAmbientEntraCredentials(authenticationType)) {
+            extraEnvironment = await runner.getAzureCliEnvironment();
+            if (!extraEnvironment) {
+                return undefined;
+            }
+        }
+
+        return {
+            port,
+            connectionString: Dab.buildDabCliConnectionString(
+                connectionInfo.connectionString,
+                authenticationType,
+            ),
+            extraEnvironment,
+        };
     }
 
     /**
@@ -531,6 +598,7 @@ export class DabService implements Dab.IDabService {
         step: Dab.DabDeploymentStepOrder,
         params?: Dab.DabDeploymentParams,
         configContent?: string,
+        entityCount: number = 0,
     ): Promise<Dab.RunDeploymentStepResponse> {
         let result: Dab.RunDeploymentStepResponse;
 
@@ -606,6 +674,7 @@ export class DabService implements Dab.IDabService {
                 const checkResult = await checkIfDabContainerIsReady(
                     params.containerName,
                     params.port,
+                    Dab.getDabEngineReadyTimeoutMs(entityCount),
                 );
                 if (checkResult.success) {
                     result = {
@@ -627,6 +696,7 @@ export class DabService implements Dab.IDabService {
 
         // Add error link info for failed steps
         if (!result.success) {
+            result.failureReason ??= dockerStepFailureReasons[step];
             const linkInfo = this.getStepErrorLinkInfo(step);
             if (linkInfo.errorLink) {
                 result.errorLink = linkInfo.errorLink;

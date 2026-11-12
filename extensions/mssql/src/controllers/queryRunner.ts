@@ -25,9 +25,6 @@ import {
     QueryExecuteSubsetRequest,
     QueryExecuteMessageParams,
     QueryExecuteBatchNotificationParams,
-    QueryExecuteOptionsRequest,
-    QueryExecutionOptionsParams,
-    QueryExecutionOptions,
     ExecutionPlanOptions,
     QueryConnectionUriChangeRequest,
     QueryConnectionUriChangeParams,
@@ -56,12 +53,16 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
-import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
+import { sendActionEvent, startActivity, TelemetryEventOptions } from "extension-toolkit/vscode";
 import { Perf } from "../perf/perfTelemetry";
 import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
-import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import {
+    bucketizeQueryDuration,
+    bucketizeRowCount,
+    getInMemoryGridDataProcessingThreshold,
+} from "../queryResult/utils";
 import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -126,12 +127,16 @@ export default class QueryRunner {
     private _uriToQueryStringMap = new Map<string, string>();
     private _queryDocumentText: string | undefined;
     private _currentBatchQuery: string | undefined;
+    private _queryStringFromBatch = false;
     private _registeredNotificationUris = new Set<string>();
     private _executionSource: QueryExecutionSource = "document";
     private _serverConnectionId: string | undefined;
     private _executionPlanOptions: ExecutionPlanOptions | undefined;
     private _orphanedQueryRecoveryTimer: ReturnType<typeof setTimeout> | undefined;
     private static _runningQueries = [];
+
+    /** Whether the current query execution shows live query statistics. */
+    public isLiveStatisticsRun = false;
 
     private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
     public onStartFailed: vscode.Event<string> = this._startFailedEmitter.event;
@@ -186,6 +191,7 @@ export default class QueryRunner {
         private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
+        private _getConnectionTelemetryInfo: (uri: string) => TelemetryEventOptions = () => ({}),
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -261,6 +267,17 @@ export default class QueryRunner {
         return this._executionPlanOptions;
     }
 
+    /**
+     * Whether the current query execution captures a plan. Editor runs always pass options, so
+     * their presence alone doesn't say that one was requested.
+     */
+    private get requestsExecutionPlan(): boolean {
+        return !!(
+            this._executionPlanOptions?.includeActualExecutionPlanXml ||
+            this._executionPlanOptions?.includeEstimatedExecutionPlanXml
+        );
+    }
+
     get isSqlCmd(): boolean {
         return this._isSqlCmd;
     }
@@ -294,7 +311,7 @@ export default class QueryRunner {
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
-            { includeCallStack: true },
+            { ...this._getConnectionTelemetryInfo(this._ownerUri), includeCallStack: true },
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let cancelRequestCompleted = false;
@@ -405,15 +422,17 @@ export default class QueryRunner {
             line: line,
             column: column,
             executionPlanOptions: executionPlanOptions,
+            isSqlCmdMode: this._isSqlCmd,
         };
 
         const runStatementActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalProps: {
                     executionType: "statement",
-                    hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                    hasExecutionPlan: this.requestsExecutionPlan ? "true" : "false",
                 },
                 includeCallStack: true,
             },
@@ -438,6 +457,10 @@ export default class QueryRunner {
             });
             const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
             this._queryDocumentText = doc.getText();
+            // Only the service knows which statement is at the cursor, so record the document
+            // until the batch start reports the statement's position.
+            this._uriToQueryStringMap.set(this._ownerUri, this._queryDocumentText);
+            this._queryStringFromBatch = true;
             this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
             this._startEmitter.fire(this.uri);
@@ -467,9 +490,10 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalProps: {
                     executionType: queryType,
-                    hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                    hasExecutionPlan: this.requestsExecutionPlan ? "true" : "false",
                 },
                 includeCallStack: true,
             },
@@ -500,6 +524,7 @@ export default class QueryRunner {
                 ownerUri: this._ownerUri,
                 executionPlanOptions: executionPlanOptions,
                 querySelection: selection,
+                isSqlCmdMode: this._isSqlCmd,
             };
 
             // Getting query text
@@ -551,6 +576,7 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalProps: {
                     executionType: "quickQuery",
                     hasExecutionPlan: "false",
@@ -604,6 +630,9 @@ export default class QueryRunner {
         this._serverConnectionId = undefined;
         this._queryDocumentText = undefined;
         this._currentBatchQuery = undefined;
+        // A reused runner must not report the previous run's text for this one.
+        this._uriToQueryStringMap.delete(this._ownerUri);
+        this._queryStringFromBatch = false;
         // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
 
@@ -642,10 +671,6 @@ export default class QueryRunner {
         const hasError = this._batchSets.some((batch) => batch.hasError === true);
         try {
             this._statusView.executedQuery(result.ownerUri);
-            this._statusView.setExecutionTime(
-                result.ownerUri,
-                Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
-            );
             // The SPID can change when the connection reconnects, so refresh it after every run.
             if (result.serverConnectionId) {
                 this._statusView.setServerProcessId(result.ownerUri, result.serverConnectionId);
@@ -678,7 +703,15 @@ export default class QueryRunner {
                 isCanceled: this._isCanceled,
             });
         }
-        sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted);
+        sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted, {
+            ...this._getConnectionTelemetryInfo(this._ownerUri),
+            additionalProps: {
+                liveStatistics: this.isLiveStatisticsRun ? "true" : "false",
+                isCanceled: this._isCanceled ? "true" : "false",
+                hasError: hasError ? "true" : "false",
+                durationBucket: bucketizeQueryDuration(this._totalElapsedMilliseconds),
+            },
+        });
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -695,6 +728,9 @@ export default class QueryRunner {
                 );
                 batchLines[0] = batchLines[0].slice(selection.startColumn);
                 this._currentBatchQuery = batchLines.join("\n");
+                if (this._queryStringFromBatch) {
+                    this._uriToQueryStringMap.set(this.uri, this._currentBatchQuery);
+                }
             }
         } else {
             this._currentBatchQuery = this.getQueryString(this.uri);
@@ -798,13 +834,6 @@ export default class QueryRunner {
 
         // Send the message so non-display state, such as rows affected, remains current
         this._messageEmitter.fire(message);
-
-        // Set row count on status bar if there are no errors
-        if (!obj.message.isError) {
-            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
-        } else {
-            this._statusView.hideRowCount(obj.ownerUri, true);
-        }
     }
 
     /**
@@ -875,6 +904,7 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.GetResultRowsSubset,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalMeasurements: {
                     rowCount: bucketizeRowCount(numberOfRows),
                 },
@@ -1588,18 +1618,6 @@ export default class QueryRunner {
         if (this._requestID === requestId) {
             this._onSummaryChangedEmitter.fire(summary);
         }
-    }
-
-    public async toggleSqlCmd(): Promise<boolean> {
-        const queryExecuteOptions: QueryExecutionOptions = { options: {} };
-        queryExecuteOptions.options["isSqlCmdMode"] = !this.isSqlCmd;
-        const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
-            ownerUri: this.uri,
-            options: queryExecuteOptions,
-        };
-        await this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams);
-        this._isSqlCmd = !this._isSqlCmd;
-        return true;
     }
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {

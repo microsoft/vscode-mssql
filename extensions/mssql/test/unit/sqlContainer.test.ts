@@ -20,6 +20,7 @@ import { PassThrough } from "stream";
 import * as vscode from "vscode";
 import * as containerEngine from "../../src/docker/containerEngine";
 import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
+import { ContainerHostAdapter } from "../../src/docker/containerHostAdapter";
 
 chai.use(sinonChai);
 
@@ -162,6 +163,67 @@ suite("SQL Server Container", () => {
             sinon.match.instanceOf(AbortSignal),
         );
         expect(docker).not.to.have.been.called;
+    });
+
+    test("adapter startup uses its saved engine and reports progress without Docker discovery", async () => {
+        const host: ContainerHostAdapter = {
+            containerEngine: ContainerEngine.Podman,
+            setStatus: sandbox.stub().resolves(),
+            showError: sandbox.stub(),
+            onContainerMissing: sandbox.stub().resolves(),
+        };
+        const start = sandbox.stub(containerEngine, "startContainer").resolves();
+        const docker = sandbox.stub(dockerodeClient, "getDockerodeClient");
+
+        expect(await sqlServerContainer.restartSqlServerContainer("testContainer", host)).to.be
+            .true;
+        expect(start).to.have.been.calledWith(
+            ContainerEngine.Podman,
+            "testContainer",
+            sinon.match.instanceOf(AbortSignal),
+        );
+        expect(host.setStatus).to.have.been.calledWith(
+            LocalContainers.startingContainerLoadingLabel,
+        );
+        expect(host.showError).not.to.have.been.called;
+        expect(docker).not.to.have.been.called;
+    });
+
+    test("adapter cancellation aborts the saved-engine startup and ignores a late success", async () => {
+        const host: ContainerHostAdapter = {
+            containerEngine: ContainerEngine.Podman,
+            setStatus: sandbox.stub().resolves(),
+            showError: sandbox.stub(),
+            onContainerMissing: sandbox.stub().resolves(),
+        };
+        const cancellation = new vscode.CancellationTokenSource();
+        const entered = Promise.withResolvers<AbortSignal>();
+        const completed = Promise.withResolvers<void>();
+        sandbox
+            .stub(containerEngine, "startContainer")
+            .callsFake(async (_engine, _name, signal) => {
+                entered.resolve(signal!);
+                await completed.promise;
+            });
+        const docker = sandbox.stub(dockerodeClient, "getDockerodeClient");
+        try {
+            const result = sqlServerContainer.restartSqlServerContainer(
+                "testContainer",
+                host,
+                undefined,
+                cancellation.token,
+            );
+            const signal = await entered.promise;
+            cancellation.cancel();
+            expect(signal.aborted).to.be.true;
+            completed.resolve();
+            expect(await result).to.equal(undefined);
+            expect(host.showError).not.to.have.been.called;
+            expect(docker).not.to.have.been.called;
+        } finally {
+            completed.resolve();
+            cancellation.dispose();
+        }
     });
 
     test("initializeDockerSteps: should return correct Docker deployment steps", async () => {

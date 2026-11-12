@@ -9,6 +9,7 @@ import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { PublishProject as Loc } from "../constants/locConstants";
 import {
@@ -23,7 +24,11 @@ import {
 } from "../sharedInterfaces/publishDialog";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { SqlPackageService } from "../services/sqlPackageService";
-import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    type TelemetryEventOptions,
+} from "extension-toolkit/vscode";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
     parsePublishProfileXml,
@@ -83,6 +88,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private _workflowCompleted = false;
     /** Outcome of the last publish attempt that left the dialog open, used when it closes. */
     private _lastPublishAttemptOutcome: "Failed" | undefined;
+
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(
+            this._connectionManager,
+            this._connectionUri,
+            this.state?.formState.databaseName ?? "",
+        );
+    }
 
     constructor(
         context: vscode.ExtensionContext,
@@ -223,6 +236,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Ensure deployment options are loaded before executing DacFx operations.
         await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
+        const telemetryContext = getConnectionTelemetryInfo(
+            this._connectionManager,
+            connectionUri,
+            databaseName,
+        );
+        const serverTypes = this._serverTypes;
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
         try {
@@ -238,13 +257,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                    ...telemetryContext,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "true",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
                 this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, {
+                    ...telemetryContext,
                     outcome: "Succeeded",
                     additionalProps: {
                         publishTarget: state.formState.publishTarget,
@@ -255,15 +276,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 return true;
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                    ...telemetryContext,
                     error: new Error(getErrorMessage(result.errorMessage)),
                     includeErrorMessage: false,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "false",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
                 this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, {
+                    ...telemetryContext,
                     outcome: "Failed",
                     additionalProps: {
                         publishTarget: state.formState.publishTarget,
@@ -279,15 +302,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 return true;
             }
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                ...telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
                     operationId: this._operationId,
                     success: "false",
-                    serverTypes: this._serverTypes,
+                    serverTypes,
                 },
             });
             this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, {
+                ...telemetryContext,
                 outcome: "Failed",
                 additionalProps: {
                     publishTarget: state.formState.publishTarget,
@@ -311,6 +336,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Ensure deployment options are loaded before executing DacFx operations.
         await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
+        const telemetryContext = getConnectionTelemetryInfo(
+            this._connectionManager,
+            connectionUri,
+            databaseName,
+        );
+        const serverTypes = this._serverTypes;
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
         try {
@@ -325,44 +356,49 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                    ...telemetryContext,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "true",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
-                this.completeScriptGeneration(state, "Succeeded");
+                this.completeScriptGeneration(state, "Succeeded", telemetryContext);
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                    ...telemetryContext,
                     error: new Error(getErrorMessage(result.errorMessage)),
                     includeErrorMessage: false,
                     additionalProps: {
                         operationId: this._operationId,
                         success: "false",
-                        serverTypes: this._serverTypes,
+                        serverTypes,
                     },
                 });
-                this.completeScriptGeneration(state, "Failed");
+                this.completeScriptGeneration(state, "Failed", telemetryContext);
             }
         } catch (error) {
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                ...telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
                     operationId: this._operationId,
                     success: "false",
-                    serverTypes: this._serverTypes,
+                    serverTypes,
                 },
             });
-            this.completeScriptGeneration(state, "Failed");
+            this.completeScriptGeneration(state, "Failed", telemetryContext);
         }
     }
 
     private completeScriptGeneration(
         state: PublishDialogState,
         outcome: "Succeeded" | "Failed",
+        telemetryContext: TelemetryEventOptions,
     ): void {
         this.completeWorkflow(SqlProjectWorkflowEventName.ScriptGenerationCompleted, {
+            ...telemetryContext,
             outcome,
             additionalProps: {
                 publishTarget: state.formState.publishTarget,
@@ -579,6 +615,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryViews.SqlProjects,
                         TelemetryActions.ConnectToContainer,
                         {
+                            ...getConnectionTelemetryInfo(this._connectionManager, savedProfile),
                             additionalProps: {
                                 operationId: this._operationId,
                                 publishTarget: PublishTarget.LocalContainer,
@@ -613,6 +650,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // All attempts exhausted
         sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
+            ...getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
             error: new Error(lastConnectionError),
             includeErrorMessage: false,
             additionalProps: {
@@ -730,6 +768,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 const errorMessage = connectionInfo?.errorMessage || Loc.FailedToConnectToServer;
 
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.Connect, {
+                    ...getConnectionTelemetryInfo(this._connectionManager, profile),
                     error: new Error(errorMessage),
                     includeErrorMessage: false,
                     additionalProps: {
@@ -791,6 +830,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         } catch (error) {
             this.logger.error(`Failed to get connection string: ${getErrorMessage(error)}`);
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.LoadFromConnectionString, {
+                ...this.telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
@@ -1054,6 +1094,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
                     sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                        ...getConnectionTelemetryInfo(
+                            this._connectionManager,
+                            this._connectionUri,
+                            state.formState.databaseName,
+                        ),
                         error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                         includeErrorMessage: false,
                         additionalProps: {
@@ -1288,6 +1333,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.PublishServerConnected,
                     {
+                        ...this.telemetryContext,
                         additionalProps: {
                             operationId: this._operationId,
                             success: "true",
@@ -1317,6 +1363,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.SqlCmdVariablesModified,
                     {
+                        ...this.telemetryContext,
                         additionalProps: {
                             operationId: this._operationId,
                             action: "modified",
@@ -1333,6 +1380,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
             // Send telemetry for SQLCMD variables revert
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.SqlCmdVariablesModified, {
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this._operationId,
                     action: "reverted",
@@ -1427,6 +1475,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileSaved,
                         {
+                            ...getConnectionTelemetryInfo(
+                                this._connectionManager,
+                                this._connectionUri,
+                                databaseName,
+                            ),
                             additionalProps: {
                                 operationId: this._operationId,
                             },
@@ -1446,6 +1499,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileSaved,
                         {
+                            ...getConnectionTelemetryInfo(
+                                this._connectionManager,
+                                this._connectionUri,
+                                state.formState.databaseName,
+                            ),
                             error:
                                 error instanceof Error ? error : new Error(getErrorMessage(error)),
                             includeErrorMessage: false,
@@ -1553,6 +1611,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.GenerateSqlPackageCommand,
                     {
+                        ...this.telemetryContext,
                         additionalProps: {
                             operationId: this._operationId,
                             success: "true",
@@ -1568,6 +1627,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.GenerateSqlPackageCommand,
                     {
+                        ...this.telemetryContext,
                         error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                         includeErrorMessage: false,
                         additionalProps: {
@@ -1621,6 +1681,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         `Could not find accountId for Azure MFA connection when loading publish profile`,
                     );
                     sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.Connect, {
+                        ...getConnectionTelemetryInfo(this._connectionManager, connectionInfo),
                         error: new Error(errorMessage),
                         includeErrorMessage: false,
                         additionalProps: {
@@ -1845,7 +1906,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         return erroredInputs;
     }
 
-    /** Records a SQL project workflow event tagged with this dialog's operation ID. */
+    /** Records a SQL project workflow event tagged with this dialog's operation and connection. */
     private recordWorkflowEvent(
         eventName: SqlProjectWorkflowEventName,
         options: SqlProjectWorkflowEventOptions = {},
@@ -1853,11 +1914,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
         recordSqlProjectWorkflowEvent(
             this.state.projectFilePath,
             eventName,
-            this.withOperationId(options),
+            this.withDialogTelemetryContext(options),
         );
     }
 
-    /** Ends the SQL project workflow with an event tagged with this dialog's operation ID. */
+    /** Ends the SQL project workflow with this dialog's operation and connection. */
     private completeWorkflow(
         eventName: SqlProjectWorkflowEventName,
         options: SqlProjectWorkflowEventOptions = {},
@@ -1868,15 +1929,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
         completeSqlProjectWorkflow(
             this.state.projectFilePath,
             eventName,
-            this.withOperationId(options),
+            this.withDialogTelemetryContext(options),
         );
         this._workflowCompleted = true;
     }
 
-    private withOperationId(
+    /** Adds this dialog's operation ID and, unless supplied, its current connection metadata. */
+    private withDialogTelemetryContext(
         options: SqlProjectWorkflowEventOptions,
     ): SqlProjectWorkflowEventOptions {
+        const { connectionInfo, serverInfo } = this.telemetryContext;
         return {
+            connectionInfo,
+            serverInfo,
             ...options,
             additionalProps: {
                 ...options.additionalProps,

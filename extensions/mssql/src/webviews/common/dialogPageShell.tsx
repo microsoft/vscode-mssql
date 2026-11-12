@@ -51,6 +51,7 @@ const useStyles = makeStyles({
     },
     scrollRegion: {
         flex: "1 1 auto",
+        minHeight: 0,
         overflowY: "auto",
         overflowX: "hidden",
         scrollbarGutter: "stable",

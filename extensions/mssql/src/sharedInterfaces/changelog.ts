@@ -15,6 +15,8 @@ export interface ChangelogWebviewState {
 }
 
 export interface ChangelogEvent {
+    /** Stable identifier reported in telemetry, e.g. "sqlcon-atl-2027". */
+    id: string;
     mainTitle: string;
     secondaryTitle: string;
     location: ChangelogEventLocation;

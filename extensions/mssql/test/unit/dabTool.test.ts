@@ -64,11 +64,12 @@ suite("DabTool Tests", () => {
         tableName: string,
     ): SchemaDesigner.Table => ({
         ...createTable(id, schemaName, tableName),
+        // No column can serve as a fallback key, so the table stays keyless.
         columns: [
             {
-                id: `${id}-name`,
-                name: "Name",
-                dataType: "nvarchar",
+                id: `${id}-payload`,
+                name: "Payload",
+                dataType: "varbinary",
                 isPrimaryKey: false,
             } as SchemaDesigner.Column,
         ],

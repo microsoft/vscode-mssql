@@ -16,6 +16,8 @@ export const ConnectionGroupPage = () => {
     const existingGroupName = useConnectionGroupSelector((s) => s?.existingGroupName);
     const description = useConnectionGroupSelector((s) => s?.description);
     const color = useConnectionGroupSelector((s) => s?.color);
+    const parentId = useConnectionGroupSelector((s) => s?.parentId ?? "");
+    const parentGroups = useConnectionGroupSelector((s) => s?.parentGroups ?? []);
     const message = useConnectionGroupSelector((s) => s?.message);
 
     // If context isn't available yet, don't render
@@ -25,7 +27,15 @@ export const ConnectionGroupPage = () => {
 
     return (
         <ConnectionGroupDialog
-            state={{ existingGroupName, description, color, message, name: "" }}
+            state={{
+                existingGroupName,
+                description,
+                color,
+                parentId,
+                parentGroups,
+                message,
+                name: "",
+            }}
             saveConnectionGroup={context.saveConnectionGroup}
             closeDialog={context.closeDialog}
         />

@@ -121,8 +121,6 @@ export const GRID_KEYS = {
 export function getGridLaunchConfig(overrides: Record<string, unknown> = {}) {
     return {
         "mssql.showChangelogOnUpdate": false,
-        // The preview grid is the subject of this suite; the classic grid is out of scope.
-        "mssql.preview.betaResultsGrid": true,
         "mssql.openQueryResultsInTabByDefault": false,
         "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": true,
         "mssql.persistQueryResultTabs": true,

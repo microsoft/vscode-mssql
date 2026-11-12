@@ -15,7 +15,6 @@ import { getUriKey } from "../utils/utils";
 import { ConnectionInfo } from "../controllers/connectionManager";
 import { uriOwnershipCoordinator } from "../extension";
 import { getLogger } from "../models/logger";
-import { PreviewFeature, previewService } from "../previews/previewService";
 
 const logger = getLogger("StatusView");
 
@@ -35,10 +34,8 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
-    // Item for Row Count
-    public rowCount: vscode.StatusBarItem;
-    // Item for execution time
-    public executionTime: vscode.StatusBarItem;
+    // Whether SQLCMD mode is enabled for the editor
+    public isSqlCmd: boolean;
 
     public currentLanguageServiceStatus: string;
     public queryTimer: NodeJS.Timeout;
@@ -91,10 +88,6 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                         this.updateServerProcessIdVisibility(fileUri, bar);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-                        if (!this.isInWebviewFooterEnabled) {
-                            this.showStatusBarItem(fileUri, bar.rowCount);
-                            this.showStatusBarItem(fileUri, bar.executionTime);
-                        }
                         if (this.isShowQueryExecutionStatusEnabled) {
                             this.showStatusBarItem(fileUri, bar.statusQuery);
                         } else {
@@ -116,8 +109,6 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusServerProcessId.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
-                this._statusBars[bar].executionTime.dispose();
-                this._statusBars[bar].rowCount.dispose();
                 if (this._statusBars[bar].queryTimer) {
                     clearInterval(this._statusBars[bar].queryTimer);
                 }
@@ -131,15 +122,6 @@ export default class StatusView implements vscode.Disposable {
 
     public setConnectionStore(connectionStore: ConnectionStore): void {
         this._connectionStore = connectionStore;
-    }
-
-    /**
-     * Whether the in-webview query results footer preview is enabled. When enabled, the
-     * row count and execution time status bar items are suppressed because the footer surfaces
-     * that information inside the results view.
-     */
-    private get isInWebviewFooterEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
     /**
@@ -182,9 +164,20 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
-        bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
-        bar.executionTime = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 70);
+        bar.isSqlCmd = this.getDefaultSqlCmdMode(fileUri);
         this._statusBars[fileUri] = bar;
+    }
+
+    /**
+     * Gets the initial SQLCMD mode for an editor from the `mssql.query.defaultSqlCmdMode`
+     * setting. Only `enabled` turns SQLCMD mode on; any other value leaves it off.
+     * @param fileUri URI of the editor
+     */
+    private getDefaultSqlCmdMode(fileUri: string): boolean {
+        const defaultMode = vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
+            .get<string>(Constants.configDefaultSqlCmdMode, Constants.DefaultSqlCmdMode.Disabled);
+        return defaultMode === Constants.DefaultSqlCmdMode.Enabled;
     }
 
     private destroyStatusBar(fileUri: string): void {
@@ -214,12 +207,6 @@ export default class StatusView implements vscode.Disposable {
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
             }
-            if (bar.rowCount) {
-                bar.rowCount.dispose();
-            }
-            if (bar.executionTime) {
-                bar.executionTime.dispose();
-            }
 
             delete this._statusBars[fileUri];
         }
@@ -242,10 +229,6 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.updateServerProcessIdVisibility(fileUri, bar);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-        if (!this.isInWebviewFooterEnabled) {
-            this.showStatusBarItem(fileUri, bar.rowCount);
-            this.showStatusBarItem(fileUri, bar.executionTime);
-        }
         if (this.isShowQueryExecutionStatusEnabled) {
             this.showStatusBarItem(fileUri, bar.statusQuery);
         } else {
@@ -266,14 +249,12 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.color = undefined;
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = "";
-        this.sqlCmdModeChanged(fileUri, false);
+        this.sqlCmdModeChanged(fileUri);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
 
         this.hideStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.hideStatusBarItem(fileUri, bar.statusQuery);
-        this.hideStatusBarItem(fileUri, bar.rowCount);
-        this.hideStatusBarItem(fileUri, bar.executionTime);
         clearInterval(bar.queryTimer);
     }
 
@@ -359,7 +340,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.color = await this.getConnectionColor(bar.connectionId);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.sqlCmdModeChanged(fileUri, false);
+        this.sqlCmdModeChanged(fileUri);
     }
 
     public async updateConnectionColors(): Promise<void> {
@@ -421,7 +402,6 @@ export default class StatusView implements vscode.Disposable {
     public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         clearInterval(bar.queryTimer);
-        this.hideStatusBarItem(fileUri, bar.executionTime);
         if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
@@ -434,6 +414,7 @@ export default class StatusView implements vscode.Disposable {
 
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        clearInterval(bar.queryTimer);
         if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
@@ -443,16 +424,6 @@ export default class StatusView implements vscode.Disposable {
         setTimeout(() => {
             bar.statusQuery.hide();
         }, 200);
-    }
-
-    public setExecutionTime(fileUri: string, time: string): void {
-        let bar = this.getStatusBar(fileUri);
-        clearInterval(bar.queryTimer);
-        if (this.isInWebviewFooterEnabled) {
-            return;
-        }
-        bar.executionTime.text = time;
-        this.showStatusBarItem(fileUri, bar.executionTime);
     }
 
     public cancelingQuery(fileUri: string): void {
@@ -491,31 +462,28 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
     }
 
-    public sqlCmdModeChanged(fileUri: string, isSqlCmd: boolean = false): void {
+    /**
+     * Gets whether SQLCMD mode is enabled for the editor. Editors start with the
+     * mode from the `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
+     * @param fileUri URI of the editor
+     */
+    public getSqlCmdMode(fileUri: string): boolean {
+        return this.getStatusBar(fileUri).isSqlCmd;
+    }
+
+    /**
+     * Updates the SQLCMD mode status bar item for the editor.
+     * @param fileUri URI of the editor
+     * @param isSqlCmd new SQLCMD mode, or undefined to refresh the item with the current mode
+     */
+    public sqlCmdModeChanged(fileUri: string, isSqlCmd?: boolean): void {
         let bar = this.getStatusBar(fileUri);
-        bar.sqlCmdMode.text = isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off";
+        bar.isSqlCmd = isSqlCmd ?? bar.isSqlCmd;
+        bar.sqlCmdMode.text = bar.isSqlCmd
+            ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+            : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-    }
-
-    public showRowCount(fileUri: string, message?: string): void {
-        if (this.isInWebviewFooterEnabled) {
-            return;
-        }
-        let bar = this.getStatusBar(fileUri);
-        if (message && message.includes("row")) {
-            // Remove parentheses from start and end
-            bar.rowCount.text = message.replace("(", "").replace(")", "");
-        }
-        this.showStatusBarItem(fileUri, bar.rowCount);
-    }
-
-    public hideRowCount(fileUri: string, clear: boolean = false): void {
-        let bar = this.getStatusBar(fileUri);
-        if (clear) {
-            bar.rowCount.text = "";
-        }
-        bar.rowCount.hide();
     }
 
     public updateStatusMessage(
@@ -588,8 +556,6 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusServerProcessId.hide();
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
-            this._lastShownStatusBar.executionTime.hide();
-            this._lastShownStatusBar.rowCount.hide();
             this._lastShownStatusBar.sqlCmdMode.hide();
         }
     }

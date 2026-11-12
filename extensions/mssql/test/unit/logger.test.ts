@@ -13,6 +13,7 @@ import {
     logger,
     loggerOutputChannelName,
     resetLoggerDefaultChannelForTest,
+    getMssqlOutputChannel,
 } from "../../src/models/logger";
 import * as Utils from "../../src/models/utils";
 
@@ -86,6 +87,25 @@ suite("Logger tests", () => {
         expect(channel.debug).to.have.been.calledWithExactly(
             '[SchemaCompare] operation started {"id":42}',
         );
+    });
+
+    test("raw tool output reuses the MSSQL logger channel without owning its lifetime", () => {
+        const channel = createChannelStub();
+        const createOutputChannel = sandbox
+            .stub(vscode.window, "createOutputChannel")
+            .returns(channel);
+        const toolOutput = getMssqlOutputChannel();
+        toolOutput.appendLine("Azure SQL compatibility build");
+        logger.info("Build complete");
+        logger.dispose();
+        expect(toolOutput).to.equal(channel);
+        expect(channel.appendLine).to.have.been.calledWith("Azure SQL compatibility build");
+        expect(channel.info).to.have.been.calledWith("Build complete");
+        expect(createOutputChannel).to.have.been.calledWithExactly(loggerOutputChannelName, {
+            log: true,
+        });
+        expect(createOutputChannel).not.to.have.been.calledWith("Azure SQL compatibility");
+        expect(channel.dispose).not.to.have.been.called;
     });
 
     test("forChannel uses the provided channel without creating a new one", () => {

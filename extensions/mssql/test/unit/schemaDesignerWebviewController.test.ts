@@ -17,16 +17,15 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import type { IDabMetadataService } from "../../src/dab/dabMetadataService";
 import { DabConfigStore } from "../../src/dab/dabConfigStore";
+import { DabDeploymentRun, DabDeploymentRunHost } from "../../src/dab/dabDeploymentRun";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
-import {
-    configSchemaDesignerEnableDeploymentsView,
-    DefaultSqlPortNumber,
-} from "../../src/constants/constants";
+import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     observeWebviewReady,
     stubExtensionContext,
@@ -144,6 +143,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         } as any;
 
         mockMainController.connectionManager = {
+            getServerInfo: sandbox.stub(),
             getConnectionInfo: sandbox.stub().returns({
                 credentials: {
                     server: "localhost",
@@ -198,8 +198,51 @@ suite("SchemaDesignerWebviewController tests", () => {
             getDabViewColumns: sandbox.stub().resolves([]),
             getDabStoredProcedureParametersByProcedure: sandbox.stub().resolves(new Map()),
             getDabStoredProcedureParameters: sandbox.stub().resolves([]),
+            getDabViewSourceKeysByView: sandbox.stub().resolves(new Map()),
+            getDabStoredProcedureResultColumnsByProcedure: sandbox.stub().resolves(new Map()),
         };
     }
+
+    test("shared designer and DAB context uses URI-owned metadata rather than a profile lookup", () => {
+        const manager = sandbox.createStubInstance(ConnectionManager);
+        mockMainController.connectionManager = manager;
+        const credentials = { server: "localhost", database: databaseName };
+        const serverInfo = {
+            engineEditionId: 5,
+            databaseServiceTier: "BusinessCritical",
+            databaseServiceObjective: "BC_Gen5_4",
+        };
+        manager.getConnectionInfo
+            .withArgs(connectionUri)
+            .returns(Object.assign(new ConnectionInfo(), { credentials, serverInfo }));
+        const ctrl = createController();
+
+        expect(ctrl.telemetryContext).to.deep.equal({ connectionInfo: credentials, serverInfo });
+        sinon.assert.notCalled(manager.getServerInfo);
+    });
+
+    test("shared designer and DAB context omits the source database's tier for another target", () => {
+        const manager = sandbox.createStubInstance(ConnectionManager);
+        mockMainController.connectionManager = manager;
+        manager.getConnectionInfo.withArgs(connectionUri).returns(
+            Object.assign(new ConnectionInfo(), {
+                credentials: { server: "localhost", database: "source-database" },
+                serverInfo: {
+                    engineEditionId: 5,
+                    databaseServiceTier: "GeneralPurpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                },
+            }),
+        );
+        const ctrl = createController();
+
+        expect(ctrl.telemetryContext.serverInfo).to.include({
+            engineEditionId: 5,
+            databaseServiceTier: undefined,
+            databaseServiceObjective: undefined,
+        });
+        sinon.assert.notCalled(manager.getServerInfo);
+    });
 
     suite("Constructor and Initialization", () => {
         test("should create controller with correct parameters", () => {
@@ -1357,120 +1400,6 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
-        suite("RunDeploymentStepRequest handler", () => {
-            test("should register RunDeploymentStepRequest handler", () => {
-                createController();
-
-                expect(requestHandlers.has(Dab.RunDeploymentStepRequest.type.method)).to.be.true;
-            });
-
-            test("should call dabService.runDeploymentStep with correct parameters", async () => {
-                createController();
-
-                const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
-                expect(handler).to.be.a("function");
-
-                // Test with dockerInstallation step (no additional params needed)
-                const payload: Dab.RunDeploymentStepParams = {
-                    step: Dab.DabDeploymentStepOrder.dockerInstallation,
-                };
-
-                // The handler delegates to dabService which calls dockerUtils
-                // For this test, we just verify the handler exists and can be called
-                // The actual behavior is tested in dabService.test.ts
-                try {
-                    await handler(payload);
-                } catch {
-                    // Expected to fail in test environment without Docker
-                }
-            });
-
-            test("should pass deployment params for startContainer step", async () => {
-                createController();
-
-                const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
-
-                const payload: Dab.RunDeploymentStepParams = {
-                    step: Dab.DabDeploymentStepOrder.startContainer,
-                    params: {
-                        containerName: "test-dab-container",
-                        port: 5000,
-                    },
-                    config: mockDabConfig,
-                };
-
-                // Handler exists and accepts the payload structure
-                try {
-                    await handler(payload);
-                } catch {
-                    // Expected to fail without actual Docker environment
-                }
-            });
-        });
-
-        suite("ValidateDeploymentParamsRequest handler", () => {
-            test("should register ValidateDeploymentParamsRequest handler", () => {
-                createController();
-
-                expect(requestHandlers.has(Dab.ValidateDeploymentParamsRequest.type.method)).to.be
-                    .true;
-            });
-
-            test("should call dabService.validateDeploymentParams with correct parameters", async () => {
-                createController();
-
-                const handler = requestHandlers.get(
-                    Dab.ValidateDeploymentParamsRequest.type.method,
-                );
-                expect(handler).to.be.a("function");
-
-                const payload: Dab.ValidateDeploymentParamsParams = {
-                    containerName: "test-container",
-                    port: 5000,
-                };
-
-                // The handler delegates to dabService which calls dockerUtils
-                try {
-                    const result = await handler(payload);
-                    // If Docker is available, verify response structure
-                    expect(result).to.have.property("isContainerNameValid");
-                    expect(result).to.have.property("validatedContainerName");
-                    expect(result).to.have.property("isPortValid");
-                    expect(result).to.have.property("suggestedPort");
-                } catch {
-                    // Expected to fail in test environment without Docker
-                }
-            });
-        });
-
-        suite("StopDeploymentRequest handler", () => {
-            test("should register StopDeploymentRequest handler", () => {
-                createController();
-
-                expect(requestHandlers.has(Dab.StopDeploymentRequest.type.method)).to.be.true;
-            });
-
-            test("should call dabService.stopDeployment with container name", async () => {
-                createController();
-
-                const handler = requestHandlers.get(Dab.StopDeploymentRequest.type.method);
-                expect(handler).to.be.a("function");
-
-                const payload: Dab.StopDeploymentParams = {
-                    containerName: "test-dab-container",
-                };
-
-                // The handler delegates to dabService which calls dockerUtils
-                try {
-                    const result = await handler(payload);
-                    // If Docker is available, verify response structure
-                    expect(result).to.have.property("success");
-                } catch {
-                    // Expected to fail in test environment without Docker
-                }
-            });
-        });
-
         suite("AddMcpServerRequest handler", () => {
             test("should register AddMcpServerRequest handler", () => {
                 createController();
@@ -1522,27 +1451,6 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(result.success).to.be.false;
                 expect(result.error).to.equal("No workspace folder is open.");
             });
-        });
-    });
-
-    suite("enableDeploymentsView", () => {
-        /** Answers one setting deliberately and every other one as enabled. */
-        function stubSetting(key: string, value: boolean) {
-            (vscode.workspace.getConfiguration as sinon.SinonStub).returns({
-                get: (requested: string) => (requested === key ? value : true),
-            } as any);
-        }
-
-        test("should carry the setting into the initial state when enabled", () => {
-            stubSetting(configSchemaDesignerEnableDeploymentsView, true);
-
-            expect(createController().state.enableDeploymentsView).to.be.true;
-        });
-
-        test("should carry the setting into the initial state when disabled", () => {
-            stubSetting(configSchemaDesignerEnableDeploymentsView, false);
-
-            expect(createController().state.enableDeploymentsView).to.be.false;
         });
     });
 
@@ -1674,7 +1582,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
-    suite("RunDeploymentStepRequest deployment guard", () => {
+    suite("Deployment step guard", () => {
         test("should block deployment and return error when isDabDeploymentSupported is false", async () => {
             sandbox.stub(treeNode, "connectionProfile").get(
                 () =>
@@ -1687,20 +1595,134 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
 
-            createController();
+            const ctrl = createController();
 
-            const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
-            expect(handler).to.be.a("function");
-
-            const payload: Dab.RunDeploymentStepParams = {
+            const result = await ctrl["runDabDeploymentStep"]({
                 step: Dab.DabDeploymentStepOrder.dockerInstallation,
-            };
-
-            const result = await handler(payload);
+            });
 
             expect(result.success).to.be.false;
             expect(result.error).to.be.a("string");
             expect(showErrorStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("Deployment preparation", () => {
+        const trackedRecord: Dab.DabDeploymentRecord = {
+            id: "deployment-1",
+            target: Dab.DabDeploymentTarget.Docker,
+            name: "DAB_testdb_1",
+            port: 5005,
+            apiTypes: [Dab.ApiType.Rest],
+            configHash: "hash",
+            createdUtc: "2026-01-01T00:00:00Z",
+            deployedUtc: "2026-01-01T00:00:00Z",
+        };
+
+        function setUpController() {
+            const ctrl = createController();
+            ctrl["_serverName"] = "localhost";
+            const store = sandbox.createStubInstance(DabConfigStore);
+            store.getDeployments.resolves([trackedRecord]);
+            store.getReservedPorts.resolves(new Set([5000, 5005]));
+            ctrl["_dabConfigStore"] = store as unknown as DabConfigStore;
+            const findAvailablePort = sandbox.stub(ctrl["_dabService"], "findAvailablePort");
+            const handler = (payload: Dab.PrepareDeploymentParams) =>
+                ctrl["prepareDabDeployment"](payload);
+            return { ctrl, store, findAvailablePort, handler };
+        }
+
+        test("gives a first deployment a generated name and the first port no deployment owns", async () => {
+            const { ctrl, store, findAvailablePort, handler } = setUpController();
+            sandbox.stub(ctrl as any, "generateDabDeploymentName").resolves("DAB_testdb_2");
+            findAvailablePort.resolves(5001);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.DabCli,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result).to.deep.equal({
+                success: true,
+                params: { containerName: "DAB_testdb_2", port: 5001 },
+            });
+            expect(store.getReservedPorts).to.have.been.calledWith(undefined);
+            expect(findAvailablePort).to.have.been.calledWith(
+                Dab.DAB_DEFAULT_PORT,
+                new Set([5000, 5005]),
+            );
+        });
+
+        test("redeploys under the same name after removing the old deployment", async () => {
+            const { ctrl, store, findAvailablePort, handler } = setUpController();
+            sandbox
+                .stub(ctrl as any, "getDabDeploymentStatus")
+                .resolves(Dab.DabDeploymentContainerStatus.Stopped);
+            const tearDown = sandbox
+                .stub(ctrl as any, "tearDownDabDeployment")
+                .resolves({ success: true });
+            // Another process took the old port, so the next free one is used.
+            findAvailablePort.resolves(5006);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.DabCli,
+                deploymentId: trackedRecord.id,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result).to.deep.equal({
+                success: true,
+                params: { containerName: trackedRecord.name, port: 5006 },
+            });
+            expect(tearDown).to.have.been.calledOnce;
+            expect(store.getReservedPorts).to.have.been.calledWith(trackedRecord.id);
+            expect(findAvailablePort).to.have.been.calledWith(
+                trackedRecord.port,
+                new Set([5000, 5005]),
+            );
+        });
+
+        test("fails rather than moving a first deployment off the port the user chose", async () => {
+            const { ctrl, findAvailablePort, handler } = setUpController();
+            sandbox.stub(ctrl as any, "generateDabDeploymentName").resolves("DAB_testdb_2");
+            findAvailablePort.resolves(5003);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.DabCli,
+                port: 5002,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.include("5002");
+            expect(findAvailablePort).to.have.been.calledWith(5002, new Set([5000, 5005]));
+        });
+
+        test("CheckDeploymentPortRequest treats a port another deployment owns as taken", async () => {
+            const { findAvailablePort } = setUpController();
+            const checkHandler = requestHandlers.get(Dab.CheckDeploymentPortRequest.type.method);
+            findAvailablePort.callsFake(async (port: number) => port);
+
+            const owned = (await checkHandler({ port: 5005 })) as Dab.CheckDeploymentPortResponse;
+            const free = (await checkHandler({ port: 5010 })) as Dab.CheckDeploymentPortResponse;
+            findAvailablePort.resolves(5001);
+            const suggested = (await checkHandler({})) as Dab.CheckDeploymentPortResponse;
+
+            expect(owned.isAvailable).to.be.false;
+            expect(owned.error).to.include("5005");
+            expect(free).to.deep.equal({ port: 5010, isAvailable: true });
+            expect(suggested).to.deep.equal({ port: 5001, isAvailable: true });
+        });
+
+        test("fails when no port is free", async () => {
+            const { ctrl, findAvailablePort, handler } = setUpController();
+            sandbox.stub(ctrl as any, "generateDabDeploymentName").resolves("DAB_testdb_2");
+            findAvailablePort.resolves(undefined);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.Docker,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.be.a("string").and.not.empty;
+            expect(result.params).to.equal(undefined);
         });
     });
 
@@ -1733,7 +1755,10 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(sendActionEventStub).to.have.been.calledWithExactly(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.StartDabDeployment,
-                { additionalProps: { target: "dabCli", outcome: "success" } },
+                {
+                    ...ctrl.telemetryContext,
+                    additionalProps: { target: "dabCli", outcome: "success" },
+                },
             );
             expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
         });
@@ -1767,6 +1792,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.StopDabDeployment,
                 {
+                    ...ctrl.telemetryContext,
                     additionalProps: {
                         target: "docker",
                         outcome: "failure",
@@ -1775,6 +1801,122 @@ suite("SchemaDesignerWebviewController tests", () => {
                 },
             );
             expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
+        });
+
+        function createRun(entraSignIn: boolean) {
+            const host = {
+                prepare: sandbox.stub().resolves({
+                    success: true,
+                    params: { containerName: "private-container-name", port: 5000 },
+                }),
+                runStep: sandbox.stub().resolves({ success: true }),
+                cleanUp: sandbox.stub().resolves(),
+                cancelSignIn: sandbox.stub(),
+            };
+            const run = new DabDeploymentRun(host as unknown as DabDeploymentRunHost, {
+                target: Dab.DabDeploymentTarget.DabCli,
+                stepOptions: { entraSignIn },
+            });
+            return { host, run };
+        }
+
+        function waitForStatus(
+            run: DabDeploymentRun,
+            status: Dab.DabDeploymentRunStatus,
+        ): Promise<void> {
+            return new Promise((resolve) => {
+                const subscription = run.onDidChange((state) => {
+                    if (state.status === status) {
+                        subscription.dispose();
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        const endRunEvents = () =>
+            sendActionEventStub
+                .getCalls()
+                .filter((call) => call.args[1] === TelemetryActions.EndDabDeploymentRun)
+                .map((call) => call.args[2]);
+
+        test("reports where a run failed, why, and the attempt that succeeded", async () => {
+            const ctrl = createController();
+            const { host, run } = createRun(false);
+            host.runStep.withArgs(Dab.DabDeploymentStepOrder.startCliEngine).resolves({
+                success: false,
+                error: "private-error-text",
+                failureReason: "engineStartFailed",
+            });
+            const properties = { target: "dabCli", mode: run.state.mode };
+            ctrl["reportDabDeploymentRun"](run, properties, { entityCount: 3 });
+
+            const failed = waitForStatus(run, Dab.DabDeploymentRunStatus.Failed);
+            run.start();
+            await failed;
+            host.runStep
+                .withArgs(Dab.DabDeploymentStepOrder.startCliEngine)
+                .resolves({ success: true });
+            const succeeded = waitForStatus(run, Dab.DabDeploymentRunStatus.Succeeded);
+            await run.retry();
+            await succeeded;
+
+            expect(sendActionEventStub).to.have.been.calledWithExactly(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.StartDabDeploymentRun,
+                {
+                    ...ctrl.telemetryContext,
+                    additionalProps: properties,
+                    additionalMeasurements: { entityCount: 3 },
+                },
+            );
+            const [failure, success] = endRunEvents();
+            expect(failure.additionalProps).to.deep.equal({
+                ...properties,
+                outcome: "failed",
+                step: "startCliEngine",
+                reason: "engineStartFailed",
+                afterFailure: "false",
+                waitingForUser: "false",
+            });
+            expect(failure.additionalMeasurements).to.include({ entityCount: 3, attempt: 1 });
+            expect(success.additionalProps).to.deep.equal({
+                ...properties,
+                outcome: "succeeded",
+                step: "",
+                reason: "",
+                afterFailure: "false",
+                waitingForUser: "false",
+            });
+            expect(success.additionalMeasurements).to.include({ entityCount: 3, attempt: 2 });
+            expect(success.additionalMeasurements.durationMs).to.be.a("number");
+            expect(JSON.stringify(sendActionEventStub.args)).to.not.contain("private-");
+        });
+
+        test("reports a run canceled while waiting for the user", async () => {
+            const ctrl = createController();
+            const { host, run } = createRun(true);
+            host.runStep.withArgs(Dab.DabDeploymentStepOrder.signInEntra).resolves({
+                success: false,
+                prompt: { kind: "entraSignIn", account: "private-account" },
+            });
+            ctrl["reportDabDeploymentRun"](run, { target: "dabCli" }, {});
+
+            const waiting = waitForStatus(run, Dab.DabDeploymentRunStatus.Waiting);
+            run.start();
+            await waiting;
+            await run.cancel();
+
+            const [cancel] = endRunEvents();
+            expect(cancel.additionalProps).to.deep.equal({
+                target: "dabCli",
+                outcome: "canceled",
+                step: "signInEntra",
+                reason: "",
+                afterFailure: "false",
+                waitingForUser: "true",
+            });
+            expect(JSON.stringify(sendActionEventStub.args)).to.not.contain("private-");
         });
     });
 
@@ -1831,6 +1973,80 @@ suite("SchemaDesignerWebviewController tests", () => {
                     sinon.match({ useNoLock: false }),
                 );
             }
+        });
+
+        test("should key views by traced base table keys and pass procedure result sets", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+            metadataService.getDabViewColumnsByView.resolves(
+                new Map([
+                    [
+                        "view:dbo.ActiveUsers",
+                        [
+                            {
+                                id: "view:dbo.ActiveUsers:UserKey",
+                                name: "UserKey",
+                                dataType: "int",
+                                ordinal: 1,
+                                isPrimaryKey: false,
+                            },
+                            {
+                                id: "view:dbo.ActiveUsers:DisplayName",
+                                name: "DisplayName",
+                                dataType: "nvarchar",
+                                ordinal: 2,
+                                isPrimaryKey: false,
+                            },
+                        ],
+                    ],
+                ]),
+            );
+            metadataService.getDabViewSourceKeysByView.resolves(
+                new Map([["view:dbo.ActiveUsers", ["userkey"]]]),
+            );
+            const resultColumns = [{ dataType: "int", ordinal: 1 }];
+            metadataService.getDabStoredProcedureResultColumnsByProcedure.resolves(
+                new Map([["stored-procedure:dbo.GetUsers", resultColumns]]),
+            );
+
+            createController(metadataService);
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            const result = ((await handler(undefined)) as Dab.GetDatabaseObjectsResponse)
+                .sourceObjects;
+
+            const view = result.find((source) => source.id === "view:dbo.ActiveUsers");
+            expect(view?.columns.map((column) => column.isPrimaryKey)).to.deep.equal([true, false]);
+            expect(view?.fields).to.deep.equal([
+                { name: "UserKey", isPrimaryKey: true },
+                { name: "DisplayName" },
+            ]);
+            const procedure = result.find(
+                (source) => source.id === "stored-procedure:dbo.GetUsers",
+            );
+            expect(procedure?.resultColumns).to.deep.equal(resultColumns);
+        });
+
+        test("should keep loading DAB objects when key tracing and result set checks fail", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+            metadataService.getDabViewSourceKeysByView.rejects(new Error("describe failed"));
+            metadataService.getDabStoredProcedureResultColumnsByProcedure.rejects(
+                new Error("describe failed"),
+            );
+
+            createController(metadataService);
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            const result = ((await handler(undefined)) as Dab.GetDatabaseObjectsResponse)
+                .sourceObjects;
+
+            expect(result.map((source) => source.id)).to.deep.equal([
+                "view:dbo.ActiveUsers",
+                "stored-procedure:dbo.GetUsers",
+            ]);
         });
 
         test("should skip NOLOCK hints when server engine information is unavailable", async () => {

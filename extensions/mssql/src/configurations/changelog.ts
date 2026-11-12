@@ -251,6 +251,22 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
     ],
-    event: undefined,
+    event: {
+        id: "sqlcon-atl-2027",
+        mainTitle: "SQLCON",
+        secondaryTitle: locConstants.Changelog.sqlconSecondaryTitle,
+        location: { name: locConstants.Changelog.sqlconLocation, timezone: "-05:00" }, // keep timezone in UTC offset format "+HH:MM"
+        date: "2027-03-08", // keep YYYY-MM-DD format; front-end will "prettify" it
+        endDate: "2027-03-12",
+        actionButton: {
+            text: locConstants.Changelog.sqlconRegister,
+            url: "https://aka.ms/sqlcon?ocid=sqlcon_vscode_inproduct",
+        },
+        description: [
+            locConstants.Changelog.sqlconDescription1,
+            locConstants.Changelog.sqlconDescription2,
+        ],
+        codeSnippets: ["VSCODE200"],
+    },
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",
 };

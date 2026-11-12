@@ -24,6 +24,7 @@ import {
     AzureSqlDatabaseFormState,
     AzureSqlDatabaseReducers,
     AzureSqlDatabaseState,
+    LocalDatabaseSource,
 } from "./azureSqlDatabase";
 
 export class DeploymentWebviewState
@@ -33,6 +34,7 @@ export class DeploymentWebviewState
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
     initialDeploymentType?: DeploymentType;
+    initialLocalDatabaseSource?: LocalDatabaseSource;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;
@@ -138,6 +140,8 @@ export enum DeploymentType {
     FabricProvisioning = 1,
     AzureSqlDatabase = 2,
     DevContainer = 3,
+    AzureSqlContainer = 4,
+    LocalToCloud = 5,
 }
 
 /**

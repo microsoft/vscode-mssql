@@ -14,12 +14,11 @@ import { getDockerodeClient } from "../docker/dockerodeClient";
 import {
     dockerLogger,
     getContainerByName,
-    findAvailablePort,
+    findAvailablePortWithoutDocker,
     isHostPortAvailable,
     pullContainerImage,
     sanitizeContainerInput,
     startContainerLogMonitor,
-    validateContainerName,
 } from "../docker/dockerUtils";
 
 const dabContainerLogTail = 200;
@@ -212,12 +211,14 @@ export async function startDabDockerContainer(
  * Uses setTimeout loop to avoid overlapping requests (fetch timeout is 5s, poll interval is 1s).
  * @param containerName Name of the container (for logging)
  * @param port Port the DAB API is exposed on
+ * @param timeoutMs How long to wait. The engine loads every entity before it
+ * answers, so callers that know the entity count pass a longer wait.
  */
 export async function checkIfDabContainerIsReady(
     containerName: string,
     port: number,
+    timeoutMs: number = 60_000,
 ): Promise<DockerCommandParams & { containerLogs?: string }> {
-    const timeoutMs = 60_000; // 1 minute timeout for DAB
     const intervalMs = 1000;
     const start = Date.now();
 
@@ -319,24 +320,20 @@ export async function stopAndRemoveDabContainer(
 }
 
 /**
- * Validates and returns a unique container name for DAB
- * @param containerName The requested container name (can be empty for auto-generation)
- */
-export async function validateDabContainerName(containerName: string): Promise<string> {
-    return validateContainerName(containerName, Dab.DAB_DEFAULT_CONTAINER_NAME);
-}
-
-/**
- * Finds an available port for the DAB container
+ * Finds an available port for a DAB deployment. The CLI target runs without
+ * Docker, and the Docker target has already passed its prerequisites by the time
+ * a port is chosen, so Docker being unreachable must not make every port look taken.
  * @param preferredPort The preferred port to use if available
  * @param isPortFree Overridable so tests decide port availability instead of
  * depending on what happens to be listening on the machine running them
+ * @param reservedPorts Ports other DAB deployments own, skipped even while free
  */
 export async function findAvailableDabPort(
     preferredPort: number = Dab.DAB_DEFAULT_PORT,
     isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
+    reservedPorts: Iterable<number> = [],
 ): Promise<number> {
-    return findAvailablePort(preferredPort, isPortFree);
+    return findAvailablePortWithoutDocker(preferredPort, isPortFree, reservedPorts);
 }
 
 /**

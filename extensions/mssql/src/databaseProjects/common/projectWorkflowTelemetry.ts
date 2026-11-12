@@ -5,6 +5,7 @@
 
 import {
     startWorkflow,
+    type TelemetryEventOptions,
     type TelemetryEventProperties,
     type WorkflowTelemetryObject,
 } from "extension-toolkit/vscode";
@@ -23,7 +24,8 @@ export enum SqlProjectWorkflowEventName {
     PublishDialogClosed = "PublishDialogClosed",
 }
 
-export interface SqlProjectWorkflowEventOptions {
+export interface SqlProjectWorkflowEventOptions
+    extends Pick<TelemetryEventOptions, "connectionInfo" | "serverInfo"> {
     outcome?: string;
     additionalProps?: TelemetryEventProperties;
 }
@@ -77,6 +79,8 @@ function getOrStartWorkflow(
                 workflowEntryPoint: SqlProjectWorkflowStep[eventName].name,
             },
             additionalProps: options.additionalProps,
+            connectionInfo: options.connectionInfo,
+            serverInfo: options.serverInfo,
         },
     );
     workflows.set(key, workflow);
@@ -94,6 +98,8 @@ export function recordSqlProjectWorkflowEvent(
             step: SqlProjectWorkflowStep[eventName],
             outcome: options.outcome,
             additionalProps: options.additionalProps,
+            connectionInfo: options.connectionInfo,
+            serverInfo: options.serverInfo,
         });
     }
 }
@@ -114,6 +120,8 @@ export function completeSqlProjectWorkflow(
         step: SqlProjectWorkflowStep[eventName],
         outcome: options.outcome,
         additionalProps: options.additionalProps,
+        connectionInfo: options.connectionInfo,
+        serverInfo: options.serverInfo,
     });
     workflows.delete(key);
 }

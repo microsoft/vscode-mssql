@@ -30,6 +30,7 @@ export const disconnectedServerNodeType = "disconnectedServer";
 export const disconnected = "disconnected";
 export const serverLabel = "Server";
 export const disconnectedDockerContainer = "disconnectedDockerContainer";
+export const disconnectedDockerContainerDatabase = "disconnectedDockerContainerDatabase";
 export const dockerContainer = "DockerContainer";
 export const dockerContainerDatabase = "DockerContainerDatabase";
 export const databasesSubNodeType = "Databases";
@@ -43,6 +44,10 @@ export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open"
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
+export const cmdEnableFollowActiveEditor = "mssql.queryResults.enableFollowActiveEditor";
+export const cmdDisableFollowActiveEditor = "mssql.queryResults.disableFollowActiveEditor";
+export const cmdEnableMultiResults = "mssql.queryResults.enableMultiResults";
+export const cmdDisableMultiResults = "mssql.queryResults.disableMultiResults";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdConnectWithUriOwnership = "mssql.connectWithUriOwnership";
@@ -73,6 +78,7 @@ export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConne
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdSearchDatabase = "mssql.searchDatabase";
+export const cmdOpenPerformanceDashboard = "mssql.performance.openDashboard";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const triggerSchemaCompareAutomatic = "automatic";
@@ -89,6 +95,7 @@ export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
 export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
+export const cmdConnectionGroupCreateWithParent = "mssql.connectionGroups.createWithParent";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
@@ -151,6 +158,7 @@ export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDesignSchemaForTable = "mssql.schemaDesignerForTable";
 export const cmdBuildDataApi = "mssql.buildDataApi";
 export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
+export const cmdDeployDatabaseToAzure = "mssql.deployDatabaseToAzure";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
@@ -312,6 +320,16 @@ export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
+export const copilotQueryStoreStatusToolName = "mssql_query_store_status";
+export const copilotQueryStoreTopQueriesToolName = "mssql_query_store_top_queries";
+export const copilotQueryStoreQueryDetailsToolName = "mssql_query_store_query_details";
+export const copilotQueryStoreQueryHistoryToolName = "mssql_query_store_query_history";
+export const copilotQueryStorePlanForcingToolName = "mssql_query_store_plan_forcing";
+export const copilotQueryStoreVerifyForcedPlanToolName = "mssql_query_store_verify_forced_plan";
+export const copilotQueryStoreWaitStatsToolName = "mssql_query_store_wait_stats";
+export const copilotQueryStorePlanSummaryToolName = "mssql_query_store_plan_summary";
+export const copilotQueryStoreAnalyzeQueryToolName = "mssql_query_store_analyze_query";
+export const copilotOpenPerformanceDashboardToolName = "mssql_open_performance_dashboard";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
@@ -344,6 +362,7 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
+export const configDefaultSqlCmdMode = "query.defaultSqlCmdMode";
 export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
 export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
@@ -369,14 +388,14 @@ export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoM
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configStatusBarShowServerProcessId = "statusBar.showServerProcessId";
-export const configDabCliPackageFeedUrl = "mssql.dab.cliPackageFeedUrl";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
-export const configSchemaDesignerEnableDeploymentsView =
-    "mssql.schemaDesigner.enableDeploymentsView";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
+export const configQueryResultsFollowActiveEditor = "mssql.queryResults.followActiveEditor";
+/** Context key that is true while the results view shows the multi-results layout. */
+export const multiResultsActiveContextKey = "mssql.multiResults.active";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
@@ -396,6 +415,17 @@ export enum NewEditorConnectionBehavior {
     TransferActive = "transferActive",
     /** Connect using the profile identified by mssql.defaultConnectionId. */
     DefaultConnection = "defaultConnection",
+}
+
+/**
+ * Values for the mssql.query.defaultSqlCmdMode setting, which controls the initial
+ * SQLCMD mode of newly opened SQL editors.
+ */
+export enum DefaultSqlCmdMode {
+    /** Editors open with SQLCMD mode disabled. */
+    Disabled = "disabled",
+    /** Editors open with SQLCMD mode enabled. */
+    Enabled = "enabled",
 }
 
 // Built into VS Code

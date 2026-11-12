@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
+import * as childProcess from "child_process";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import {
@@ -18,6 +21,10 @@ import {
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
 import * as constants from "../../../src/databaseProjects/common/constants";
+import { dotnetRuntimeExtensionId, extensionId } from "../../../src/constants/constants";
+import { SqlProjects } from "../../../src/constants/locConstants";
+
+chai.use(sinonChai);
 
 let testContext: TestContext;
 let sandbox: sinon.SinonSandbox;
@@ -97,6 +104,138 @@ suite("NetCoreTool: Net core tests", function (): void {
                 console.warn(`Failed to clean up ${dummyFile}`);
             }
         }
+    });
+
+    suite("SDK acquisition", () => {
+        let executeCommand: sinon.SinonStub;
+        let execFile: sinon.SinonStub;
+        let getExtension: sinon.SinonStub;
+        let tool: NetCoreTool;
+        let configuredLocation: string | undefined;
+
+        setup(() => {
+            configuredLocation = undefined;
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().callsFake(() => configuredLocation),
+                has: sandbox.stub(),
+                inspect: sandbox.stub(),
+                update: sandbox.stub().resolves(),
+            });
+            getExtension = sandbox.stub(vscode.extensions, "getExtension");
+            getExtension.withArgs(dotnetRuntimeExtensionId).returns({
+                id: dotnetRuntimeExtensionId,
+                extensionUri: vscode.Uri.file("dotnet-runtime-extension"),
+                extensionPath: "dotnet-runtime-extension",
+                isActive: true,
+                packageJSON: {},
+                exports: undefined,
+                extensionKind: vscode.ExtensionKind.Workspace,
+                activate: sandbox.stub().resolves(),
+            });
+            executeCommand = sandbox.stub(vscode.commands, "executeCommand");
+            execFile = sandbox
+                .stub(childProcess, "execFile")
+                .callsArgWith(3, Object.assign(new Error("not found"), { code: "ENOENT" }), "", "")
+                .returns(new childProcess.ChildProcess());
+            sandbox.stub(fs.promises, "access").resolves();
+            tool = new NetCoreTool(testContext.outputChannel);
+        });
+
+        test("uses an SDK on PATH even without the acquisition extension", async () => {
+            const executable = os.platform() === "win32" ? "dotnet.exe" : "dotnet";
+            execFile.withArgs(executable).callsArgWith(3, undefined, "10.0.402 [sdk]\r\n", "");
+            getExtension.withArgs(dotnetRuntimeExtensionId).returns(undefined);
+            expect(await tool.acquireNetCoreSdk()).to.equal(executable);
+            expect(getExtension).not.to.have.been.called;
+            expect(executeCommand).not.to.have.been.called;
+        });
+
+        test("reuses a supported SDK without installing another", async () => {
+            const executable = path.join("existing-sdk", "dotnet");
+            executeCommand.withArgs("dotnet.findPath").resolves(executable);
+            expect(await tool.acquireNetCoreSdk()).to.equal(executable);
+            expect(executeCommand).to.have.been.calledWith("dotnet.findPath", {
+                acquireContext: { version: "8.0", requestingExtensionId: extensionId, mode: "sdk" },
+                versionSpecRequirement: "greater_than_or_equal",
+                rejectPreviews: true,
+            });
+            expect(executeCommand).not.to.have.been.calledWith("dotnet.acquireGlobalSDK");
+        });
+
+        test("honors a configured supported SDK outside PATH", async () => {
+            configuredLocation = path.join("custom", "sdk");
+            const executable = path.join(
+                configuredLocation,
+                os.platform() === "win32" ? "dotnet.exe" : "dotnet",
+            );
+            execFile.withArgs(executable).callsArgWith(3, undefined, "8.0.412 [custom sdk]\n", "");
+            expect(await tool.acquireNetCoreSdk()).to.equal(executable);
+            expect(getExtension).not.to.have.been.called;
+            expect(executeCommand).not.to.have.been.called;
+        });
+
+        for (const [description, installs] of [
+            ["only a runtime is installed", ""],
+            ["the SDK is too old", "7.0.410 [sdk]\n"],
+        ] as const) {
+            test(`acquires an SDK when ${description}`, async () => {
+                configuredLocation = path.join("custom", "sdk");
+                execFile.callsArgWith(3, undefined, installs, "");
+                const executable = path.join("acquired-sdk", "dotnet");
+                executeCommand
+                    .withArgs("dotnet.acquireGlobalSDK")
+                    .resolves({ dotnetPath: executable });
+                expect(await tool.acquireNetCoreSdk()).to.equal(executable);
+                expect(executeCommand).to.have.been.calledWith("dotnet.acquireGlobalSDK", {
+                    version: "10.0",
+                    requestingExtensionId: extensionId,
+                    mode: "sdk",
+                });
+            });
+        }
+
+        test("acquires an SDK when .NET is completely absent", async () => {
+            const executable = path.join("new-sdk", "dotnet");
+            executeCommand.withArgs("dotnet.acquireGlobalSDK").resolves({ dotnetPath: executable });
+            expect(await tool.acquireNetCoreSdk()).to.equal(executable);
+        });
+
+        test("reports an acquisition that does not return an executable", async () => {
+            let failure: unknown;
+            try {
+                await tool.acquireNetCoreSdk();
+            } catch (error) {
+                failure = error;
+            }
+            expect(failure)
+                .to.be.instanceOf(Error)
+                .with.property("message", SqlProjects.DotnetSdkAcquisitionFailed);
+        });
+
+        test("propagates acquisition failures instead of starting a build", async () => {
+            const failure = new Error("SDK download failed");
+            executeCommand.withArgs("dotnet.acquireGlobalSDK").rejects(failure);
+            let actual: unknown;
+            try {
+                await tool.acquireNetCoreSdk();
+            } catch (error) {
+                actual = error;
+            }
+            expect(actual).to.equal(failure);
+        });
+
+        test("does not mistake SDK inspection failures for a missing SDK", async () => {
+            const failure = Object.assign(new Error("access denied"), { code: "EACCES" });
+            execFile.callsArgWith(3, failure, "", "");
+            let actual: unknown;
+            try {
+                await tool.acquireNetCoreSdk();
+            } catch (error) {
+                actual = error;
+            }
+            expect(actual).to.equal(failure);
+            expect(executeCommand).not.to.have.been.called;
+        });
     });
 
     suite("getMicrosoftBuildSqlVersion tests", function (): void {

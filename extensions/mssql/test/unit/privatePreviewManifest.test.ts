@@ -19,6 +19,9 @@ const DEBUG_CONSOLE_GATE =
     "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled";
 const SESSION_DIAGNOSTICS_GATE =
     "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled";
+// Performance monitoring is on by default and needs no other setting.
+const PERFORMANCE_MONITORING_GATE =
+    "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled";
 const OBJECT_EXPLORER_V2_GATE =
     "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled";
 
@@ -48,6 +51,7 @@ interface ExtensionPackageJson {
         views: { objectExplorer: { id: string; when?: string }[] };
         keybindings: { command: string; when?: string }[];
         languageModelChatProviders: LanguageModelChatProviderContribution[];
+        languageModelTools: { name: string; when?: string }[];
         configuration:
             | ConfigurationContribution<{
                   default?: unknown;
@@ -247,15 +251,58 @@ suite("Private preview manifest", () => {
         }
     });
 
-    test("does not publish deferred Docker lifecycle commands", () => {
+    test("turns on performance monitoring by default, with no other setting", () => {
+        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
+        expect(settings["mssql.performanceMonitoring.enabled"]?.default).to.equal(true);
+    });
+
+    test("requires the activation snapshot and the setting for performance monitoring", () => {
+        const commandId = "mssql.performance.openDashboard";
+        expect(command(commandId).enablement).to.equal(PERFORMANCE_MONITORING_GATE);
+        expect(commandPalette(commandId).when).to.equal("false");
+        const menus = packageJson.contributes.menus["view/item/context"].filter(
+            (item) => item.command === commandId,
+        );
+        expect(menus.length).to.be.greaterThan(0);
+        for (const menu of menus) {
+            expect(menu.when, menu.command).to.contain(PERFORMANCE_MONITORING_GATE);
+        }
+    });
+
+    test("shows the Query Store tools only while performance monitoring is active", () => {
+        const tools = packageJson.contributes.languageModelTools.filter(
+            (tool) =>
+                tool.name.startsWith("mssql_query_store_") ||
+                tool.name === "mssql_open_performance_dashboard",
+        );
+        expect(tools.length).to.equal(10);
+        for (const tool of tools) {
+            expect(tool.when, tool.name).to.equal(PERFORMANCE_MONITORING_GATE);
+        }
+    });
+
+    test("container lifecycle commands are gated and require a tree target", () => {
         const commandIds = packageJson.contributes.commands.map((item) => item.command);
-        for (const deferred of [
+        for (const commandId of [
             "mssql.objectExplorerV2.startContainer",
             "mssql.objectExplorerV2.stopContainer",
             "mssql.objectExplorerV2.deleteContainer",
         ]) {
-            expect(commandIds, deferred).to.not.include(deferred);
+            expect(commandIds).to.include(commandId);
+            expect(command(commandId).enablement).to.contain(OBJECT_EXPLORER_V2_GATE);
+            expect(commandPalette(commandId).when).to.equal("false");
         }
+        expect(command("mssql.objectExplorerV2.deployNewDatabase").enablement).to.contain(
+            OBJECT_EXPLORER_V2_GATE,
+        );
+        const toolbar = packageJson.contributes.menus["view/title"];
+        expect(toolbar.find((item) => item.command === "mssql.deployNewDatabase")?.when).to.equal(
+            "view == objectExplorer",
+        );
+        expect(
+            toolbar.find((item) => item.command === "mssql.objectExplorerV2.deployNewDatabase")
+                ?.when,
+        ).to.contain(OBJECT_EXPLORER_V2_GATE);
     });
 
     function command(commandId: string): CommandContribution {

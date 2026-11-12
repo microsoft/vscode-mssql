@@ -17,6 +17,7 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { IDbColumn, ISelectionData } from "../../src/models/interfaces";
 import {
+    BatchSummary,
     ExecutionPlanOptions,
     QueryExecuteSubsetResult,
 } from "../../src/models/contracts/queryExecute";
@@ -25,7 +26,7 @@ import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import QueryRunner from "../../src/controllers/queryRunner";
+import QueryRunner, { QueryExecutionCompleteEvent } from "../../src/controllers/queryRunner";
 import ResultsSerializer from "../../src/models/resultsSerializer";
 import * as Utils from "../../src/models/utils";
 import {
@@ -38,8 +39,9 @@ import {
     PreviewFeature,
     previewService,
 } from "../../src/previews/previewService";
-import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { stubMessageBoxes, stubTelemetry, stubVscodeWorkspace } from "./utils";
 import { Perf } from "../../src/perf/perfTelemetry";
+import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 
 const { expect } = chai;
 
@@ -264,6 +266,130 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(contentProvider.getResultsMap.get(newUri)).to.equal(queryRunnerState);
     });
 
+    test("updateQueryRunnerUri releases a listed result that a query is saved over", async () => {
+        const oldUri = "untitled:Untitled-98";
+        const newUri = "file:///saved-over.sql";
+        const queryRunner = {
+            updateQueryRunnerUri: sandbox.stub(),
+        } as unknown as QueryRunner;
+        const staleRunner = {
+            isExecutingQuery: false,
+            dispose: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+        contentProvider.setResultsMap = new Map<string, QueryRunnerState>([
+            [oldUri, new QueryRunnerState(queryRunner)],
+            [newUri, new QueryRunnerState(staleRunner)],
+        ]);
+        sandbox
+            .stub(contentProvider.queryResultWebviewController, "isInMultiResultsList")
+            .withArgs(newUri)
+            .returns(true);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(staleRunner.dispose).to.have.been.calledOnce;
+        expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(queryRunner);
+    });
+
+    test("updateQueryRunnerUri detaches a cancelling listed result that a query is saved over", async () => {
+        const oldUri = "untitled:Untitled-96";
+        const newUri = "file:///cancelling.sql";
+        const staleRunner = {
+            isExecutingQuery: true,
+            onComplete: new vscode.EventEmitter<QueryExecutionCompleteEvent>().event,
+            dispose: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+        const staleListener = { dispose: sandbox.stub() };
+        const staleRunnerState = new QueryRunnerState(staleRunner);
+        staleRunnerState.listeners = [staleListener];
+        contentProvider.setResultsMap = new Map<string, QueryRunnerState>([
+            [
+                oldUri,
+                new QueryRunnerState({
+                    updateQueryRunnerUri: sandbox.stub(),
+                } as unknown as QueryRunner),
+            ],
+            [newUri, staleRunnerState],
+        ]);
+        sandbox.stub(contentProvider, "cancelQuery").resolves();
+        sandbox
+            .stub(contentProvider.queryResultWebviewController, "isInMultiResultsList")
+            .withArgs(newUri)
+            .returns(true);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        // Its late notifications must not update the saved query's results.
+        expect(staleListener.dispose).to.have.been.calledOnce;
+    });
+
+    test("updateQueryRunnerUri keeps a listed result when an editor without results is saved over it", async () => {
+        const oldUri = "untitled:Untitled-97";
+        const newUri = "file:///kept.sql";
+        const listedRunner = {
+            isExecutingQuery: false,
+            dispose: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+        contentProvider.setResultsMap = new Map<string, QueryRunnerState>([
+            [newUri, new QueryRunnerState(listedRunner)],
+        ]);
+        sandbox
+            .stub(contentProvider.queryResultWebviewController, "isInMultiResultsList")
+            .withArgs(newUri)
+            .returns(true);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(listedRunner.dispose).to.not.have.been.called;
+        expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(listedRunner);
+    });
+
+    suite("cleanupRunner for a running query", () => {
+        const uri = "file:///cancelled.sql";
+        let completeEmitter: vscode.EventEmitter<QueryExecutionCompleteEvent>;
+        let runner: QueryRunner;
+        let listener: { dispose: sinon.SinonStub };
+
+        setup(() => {
+            completeEmitter = new vscode.EventEmitter<QueryExecutionCompleteEvent>();
+            runner = {
+                isExecutingQuery: true,
+                onComplete: completeEmitter.event,
+                dispose: sandbox.stub().resolves(),
+            } as unknown as QueryRunner;
+            listener = { dispose: sandbox.stub() };
+            const runnerState = new QueryRunnerState(runner);
+            runnerState.listeners = [listener];
+            contentProvider.setResultsMap = new Map<string, QueryRunnerState>([[uri, runnerState]]);
+            sandbox.stub(contentProvider, "cancelQuery").resolves();
+        });
+
+        test("releases the query on the service once it completes", async () => {
+            await contentProvider.cleanupRunner(uri);
+
+            expect(contentProvider.cancelQuery).to.have.been.calledWith(runner);
+            expect(runner.dispose).to.not.have.been.called;
+
+            completeEmitter.fire({} as QueryExecutionCompleteEvent);
+
+            expect(runner.dispose).to.have.been.calledOnce;
+            expect(listener.dispose).to.have.been.calledOnce;
+        });
+
+        test("leaves the service query to a new run of the same editor", async () => {
+            await contentProvider.cleanupRunner(uri);
+            contentProvider.getResultsMap.set(
+                uri,
+                new QueryRunnerState({} as unknown as QueryRunner),
+            );
+
+            completeEmitter.fire({} as QueryExecutionCompleteEvent);
+
+            expect(runner.dispose).to.not.have.been.called;
+            expect(listener.dispose).to.have.been.calledOnce;
+        });
+    });
+
     test("updateQueryRunnerUri should not throw when query result state does not exist", async () => {
         const oldUri = "untitled:Untitled-1";
         const newUri = "file:///test.sql";
@@ -469,9 +595,32 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(queryRunner).to.be.undefined;
     });
 
-    test("toggleSqlCmd should do nothing if no queryRunner exists", async () => {
-        let result = await contentProvider.toggleSqlCmd("test_uri");
-        expect(result).to.be.false;
+    test("setSqlCmdMode should do nothing if no queryRunner exists", () => {
+        expect(() => contentProvider.setSqlCmdMode("test_uri", true)).to.not.throw();
+        expect(contentProvider.getQueryRunner("test_uri")).to.be.undefined;
+    });
+
+    test("setSqlCmdMode should update the existing queryRunner", () => {
+        const queryRunner = { isSqlCmd: false } as QueryRunner;
+        contentProvider.setResultsMap = new Map([
+            ["test_uri", { queryRunner } as QueryRunnerState],
+        ]);
+
+        contentProvider.setSqlCmdMode("test_uri", true);
+
+        expect(queryRunner.isSqlCmd).to.be.true;
+    });
+
+    test("createQueryRunner should initialize SQLCMD mode from the status view", async () => {
+        statusView.getSqlCmdMode.withArgs(testUri).returns(true);
+
+        const queryRunner = await contentProvider.createQueryRunner(
+            statusViewInstance,
+            testUri,
+            testUri,
+        );
+
+        expect(queryRunner?.isSqlCmd).to.be.true;
     });
 
     test("Test queryResultsMap getters and setters", () => {
@@ -1417,6 +1566,205 @@ suite("SqlOutputProvider Tests using mocks", () => {
                     "VIEW SERVER STATE permission was denied",
                 ),
             );
+        });
+
+        suite("Run telemetry", () => {
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+                liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+            } as ExecutionPlanGraph;
+            let sendActionEvent: sinon.SinonStub;
+
+            setup(() => {
+                sendActionEvent = stubTelemetry(sandbox).sendActionEvent;
+                sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+                const client = sandbox.createStubInstance(SqlToolsServiceClient);
+                client.sendRequest.resolves({});
+                sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+            });
+
+            function runSummaries(): {
+                additionalProps: { [key: string]: string };
+                additionalMeasurements: { [key: string]: number };
+            }[] {
+                return sendActionEvent
+                    .getCalls()
+                    .filter((call) => call.args[1] === TelemetryActions.LiveQueryStatisticsRun)
+                    .map((call) => call.args[2]);
+            }
+
+            function completionProps(): { [key: string]: string }[] {
+                return sendActionEvent
+                    .getCalls()
+                    .filter((call) => call.args[1] === TelemetryActions.QueryExecutionCompleted)
+                    .map((call) => call.args[2].additionalProps);
+            }
+
+            test("reports a finished run once, before its results replace the plan tab", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onEmptyRead();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({
+                    endReason: "completed",
+                    planTabActiveAtEnd: "true",
+                });
+                expect(summaries[0].additionalMeasurements).to.include({
+                    planReadCount: 1,
+                    emptyReadCount: 1,
+                    progressAtEnd: 75,
+                });
+                expect(completionProps()[0]).to.include({ liveStatistics: "true" });
+            });
+
+            test("reports a canceled run with the progress the user last saw", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+
+                await contentProvider.cancelQuery(uri);
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                const [summary] = runSummaries();
+                expect(summary.additionalProps).to.include({ endReason: "canceled" });
+                expect(summary.additionalMeasurements).to.include({ progressAtEnd: 75 });
+            });
+
+            test("reports a query error and whether the user had left the plan tab", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                contentProvider.queryResultWebviewController.getQueryResultState(
+                    uri,
+                ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+
+                runner.handleQueryComplete({
+                    ownerUri: uri,
+                    batchSummaries: [{ hasError: true } as BatchSummary],
+                });
+
+                expect(runSummaries()[0].additionalProps).to.include({
+                    endReason: "queryError",
+                    planTabActiveAtEnd: "false",
+                });
+            });
+
+            test("reports a failed read once, without its error message", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onError("Login failed for user 'secret'");
+
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({ endReason: "monitorError" });
+                expect(JSON.stringify(summaries)).not.to.include("secret");
+            });
+
+            test("reports a run whose session can't be identified", async () => {
+                contentProvider.onToggleLiveQueryStatistics(true);
+                await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+
+                startBatch(contentProvider.getQueryRunner(uri), 0, "0");
+
+                expect(startMonitor).not.to.have.been.called;
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({
+                    endReason: "sessionUnavailable",
+                });
+                expect(summaries[0].additionalMeasurements).to.include({ planReadCount: 0 });
+            });
+
+            test("reports a monitored run once when a later batch's session can't be identified", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+
+                startBatch(runner, 1, "0");
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({
+                    endReason: "sessionUnavailable",
+                });
+                expect(summaries[0].additionalMeasurements).to.include({ planReadCount: 1 });
+            });
+
+            test("reports one run across a changed SPID and a saved editor", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                startBatch(runner, 1, "58");
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                const renamed = "saved_query_uri";
+                await contentProvider.updateQueryRunnerUri(uri, renamed);
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                getMonitor()._callbacks.onEmptyRead();
+                expect(runSummaries()).to.deep.equal([]);
+
+                runner.handleQueryComplete({ ownerUri: renamed, batchSummaries: [] });
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalMeasurements).to.include({
+                    planReadCount: 3,
+                    emptyReadCount: 1,
+                });
+            });
+
+            test("ignores an empty read from a replaced monitor", async () => {
+                const runner = await startLiveRun();
+                const original = getMonitor();
+                startBatch(runner, 1, "58");
+
+                original._callbacks.onEmptyRead();
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                expect(runSummaries()[0].additionalMeasurements).to.include({ emptyReadCount: 0 });
+            });
+
+            test("reports a run stopped by closing its results", async () => {
+                await startLiveRun();
+
+                await contentProvider.cleanupRunner(uri);
+
+                expect(runSummaries()[0].additionalProps).to.include({ endReason: "closed" });
+            });
+
+            test("reports a run stopped by disabling the preview", async () => {
+                await startLiveRun();
+                sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+                previewEnabled = false;
+                const event = {
+                    affectsConfiguration: (key: string) =>
+                        key === getPreviewConfigKey(PreviewFeature.LiveQueryStatistics),
+                } as vscode.ConfigurationChangeEvent;
+                for (const call of workspaceEvents.onDidChangeConfiguration.getCalls()) {
+                    call.args[0](event);
+                }
+
+                expect(runSummaries()[0].additionalProps).to.include({
+                    endReason: "previewDisabled",
+                });
+            });
+
+            test("doesn't report live statistics for a later run in the same editor without them", async () => {
+                const runner = await startLiveRun();
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+                contentProvider.onToggleLiveQueryStatistics(false);
+
+                await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                expect(completionProps().map((props) => props.liveStatistics)).to.deep.equal([
+                    "true",
+                    "false",
+                ]);
+                expect(runSummaries()).to.have.length(1);
+            });
         });
     });
 
