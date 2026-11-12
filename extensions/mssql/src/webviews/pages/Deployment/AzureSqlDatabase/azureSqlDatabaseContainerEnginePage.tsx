@@ -123,6 +123,7 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
     const [detectionResults, setDetectionResults] =
         useState<Record<ContainerEngine, ContainerEnginePrerequisiteResult>>();
     const [detectionError, setDetectionError] = useState<string>();
+    const [detectionAttempt, setDetectionAttempt] = useState(0);
     const [statuses, setStatuses] = useState<
         Partial<Record<ContainerEnginePrerequisite, ApiStatus>>
     >({});
@@ -133,6 +134,9 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
 
     useEffect(() => {
         let cancelled = false;
+        setDetectionResults(undefined);
+        setDetectionError(undefined);
+        onReadyChange(false);
 
         const detectEngines = async () => {
             try {
@@ -159,6 +163,7 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
                 );
             } catch (error) {
                 if (!cancelled) {
+                    extensionRpc.log.error("Failed to detect container engines", error);
                     setDetectionError(error instanceof Error ? error.message : String(error));
                 }
             }
@@ -168,7 +173,7 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
         return () => {
             cancelled = true;
         };
-    }, [extensionRpc, onDetectionComplete, onEngineChange]);
+    }, [detectionAttempt, extensionRpc, onDetectionComplete, onEngineChange, onReadyChange]);
 
     useEffect(() => {
         if (!engine || !detectionResults?.[engine].success) {
@@ -270,16 +275,28 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
         }
     };
 
+    const retryDetectionButton = (
+        <Button
+            className={classes.retryButton}
+            appearance="secondary"
+            onClick={() => setDetectionAttempt((attempt) => attempt + 1)}>
+            {locConstants.common.retry}
+        </Button>
+    );
+
     if (detectionError) {
         return (
-            <MessageBar intent="error">
-                <MessageBarBody>
-                    <ContainerDeploymentError
-                        message={locConstants.azureSqlDatabase.containerEngineDetectionFailed}
-                        fullErrorText={detectionError}
-                    />
-                </MessageBarBody>
-            </MessageBar>
+            <div className={classes.outerDiv}>
+                <MessageBar intent="error">
+                    <MessageBarBody>
+                        <ContainerDeploymentError
+                            message={locConstants.azureSqlDatabase.containerEngineDetectionFailed}
+                            fullErrorText={detectionError}
+                        />
+                    </MessageBarBody>
+                </MessageBar>
+                {retryDetectionButton}
+            </div>
         );
     }
 
@@ -295,7 +312,15 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
     }
 
     if (detectedEngineCount === 0) {
-        return <ContainerEngineInstallOptions />;
+        return (
+            <div className={classes.outerDiv}>
+                <ContainerEngineInstallOptions />
+                <div className={classes.prerequisiteSection}>
+                    <Text>{locConstants.azureSqlDatabase.containerEngineDetectionRetryHint}</Text>
+                    {retryDetectionButton}
+                </div>
+            </div>
+        );
     }
 
     return (

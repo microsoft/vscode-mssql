@@ -2976,6 +2976,8 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static sqlCmdModeOnLabel = l10n.t("SQLCMD: On");
+    public static sqlCmdModeOffLabel = l10n.t("SQLCMD: Off");
     public static serverProcessIdLabel = (serverProcessId: string) => {
         return l10n.t({
             message: "SPID: {0}",
@@ -4533,13 +4535,23 @@ export class Changelog {
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 
     // Event banner
-    public static sqlconEuDescription1 = l10n.t(
+    public static sqlconSecondaryTitle = l10n.t({
+        message: "Microsoft SQL\nCOMMUNITY CONFERENCE",
+        comment: [
+            "Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name",
+        ],
+    });
+    public static sqlconLocation = l10n.t({
+        message: "ATLANTA",
+        comment: ["City where the SQLCON conference takes place, shown in capital letters"],
+    });
+    public static sqlconDescription1 = l10n.t(
         "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
     );
-    public static sqlconEuDescription2 = l10n.t(
-        "Use discount code {0} to save €200 on registration.",
+    public static sqlconDescription2 = l10n.t(
+        "Use discount code {0} to save $200 on registration.",
     );
-    public static sqlconEuRegister = l10n.t("Register");
+    public static sqlconRegister = l10n.t("Register");
     public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
     public static gettingStartedPageDescription = l10n.t(
         "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",

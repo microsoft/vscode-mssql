@@ -4216,6 +4216,20 @@
                         "description": "%mssql.openQueryResultsInTabByDefault.description%",
                         "scope": "application"
                     },
+                    "mssql.query.defaultSqlCmdMode": {
+                        "type": "string",
+                        "default": "disabled",
+                        "enum": [
+                            "disabled",
+                            "enabled"
+                        ],
+                        "enumDescriptions": [
+                            "%mssql.query.defaultSqlCmdMode.disabled.description%",
+                            "%mssql.query.defaultSqlCmdMode.enabled.description%"
+                        ],
+                        "description": "%mssql.query.defaultSqlCmdMode.description%",
+                        "scope": "resource"
+                    },
                     "mssql.query.playCompletionSound": {
                         "type": "boolean",
                         "default": false,
@@ -5833,6 +5847,11 @@
                         "type": "boolean",
                         "default": true,
                         "description": "%sqlDatabaseProjects.autoCreateFolders%"
+                    },
+                    "sqlDatabaseProjects.promptForMissingProjectGuid": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%sqlDatabaseProjects.promptForMissingProjectGuid%"
                     },
                     "sqlDatabaseProjects.findFileBehavior": {
                         "type": "string",

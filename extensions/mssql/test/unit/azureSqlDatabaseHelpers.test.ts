@@ -221,7 +221,7 @@ suite("Azure SQL Database reducers", () => {
         return reducer!;
     }
 
-    test("describes the migration target as free tier in the review", () => {
+    test("migration review uses free tier wording and omits free-limit behavior", () => {
         const markup = renderToStaticMarkup(
             createElement(AzureSqlDatabaseReviewPage, {
                 source: {
@@ -246,6 +246,17 @@ suite("Azure SQL Database reducers", () => {
 
         expect(markup).to.include("Azure SQL Database · Free tier");
         expect(markup).not.to.include("Free offer");
+        expect(markup).not.to.include("Free limit");
+        expect(markup).not.to.include("Pause until next month");
+        for (const value of [
+            "Local DB",
+            azureSqlState.formState.databaseName,
+            locConstants.azureSqlDatabase.schemaOnly,
+            locConstants.azureSqlDatabase.reviewCompatibilityPassed,
+            locConstants.azureSqlDatabase.reviewAzureLocation,
+        ]) {
+            expect(markup).to.include(value);
+        }
     });
 
     for (const [name, administrators, expectedTypes] of [

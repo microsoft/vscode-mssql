@@ -1851,6 +1851,18 @@ export class LocConstants {
 
     public get userFeedback() {
         return {
+            primaryJobRole: l10n.t("Which of the following best describes your primary job role?"),
+            selectJobRole: l10n.t("Select a role (optional)"),
+            applicationDeveloper: l10n.t("Application Developer"),
+            databaseDeveloper: l10n.t("Database Developer"),
+            databaseAdministrator: l10n.t("Database Administrator"),
+            dataEngineer: l10n.t("Data Engineer"),
+            dataAnalyst: l10n.t("Data Analyst / BI Professional"),
+            dataScientist: l10n.t("Data Scientist"),
+            dataArchitect: l10n.t("Data Architect"),
+            itDevOpsProfessional: l10n.t("IT / DevOps Professional"),
+            otherJobRole: l10n.t("Other (Please specify)"),
+            specifyJobRole: l10n.t("Please specify your job role (optional)"),
             microsoftWouldLikeYourFeedback: l10n.t("Microsoft would like your feedback"),
             overallHowSatisfiedAreYouWithMSSQLExtension: l10n.t(
                 "Overall, how satisfied are you with the MSSQL extension?",
@@ -4000,8 +4012,6 @@ export class LocConstants {
                           "Ready for Azure SQL · {0} warnings · 0 blocking",
                           count.toLocaleString(),
                       ),
-            reviewFreeLimit: l10n.t("Free limit"),
-            reviewPauseUntilNextMonth: l10n.t("Pause until next month"),
             reviewAzureLocation: l10n.t("Azure location"),
             reviewAzureDestination: (subscription: string, resourceGroup: string, server: string) =>
                 l10n.t({
@@ -4136,6 +4146,9 @@ export class LocConstants {
             engineNotDetected: l10n.t("Engine not detected"),
             selectContainerEngine: l10n.t("Select a container engine"),
             containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            containerEngineDetectionRetryHint: l10n.t(
+                "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
+            ),
             containerEngineNotRunning: (engine: string) =>
                 l10n.t({
                     message: "Unable to connect to {0}. Make sure it is running and retry.",
@@ -6426,6 +6439,16 @@ export class LocConstants {
             reportBug: l10n.t("Report a bug"),
             requestFeature: l10n.t("Request a feature"),
             joinDiscussions: l10n.t("Join the discussions"),
+
+            eventDates: l10n.t("Event dates"),
+            eventLocation: l10n.t("Event location"),
+            copyDiscountCode: (code: string) =>
+                l10n.t({
+                    message: "Copy discount code {0}",
+                    args: [code],
+                    comment: ["{0} is a registration discount code, e.g. VSCODE200"],
+                }),
+            discountCodeCopied: l10n.t("Discount code copied"),
         };
     }
 }
