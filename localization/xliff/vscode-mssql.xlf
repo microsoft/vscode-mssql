@@ -1177,8 +1177,8 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
-    <trans-unit id="++CODE++96654ef963adaf0e38bc588f6dc8622eba05f7b64ff2545b2f79d091c8b7477f">
-      <source xml:lang="en">Azure SQL Database · Free offer</source>
+    <trans-unit id="++CODE++76877a0b42006b7de3ef013e65ae9412823180bc2c7da5b5bc1fbbd4dfd162ba">
+      <source xml:lang="en">Azure SQL Database · Free tier</source>
     </trans-unit>
     <trans-unit id="++CODE++5f86b5c1fcc74565d367aa57714835e7aa082f59a4b063b1e24f441e6d5f247e">
       <source xml:lang="en">Azure SQL Dev Hub</source>
@@ -1878,8 +1878,8 @@
     <trans-unit id="++CODE++2e5f79bb94a8c40b3a103600323d7faee672abfb51f3c38679aab02fd4075a8d">
       <source xml:lang="en">Checking...</source>
     </trans-unit>
-    <trans-unit id="++CODE++c9a646880b6407fa3e553f23c34d213bc7e4bb166b322167dccd1c33617f47f0">
-      <source xml:lang="en">Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.</source>
+    <trans-unit id="++CODE++a1fb02a00cfacc8f4e60be92e03ecba3eedba5a49fb2911abaf3e4e7dff72373">
+      <source xml:lang="en">Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.</source>
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
@@ -3253,8 +3253,8 @@
     <trans-unit id="++CODE++477e49a037fdbc58507e0dd4b1d9b89896bbc8d8dfb513d120680ddd1c5c8d34">
       <source xml:lang="en">Create a database on your local SQL Server instance.</source>
     </trans-unit>
-    <trans-unit id="++CODE++fdb3df83b41286e717a4c9dd52bc833678247a3254aec052f3fcf484b9faa716">
-      <source xml:lang="en">Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.</source>
+    <trans-unit id="++CODE++77271edf16afc87caaf1595a456daa3bf1560bc1bf782d9aab48b5c5185924b2">
+      <source xml:lang="en">Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.</source>
     </trans-unit>
     <trans-unit id="++CODE++4e18c3ff33b564efde61c0544543d5e2f16e08aa89314ff3f32da35532e0e859">
       <source xml:lang="en">Create a local SQL Server container for your app.</source>

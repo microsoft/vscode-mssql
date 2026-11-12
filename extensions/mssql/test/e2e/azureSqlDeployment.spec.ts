@@ -110,6 +110,18 @@ test.describe("Azure SQL deployment options", () => {
         await expect(
             deployment.getByText("Create an Azure SQL Database", { exact: true }),
         ).toBeVisible();
+        await next.click();
+        await expect(deployment.getByText("Free tier applied", { exact: true })).toBeVisible();
+        const freeTierSettings = deployment.getByText(/^Settings are fixed for free tier\./);
+        const freeTierLink = freeTierSettings.getByRole("link", {
+            name: "Learn more about Azure SQL Database free tier",
+            exact: true,
+        });
+        await expect(freeTierLink).toHaveText("Learn more");
+        await expect(freeTierLink).toHaveAttribute("href", "https://aka.ms/sqlfreeoffer");
+        await expect(freeTierLink).toHaveAttribute("target", "_blank");
+        await expect(freeTierLink.locator("svg")).toBeVisible();
+        await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await expect(azureContainer).toBeVisible();
 
