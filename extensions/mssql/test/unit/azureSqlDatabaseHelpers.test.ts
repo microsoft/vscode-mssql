@@ -40,6 +40,7 @@ import {
 import { locConstants } from "../../src/webviews/common/locConstants";
 import { AzureSqlDatabaseInfoPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseInfoPage";
 import { AzureSqlDatabaseDeploymentComplete } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseDeploymentComplete";
+import { AzureSqlDatabaseReviewPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseReviewPage";
 
 chai.use(sinonChai);
 
@@ -221,6 +222,42 @@ suite("Azure SQL Database reducers", () => {
         expect(reducer, `${name} reducer should be registered`).to.exist;
         return reducer!;
     }
+
+    test("migration review omits free-limit behavior while retaining deployment details", () => {
+        const markup = renderToStaticMarkup(
+            createElement(AzureSqlDatabaseReviewPage, {
+                source: {
+                    id: "local-source",
+                    profileName: "Local connection",
+                    server: "localhost",
+                    database: "Local DB",
+                    isConnected: true,
+                },
+                result: {
+                    validationId: "validation-id",
+                    sourceId: "local-source",
+                    database: "Local DB",
+                    deploymentContent: "schemaOnly",
+                    target: "AzureSqlDatabase",
+                    status: "passed",
+                    diagnostics: [],
+                },
+                azureState: azureSqlState,
+            }),
+        );
+
+        expect(markup).not.to.include("Free limit");
+        expect(markup).not.to.include("Pause until next month");
+        for (const value of [
+            "Local DB",
+            azureSqlState.formState.databaseName,
+            locConstants.azureSqlDatabase.schemaOnly,
+            locConstants.azureSqlDatabase.reviewCompatibilityPassed,
+            locConstants.azureSqlDatabase.reviewAzureLocation,
+        ]) {
+            expect(markup).to.include(value);
+        }
+    });
 
     for (const [name, administrators, expectedTypes] of [
         ["SQL-only", undefined, [AuthenticationType.SqlLogin]],
