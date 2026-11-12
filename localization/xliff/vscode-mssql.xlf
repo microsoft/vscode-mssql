@@ -662,6 +662,9 @@
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f545aa57f78a315212ce8d19669341213bb4d998c8b9648ae1c6044086d06e4">
+      <source xml:lang="en">After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7cb0154423f4e208531c0ab32537384bffd7b92ace440743085f715a3a9042b7">
       <source xml:lang="en">Agent mode</source>
     </trans-unit>

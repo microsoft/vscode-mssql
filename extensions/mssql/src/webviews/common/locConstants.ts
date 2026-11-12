@@ -4146,6 +4146,9 @@ export class LocConstants {
             engineNotDetected: l10n.t("Engine not detected"),
             selectContainerEngine: l10n.t("Select a container engine"),
             containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            containerEngineDetectionRetryHint: l10n.t(
+                "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
+            ),
             containerEngineNotRunning: (engine: string) =>
                 l10n.t({
                     message: "Unable to connect to {0}. Make sure it is running and retry.",
