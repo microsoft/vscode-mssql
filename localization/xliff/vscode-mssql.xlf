@@ -662,6 +662,9 @@
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f545aa57f78a315212ce8d19669341213bb4d998c8b9648ae1c6044086d06e4">
+      <source xml:lang="en">After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7cb0154423f4e208531c0ab32537384bffd7b92ace440743085f715a3a9042b7">
       <source xml:lang="en">Agent mode</source>
     </trans-unit>
@@ -3867,6 +3870,9 @@
     <trans-unit id="++CODE++4a1fec6bb23f4b53b3e6810ec85014caf866f6779f8c28a733fc034c63640a72">
       <source xml:lang="en">Deploy failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++0a363dd1d7b126252058e29f3e63b8befbce2a86982905a24c0b55e4addea2ca">
+      <source xml:lang="en">Deploy local database to Azure SQL (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++5fa5f06a3fb16046cc6023f3cc2a92d9a7024be5480836ad4d1ab5c884bada54">
       <source xml:lang="en">Deploy tables, views, and procedures without copying any rows. You can move data later.</source>
     </trans-unit>
@@ -6151,9 +6157,6 @@
     <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
       <source xml:lang="en">Free compute &amp; storage</source>
     </trans-unit>
-    <trans-unit id="++CODE++3ae46cf3de6a6415720c81f705c83ad66feef16b9f35cc169adb6230ded880c6">
-      <source xml:lang="en">Free limit</source>
-    </trans-unit>
     <trans-unit id="++CODE++c12cf70d21352437b716a76c78594849271e7699d8f37a01b10a4a3c7621270f">
       <source xml:lang="en">Free tier applied</source>
     </trans-unit>
@@ -7365,6 +7368,9 @@
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
     </trans-unit>
+    <trans-unit id="++CODE++4bbd034753059afe6cf796d443cf0c9de0670cb4fb3a03ac6ca92011d51487e8">
+      <source xml:lang="en">Local Azure SQL Database container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++3c8047e1144b0b498bd5fb4155a1f0e28ad14ed8f63892e2d20bf1fce56f921a">
       <source xml:lang="en">Local Azure SQL Database container, query performance dashboard, and more</source>
     </trans-unit>
@@ -7918,8 +7924,8 @@
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
     </trans-unit>
-    <trans-unit id="++CODE++a96f15cc041bdfe5cbfba9f4d9a9b71cff27877e63bfd9cc20880c0cca63ba60">
-      <source xml:lang="en">More deploy options</source>
+    <trans-unit id="++CODE++aaac48ec8dcc28bfee227e38f7c8504c4d93d985093b840cbdfeb450b0c49dd9">
+      <source xml:lang="en">More create options</source>
     </trans-unit>
     <trans-unit id="++CODE++f47427ecd8b23cb11fe1987fbde7a7baca1d256cc8e2b165a5ec5a3105f32ec4">
       <source xml:lang="en">More new options</source>
@@ -9230,9 +9236,6 @@
     </trans-unit>
     <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
       <source xml:lang="en">Pause event collection</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6a00791357b71e962480d12c7e1efe9ea1203ba0de4da5d72566b260807a6f12">
-      <source xml:lang="en">Pause until next month</source>
     </trans-unit>
     <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
       <source xml:lang="en">Paused</source>

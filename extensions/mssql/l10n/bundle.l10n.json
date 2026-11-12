@@ -5793,8 +5793,6 @@
     "Ready for Azure SQL · 0 blocking": "Ready for Azure SQL · 0 blocking",
     "Ready for Azure SQL · 1 warning · 0 blocking": "Ready for Azure SQL · 1 warning · 0 blocking",
     "Ready for Azure SQL · {0} warnings · 0 blocking": "Ready for Azure SQL · {0} warnings · 0 blocking",
-    "Free limit": "Free limit",
-    "Pause until next month": "Pause until next month",
     "Azure location": "Azure location",
     "{0} · {1} · {2}/{0} is the Azure subscription; {1} is the resource group; {2} is the SQL server": {
         "message": "{0} · {1} · {2}",
@@ -5879,6 +5877,7 @@
     "Engine not detected": "Engine not detected",
     "Select a container engine": "Select a container engine",
     "Container engine detection failed.": "Container engine detection failed.",
+    "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.": "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
     "Unable to connect to {0}. Make sure it is running and retry./{0} is the name of a container engine": {
         "message": "Unable to connect to {0}. Make sure it is running and retry.",
         "comment": ["{0} is the name of a container engine"]
@@ -7009,8 +7008,10 @@
     },
     "Show release notes after updates": "Show release notes after updates",
     "Add connection": "Add connection",
-    "More deploy options": "More deploy options",
+    "More create options": "More create options",
+    "Local Azure SQL Database container (Preview)": "Local Azure SQL Database container (Preview)",
     "Local SQL Server container": "Local SQL Server container",
+    "Deploy local database to Azure SQL (Preview)": "Deploy local database to Azure SQL (Preview)",
     "Free": "Free",
     "More new options": "More new options",
     "New query": "New query",

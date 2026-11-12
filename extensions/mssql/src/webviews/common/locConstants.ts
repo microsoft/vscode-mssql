@@ -4012,8 +4012,6 @@ export class LocConstants {
                           "Ready for Azure SQL · {0} warnings · 0 blocking",
                           count.toLocaleString(),
                       ),
-            reviewFreeLimit: l10n.t("Free limit"),
-            reviewPauseUntilNextMonth: l10n.t("Pause until next month"),
             reviewAzureLocation: l10n.t("Azure location"),
             reviewAzureDestination: (subscription: string, resourceGroup: string, server: string) =>
                 l10n.t({
@@ -4148,6 +4146,9 @@ export class LocConstants {
             engineNotDetected: l10n.t("Engine not detected"),
             selectContainerEngine: l10n.t("Select a container engine"),
             containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            containerEngineDetectionRetryHint: l10n.t(
+                "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
+            ),
             containerEngineNotRunning: (engine: string) =>
                 l10n.t({
                     message: "Unable to connect to {0}. Make sure it is running and retry.",
@@ -5987,11 +5988,13 @@ export class LocConstants {
                 }),
             showReleaseNotesAfterUpdates: l10n.t("Show release notes after updates"),
             addConnection: l10n.t("Add connection"),
-            deploy: l10n.t("Deploy"),
-            moreDeployOptions: l10n.t("More deploy options"),
+            create: l10n.t("Create"),
+            moreCreateOptions: l10n.t("More create options"),
+            newAzureSqlContainer: l10n.t("Local Azure SQL Database container (Preview)"),
             newLocalContainer: l10n.t("Local SQL Server container"),
             newFabricDatabase: l10n.t("SQL database in Fabric"),
             newAzureSqlDatabase: l10n.t("Azure SQL Database"),
+            deployLocalDatabase: l10n.t("Deploy local database to Azure SQL (Preview)"),
             freeTag: l10n.t("Free"),
             moreNewOptions: l10n.t("More new options"),
             newQuery: l10n.t("New query"),

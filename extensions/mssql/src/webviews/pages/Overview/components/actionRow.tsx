@@ -25,11 +25,13 @@ import {
 
 import { AddConnectionIcon } from "../../../common/icons/addConnection";
 import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
+import { AzureSqlDatabaseUploadIcon } from "../../../common/icons/azureSqlDatabaseUpload";
 import { DockerIcon } from "../../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../../common/icons/sqlDbInFabric";
 import { OverviewActionId } from "../../../../sharedInterfaces/overview";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
+import azureSqlContainerIcon from "../../../media/azureSqlContainer.svg";
 
 const useStyles = makeStyles({
     root: {
@@ -66,12 +68,12 @@ export const ActionRow = () => {
                     {(triggerProps: MenuButtonProps) => (
                         <SplitButton
                             appearance="primary"
-                            menuButton={{ ...triggerProps, "aria-label": loc.moreDeployOptions }}
+                            menuButton={{ ...triggerProps, "aria-label": loc.moreCreateOptions }}
                             primaryActionButton={{
                                 onClick: () => runAction(OverviewActionId.NewDeployment),
                             }}
                             icon={<CloudArrowUp20Regular />}>
-                            {loc.deploy}
+                            {loc.create}
                         </SplitButton>
                     )}
                 </MenuTrigger>
@@ -79,20 +81,21 @@ export const ActionRow = () => {
                     <MenuList>
                         <MenuItem
                             icon={
+                                <img
+                                    src={azureSqlContainerIcon}
+                                    className={classes.deploymentIcon}
+                                    alt=""
+                                />
+                            }
+                            onClick={() => runAction(OverviewActionId.NewAzureSqlContainer)}>
+                            {loc.newAzureSqlContainer}
+                        </MenuItem>
+                        <MenuItem
+                            icon={
                                 <DockerIcon className={classes.deploymentIcon} aria-hidden="true" />
                             }
                             onClick={() => runAction(OverviewActionId.NewLocalContainer)}>
                             {loc.newLocalContainer}
-                        </MenuItem>
-                        <MenuItem
-                            icon={
-                                <SqlDbInFabricIcon
-                                    className={classes.deploymentIcon}
-                                    aria-hidden="true"
-                                />
-                            }
-                            onClick={() => runAction(OverviewActionId.NewFabricDatabase)}>
-                            {loc.newFabricDatabase}
                         </MenuItem>
                         <MenuItem
                             icon={
@@ -110,6 +113,26 @@ export const ActionRow = () => {
                                 size="small">
                                 {loc.freeTag}
                             </Badge>
+                        </MenuItem>
+                        <MenuItem
+                            icon={
+                                <SqlDbInFabricIcon
+                                    className={classes.deploymentIcon}
+                                    aria-hidden="true"
+                                />
+                            }
+                            onClick={() => runAction(OverviewActionId.NewFabricDatabase)}>
+                            {loc.newFabricDatabase}
+                        </MenuItem>
+                        <MenuItem
+                            icon={
+                                <AzureSqlDatabaseUploadIcon
+                                    className={classes.deploymentIcon}
+                                    aria-hidden="true"
+                                />
+                            }
+                            onClick={() => runAction(OverviewActionId.DeployLocalDatabase)}>
+                            {loc.deployLocalDatabase}
                         </MenuItem>
                     </MenuList>
                 </MenuPopover>
