@@ -29,7 +29,7 @@ import {
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../../../../sharedInterfaces/telemetry";
 import { WizardPageShell } from "../../../common/wizardPageShell";
-import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
+import { AzureSqlDatabaseUploadIcon } from "../../../common/icons/azureSqlDatabaseUpload";
 import { locConstants } from "../../../common/locConstants";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { DeploymentContext } from "../deploymentStateProvider";
@@ -320,7 +320,7 @@ export const AzureSqlDatabaseSourcePage = ({
 
     return (
         <WizardPageShell
-            icon={<AzureSqlDatabaseIcon aria-hidden="true" />}
+            icon={<AzureSqlDatabaseUploadIcon aria-hidden="true" />}
             title={
                 validationRequest && selectedSource
                     ? strings.deployDatabaseToAzure(selectedSource.database)

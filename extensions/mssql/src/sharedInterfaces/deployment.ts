@@ -147,6 +147,8 @@ export enum DeploymentType {
     FabricProvisioning = 1,
     AzureSqlDatabase = 2,
     DevContainer = 3,
+    AzureSqlContainer = 4,
+    LocalToCloud = 5,
 }
 
 /**
