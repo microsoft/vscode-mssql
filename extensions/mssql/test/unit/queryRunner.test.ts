@@ -956,6 +956,46 @@ suite("Query Runner tests", () => {
         );
     });
 
+    test("runQuery requests SQLCMD auto-detection when enabled", async () => {
+        const queryRunner = createQueryRunner();
+        queryRunner.autoDetectSqlCmd = true;
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => ":setvar x 1",
+        } as vscode.TextDocument);
+
+        await queryRunner.runQuery(standardSelection);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteRequest.type,
+            sinon.match({
+                ownerUri: standardUri,
+                isSqlCmdMode: false,
+                autoDetectSqlCmdMode: true,
+            }),
+        );
+    });
+
+    test("runStatement requests SQLCMD auto-detection when enabled", async () => {
+        const queryRunner = createQueryRunner();
+        queryRunner.autoDetectSqlCmd = true;
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => ":setvar x 1",
+        } as vscode.TextDocument);
+
+        await queryRunner.runStatement(1, 1);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteStatementRequest.type,
+            sinon.match({
+                ownerUri: standardUri,
+                isSqlCmdMode: false,
+                autoDetectSqlCmdMode: true,
+            }),
+        );
+    });
+
     test("updateQueryRunnerUri migrates internal URI keyed state while query is executing", () => {
         const oldUri = "file:///old.sql";
         const newUri = "file:///new.sql";
@@ -1064,6 +1104,7 @@ suite("Query Runner tests", () => {
             column: column,
             executionPlanOptions: executionPlanOptions,
             isSqlCmdMode: false,
+            autoDetectSqlCmdMode: false,
         };
 
         expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(

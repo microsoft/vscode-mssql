@@ -426,6 +426,11 @@ export enum DefaultSqlCmdMode {
     Disabled = "disabled",
     /** Editors open with SQLCMD mode enabled. */
     Enabled = "enabled",
+    /**
+     * Editors open with SQLCMD mode auto-detected: each execution uses SQLCMD mode only if the
+     * executed text contains SQLCMD syntax.
+     */
+    Auto = "auto",
 }
 
 // Built into VS Code

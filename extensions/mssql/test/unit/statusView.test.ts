@@ -160,12 +160,21 @@ suite("Status View Tests", () => {
             statusView.sqlCmdModeChanged(fileUri);
 
             expect(statusView.getSqlCmdMode(fileUri)).to.equal(expected);
+            expect(statusView.getSqlCmdAutoDetect(fileUri)).to.be.false;
             expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
                 expected
                     ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
                     : LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
             );
             statusView.dispose();
+        }
+
+        function expectAutoDetectSqlCmdMode(statusView: StatusView): void {
+            expect(statusView.getSqlCmdMode(fileUri)).to.be.false;
+            expect(statusView.getSqlCmdAutoDetect(fileUri)).to.be.true;
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeAutoLabel,
+            );
         }
 
         test("editors start with SQLCMD mode on when defaultSqlCmdMode is enabled", () => {
@@ -185,6 +194,40 @@ suite("Status View Tests", () => {
         test("editors start with SQLCMD mode off when defaultSqlCmdMode is unrecognized", () => {
             defaultSqlCmdMode = "detect";
             expectInitialSqlCmdMode(false);
+        });
+
+        test("editors start with SQLCMD auto-detection when defaultSqlCmdMode is auto", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Auto;
+            const statusView = new StatusView();
+
+            statusView.sqlCmdModeChanged(fileUri);
+
+            expectAutoDetectSqlCmdMode(statusView);
+            statusView.dispose();
+        });
+
+        test("connection state changes preserve SQLCMD auto-detection", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Auto;
+            const statusView = new StatusView();
+
+            statusView.setNotConnected(fileUri);
+
+            expectAutoDetectSqlCmdMode(statusView);
+            statusView.dispose();
+        });
+
+        test("setting an explicit SQLCMD mode turns off auto-detection", () => {
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Auto;
+            const statusView = new StatusView();
+
+            statusView.sqlCmdModeChanged(fileUri, false);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.be.false;
+            expect(statusView.getSqlCmdAutoDetect(fileUri)).to.be.false;
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
+            );
+            statusView.dispose();
         });
 
         test("connection state changes preserve the editor's SQLCMD mode", () => {

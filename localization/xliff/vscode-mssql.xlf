@@ -10930,6 +10930,9 @@
     <trans-unit id="++CODE++2262762c9e6da0f5aa86bcedaf7c9b498686158229fe95aa33c7139fe3b4c795">
       <source xml:lang="en">SQLCMD error (Line {0}): {1}</source>
     </trans-unit>
+    <trans-unit id="++CODE++584fd98aa6128c4b06c185b4c0371cbef63cb262a24c0f5876f310e35183f7dd">
+      <source xml:lang="en">SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax. Click to turn SQLCMD mode on.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2b182fdd87c99c171062feb31e318cfd9c916d10bac0b8d68aa2a783c22183a1">
       <source xml:lang="en">SQLCMD mode is on</source>
     </trans-unit>
@@ -10938,6 +10941,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a7e5c26c01b7c6e199165e627138d104755d24adb0ac611e42bc8b6787b7216c">
       <source xml:lang="en">SQLCMD variable name &apos;{0}&apos; cannot contain whitespace</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a20846584da43f6eecc4932ddb97e884180644c811a043d0feef52694231854e">
+      <source xml:lang="en">SQLCMD: Auto</source>
     </trans-unit>
     <trans-unit id="++CODE++39c9ef4bd84eb6ddd9f5c378fa89815fcac712d62a25d50f1e062c22beae53e4">
       <source xml:lang="en">SQLCMD: Off</source>
@@ -16111,11 +16117,11 @@
     <trans-unit id="mssql.newEditorConnectionBehavior.description">
       <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
     </trans-unit>
+    <trans-unit id="mssql.query.defaultSqlCmdMode.description">
+      <source xml:lang="en">Controls the SQLCMD mode of a SQL editor when it is opened. Use the Toggle SQLCMD Mode command to turn SQLCMD mode on or off for an individual editor.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
-    </trans-unit>
-    <trans-unit id="mssql.query.defaultSqlCmdMode.description">
-      <source xml:lang="en">Controls whether SQLCMD mode is enabled when a SQL editor is opened. Use the Toggle SQLCMD Mode command to change the mode for an individual editor.</source>
     </trans-unit>
     <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
       <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
@@ -17127,6 +17133,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.defaultSqlCmdMode.enabled.description">
       <source xml:lang="en">SQL editors open with SQLCMD mode enabled.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.defaultSqlCmdMode.auto.description">
+      <source xml:lang="en">SQL editors open with SQLCMD mode set to auto-detect. Each execution uses SQLCMD mode only if the executed text contains SQLCMD syntax.</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.sqlEngineType">
       <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>

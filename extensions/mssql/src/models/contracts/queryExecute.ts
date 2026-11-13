@@ -125,6 +125,11 @@ export class QueryExecuteParams {
     executionPlanOptions?: ExecutionPlanOptions;
     querySelection: ISelectionData;
     isSqlCmdMode?: boolean;
+    /**
+     * When isSqlCmdMode is not set, enables SQLCMD mode for this execution only if the executed
+     * text contains SQLCMD syntax.
+     */
+    autoDetectSqlCmdMode?: boolean;
 }
 
 export class QueryExecuteStatementParams {
@@ -133,6 +138,11 @@ export class QueryExecuteStatementParams {
     column: number;
     executionPlanOptions?: ExecutionPlanOptions;
     isSqlCmdMode?: boolean;
+    /**
+     * When isSqlCmdMode is not set, enables SQLCMD mode for this execution only if the executed
+     * text contains SQLCMD syntax.
+     */
+    autoDetectSqlCmdMode?: boolean;
 }
 
 /**
@@ -152,7 +162,13 @@ export class QueryExecuteStringParams {
     query: string;
 }
 
-export class QueryExecuteResult {}
+export class QueryExecuteResult {
+    /**
+     * Whether the execution uses SQLCMD mode, including when it was enabled by
+     * auto-detection. Not sent by older service versions.
+     */
+    isSqlCmdMode?: boolean;
+}
 
 export class ExecutionPlanOptions {
     includeActualExecutionPlanXml?: boolean;

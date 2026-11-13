@@ -1664,6 +1664,8 @@
     "Connection error": "Connection error",
     "SQLCMD: On": "SQLCMD: On",
     "SQLCMD: Off": "SQLCMD: Off",
+    "SQLCMD: Auto": "SQLCMD: Auto",
+    "SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax. Click to turn SQLCMD mode on.": "SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax. Click to turn SQLCMD mode on.",
     "SPID: {0}/{0} is the server process ID (SPID) of the connection": {
         "message": "SPID: {0}",
         "comment": ["{0} is the server process ID (SPID) of the connection"]

@@ -4221,11 +4221,13 @@
                         "default": "disabled",
                         "enum": [
                             "disabled",
-                            "enabled"
+                            "enabled",
+                            "auto"
                         ],
                         "enumDescriptions": [
                             "%mssql.query.defaultSqlCmdMode.disabled.description%",
-                            "%mssql.query.defaultSqlCmdMode.enabled.description%"
+                            "%mssql.query.defaultSqlCmdMode.enabled.description%",
+                            "%mssql.query.defaultSqlCmdMode.auto.description%"
                         ],
                         "description": "%mssql.query.defaultSqlCmdMode.description%",
                         "scope": "resource"
