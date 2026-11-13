@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
 import StatusView from "../../src/views/statusView";
@@ -10,11 +13,12 @@ import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { IServerInfo } from "vscode-mssql";
 import { IConnectionGroup, IConnectionProfile } from "../../src/models/interfaces";
-import { expect } from "chai";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
 import * as Utils from "../../src/models/utils";
+
+chai.use(sinonChai);
 
 suite("Status View Tests", () => {
     let sandbox: sinon.SinonSandbox;
