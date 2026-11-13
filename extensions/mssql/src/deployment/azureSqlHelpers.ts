@@ -472,7 +472,6 @@ export async function runAzureSqlContainerDeployment(
     let startupStartedAt =
         startStep === AzureSqlContainerProvisioningStep.WaitForReady ? startedAt : undefined;
     let outcome = BackgroundTaskState.Failed;
-    let failureMessage = AzureSqlContainer.createContainerFailed;
     sendActionEvent(TelemetryViews.AzureContainer, "StartAzureSqlContainerDeployment", {
         additionalProps: properties,
     });
@@ -482,7 +481,7 @@ export async function runAzureSqlContainerDeployment(
         }
         startProvisioningTask(
             deploymentController,
-            DeploymentType.AzureSqlContainer,
+            DeploymentType.AzureSqlDatabase,
             AzureSqlContainer.provisioningTask,
             form.containerName,
         );
@@ -497,17 +496,16 @@ export async function runAzureSqlContainerDeployment(
             try {
                 updateProvisioningTask(
                     deploymentController,
-                    DeploymentType.AzureSqlContainer,
+                    DeploymentType.AzureSqlDatabase,
                     getProvisioningStepMessage(step),
                 );
-                const stepResult = await executeStep(
+                result = await executeStep(
                     engine,
                     step,
                     form,
                     deploymentController.mainController,
                     signal,
                 );
-                result = signal.aborted ? { success: false } : stepResult;
             } finally {
                 const status = result?.success
                     ? "succeeded"
@@ -599,14 +597,23 @@ export async function runAzureSqlContainerDeployment(
             onStepComplete(step, result);
 
             if (!result.success) {
-                outcome = signal.aborted
-                    ? BackgroundTaskState.Canceled
-                    : BackgroundTaskState.Failed;
-                failureMessage = result.error ?? AzureSqlContainer.createContainerFailed;
+                const canceled = signal.aborted;
+                outcome = canceled ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed;
+                completeProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    canceled ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
+                    canceled
+                        ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
+                        : AzureSqlContainer.provisioningTaskFailed(
+                              form.containerName,
+                              result.error ?? AzureSqlContainer.createContainerFailed,
+                          ),
+                );
                 return;
             }
         }
-        outcome = signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Succeeded;
+        outcome = BackgroundTaskState.Succeeded;
     } catch (error) {
         const errorMessage = sanitizeProvisioningError(error, form);
         onStepComplete(currentStep, {
@@ -615,18 +622,16 @@ export async function runAzureSqlContainerDeployment(
             fullErrorText: errorMessage,
         });
         outcome = signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed;
-        failureMessage = errorMessage;
-    } finally {
         completeProvisioningTask(
             deploymentController,
-            DeploymentType.AzureSqlContainer,
-            outcome,
-            outcome === BackgroundTaskState.Succeeded
-                ? AzureSqlContainer.provisioningTaskSucceeded(form.containerName)
-                : outcome === BackgroundTaskState.Canceled
-                  ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
-                  : AzureSqlContainer.provisioningTaskFailed(form.containerName, failureMessage),
+            DeploymentType.AzureSqlDatabase,
+            signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
+            signal.aborted
+                ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
+                : AzureSqlContainer.provisioningTaskFailed(form.containerName, errorMessage),
         );
+        return;
+    } finally {
         const telemetry = {
             additionalProps: {
                 ...properties,
@@ -653,6 +658,13 @@ export async function runAzureSqlContainerDeployment(
             );
         }
     }
+
+    completeProvisioningTask(
+        deploymentController,
+        DeploymentType.AzureSqlDatabase,
+        BackgroundTaskState.Succeeded,
+        AzureSqlContainer.provisioningTaskSucceeded(form.containerName),
+    );
 }
 
 export async function generateAzureSqlContainerName(): Promise<string> {

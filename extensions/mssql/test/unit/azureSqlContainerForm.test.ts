@@ -1576,7 +1576,7 @@ suite("Azure SQL container configuration", () => {
             });
         }
 
-        test("measures startup separately from registry pull attempts and attributes the container workflow", async () => {
+        test("measures startup separately from registry pull attempts without changing task classification", async () => {
             const clock = sandbox.useFakeTimers();
             const { controller, complete } = createController();
             const executeStep = sandbox.stub().callsFake(async (_engine, step) => {
@@ -1623,7 +1623,7 @@ suite("Azure SQL container configuration", () => {
                 sinon.match({ additionalProps: { status: "succeeded" } }),
             );
             expect(controller.recordDeploymentStarted).to.have.been.calledWith(
-                DeploymentType.AzureSqlContainer,
+                DeploymentType.AzureSqlDatabase,
             );
             expect(complete).to.have.been.calledWith(
                 BackgroundTaskState.Succeeded,
@@ -1670,15 +1670,55 @@ suite("Azure SQL container configuration", () => {
             );
         });
 
+        test("records the original successful outcome without replacing results after cancellation", async () => {
+            const { controller, complete } = createController();
+            const abort = new AbortController();
+            const onStepComplete = sandbox.stub();
+            const result = { success: true };
+            const executeStep = sandbox.stub().callsFake(async () => {
+                abort.abort();
+                return result;
+            });
+            await runAzureSqlContainerDeployment(
+                controller,
+                ContainerEngine.Docker,
+                validForm(),
+                AzureSqlContainerProvisioningStep.CreateContainer,
+                abort.signal,
+                onStepComplete,
+                executeStep,
+            );
+            expect(onStepComplete).to.have.been.calledWith(
+                AzureSqlContainerProvisioningStep.CreateContainer,
+                sinon.match.same(result),
+            );
+            expect(executeStep).to.have.been.calledWith(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.Connect,
+                sinon.match.object,
+                sinon.match.object,
+                abort.signal,
+            );
+            expect(complete).to.have.been.calledWith(
+                BackgroundTaskState.Succeeded,
+                sinon.match.object,
+            );
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                "FinishAzureSqlContainerDeployment",
+                sinon.match({ additionalProps: { status: "succeeded" } }),
+            );
+        });
+
         for (const cancelled of [false, true]) {
-            test(`records ${cancelled ? "cancellation" : "failure"} without continuing or including raw errors`, async () => {
+            test(`records ${cancelled ? "cancellation" : "failure"} without including raw errors`, async () => {
                 const { controller, complete } = createController();
                 const abort = new AbortController();
                 const onStepComplete = sandbox.stub();
                 const executeStep = sandbox.stub().callsFake(async () => {
                     if (cancelled) {
                         abort.abort();
-                        return { success: true };
+                        return { success: false };
                     }
                     throw new Error("private-command-output");
                 });
