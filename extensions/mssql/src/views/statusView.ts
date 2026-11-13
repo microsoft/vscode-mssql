@@ -164,18 +164,17 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
-        bar.isSqlCmd = this.getDefaultSqlCmdMode(fileUri);
+        bar.isSqlCmd = this.getDefaultSqlCmdMode();
         this._statusBars[fileUri] = bar;
     }
 
     /**
-     * Gets the initial SQLCMD mode for an editor from the `mssql.query.defaultSqlCmdMode`
+     * Gets the initial SQLCMD mode from the `mssql.query.defaultSqlCmdMode`
      * setting. Only `enabled` turns SQLCMD mode on; any other value leaves it off.
-     * @param fileUri URI of the editor
      */
-    private getDefaultSqlCmdMode(fileUri: string): boolean {
+    private getDefaultSqlCmdMode(): boolean {
         const defaultMode = vscode.workspace
-            .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
+            .getConfiguration(Constants.extensionConfigSectionName)
             .get<string>(Constants.configDefaultSqlCmdMode, Constants.DefaultSqlCmdMode.Disabled);
         return defaultMode === Constants.DefaultSqlCmdMode.Enabled;
     }
