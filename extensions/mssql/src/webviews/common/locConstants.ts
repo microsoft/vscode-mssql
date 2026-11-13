@@ -1561,6 +1561,8 @@ export class LocConstants {
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
             importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
+            collapseConnectionsSidebar: l10n.t("Collapse recent and saved connections"),
+            expandConnectionsSidebar: l10n.t("Expand recent and saved connections"),
             addToFavorites: l10n.t("Add to favorites"),
             removeFromFavorites: l10n.t("Remove from favorites"),
             azureDatabases: l10n.t("Azure Databases"),

@@ -2178,6 +2178,9 @@
     <trans-unit id="++CODE++e5897a8be4e878fff778bf29be7ce1b1a7160314d8a80a5033c68078be6c157b">
       <source xml:lang="en">Collapse filters</source>
     </trans-unit>
+    <trans-unit id="++CODE++f98ccc69cb01e626d6c62c14b4aa32799b84bed43d0e673c808c5696a7e491a8">
+      <source xml:lang="en">Collapse recent and saved connections</source>
+    </trans-unit>
     <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
       <source xml:lang="en">Collapse settings</source>
     </trans-unit>
@@ -5102,6 +5105,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c14cc8254a963fb651d3ae89d477c2928dfbd68f8dddaf0e702e0ce75dfc077">
+      <source xml:lang="en">Expand recent and saved connections</source>
     </trans-unit>
     <trans-unit id="++CODE++c1afa16d3357f0abaf8c3109a78ae2074b1f1c3b2989f6c9ddcb726289c2ee48">
       <source xml:lang="en">Expand selection down</source>
