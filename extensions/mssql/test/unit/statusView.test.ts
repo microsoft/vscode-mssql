@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
 import StatusView from "../../src/views/statusView";
@@ -10,11 +13,12 @@ import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { IServerInfo } from "vscode-mssql";
 import { IConnectionGroup, IConnectionProfile } from "../../src/models/interfaces";
-import { expect } from "chai";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
 import * as Utils from "../../src/models/utils";
+
+chai.use(sinonChai);
 
 suite("Status View Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -171,6 +175,23 @@ suite("Status View Tests", () => {
         test("editors start with SQLCMD mode on when defaultSqlCmdMode is enabled", () => {
             defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Enabled;
             expectInitialSqlCmdMode(true);
+        });
+
+        test("SQLCMD mode initializes when the file URI cannot be parsed", () => {
+            const typicalConnectionUri = "invalid@scheme:query_sql_username";
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Enabled;
+            const statusView = new StatusView();
+
+            try {
+                statusView.sqlCmdModeChanged(typicalConnectionUri);
+
+                expect(statusView.getSqlCmdMode(typicalConnectionUri)).to.be.true;
+                expect(statusView["getStatusBar"](typicalConnectionUri).sqlCmdMode.text).to.equal(
+                    LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+                );
+            } finally {
+                statusView.dispose();
+            }
         });
 
         test("editors start with SQLCMD mode off when defaultSqlCmdMode is disabled", () => {
