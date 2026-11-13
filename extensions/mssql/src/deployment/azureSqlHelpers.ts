@@ -547,13 +547,6 @@ export async function runAzureSqlContainerDeployment(
                                   ...stepTelemetry,
                                   additionalProps: {
                                       ...stepTelemetry.additionalProps,
-                                      registry: azureSqlContainerImage.startsWith(
-                                          "mcr.microsoft.com/",
-                                      )
-                                          ? "MCR"
-                                          : azureSqlContainerImage.includes(".azurecr.io/")
-                                            ? "ACR"
-                                            : "other",
                                       pullType: "requested",
                                   },
                               }

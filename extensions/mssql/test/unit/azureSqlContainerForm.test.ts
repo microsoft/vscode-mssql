@@ -1601,7 +1601,6 @@ suite("Azure SQL container configuration", () => {
                         hostArchitecture: os.arch(),
                         hostOS: os.platform(),
                         initiatedBy: "VSCode",
-                        registry: "ACR",
                         pullType: "requested",
                         status: "succeeded",
                         workflowCorrelationId: "container-workflow",
