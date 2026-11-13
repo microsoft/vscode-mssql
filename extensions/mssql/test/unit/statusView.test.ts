@@ -173,6 +173,23 @@ suite("Status View Tests", () => {
             expectInitialSqlCmdMode(true);
         });
 
+        test("SQLCMD mode initializes when the file URI cannot be parsed", () => {
+            const typicalConnectionUri = "invalid@scheme:query_sql_username";
+            defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Enabled;
+            const statusView = new StatusView();
+
+            try {
+                statusView.sqlCmdModeChanged(typicalConnectionUri);
+
+                expect(statusView.getSqlCmdMode(typicalConnectionUri)).to.be.true;
+                expect(statusView["getStatusBar"](typicalConnectionUri).sqlCmdMode.text).to.equal(
+                    LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+                );
+            } finally {
+                statusView.dispose();
+            }
+        });
+
         test("editors start with SQLCMD mode off when defaultSqlCmdMode is disabled", () => {
             defaultSqlCmdMode = Constants.DefaultSqlCmdMode.Disabled;
             expectInitialSqlCmdMode(false);
