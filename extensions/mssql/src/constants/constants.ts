@@ -119,8 +119,6 @@ export const cmdObjectExplorerEnableGroupBySchemaCommand =
     "mssql.objectExplorer.enableGroupBySchema";
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
-export const cmdObjectExplorerCollapseOrExpandByDefault =
-    "objectExplorer.collapseConnectionGroupsOnStartup";
 export const cmdEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
@@ -404,6 +402,23 @@ export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";
 export const configDefaultConnectionId = "mssql.defaultConnectionId";
+/** @deprecated Use configObjectExplorerDefaultGroupExpansion instead. */
+export const configObjectExplorerCollapseConnectionGroupsOnStartup =
+    "mssql.objectExplorer.collapseConnectionGroupsOnStartup";
+export const configObjectExplorerDefaultGroupExpansion =
+    "mssql.objectExplorer.defaultGroupExpansion";
+
+/**
+ * Controls whether Object Explorer connection groups are expanded or collapsed when they are loaded.
+ */
+export enum DefaultGroupExpansion {
+    /** Always expand connection groups. */
+    Expanded = "expanded",
+    /** Always collapse connection groups. */
+    Collapsed = "collapsed",
+    /** Restore each group's last expanded/collapsed state; groups without saved state are expanded. */
+    Preserved = "preserved",
+}
 
 /**
  * Controls how new SQL editor windows and opened SQL files are automatically connected.

@@ -65,15 +65,15 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                          | Generate Data API builder configs using natural language                                                           |
 | [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration)                            | Create and connect to free tier Azure SQL database                                                                 |
 | [Shortcuts Configuration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#shortcuts-configuration) | Create and manage keyboard shortcuts for Quick Queries, Query Editor, and Results Grid                             |
-| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter) | SQL formatter with more formatting options |
+| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter)                                                                                                      | SQL formatter with more formatting options                                                                         |
 
 ### Public Preview
 
-| Capability                                                 | Description                                |
-| ---------------------------------------------------------- | ------------------------------------------ |
-| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container) | Create and manage Azure SQL Database containers locally                                                     |
-| [Local to Azure SQL deployment wizard](https://aka.ms/vscode-mssql-local-to-cloud-deployment) | Deploy a local database to a free-tier Azure SQL database                                                     |
-| [Query performance dashboard](https://aka.ms/vscode-mssql-querystore) | Analyze query performance, explore execution plans, and optimize queries with GitHub Copilot.                                                      |
+| Capability                                                                                                                         | Description                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container) | Create and manage Azure SQL Database containers locally                                       |
+| [Local to Azure SQL deployment wizard](https://aka.ms/vscode-mssql-local-to-cloud-deployment)                                      | Deploy a local database to a free-tier Azure SQL database                                     |
+| [Query performance dashboard](https://aka.ms/vscode-mssql-querystore)                                                              | Analyze query performance, explore execution plans, and optimize queries with GitHub Copilot. |
 
 ## Using the MSSQL Extension
 
@@ -252,7 +252,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // Object Explorer
 {
   "mssql.objectExplorer.groupBySchema": false,             // Group database objects by schema (tables, views, etc.)
-  "mssql.objectExplorer.collapseConnectionGroupsOnStartup": false,  // Auto-collapse connection groups on extension startup
+  "mssql.objectExplorer.defaultGroupExpansion": "preserved",  // Connection group expansion on load: "preserved" | "expanded" | "collapsed"
   "mssql.objectExplorer.expandTimeout": 45                 // Timeout in seconds for expanding object explorer node children
 }
 

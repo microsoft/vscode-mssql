@@ -131,6 +131,19 @@ export function createConnectionGroupContextValue(): vscodeMssql.TreeNodeContext
 }
 
 /**
+ * Returns the IDs of a connection group node and all of its descendant connection groups.
+ */
+export function getConnectionGroupIdsInSubtree(node: ConnectionGroupNode): string[] {
+    const ids = [node.connectionGroup.id];
+    for (const child of node.children) {
+        if (child instanceof ConnectionGroupNode) {
+            ids.push(...getConnectionGroupIdsInSubtree(child));
+        }
+    }
+    return ids;
+}
+
+/**
  * Returns the effective sort `order` value for a tree node, or `undefined` if the node has no valid order.
  */
 function getNodeOrder(node: TreeNodeInfo): number | undefined {

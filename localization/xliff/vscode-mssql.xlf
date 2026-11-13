@@ -15907,8 +15907,14 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
       <source xml:lang="en">Always Encrypted</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.defaultGroupExpansion.collapsed.description">
+      <source xml:lang="en">Always collapse connection groups.</source>
+    </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.defaultConnection.description">
       <source xml:lang="en">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.defaultGroupExpansion.expanded.description">
+      <source xml:lang="en">Always expand connection groups.</source>
     </trans-unit>
     <trans-unit id="projects.showNotAddedProjectsInWorkspacePrompt">
       <source xml:lang="en">Always show information message when the current workspace folders contain projects that have not been added to the workspace&apos;s projects.</source>
@@ -16116,6 +16122,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.defaultSqlCmdMode.description">
       <source xml:lang="en">Controls whether SQLCMD mode is enabled when a SQL editor is opened. Use the Toggle SQLCMD Mode command to change the mode for an individual editor.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.defaultGroupExpansion.description">
+      <source xml:lang="en">Controls whether connection groups in Object Explorer are expanded or collapsed when they are loaded.</source>
     </trans-unit>
     <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
       <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
@@ -17050,6 +17059,9 @@
     <trans-unit id="sqlDatabaseProjects.restorePackages">
       <source xml:lang="en">Restore Packages</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.defaultGroupExpansion.preserved.description">
+      <source xml:lang="en">Restore each connection group&apos;s expanded or collapsed state from the previous session. Groups without a saved state are expanded.</source>
+    </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result (MSSQL)</source>
     </trans-unit>
@@ -17430,6 +17442,9 @@
     </trans-unit>
     <trans-unit id="mssql.transferActiveEditorConnections.deprecationMessage">
       <source xml:lang="en">This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartup.deprecationMessage">
+      <source xml:lang="en">This setting is deprecated. Use `mssql.objectExplorer.defaultGroupExpansion` instead. The extension will automatically migrate this setting on startup.</source>
     </trans-unit>
     <trans-unit id="mssql.legacySetting.deprecationMessage">
       <source xml:lang="en">This setting will be removed in a future release.</source>
