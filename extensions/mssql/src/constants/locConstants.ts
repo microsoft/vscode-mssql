@@ -2980,7 +2980,7 @@ export class StatusBar {
     public static sqlCmdModeOffLabel = l10n.t("SQLCMD: Off");
     public static sqlCmdModeAutoLabel = l10n.t("SQLCMD: Auto");
     public static sqlCmdModeAutoTooltip = l10n.t(
-        "SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax. Click to turn SQLCMD mode on.",
+        "SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax.",
     );
     public static serverProcessIdLabel = (serverProcessId: string) => {
         return l10n.t({

@@ -3210,7 +3210,8 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Handles the command to toggle SQLCMD mode
+     * Handles the command to toggle SQLCMD mode, which cycles the editor's mode
+     * Off → On → Auto → Off
      */
     private onToggleSqlCmd(): void {
         const uri = Utils.getActiveTextEditorUri();
@@ -3218,10 +3219,28 @@ export default class MainController implements vscode.Disposable {
             vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return;
         }
-        const isSqlCmd = !this._statusview.getSqlCmdMode(uri);
-        this._outputContentProvider.setSqlCmdMode(uri, isSqlCmd);
-        this._statusview.sqlCmdModeChanged(uri, isSqlCmd);
-        changeSqlCmdModeForFile(SqlToolsServerClient.instance, uri, isSqlCmd);
+        const sqlCmdMode = MainController.getNextSqlCmdMode(this._statusview.getSqlCmdMode(uri));
+        this._outputContentProvider.setSqlCmdMode(uri, sqlCmdMode);
+        this._statusview.sqlCmdModeChanged(uri, sqlCmdMode);
+        changeSqlCmdModeForFile(
+            SqlToolsServerClient.instance,
+            uri,
+            sqlCmdMode === Constants.SqlCmdMode.On,
+        );
+    }
+
+    /**
+     * Gets the SQLCMD mode that follows the given mode when SQLCMD mode is toggled.
+     */
+    private static getNextSqlCmdMode(sqlCmdMode: Constants.SqlCmdMode): Constants.SqlCmdMode {
+        switch (sqlCmdMode) {
+            case Constants.SqlCmdMode.Off:
+                return Constants.SqlCmdMode.On;
+            case Constants.SqlCmdMode.On:
+                return Constants.SqlCmdMode.Auto;
+            default:
+                return Constants.SqlCmdMode.Off;
+        }
     }
 
     /**

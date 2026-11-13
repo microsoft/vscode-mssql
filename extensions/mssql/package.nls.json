@@ -313,7 +313,7 @@
     "mssql.enableExperimentalFeatures.description": "Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
-    "mssql.query.defaultSqlCmdMode.description": "Controls the SQLCMD mode of a SQL editor when it is opened. Use the Toggle SQLCMD Mode command to turn SQLCMD mode on or off for an individual editor.",
+    "mssql.query.defaultSqlCmdMode.description": "Controls the SQLCMD mode of a SQL editor when it is opened. Use the Toggle SQLCMD Mode command to cycle an individual editor between SQLCMD mode off, on, and auto.",
     "mssql.query.defaultSqlCmdMode.disabled.description": "SQL editors open with SQLCMD mode disabled.",
     "mssql.query.defaultSqlCmdMode.enabled.description": "SQL editors open with SQLCMD mode enabled.",
     "mssql.query.defaultSqlCmdMode.auto.description": "SQL editors open with SQLCMD mode set to auto-detect. Each execution uses SQLCMD mode only if the executed text contains SQLCMD syntax.",

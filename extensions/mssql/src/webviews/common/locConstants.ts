@@ -1198,7 +1198,7 @@ export class LocConstants {
                 "mssql.cancelQuery": l10n.t("Cancel the query execution in progress"),
                 "mssql.newQuery": l10n.t("Open a new SQL query file"),
                 "mssql.toggleSqlCmd": l10n.t(
-                    "Enable or disable SQLCMD mode for the active SQL document",
+                    "Cycle SQLCMD mode between off, on, and auto for the active SQL document",
                 ),
                 "mssql.connect": l10n.t("Connect the active SQL document to a database"),
                 "mssql.disconnect": l10n.t("Disconnect the active SQL document from the database"),

@@ -3459,6 +3459,9 @@
     <trans-unit id="++CODE++9187398ca2e4a677a79f174f8903abbda6d3c9818d3dd4326c853efe6591d560">
       <source xml:lang="en">Customize schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++208f3fec9a514228e9b69b6bc37bd40914cc4c346c31c6dc2ce031827849010b">
+      <source xml:lang="en">Cycle SQLCMD mode between off, on, and auto for the active SQL document</source>
+    </trans-unit>
     <trans-unit id="++CODE++422979c51c0af204281c88c2e286e6d5d44fb3b9be6b6a21e3fc964a167372d1">
       <source xml:lang="en">DAB CLI</source>
     </trans-unit>
@@ -4447,9 +4450,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e72ac5afd58e711f9a8a595f2e1591803f4d1d5bf8c508218fe2a94062cd841d">
       <source xml:lang="en">Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
-      <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
     </trans-unit>
     <trans-unit id="++CODE++e7024102f77edda33c79830ab81fd67eeffefde31bd43699d7dd6c28032e20a1">
       <source xml:lang="en">Enable the Query Studio private preview and SQL Data Plane, then reload VS Code to open queries from Connections.</source>
@@ -10930,8 +10930,8 @@
     <trans-unit id="++CODE++2262762c9e6da0f5aa86bcedaf7c9b498686158229fe95aa33c7139fe3b4c795">
       <source xml:lang="en">SQLCMD error (Line {0}): {1}</source>
     </trans-unit>
-    <trans-unit id="++CODE++584fd98aa6128c4b06c185b4c0371cbef63cb262a24c0f5876f310e35183f7dd">
-      <source xml:lang="en">SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax. Click to turn SQLCMD mode on.</source>
+    <trans-unit id="++CODE++1e3caf38092bbc9a185cf1844fb261760a0fc224594d179edbf5588c41fad79a">
+      <source xml:lang="en">SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax.</source>
     </trans-unit>
     <trans-unit id="++CODE++2b182fdd87c99c171062feb31e318cfd9c916d10bac0b8d68aa2a783c22183a1">
       <source xml:lang="en">SQLCMD mode is on</source>
@@ -16118,7 +16118,7 @@
       <source xml:lang="en">Controls how new SQL editor windows and opened SQL files are automatically connected.</source>
     </trans-unit>
     <trans-unit id="mssql.query.defaultSqlCmdMode.description">
-      <source xml:lang="en">Controls the SQLCMD mode of a SQL editor when it is opened. Use the Toggle SQLCMD Mode command to turn SQLCMD mode on or off for an individual editor.</source>
+      <source xml:lang="en">Controls the SQLCMD mode of a SQL editor when it is opened. Use the Toggle SQLCMD Mode command to cycle an individual editor between SQLCMD mode off, on, and auto.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>

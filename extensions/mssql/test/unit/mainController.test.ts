@@ -289,7 +289,7 @@ suite("MainController Tests", function () {
             controllerAccess = mainController as unknown as ToggleSqlCmdAccess;
             controllerAccess._outputContentProvider = { setSqlCmdMode: sandbox.stub() };
             controllerAccess._statusview = {
-                getSqlCmdMode: sandbox.stub().returns(false),
+                getSqlCmdMode: sandbox.stub().returns(Constants.SqlCmdMode.Off),
                 sqlCmdModeChanged: sandbox.stub(),
             };
             sendNotification = sandbox.stub();
@@ -297,24 +297,32 @@ suite("MainController Tests", function () {
             sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
         });
 
-        test("toggles the editor's SQLCMD mode and notifies the language service", () => {
-            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
+        const sqlCmdModeCycle: [Constants.SqlCmdMode, Constants.SqlCmdMode, string][] = [
+            [Constants.SqlCmdMode.Off, Constants.SqlCmdMode.On, "sqlcmd"],
+            [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto, Constants.languageId],
+            [Constants.SqlCmdMode.Auto, Constants.SqlCmdMode.Off, Constants.languageId],
+        ];
 
-            controllerAccess.onToggleSqlCmd();
+        for (const [currentMode, nextMode, language] of sqlCmdModeCycle) {
+            test(`toggles SQLCMD mode from ${currentMode} to ${nextMode} and notifies the language service`, () => {
+                sandbox.stub(Utils, "isEditingSqlFile").returns(true);
+                controllerAccess._statusview.getSqlCmdMode.returns(currentMode);
 
-            expect(controllerAccess._outputContentProvider.setSqlCmdMode).to.have.been.calledWith(
-                testUri,
-                true,
-            );
-            expect(controllerAccess._statusview.sqlCmdModeChanged).to.have.been.calledWith(
-                testUri,
-                true,
-            );
-            expect(sendNotification).to.have.been.calledWith(
-                LanguageFlavorChangedNotification.type,
-                sinon.match({ uri: testUri, language: "sqlcmd" }),
-            );
-        });
+                controllerAccess.onToggleSqlCmd();
+
+                expect(
+                    controllerAccess._outputContentProvider.setSqlCmdMode,
+                ).to.have.been.calledWith(testUri, nextMode);
+                expect(controllerAccess._statusview.sqlCmdModeChanged).to.have.been.calledWith(
+                    testUri,
+                    nextMode,
+                );
+                expect(sendNotification).to.have.been.calledWith(
+                    LanguageFlavorChangedNotification.type,
+                    sinon.match({ uri: testUri, language }),
+                );
+            });
+        }
 
         test("warns and does nothing when the active editor is not a SQL file", () => {
             sandbox.stub(Utils, "isEditingSqlFile").returns(false);

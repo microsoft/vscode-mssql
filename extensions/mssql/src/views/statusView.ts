@@ -34,10 +34,8 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
-    // Whether SQLCMD mode is enabled for the editor
-    public isSqlCmd: boolean;
-    // Whether SQLCMD mode is auto-detected for each execution, until SQLCMD mode is toggled
-    public isSqlCmdAutoDetect: boolean;
+    // SQLCMD mode of the editor
+    public currentSqlCmdMode: Constants.SqlCmdMode;
 
     public currentLanguageServiceStatus: string;
     public queryTimer: NodeJS.Timeout;
@@ -166,21 +164,27 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
-        const defaultSqlCmdMode = this.getDefaultSqlCmdMode(fileUri);
-        bar.isSqlCmd = defaultSqlCmdMode === Constants.DefaultSqlCmdMode.Enabled;
-        bar.isSqlCmdAutoDetect = defaultSqlCmdMode === Constants.DefaultSqlCmdMode.Auto;
+        bar.currentSqlCmdMode = this.getDefaultSqlCmdMode(fileUri);
         this._statusBars[fileUri] = bar;
     }
 
     /**
      * Gets the initial SQLCMD mode for an editor from the `mssql.query.defaultSqlCmdMode`
-     * setting.
+     * setting. Unrecognized values leave SQLCMD mode off.
      * @param fileUri URI of the editor
      */
-    private getDefaultSqlCmdMode(fileUri: string): string {
-        return vscode.workspace
+    private getDefaultSqlCmdMode(fileUri: string): Constants.SqlCmdMode {
+        const defaultMode = vscode.workspace
             .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
             .get<string>(Constants.configDefaultSqlCmdMode, Constants.DefaultSqlCmdMode.Disabled);
+        switch (defaultMode) {
+            case Constants.DefaultSqlCmdMode.Enabled:
+                return Constants.SqlCmdMode.On;
+            case Constants.DefaultSqlCmdMode.Auto:
+                return Constants.SqlCmdMode.Auto;
+            default:
+                return Constants.SqlCmdMode.Off;
+        }
     }
 
     private destroyStatusBar(fileUri: string): void {
@@ -466,44 +470,35 @@ export default class StatusView implements vscode.Disposable {
     }
 
     /**
-     * Gets whether SQLCMD mode is enabled for the editor. Editors start with the
-     * mode from the `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
+     * Gets the SQLCMD mode of the editor. Editors start with the mode from the
+     * `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
      * @param fileUri URI of the editor
      */
-    public getSqlCmdMode(fileUri: string): boolean {
-        return this.getStatusBar(fileUri).isSqlCmd;
-    }
-
-    /**
-     * Gets whether SQLCMD mode should be auto-detected for each execution in the editor. This is
-     * true for editors opened with `mssql.query.defaultSqlCmdMode` set to `auto` until SQLCMD
-     * mode is explicitly toggled.
-     * @param fileUri URI of the editor
-     */
-    public getSqlCmdAutoDetect(fileUri: string): boolean {
-        return this.getStatusBar(fileUri).isSqlCmdAutoDetect;
+    public getSqlCmdMode(fileUri: string): Constants.SqlCmdMode {
+        return this.getStatusBar(fileUri).currentSqlCmdMode;
     }
 
     /**
      * Updates the SQLCMD mode status bar item for the editor.
      * @param fileUri URI of the editor
-     * @param isSqlCmd new SQLCMD mode, or undefined to refresh the item with the current mode.
-     * Setting an explicit mode turns off SQLCMD auto-detection for the editor.
+     * @param sqlCmdMode new SQLCMD mode, or undefined to refresh the item with the current mode
      */
-    public sqlCmdModeChanged(fileUri: string, isSqlCmd?: boolean): void {
+    public sqlCmdModeChanged(fileUri: string, sqlCmdMode?: Constants.SqlCmdMode): void {
         let bar = this.getStatusBar(fileUri);
-        if (isSqlCmd !== undefined) {
-            bar.isSqlCmd = isSqlCmd;
-            bar.isSqlCmdAutoDetect = false;
-        }
-        if (bar.isSqlCmdAutoDetect) {
-            bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeAutoLabel;
-            bar.sqlCmdMode.tooltip = LocalizedConstants.StatusBar.sqlCmdModeAutoTooltip;
-        } else {
-            bar.sqlCmdMode.text = bar.isSqlCmd
-                ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
-                : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
-            bar.sqlCmdMode.tooltip = undefined;
+        bar.currentSqlCmdMode = sqlCmdMode ?? bar.currentSqlCmdMode;
+        switch (bar.currentSqlCmdMode) {
+            case Constants.SqlCmdMode.On:
+                bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeOnLabel;
+                bar.sqlCmdMode.tooltip = undefined;
+                break;
+            case Constants.SqlCmdMode.Auto:
+                bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeAutoLabel;
+                bar.sqlCmdMode.tooltip = LocalizedConstants.StatusBar.sqlCmdModeAutoTooltip;
+                break;
+            default:
+                bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
+                bar.sqlCmdMode.tooltip = undefined;
+                break;
         }
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);

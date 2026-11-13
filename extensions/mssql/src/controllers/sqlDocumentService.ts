@@ -372,7 +372,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         // By now any rename/save transfer has moved the editor's SQLCMD mode to this URI.
         if (
             !doc.isClosed &&
-            this._statusview?.getSqlCmdMode(docUri) &&
+            this._statusview?.getSqlCmdMode(docUri) === Constants.SqlCmdMode.On &&
             !uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(doc.uri)
         ) {
             changeSqlCmdModeForFile(SqlToolsServerClient.instance, docUri, true);

@@ -739,10 +739,10 @@ suite("SqlDocumentService Tests", () => {
     suite("SQLCMD mode on open", () => {
         let sendNotificationStub: sinon.SinonStub;
 
-        function stubSqlCmdMode(isSqlCmd: boolean): void {
+        function stubSqlCmdMode(sqlCmdMode: Constants.SqlCmdMode): void {
             sqlDocumentService["_statusview"] = {
                 languageFlavorChanged: sandbox.stub(),
-                getSqlCmdMode: sandbox.stub().returns(isSqlCmd),
+                getSqlCmdMode: sandbox.stub().returns(sqlCmdMode),
             } as unknown as StatusView;
         }
 
@@ -754,7 +754,7 @@ suite("SqlDocumentService Tests", () => {
         });
 
         test("sends the SQLCMD language flavor when the editor is in SQLCMD mode", async () => {
-            stubSqlCmdMode(true);
+            stubSqlCmdMode(Constants.SqlCmdMode.On);
             const doc = mockTextDocument("file:///sqlcmd.sql");
 
             await openSqlDocumentAfterSaveOrRenameDelay(doc);
@@ -765,16 +765,18 @@ suite("SqlDocumentService Tests", () => {
             );
         });
 
-        test("does not send a language flavor when the editor is not in SQLCMD mode", async () => {
-            stubSqlCmdMode(false);
+        for (const sqlCmdMode of [Constants.SqlCmdMode.Off, Constants.SqlCmdMode.Auto]) {
+            test(`does not send a language flavor when the editor's SQLCMD mode is ${sqlCmdMode}`, async () => {
+                stubSqlCmdMode(sqlCmdMode);
 
-            await openSqlDocumentAfterSaveOrRenameDelay(mockTextDocument("file:///plain.sql"));
+                await openSqlDocumentAfterSaveOrRenameDelay(mockTextDocument("file:///plain.sql"));
 
-            expect(sendNotificationStub).to.not.have.been.called;
-        });
+                expect(sendNotificationStub).to.not.have.been.called;
+            });
+        }
 
         test("sends the SQLCMD language flavor for documents transferred by rename or save", async () => {
-            stubSqlCmdMode(true);
+            stubSqlCmdMode(Constants.SqlCmdMode.On);
             const doc = mockTextDocument("file:///saved.sql");
             sqlDocumentService["_newUriFromRenameOrSave"].add(doc.uri.toString());
 
