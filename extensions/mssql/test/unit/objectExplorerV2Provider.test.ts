@@ -11,7 +11,8 @@ import { OverviewTreeNode } from "../../src/objectExplorer/nodes/overviewTreeNod
 import { ObjectExplorerV2Provider } from "../../src/objectExplorer/v2/objectExplorerV2Provider";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import * as Constants from "../../src/constants/constants";
-import { initializeIconUtils } from "./utils";
+import { createInMemoryMemento, initializeIconUtils } from "./utils";
+import { ConnectionGroupExpansionStateStore } from "../../src/objectExplorer/connectionGroupExpansionStateStore";
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -124,5 +125,22 @@ suite("Object Explorer v2 view parity", () => {
                 vscode.TreeItemCollapsibleState.Collapsed,
             );
         }
+    });
+
+    test("preserved restores saved group state and expands groups without saved state", async () => {
+        const groupExpansionState = new ConnectionGroupExpansionStateStore(createInMemoryMemento());
+        await groupExpansionState.setExpanded("nested", false);
+        provider.dispose();
+        provider = new ObjectExplorerV2Provider(controller, undefined, groupExpansionState);
+
+        const group = (await provider.getChildren())[1];
+        const [nested] = await provider.getChildren(group);
+
+        expect(provider.getTreeItem(group).collapsibleState).to.equal(
+            vscode.TreeItemCollapsibleState.Expanded,
+        );
+        expect(provider.getTreeItem(nested).collapsibleState).to.equal(
+            vscode.TreeItemCollapsibleState.Collapsed,
+        );
     });
 });

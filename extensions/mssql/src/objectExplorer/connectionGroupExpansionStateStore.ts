@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
+import { DefaultGroupExpansion } from "../constants/constants";
 
 export const connectionGroupExpansionStateStorageKey =
     "objectExplorer.connectionGroupExpansionState";
@@ -64,12 +64,19 @@ export class ConnectionGroupExpansionStateStore {
 
     /**
      * Records connection group expand/collapse events from a tree view.
+     * @param treeView The tree view to track
+     * @param getGroupId Returns the connection group ID for a tree element, or `undefined` if the
+     * element is not a connection group
      * @returns A disposable that stops tracking the tree view.
      */
-    public trackTreeView(treeView: vscode.TreeView<unknown>): vscode.Disposable {
-        const recordState = (element: unknown, isExpanded: boolean): void => {
-            if (element instanceof ConnectionGroupNode && element.connectionGroup?.id) {
-                void this.setExpanded(element.connectionGroup.id, isExpanded);
+    public trackTreeView<T>(
+        treeView: vscode.TreeView<T>,
+        getGroupId: (element: T) => string | undefined,
+    ): vscode.Disposable {
+        const recordState = (element: T, isExpanded: boolean): void => {
+            const groupId = getGroupId(element);
+            if (groupId) {
+                void this.setExpanded(groupId, isExpanded);
             }
         };
 
@@ -85,5 +92,28 @@ export class ConnectionGroupExpansionStateStore {
                 connectionGroupExpansionStateStorageKey,
             ) ?? {}
         );
+    }
+}
+
+/**
+ * Determines whether a connection group should start expanded or collapsed.
+ * @param groupId ID of the connection group
+ * @param defaultGroupExpansion The configured default group expansion behavior
+ * @param store Saved expansion state, consulted when the behavior is `preserved`
+ */
+export function getInitialGroupCollapsibleState(
+    groupId: string,
+    defaultGroupExpansion: DefaultGroupExpansion | undefined,
+    store: ConnectionGroupExpansionStateStore | undefined,
+): vscode.TreeItemCollapsibleState {
+    switch (defaultGroupExpansion) {
+        case DefaultGroupExpansion.Collapsed:
+            return vscode.TreeItemCollapsibleState.Collapsed;
+        case DefaultGroupExpansion.Expanded:
+            return vscode.TreeItemCollapsibleState.Expanded;
+        default:
+            return store?.isExpanded(groupId) === false
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.Expanded;
     }
 }

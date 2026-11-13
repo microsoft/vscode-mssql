@@ -1920,7 +1920,9 @@ export default class MainController implements vscode.Disposable {
         });
         this._context.subscriptions.push(this.objectExplorerTree);
         this._context.subscriptions.push(
-            this._groupExpansionStateStore.trackTreeView(this.objectExplorerTree),
+            this._groupExpansionStateStore.trackTreeView(this.objectExplorerTree, (element) =>
+                element instanceof ConnectionGroupNode ? element.connectionGroup?.id : undefined,
+            ),
         );
 
         const objectExplorerV2Enabled = () =>
@@ -1955,6 +1957,7 @@ export default class MainController implements vscode.Disposable {
                 legacyConnections: this._connectionMgr,
                 groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
                 isEnabled: objectExplorerV2Enabled,
+                groupExpansionState: this._groupExpansionStateStore,
                 overviewVisibility: {
                     isVisible: () =>
                         this._context.globalState.get<boolean>(

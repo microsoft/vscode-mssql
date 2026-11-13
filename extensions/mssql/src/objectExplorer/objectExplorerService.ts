@@ -66,7 +66,10 @@ import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/a
 import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 import { OverviewTreeNode } from "./nodes/overviewTreeNode";
-import { ConnectionGroupExpansionStateStore } from "./connectionGroupExpansionStateStore";
+import {
+    ConnectionGroupExpansionStateStore,
+    getInitialGroupCollapsibleState,
+} from "./connectionGroupExpansionStateStore";
 
 export class CancelableLoadingNode extends vscode.TreeItem {
     public constructor(
@@ -560,7 +563,11 @@ export class ObjectExplorerService {
         for (const group of serverGroups) {
             const groupNode = new ConnectionGroupNode(
                 group,
-                this.getInitialGroupCollapsibleState(group.id, defaultGroupExpansion),
+                getInitialGroupCollapsibleState(
+                    group.id,
+                    defaultGroupExpansion,
+                    this._groupExpansionStateStore,
+                ),
             );
 
             if (this._connectionGroupNodes.has(group.id)) {
@@ -642,27 +649,6 @@ export class ObjectExplorerService {
             },
         });
         return result;
-    }
-
-    /**
-     * Determines whether a connection group node should start expanded or collapsed.
-     * @param groupId ID of the connection group
-     * @param defaultGroupExpansion The configured default group expansion behavior
-     */
-    private getInitialGroupCollapsibleState(
-        groupId: string,
-        defaultGroupExpansion: Constants.DefaultGroupExpansion,
-    ): vscode.TreeItemCollapsibleState {
-        switch (defaultGroupExpansion) {
-            case Constants.DefaultGroupExpansion.Collapsed:
-                return vscode.TreeItemCollapsibleState.Collapsed;
-            case Constants.DefaultGroupExpansion.Expanded:
-                return vscode.TreeItemCollapsibleState.Expanded;
-            default:
-                return this._groupExpansionStateStore?.isExpanded(groupId) === false
-                    ? vscode.TreeItemCollapsibleState.Collapsed
-                    : vscode.TreeItemCollapsibleState.Expanded;
-        }
     }
 
     /**

@@ -53,7 +53,9 @@ suite("ConnectionGroupExpansionStateStore", () => {
                 onDidExpandElement: onDidExpand.event,
                 onDidCollapseElement: onDidCollapse.event,
             } as vscode.TreeView<unknown>;
-            tracking = store.trackTreeView(treeView);
+            tracking = store.trackTreeView(treeView, (element) =>
+                element instanceof ConnectionGroupNode ? element.connectionGroup.id : undefined,
+            );
         });
 
         teardown(() => {
@@ -78,7 +80,7 @@ suite("ConnectionGroupExpansionStateStore", () => {
             expect(store.isExpanded("group1")).to.equal(true);
         });
 
-        test("ignores expansion events for other node types", async () => {
+        test("ignores elements without a connection group ID", async () => {
             const node = new vscode.TreeItem("Tables");
             node.id = "group1";
 
