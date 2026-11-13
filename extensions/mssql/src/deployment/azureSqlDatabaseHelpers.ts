@@ -281,7 +281,7 @@ export async function initializeAzureSqlDatabaseState(
         TelemetryViews.AzureSqlDatabase,
         TelemetryActions.StartAzureSqlDatabaseDeployment,
         {
-            additionalProps: {},
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
             additionalMeasurements: { azureSqlDatabaseInitTimeInMs: Date.now() - startTime },
         },
     );
@@ -447,7 +447,9 @@ export function registerAzureSqlDatabaseReducers(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
                     {
-                        additionalProps: {},
+                        additionalProps: {
+                            workflowCorrelationId: deploymentController.workflowCorrelationId,
+                        },
                         additionalMeasurements: {
                             provisionDatabaseLoadTimeInMs: Date.now() - startTime,
                         },
@@ -473,7 +475,13 @@ export function registerAzureSqlDatabaseReducers(
                 sendErrorEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    { error: error as Error, includeErrorMessage: false },
+                    {
+                        error: error as Error,
+                        includeErrorMessage: false,
+                        additionalProps: {
+                            workflowCorrelationId: deploymentController.workflowCorrelationId,
+                        },
+                    },
                 );
             }
 
@@ -541,13 +549,20 @@ export function registerAzureSqlDatabaseReducers(
             azureSqlState.canAddFirewallRule = false;
             closeFirewallRuleDialog(deploymentController, azureSqlState, true);
             state.dialog = undefined;
-            sendActionEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.AddFirewallRule);
+            sendActionEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.AddFirewallRule, {
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
+            });
         } catch (error) {
             dialog.props.message = getErrorMessage(error);
             dialog.props.addFirewallRuleStatus = ApiStatus.Error;
             sendErrorEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.AddFirewallRule, {
                 error: error as Error,
                 includeErrorMessage: false,
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
             });
         }
 
@@ -860,7 +875,10 @@ export function reloadAzureComponentsDownstream(
     }
 }
 
-export function sendAzureSqlDatabaseCloseEventTelemetry(state: asd.AzureSqlDatabaseState): void {
+export function sendAzureSqlDatabaseCloseEventTelemetry(
+    state: asd.AzureSqlDatabaseState,
+    workflowCorrelationId?: string,
+): void {
     sendActionEvent(
         TelemetryViews.AzureSqlDatabase,
         TelemetryActions.FinishAzureSqlDatabaseDeployment,
@@ -868,6 +886,7 @@ export function sendAzureSqlDatabaseCloseEventTelemetry(state: asd.AzureSqlDatab
             additionalProps: {
                 errorMessage: state.errorMessage || "",
                 provisionState: state.provisionLoadState,
+                ...(workflowCorrelationId && { workflowCorrelationId }),
             },
         },
     );
@@ -897,6 +916,9 @@ async function promptForFirewallRule(
                 error: new Error(errorMessage),
                 includeErrorMessage: true,
                 errorType: "parseIP",
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
             });
         }
 
@@ -963,6 +985,7 @@ function surfaceConnectionError(
     sendErrorEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.ConnectToAzureSqlDatabase, {
         error: new Error(AzureSqlDatabase.connectionFailed),
         includeErrorMessage: false,
+        additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
     });
     updateAzureSqlDatabaseState(deploymentController, state);
 }
@@ -1100,6 +1123,9 @@ export async function connectToAzureSqlDatabase(
                             ...getConnectionTelemetryInfo(connManager, connectionProfile),
                             error: new Error("Failed to detect client IP for firewall rule"),
                             includeErrorMessage: false,
+                            additionalProps: {
+                                workflowCorrelationId: deploymentController.workflowCorrelationId,
+                            },
                         },
                     );
                     updateAzureSqlDatabaseState(deploymentController, state);
@@ -1139,6 +1165,9 @@ export async function connectToAzureSqlDatabase(
                             ...getConnectionTelemetryInfo(connManager, connectionProfile),
                             error: new Error(`Firewall rule creation failed: ${errorMsg}`),
                             includeErrorMessage: false,
+                            additionalProps: {
+                                workflowCorrelationId: deploymentController.workflowCorrelationId,
+                            },
                         },
                     );
                     updateAzureSqlDatabaseState(deploymentController, state);
@@ -1179,7 +1208,9 @@ export async function connectToAzureSqlDatabase(
             TelemetryActions.ConnectToAzureSqlDatabase,
             {
                 ...getConnectionTelemetryInfo(connManager, connectionProfile),
-                additionalProps: {},
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     connectToDatabaseLoadTimeInMs: Date.now() - startTime,
                 },
@@ -1200,6 +1231,9 @@ export async function connectToAzureSqlDatabase(
                 ),
                 error: err as Error,
                 includeErrorMessage: false,
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
             },
         );
     }

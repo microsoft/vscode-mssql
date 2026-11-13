@@ -24,7 +24,11 @@ import {
 } from "../sharedInterfaces/publishDialog";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { SqlPackageService } from "../services/sqlPackageService";
-import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    type TelemetryEventOptions,
+} from "extension-toolkit/vscode";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
     parsePublishProfileXml,
@@ -49,6 +53,12 @@ import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/lo
 import MainController from "../controllers/mainController";
 import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import {
+    completeSqlProjectWorkflow,
+    recordSqlProjectWorkflowEvent,
+    SqlProjectWorkflowEventName,
+    type SqlProjectWorkflowEventOptions,
+} from "../databaseProjects/common/projectWorkflowTelemetry";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -73,6 +83,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private readonly _projectController: ProjectController;
     private readonly _mainController: MainController;
     private readonly _operationId: string;
+    /** True while a publish or script generation started from this dialog is running. */
+    private _operationInProgress = false;
+    private _workflowCompleted = false;
+    /** Outcome of the last publish attempt that left the dialog open, used when it closes. */
+    private _lastPublishAttemptOutcome: "Failed" | undefined;
 
     protected override get telemetryContext() {
         return getConnectionTelemetryInfo(
@@ -136,6 +151,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._projectController = new ProjectController();
         this._mainController = mainController;
         this._operationId = generateOperationId();
+        this.recordWorkflowEvent(SqlProjectWorkflowEventName.PublishDialogOpened);
 
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishDialogOpened, {
@@ -181,10 +197,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
      * @returns Path to the built DACPAC file, or undefined if build fails
      */
     private async buildProject(state: PublishDialogState): Promise<string | undefined> {
+        this.recordWorkflowEvent(SqlProjectWorkflowEventName.BuildStarted);
         try {
             const dacpacPath = await this._projectController.buildProject(state.projectProperties);
+            this.recordWorkflowEvent(SqlProjectWorkflowEventName.BuildCompleted, {
+                outcome: dacpacPath ? "Succeeded" : "Failed",
+            });
             return dacpacPath;
         } catch (error) {
+            this.recordWorkflowEvent(SqlProjectWorkflowEventName.BuildCompleted, {
+                outcome: "Failed",
+            });
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.BuildProject, {
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
@@ -209,7 +232,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacpacPath: string,
         databaseName: string,
         upgradeExisting: boolean,
-    ): Promise<void> {
+    ): Promise<boolean> {
         // Ensure deployment options are loaded before executing DacFx operations.
         await this._deploymentOptionsPromise;
         const connectionUri = this._connectionUri || "";
@@ -241,8 +264,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         serverTypes,
                     },
                 });
+                this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, {
+                    ...telemetryContext,
+                    outcome: "Succeeded",
+                    additionalProps: {
+                        publishTarget: state.formState.publishTarget,
+                    },
+                });
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
+                return true;
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
                     ...telemetryContext,
@@ -254,8 +285,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         serverTypes,
                     },
                 });
+                this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, {
+                    ...telemetryContext,
+                    outcome: "Failed",
+                    additionalProps: {
+                        publishTarget: state.formState.publishTarget,
+                    },
+                });
+                return false;
             }
         } catch (error) {
+            if (this._workflowCompleted) {
+                this.logger.warn(
+                    `Publish succeeded, but post-publish processing failed: ${getErrorMessage(error)}`,
+                );
+                return true;
+            }
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
                 ...telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
@@ -266,6 +311,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     serverTypes,
                 },
             });
+            this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, {
+                ...telemetryContext,
+                outcome: "Failed",
+                additionalProps: {
+                    publishTarget: state.formState.publishTarget,
+                },
+            });
+            return false;
         }
     }
 
@@ -310,6 +363,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         serverTypes,
                     },
                 });
+                this.completeScriptGeneration(state, "Succeeded", telemetryContext);
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
                     ...telemetryContext,
@@ -321,6 +375,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         serverTypes,
                     },
                 });
+                this.completeScriptGeneration(state, "Failed", telemetryContext);
             }
         } catch (error) {
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
@@ -333,7 +388,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     serverTypes,
                 },
             });
+            this.completeScriptGeneration(state, "Failed", telemetryContext);
         }
+    }
+
+    private completeScriptGeneration(
+        state: PublishDialogState,
+        outcome: "Succeeded" | "Failed",
+        telemetryContext: TelemetryEventOptions,
+    ): void {
+        this.completeWorkflow(SqlProjectWorkflowEventName.ScriptGenerationCompleted, {
+            ...telemetryContext,
+            outcome,
+            additionalProps: {
+                publishTarget: state.formState.publishTarget,
+            },
+        });
     }
 
     /**
@@ -368,6 +438,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Step 1: Build the project
         const dacpacPath = await this.buildProject(state);
         if (!dacpacPath) {
+            this.completeWorkflow(
+                isPublish
+                    ? SqlProjectWorkflowEventName.PublishCompleted
+                    : SqlProjectWorkflowEventName.ScriptGenerationCompleted,
+                {
+                    outcome: "Failed",
+                    additionalProps: {
+                        publishTarget: state.formState.publishTarget,
+                    },
+                },
+            );
+            this._operationInProgress = false;
             return;
         }
 
@@ -380,6 +462,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         } else {
             await this.generateDeploymentScript(state, dacpacPath, databaseName);
         }
+        this._operationInProgress = false;
     }
 
     /**
@@ -890,6 +973,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
+            this._operationInProgress = true;
+            this.recordWorkflowEvent(SqlProjectWorkflowEventName.PublishStarted, {
+                additionalProps: {
+                    publishTarget: state.formState.publishTarget,
+                },
+            });
             // Check if publishing to local container
             if (state.formState.publishTarget === PublishTarget.LocalContainer) {
                 // Keep panel open to show progress through all steps
@@ -927,6 +1016,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             intent: "error",
                         };
                         state.inProgress = false;
+                        this.recordFailedPublishAttempt(state);
                         this.updateState(state);
                         return state;
                     }
@@ -971,6 +1061,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             intent: "error",
                         };
                         state.inProgress = false;
+                        this.recordFailedPublishAttempt(state);
                         this.updateState(state);
                         return state;
                     }
@@ -984,6 +1075,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     if (!dacpacPath) {
                         // Note: buildProject already sends its own telemetry on failure
                         state.inProgress = false;
+                        this.recordFailedPublishAttempt(state);
                         this.updateState(state);
                         return state;
                     }
@@ -997,6 +1089,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
 
                     state.inProgress = false;
+                    this._operationInProgress = false;
                     this.panel?.dispose();
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
@@ -1018,6 +1111,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         intent: "error",
                     };
                     state.inProgress = false;
+                    this.recordFailedPublishAttempt(state);
                     this.updateState(state);
                 }
 
@@ -1030,6 +1124,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("generatePublishScript", async (state) => {
+            this._operationInProgress = true;
+            this.recordWorkflowEvent(SqlProjectWorkflowEventName.ScriptGenerationStarted, {
+                additionalProps: {
+                    publishTarget: state.formState.publishTarget,
+                },
+            });
             this.panel?.dispose();
             void this.executePublishAndGenerateScript(state, false);
 
@@ -1804,5 +1904,78 @@ export class PublishProjectWebViewController extends FormWebviewController<
             hasValidationErrors || hasMissingRequiredValues || !sqlCmdVariablesValid;
 
         return erroredInputs;
+    }
+
+    /** Records a SQL project workflow event tagged with this dialog's operation and connection. */
+    private recordWorkflowEvent(
+        eventName: SqlProjectWorkflowEventName,
+        options: SqlProjectWorkflowEventOptions = {},
+    ): void {
+        recordSqlProjectWorkflowEvent(
+            this.state.projectFilePath,
+            eventName,
+            this.withDialogTelemetryContext(options),
+        );
+    }
+
+    /** Ends the SQL project workflow with this dialog's operation and connection. */
+    private completeWorkflow(
+        eventName: SqlProjectWorkflowEventName,
+        options: SqlProjectWorkflowEventOptions = {},
+    ): void {
+        if (this._workflowCompleted) {
+            return;
+        }
+        completeSqlProjectWorkflow(
+            this.state.projectFilePath,
+            eventName,
+            this.withDialogTelemetryContext(options),
+        );
+        this._workflowCompleted = true;
+    }
+
+    /** Adds this dialog's operation ID and, unless supplied, its current connection metadata. */
+    private withDialogTelemetryContext(
+        options: SqlProjectWorkflowEventOptions,
+    ): SqlProjectWorkflowEventOptions {
+        const { connectionInfo, serverInfo } = this.telemetryContext;
+        return {
+            connectionInfo,
+            serverInfo,
+            ...options,
+            additionalProps: {
+                ...options.additionalProps,
+                operationId: this._operationId,
+            },
+        };
+    }
+
+    /**
+     * Records a failed publish attempt that kept the dialog open for a retry. The failure becomes
+     * the terminal outcome if the dialog is closed (or was already closed) without a later attempt.
+     */
+    private recordFailedPublishAttempt(state: PublishDialogState): void {
+        this._operationInProgress = false;
+        const options: SqlProjectWorkflowEventOptions = {
+            outcome: "Failed",
+            additionalProps: {
+                publishTarget: state.formState.publishTarget,
+            },
+        };
+        if (this.isDisposed) {
+            this.completeWorkflow(SqlProjectWorkflowEventName.PublishCompleted, options);
+            return;
+        }
+        this._lastPublishAttemptOutcome = "Failed";
+        this.recordWorkflowEvent(SqlProjectWorkflowEventName.PublishCompleted, options);
+    }
+
+    public override dispose(): void {
+        if (!this._operationInProgress) {
+            this.completeWorkflow(SqlProjectWorkflowEventName.PublishDialogClosed, {
+                outcome: this._lastPublishAttemptOutcome ?? "Cancelled",
+            });
+        }
+        super.dispose();
     }
 }

@@ -40,6 +40,7 @@ export function startProvisioningTask(
         state: BackgroundTaskState.InProgress,
     });
     controllerTasks.set(deploymentType, task);
+    controller.recordDeploymentStarted(deploymentType);
     return task;
 }
 
@@ -64,4 +65,5 @@ export function completeProvisioningTask(
     task.complete(state, { message });
     controllerTasks?.delete(deploymentType);
     if (controllerTasks?.size === 0) activeProvisioningTasks.delete(controller);
+    controller.recordDeploymentCompleted(deploymentType, state);
 }
