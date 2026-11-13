@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Divider, makeStyles, shorthands } from "@fluentui/react-components";
+import { Button, Divider, makeStyles, mergeClasses, shorthands } from "@fluentui/react-components";
 import { Database32Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 import { ResizableBox } from "react-resizable";
@@ -33,6 +33,11 @@ export const useStyles = makeStyles({
         height: "100%",
         width: "325px",
         padding: "20px",
+        flexShrink: 0,
+    },
+    collapsedMruContainer: {
+        paddingLeft: "4px",
+        paddingRight: "4px",
     },
     mruPaneHandle: {
         position: "absolute",
@@ -48,6 +53,8 @@ export const useStyles = makeStyles({
 export const ConnectionPage = () => {
     const classes = useStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [sidebarWidth, setSidebarWidth] = useState(350);
 
     const isEditingConnection = useConnectionDialogSelector((s) => s.isEditingConnection);
     const editingConnectionDisplayName = useConnectionDialogSelector(
@@ -91,14 +98,21 @@ export const ConnectionPage = () => {
                 vertical
             />
             <ResizableBox
-                className={classes.mruContainer}
-                width={350}
+                className={mergeClasses(
+                    classes.mruContainer,
+                    isSidebarCollapsed && classes.collapsedMruContainer,
+                )}
+                width={isSidebarCollapsed ? 32 : sidebarWidth}
                 height={Infinity}
-                maxConstraints={[800, Infinity]}
-                minConstraints={[300, Infinity]}
-                resizeHandles={["w"]}
+                maxConstraints={[isSidebarCollapsed ? 32 : 800, Infinity]}
+                minConstraints={[isSidebarCollapsed ? 32 : 300, Infinity]}
+                resizeHandles={isSidebarCollapsed ? [] : ["w"]}
+                onResizeStop={(_event, { size }) => setSidebarWidth(size.width)}
                 handle={<div className={classes.mruPaneHandle} />}>
-                <ConnectionsListContainer />
+                <ConnectionsListContainer
+                    isCollapsed={isSidebarCollapsed}
+                    onToggleCollapsed={() => setIsSidebarCollapsed((prev) => !prev)}
+                />
             </ResizableBox>
         </div>
     );
