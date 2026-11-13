@@ -696,7 +696,7 @@ suite("Azure SQL container configuration", () => {
         expect(findAvailablePort).not.to.have.been.called;
     });
 
-    test("builds the private-preview Docker pull command", () => {
+    test("builds the public-registry Docker pull command", () => {
         expect(
             getAzureSqlContainerProvisioningCommand(
                 ContainerEngine.Docker,
@@ -705,7 +705,7 @@ suite("Azure SQL container configuration", () => {
             ),
         ).to.deep.equal({
             executable: "docker",
-            args: ["pull", "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest"],
+            args: ["pull", "mcr.microsoft.com/mssql/azure-sql-db-server:latest"],
         });
     });
 
@@ -738,7 +738,7 @@ suite("Azure SQL container configuration", () => {
                 "14330:1433",
                 "--hostname",
                 form.hostname,
-                "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest",
+                "mcr.microsoft.com/mssql/azure-sql-db-server:latest",
             ],
             env: { MSSQL_SA_PASSWORD: form.password },
         });
