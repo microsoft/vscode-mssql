@@ -299,7 +299,7 @@ suite("MainController Tests", function () {
 
         const sqlCmdModeCycle: [Constants.SqlCmdMode, Constants.SqlCmdMode, string][] = [
             [Constants.SqlCmdMode.Off, Constants.SqlCmdMode.On, "sqlcmd"],
-            [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto, Constants.languageId],
+            [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto, "sqlcmd"],
             [Constants.SqlCmdMode.Auto, Constants.SqlCmdMode.Off, Constants.languageId],
         ];
 

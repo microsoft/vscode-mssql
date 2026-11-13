@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { languageId, mssqlProviderName } from "../constants/constants";
+import { languageId, mssqlProviderName, SqlCmdMode } from "../constants/constants";
 import {
     DidChangeLanguageFlavorParams,
     LanguageFlavorChangedNotification,
@@ -27,19 +27,29 @@ export function changeLanguageServiceForFile(
 
 /**
  * Tells the language service whether to treat the file as a SQLCMD script, which suppresses
- * T-SQL diagnostics for SQLCMD commands and variables.
+ * T-SQL diagnostics for SQLCMD commands and variables. Files in SQLCMD mode On or Auto are
+ * treated as SQLCMD scripts, so SQLCMD syntax isn't reported as invalid in either mode.
  * @param client SQL Tools Service client
  * @param uri URI of the file
- * @param isSqlCmd whether the file is in SQLCMD mode
+ * @param sqlCmdMode SQLCMD mode of the file
  */
 export function changeSqlCmdModeForFile(
     client: SqlToolsServiceClient,
     uri: string,
-    isSqlCmd: boolean,
+    sqlCmdMode: SqlCmdMode,
 ): void {
     client.sendNotification(LanguageFlavorChangedNotification.type, {
         uri: uri,
-        language: isSqlCmd ? "sqlcmd" : languageId,
+        language: usesSqlCmdLanguage(sqlCmdMode) ? "sqlcmd" : languageId,
         flavor: mssqlProviderName,
     } as DidChangeLanguageFlavorParams);
+}
+
+/**
+ * Gets whether the language service should treat a file with the given SQLCMD mode as a SQLCMD
+ * script.
+ * @param sqlCmdMode SQLCMD mode of the file
+ */
+export function usesSqlCmdLanguage(sqlCmdMode: SqlCmdMode): boolean {
+    return sqlCmdMode === SqlCmdMode.On || sqlCmdMode === SqlCmdMode.Auto;
 }

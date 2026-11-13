@@ -3222,11 +3222,7 @@ export default class MainController implements vscode.Disposable {
         const sqlCmdMode = MainController.getNextSqlCmdMode(this._statusview.getSqlCmdMode(uri));
         this._outputContentProvider.setSqlCmdMode(uri, sqlCmdMode);
         this._statusview.sqlCmdModeChanged(uri, sqlCmdMode);
-        changeSqlCmdModeForFile(
-            SqlToolsServerClient.instance,
-            uri,
-            sqlCmdMode === Constants.SqlCmdMode.On,
-        );
+        changeSqlCmdModeForFile(SqlToolsServerClient.instance, uri, sqlCmdMode);
     }
 
     /**

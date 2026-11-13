@@ -10,7 +10,7 @@ import StatusView from "../views/statusView";
 import { uriOwnershipCoordinator } from "../extension";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
-import { changeSqlCmdModeForFile } from "../languageservice/utils";
+import { changeSqlCmdModeForFile, usesSqlCmdLanguage } from "../languageservice/utils";
 import { removeUndefinedProperties, getUriKey, uuid } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
@@ -370,12 +370,14 @@ export default class SqlDocumentService implements vscode.Disposable {
         await new Promise((resolve) => setTimeout(resolve, waitTimeMsOnOpenAfterSaveOrRename));
 
         // By now any rename/save transfer has moved the editor's SQLCMD mode to this URI.
+        const sqlCmdMode = this._statusview?.getSqlCmdMode(docUri);
         if (
             !doc.isClosed &&
-            this._statusview?.getSqlCmdMode(docUri) === Constants.SqlCmdMode.On &&
+            sqlCmdMode !== undefined &&
+            usesSqlCmdLanguage(sqlCmdMode) &&
             !uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(doc.uri)
         ) {
-            changeSqlCmdModeForFile(SqlToolsServerClient.instance, docUri, true);
+            changeSqlCmdModeForFile(SqlToolsServerClient.instance, docUri, sqlCmdMode);
         }
 
         if (this._newUriFromRenameOrSave.has(docUri)) {
