@@ -50,7 +50,11 @@ import {
 import * as vscode from "vscode";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
+import * as os from "node:os";
 import fixPath from "fix-path";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { logger } from "../models/logger";
 export { executeContainerEngineCommand } from "../docker/containerEngine";
 
 export const defaultAzureSqlContainerName = "azure_sql_db_container";
@@ -61,6 +65,9 @@ const containerReadyTimeoutMs = 300_000;
 const containerReadyPollIntervalMs = 2_000;
 const containerEntraCertificatePath = "/var/opt/mssql/mssql-entra-id.pfx";
 const guidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+
+const firstConnectionKey = "azureSqlContainer.hasConnected";
+const connectedStores = new WeakSet<vscode.Memento>();
 
 interface ContainerEntraAdministrator {
     id: string;
@@ -230,13 +237,83 @@ export function registerAzureSqlRpcHandlers(
         generateAzureSqlContainerName(),
     );
 
-    deploymentController.onRequest(AzureSqlDatabaseRequests.DetectContainerEngines, async () =>
-        detectContainerEngines(),
-    );
+    deploymentController.onRequest(AzureSqlDatabaseRequests.DetectContainerEngines, async () => {
+        const startedAt = performance.now();
+        const workflowCorrelationId = deploymentController.workflowCorrelationId;
+        const properties = {
+            hostArchitecture: os.arch(),
+            hostOS: os.platform(),
+            initiatedBy: "VSCode",
+            ...(workflowCorrelationId ? { workflowCorrelationId } : {}),
+        };
+        try {
+            const results = await detectContainerEngines();
+            sendActionEvent(TelemetryViews.AzureContainer, "DetectContainerEngines", {
+                additionalProps: {
+                    ...properties,
+                    status: "succeeded",
+                    ...Object.fromEntries(
+                        Object.entries(results).map(([engine, result]) => [
+                            `${engine}Detected`,
+                            String(result.success),
+                        ]),
+                    ),
+                },
+                additionalMeasurements: { durationInMs: performance.now() - startedAt },
+            });
+            return results;
+        } catch (error) {
+            sendErrorEvent(TelemetryViews.AzureContainer, "DetectContainerEngines", {
+                additionalProps: { ...properties, status: "failed" },
+                additionalMeasurements: { durationInMs: performance.now() - startedAt },
+                errorType: "AzureSqlContainerOperationFailed",
+                includeErrorMessage: false,
+            });
+            throw error;
+        }
+    });
 
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite,
-        async (payload) => checkContainerEnginePrerequisite(payload.engine, payload.prerequisite),
+        async (payload) => {
+            const startedAt = performance.now();
+            const result = await checkContainerEnginePrerequisite(
+                payload.engine,
+                payload.prerequisite,
+            );
+            const workflowCorrelationId = deploymentController.workflowCorrelationId;
+            const telemetry = {
+                additionalProps: {
+                    containerEngine:
+                        Object.values(ContainerEngine).find((value) => value === payload.engine) ??
+                        "unknown",
+                    hostArchitecture: os.arch(),
+                    hostOS: os.platform(),
+                    initiatedBy: "VSCode",
+                    ...(workflowCorrelationId ? { workflowCorrelationId } : {}),
+                    prerequisite:
+                        Object.values(ContainerEnginePrerequisite).find(
+                            (value) => value === payload.prerequisite,
+                        ) ?? "unknown",
+                    status: result.success ? "succeeded" : "failed",
+                },
+                additionalMeasurements: { durationInMs: performance.now() - startedAt },
+            };
+            if (result.success) {
+                sendActionEvent(
+                    TelemetryViews.AzureContainer,
+                    "CheckContainerEnginePrerequisite",
+                    telemetry,
+                );
+            } else {
+                sendErrorEvent(TelemetryViews.AzureContainer, "CheckContainerEnginePrerequisite", {
+                    ...telemetry,
+                    errorType: "AzureSqlContainerOperationFailed",
+                    includeErrorMessage: false,
+                });
+            }
+            return result;
+        },
     );
 
     deploymentController.onRequest(
@@ -359,6 +436,8 @@ function startAzureSqlContainerDeployment(
             stepResults.set(step, result);
             stepCompletions.get(step)?.resolve(result);
         },
+        undefined,
+        previousResults !== undefined,
     );
     return deployment;
 }
@@ -374,52 +453,160 @@ export async function runAzureSqlContainerDeployment(
         result: AzureSqlContainerProvisioningResult,
     ) => void,
     executeStep = runAzureSqlContainerProvisioningStep,
+    isRetry = false,
 ): Promise<void> {
     const startIndex = containerProvisioningSteps.indexOf(startStep);
+    const startedAt = performance.now();
+    const workflowCorrelationId = deploymentController.workflowCorrelationId;
+    const properties = {
+        containerEngine:
+            Object.values(ContainerEngine).find((value) => value === engine) ?? "unknown",
+        hostArchitecture: os.arch(),
+        hostOS: os.platform(),
+        initiatedBy: "VSCode",
+        ...(workflowCorrelationId ? { workflowCorrelationId } : {}),
+        startStep,
+        isRetry: String(isRetry),
+    };
     let currentStep = startStep;
+    let startupStartedAt =
+        startStep === AzureSqlContainerProvisioningStep.WaitForReady ? startedAt : undefined;
+    let outcome = BackgroundTaskState.Failed;
+    let failureMessage = AzureSqlContainer.createContainerFailed;
+    sendActionEvent(TelemetryViews.AzureContainer, "StartAzureSqlContainerDeployment", {
+        additionalProps: properties,
+    });
     try {
         if (startIndex < 0) {
             throw new Error(AzureSqlContainer.invalidProvisioningStep);
         }
         startProvisioningTask(
             deploymentController,
-            DeploymentType.AzureSqlDatabase,
+            DeploymentType.AzureSqlContainer,
             AzureSqlContainer.provisioningTask,
             form.containerName,
         );
 
         for (const step of containerProvisioningSteps.slice(startIndex)) {
             currentStep = step;
-            updateProvisioningTask(
-                deploymentController,
-                DeploymentType.AzureSqlDatabase,
-                getProvisioningStepMessage(step),
-            );
-            const result = await executeStep(
-                engine,
-                step,
-                form,
-                deploymentController.mainController,
-                signal,
-            );
+            const stepStartedAt = performance.now();
+            if (step === AzureSqlContainerProvisioningStep.CreateContainer) {
+                startupStartedAt = stepStartedAt;
+            }
+            let result: AzureSqlContainerProvisioningResult | undefined;
+            try {
+                updateProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlContainer,
+                    getProvisioningStepMessage(step),
+                );
+                const stepResult = await executeStep(
+                    engine,
+                    step,
+                    form,
+                    deploymentController.mainController,
+                    signal,
+                );
+                result = signal.aborted ? { success: false } : stepResult;
+            } finally {
+                const status = result?.success
+                    ? "succeeded"
+                    : signal.aborted
+                      ? "cancelled"
+                      : "failed";
+                const stepTelemetry = {
+                    additionalProps: { ...properties, step, status },
+                    additionalMeasurements: { durationInMs: performance.now() - stepStartedAt },
+                };
+                if (status === "failed") {
+                    sendErrorEvent(
+                        TelemetryViews.AzureContainer,
+                        "AzureSqlContainerProvisioningStep",
+                        {
+                            ...stepTelemetry,
+                            errorType: "AzureSqlContainerOperationFailed",
+                            includeErrorMessage: false,
+                        },
+                    );
+                } else {
+                    sendActionEvent(
+                        TelemetryViews.AzureContainer,
+                        "AzureSqlContainerProvisioningStep",
+                        stepTelemetry,
+                    );
+                }
+                if (
+                    step === AzureSqlContainerProvisioningStep.PullImage ||
+                    step === AzureSqlContainerProvisioningStep.Connect
+                ) {
+                    const action =
+                        step === AzureSqlContainerProvisioningStep.PullImage
+                            ? TelemetryActions.PullImage
+                            : TelemetryActions.ConnectToContainer;
+                    const telemetry =
+                        step === AzureSqlContainerProvisioningStep.PullImage
+                            ? {
+                                  ...stepTelemetry,
+                                  additionalProps: {
+                                      ...stepTelemetry.additionalProps,
+                                      registry: azureSqlContainerImage.startsWith(
+                                          "mcr.microsoft.com/",
+                                      )
+                                          ? "MCR"
+                                          : azureSqlContainerImage.includes(".azurecr.io/")
+                                            ? "ACR"
+                                            : "other",
+                                      pullType: "requested",
+                                  },
+                              }
+                            : stepTelemetry;
+                    if (status === "failed") {
+                        sendErrorEvent(TelemetryViews.AzureContainer, action, {
+                            ...telemetry,
+                            errorType: "AzureSqlContainerOperationFailed",
+                            includeErrorMessage: false,
+                        });
+                    } else {
+                        sendActionEvent(TelemetryViews.AzureContainer, action, telemetry);
+                    }
+                }
+                if (
+                    startupStartedAt !== undefined &&
+                    (step === AzureSqlContainerProvisioningStep.WaitForReady || !result?.success)
+                ) {
+                    const startupTelemetry = {
+                        ...stepTelemetry,
+                        additionalMeasurements: {
+                            durationInMs: performance.now() - startupStartedAt,
+                        },
+                    };
+                    if (status === "failed") {
+                        sendErrorEvent(TelemetryViews.AzureContainer, "StartContainer", {
+                            ...startupTelemetry,
+                            errorType: "AzureSqlContainerOperationFailed",
+                            includeErrorMessage: false,
+                        });
+                    } else {
+                        sendActionEvent(
+                            TelemetryViews.AzureContainer,
+                            "StartContainer",
+                            startupTelemetry,
+                        );
+                    }
+                    startupStartedAt = undefined;
+                }
+            }
             onStepComplete(step, result);
 
             if (!result.success) {
-                const canceled = signal.aborted;
-                completeProvisioningTask(
-                    deploymentController,
-                    DeploymentType.AzureSqlDatabase,
-                    canceled ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
-                    canceled
-                        ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
-                        : AzureSqlContainer.provisioningTaskFailed(
-                              form.containerName,
-                              result.error ?? AzureSqlContainer.createContainerFailed,
-                          ),
-                );
+                outcome = signal.aborted
+                    ? BackgroundTaskState.Canceled
+                    : BackgroundTaskState.Failed;
+                failureMessage = result.error ?? AzureSqlContainer.createContainerFailed;
                 return;
             }
         }
+        outcome = signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Succeeded;
     } catch (error) {
         const errorMessage = sanitizeProvisioningError(error, form);
         onStepComplete(currentStep, {
@@ -427,23 +614,45 @@ export async function runAzureSqlContainerDeployment(
             error: errorMessage,
             fullErrorText: errorMessage,
         });
+        outcome = signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed;
+        failureMessage = errorMessage;
+    } finally {
         completeProvisioningTask(
             deploymentController,
-            DeploymentType.AzureSqlDatabase,
-            signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
-            signal.aborted
-                ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
-                : AzureSqlContainer.provisioningTaskFailed(form.containerName, errorMessage),
+            DeploymentType.AzureSqlContainer,
+            outcome,
+            outcome === BackgroundTaskState.Succeeded
+                ? AzureSqlContainer.provisioningTaskSucceeded(form.containerName)
+                : outcome === BackgroundTaskState.Canceled
+                  ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
+                  : AzureSqlContainer.provisioningTaskFailed(form.containerName, failureMessage),
         );
-        return;
+        const telemetry = {
+            additionalProps: {
+                ...properties,
+                status:
+                    outcome === BackgroundTaskState.Succeeded
+                        ? "succeeded"
+                        : outcome === BackgroundTaskState.Canceled
+                          ? "cancelled"
+                          : "failed",
+            },
+            additionalMeasurements: { durationInMs: performance.now() - startedAt },
+        };
+        if (outcome === BackgroundTaskState.Failed) {
+            sendErrorEvent(TelemetryViews.AzureContainer, "FinishAzureSqlContainerDeployment", {
+                ...telemetry,
+                errorType: "AzureSqlContainerOperationFailed",
+                includeErrorMessage: false,
+            });
+        } else {
+            sendActionEvent(
+                TelemetryViews.AzureContainer,
+                "FinishAzureSqlContainerDeployment",
+                telemetry,
+            );
+        }
     }
-
-    completeProvisioningTask(
-        deploymentController,
-        DeploymentType.AzureSqlDatabase,
-        BackgroundTaskState.Succeeded,
-        AzureSqlContainer.provisioningTaskSucceeded(form.containerName),
-    );
 }
 
 export async function generateAzureSqlContainerName(): Promise<string> {
@@ -817,6 +1026,31 @@ async function addAzureSqlContainerConnection(
             ))
         ) {
             return { success: false, error: AzureSqlContainer.connectContainerFailed };
+        }
+        const state = mainController.context.globalState;
+        if (!connectedStores.has(state) && state.get<boolean>(firstConnectionKey, false) !== true) {
+            // Claim before awaiting persistence to prevent duplicate concurrent milestones.
+            connectedStores.add(state);
+            sendActionEvent(TelemetryViews.AzureContainer, "FirstSuccessfulConnection", {
+                connectionInfo: connection,
+                serverInfo: mainController.connectionManager.getServerInfo(
+                    connection,
+                    connection.database ?? "",
+                ),
+                additionalProps: {
+                    containerEngine:
+                        Object.values(ContainerEngine).find((value) => value === engine) ??
+                        "unknown",
+                    hostArchitecture: os.arch(),
+                    hostOS: os.platform(),
+                    initiatedBy: "VSCode",
+                },
+            });
+            try {
+                await state.update(firstConnectionKey, true);
+            } catch (error) {
+                logger.error(`Failed to persist Azure SQL container adoption milestone: ${error}`);
+            }
         }
         const profile = await mainController.connectionManager.connectionUI.saveProfile(connection);
         if (signal?.aborted) {

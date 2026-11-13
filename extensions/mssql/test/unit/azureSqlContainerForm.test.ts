@@ -25,6 +25,7 @@ import {
     AzureSqlContainerProvisioningStep,
     AzureSqlDatabaseRequests,
     ContainerEngine,
+    ContainerEnginePrerequisite,
 } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { Accounts, AzureSqlContainer, ConnectionDialog } from "../../src/constants/locConstants";
 import * as dockerUtils from "../../src/docker/dockerUtils";
@@ -49,6 +50,10 @@ import * as containerEngine from "../../src/docker/containerEngine";
 import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { stubExtensionContext, stubTelemetry } from "./utils";
+import { logger } from "../../src/models/logger";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { DeploymentType } from "../../src/sharedInterfaces/deployment";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -58,6 +63,7 @@ suite("Azure SQL container configuration", () => {
     let certificateDirectory: string;
     let certificatePfxFilePath: string;
     let acquireToken: sinon.SinonStub;
+    let telemetry: ReturnType<typeof stubTelemetry>;
 
     suiteSetup(async () => {
         certificateDirectory = await fs.mkdtemp(
@@ -76,6 +82,7 @@ suite("Azure SQL container configuration", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        telemetry = stubTelemetry(sandbox);
         acquireToken = sandbox
             .stub(vscodeEntraMfaUtils, "acquireTokenFromVscodeAccountForResource")
             .resolves(entraIdentity());
@@ -862,6 +869,7 @@ suite("Azure SQL container configuration", () => {
         let mainController: sinon.SinonStubbedInstance<MainController>;
         let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let connectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
+        let context: vscode.ExtensionContext;
 
         async function expectPollingStopped(clock: sinon.SinonFakeTimers, probe: sinon.SinonStub) {
             // The shared extension host can schedule unrelated timers and nextTick jobs.
@@ -873,6 +881,8 @@ suite("Azure SQL container configuration", () => {
 
         setup(() => {
             mainController = sandbox.createStubInstance(MainController);
+            context = stubExtensionContext(sandbox);
+            sandbox.stub(mainController, "context").get(() => context);
             connectionManager = sandbox.createStubInstance(ConnectionManager);
             connectionUI = sandbox.createStubInstance(ConnectionUI);
             sandbox.stub(mainController, "connectionManager").get(() => connectionManager);
@@ -882,6 +892,82 @@ suite("Azure SQL container configuration", () => {
             connectionManager.getConnectionString.resolves("Server=localhost,1433");
             connectionManager.disconnect.resolves(true);
             mainController.createObjectExplorerSession.resolves();
+        });
+
+        test("records the first wizard connection once across concurrent completions and persisted state", async () => {
+            const stored = new Map<string, unknown>();
+            const configureState = () => {
+                const state = context.globalState;
+                (state.get as sinon.SinonStub).callsFake((key: string) => stored.get(key));
+                (state.update as sinon.SinonStub).callsFake(async (key: string, value: unknown) => {
+                    stored.set(key, value);
+                });
+            };
+            configureState();
+            connectionManager.connect.resolves(true);
+            const connect = () =>
+                runAzureSqlContainerProvisioningStep(
+                    ContainerEngine.Podman,
+                    AzureSqlContainerProvisioningStep.Connect,
+                    validForm(),
+                    mainController,
+                    new AbortController().signal,
+                );
+            const results = await Promise.all([connect(), connect()]);
+            expect(results.every((result) => result.success)).to.be.true;
+            context = stubExtensionContext(sandbox);
+            configureState();
+            expect((await connect()).success).to.be.true;
+            const milestones = telemetry.sendActionEvent
+                .getCalls()
+                .filter((call) => call.args[1] === "FirstSuccessfulConnection")
+                .map((call) => ({
+                    view: call.args[0],
+                    properties: call.args[2].additionalProps,
+                }));
+            expect(milestones).to.deep.equal([
+                {
+                    view: TelemetryViews.AzureContainer,
+                    properties: {
+                        containerEngine: ContainerEngine.Podman,
+                        hostArchitecture: os.arch(),
+                        hostOS: os.platform(),
+                        initiatedBy: "VSCode",
+                    },
+                },
+            ]);
+        });
+
+        test("does not fail or repeat the milestone when adoption state cannot be saved", async () => {
+            const state = context.globalState;
+            (state.update as sinon.SinonStub).rejects(new Error("state is read-only"));
+            const logError = sandbox.stub(logger, "error");
+            connectionManager.connect.resolves(true);
+            for (let attempt = 0; attempt < 2; attempt++) {
+                const result = await runAzureSqlContainerProvisioningStep(
+                    ContainerEngine.Docker,
+                    AzureSqlContainerProvisioningStep.Connect,
+                    validForm(),
+                    mainController,
+                    new AbortController().signal,
+                );
+                expect(result.success).to.be.true;
+            }
+            expect(logError).to.have.been.calledWith(
+                sinon.match("Failed to persist Azure SQL container adoption milestone"),
+            );
+            const milestones = telemetry.sendActionEvent
+                .getCalls()
+                .filter((call) => call.args[1] === "FirstSuccessfulConnection")
+                .map((call) => call.args[2].additionalProps);
+            expect(milestones).to.deep.equal([
+                {
+                    containerEngine: ContainerEngine.Docker,
+                    hostArchitecture: os.arch(),
+                    hostOS: os.platform(),
+                    initiatedBy: "VSCode",
+                },
+            ]);
         });
 
         for (const authenticationType of [
@@ -903,6 +989,7 @@ suite("Azure SQL container configuration", () => {
                 connectionManager.connect.resolves(true);
                 const controller = sandbox.createStubInstance(DeploymentWebviewController);
                 controller.mainController = mainController;
+                sandbox.stub(controller, "workflowCorrelationId").get(() => "container-workflow");
                 registerAzureSqlRpcHandlers(controller);
                 const run = controller.onRequest.withArgs(
                     AzureSqlDatabaseRequests.RunContainerProvisioningStep,
@@ -1397,6 +1484,258 @@ suite("Azure SQL container configuration", () => {
             expect(connectionUI.saveProfile).not.to.have.been.called;
             expect(mainController.createObjectExplorerSession).not.to.have.been.called;
         });
+    });
+
+    suite("adoption telemetry", () => {
+        function createController() {
+            const controller = sandbox.createStubInstance(DeploymentWebviewController);
+            const main = sandbox.createStubInstance(MainController);
+            const tasks = sandbox.createStubInstance(BackgroundTasksService);
+            const complete = sandbox.stub();
+            tasks.registerTask.returns({
+                id: "container-telemetry-task",
+                update: sandbox.stub(),
+                complete,
+                remove: sandbox.stub(),
+            });
+            main.backgroundTasksService = tasks;
+            controller.mainController = main;
+            sandbox.stub(controller, "workflowCorrelationId").get(() => "container-workflow");
+            return { controller, complete };
+        }
+
+        test("records available engines without collecting command output", async () => {
+            const { controller } = createController();
+            sandbox
+                .stub(containerEngine, "executeContainerEngineCommand")
+                .callsFake(async (command) => {
+                    if (command.executable !== "docker") {
+                        throw new Error("private-command-output");
+                    }
+                    return { stdout: "private-version-output", stderr: "" };
+                });
+            registerAzureSqlRpcHandlers(controller);
+            const detect = controller.onRequest.withArgs(
+                AzureSqlDatabaseRequests.DetectContainerEngines,
+            ).firstCall.args[1];
+            const results = await detect(undefined, CancellationToken.None);
+            expect(results[ContainerEngine.Docker].success).to.be.true;
+            expect(results[ContainerEngine.Podman].success).to.be.false;
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                "DetectContainerEngines",
+                sinon.match({
+                    additionalProps: {
+                        dockerDetected: "true",
+                        podmanDetected: "false",
+                        hostArchitecture: os.arch(),
+                        hostOS: os.platform(),
+                        workflowCorrelationId: "container-workflow",
+                        status: "succeeded",
+                    },
+                }),
+            );
+            expect(JSON.stringify(telemetry.sendActionEvent.args)).not.to.include("private-");
+        });
+
+        for (const success of [true, false]) {
+            test(`records prerequisite ${success ? "success" : "failure"} without command output`, async () => {
+                const { controller } = createController();
+                const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+                if (success) {
+                    execute.resolves({ stdout: "private-command-output", stderr: "" });
+                } else {
+                    execute.rejects(new Error("private-command-output"));
+                }
+                registerAzureSqlRpcHandlers(controller);
+                const check = controller.onRequest.withArgs(
+                    AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite,
+                ).firstCall.args[1];
+                const result = await check(
+                    {
+                        engine: ContainerEngine.Podman,
+                        prerequisite: ContainerEnginePrerequisite.Running,
+                    },
+                    CancellationToken.None,
+                );
+                expect(result).to.have.property("success", success);
+                const event = success ? telemetry.sendActionEvent : telemetry.sendErrorEvent;
+                expect(event).to.have.been.calledWith(
+                    TelemetryViews.AzureContainer,
+                    "CheckContainerEnginePrerequisite",
+                    sinon.match({
+                        additionalProps: {
+                            containerEngine: ContainerEngine.Podman,
+                            prerequisite: ContainerEnginePrerequisite.Running,
+                            workflowCorrelationId: "container-workflow",
+                            status: success ? "succeeded" : "failed",
+                        },
+                    }),
+                );
+                expect(JSON.stringify(event.args)).not.to.include("private-command-output");
+            });
+        }
+
+        test("measures startup separately from registry pull attempts and attributes the container workflow", async () => {
+            const clock = sandbox.useFakeTimers();
+            const { controller, complete } = createController();
+            const executeStep = sandbox.stub().callsFake(async (_engine, step) => {
+                clock.tick(step === AzureSqlContainerProvisioningStep.PullImage ? 100 : 25);
+                return { success: true };
+            });
+            await runAzureSqlContainerDeployment(
+                controller,
+                ContainerEngine.Podman,
+                validForm(),
+                AzureSqlContainerProvisioningStep.PullImage,
+                new AbortController().signal,
+                sandbox.stub(),
+                executeStep,
+            );
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                TelemetryActions.PullImage,
+                sinon.match({
+                    additionalProps: {
+                        containerEngine: ContainerEngine.Podman,
+                        hostArchitecture: os.arch(),
+                        hostOS: os.platform(),
+                        initiatedBy: "VSCode",
+                        registry: "ACR",
+                        pullType: "requested",
+                        status: "succeeded",
+                        workflowCorrelationId: "container-workflow",
+                    },
+                    additionalMeasurements: { durationInMs: 100 },
+                }),
+            );
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                "StartContainer",
+                sinon.match({
+                    additionalProps: { status: "succeeded" },
+                    additionalMeasurements: { durationInMs: 50 },
+                }),
+            );
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                TelemetryActions.ConnectToContainer,
+                sinon.match({ additionalProps: { status: "succeeded" } }),
+            );
+            expect(controller.recordDeploymentStarted).to.have.been.calledWith(
+                DeploymentType.AzureSqlContainer,
+            );
+            expect(complete).to.have.been.calledWith(
+                BackgroundTaskState.Succeeded,
+                sinon.match.object,
+            );
+        });
+
+        test("measures a readiness retry without repeating the pull or container creation", async () => {
+            const clock = sandbox.useFakeTimers();
+            const { controller } = createController();
+            const executeStep = sandbox.stub().callsFake(async () => {
+                clock.tick(25);
+                return { success: true };
+            });
+            await runAzureSqlContainerDeployment(
+                controller,
+                ContainerEngine.Docker,
+                validForm(),
+                AzureSqlContainerProvisioningStep.WaitForReady,
+                new AbortController().signal,
+                sandbox.stub(),
+                executeStep,
+                true,
+            );
+            expect(telemetry.sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                "StartContainer",
+                sinon.match({
+                    additionalProps: {
+                        startStep: AzureSqlContainerProvisioningStep.WaitForReady,
+                        isRetry: "true",
+                        status: "succeeded",
+                    },
+                    additionalMeasurements: { durationInMs: 25 },
+                }),
+            );
+            expect(executeStep).not.to.have.been.calledWith(
+                sinon.match.any,
+                AzureSqlContainerProvisioningStep.CreateContainer,
+            );
+            expect(telemetry.sendActionEvent).not.to.have.been.calledWith(
+                TelemetryViews.AzureContainer,
+                TelemetryActions.PullImage,
+            );
+        });
+
+        for (const cancelled of [false, true]) {
+            test(`records ${cancelled ? "cancellation" : "failure"} without continuing or including raw errors`, async () => {
+                const { controller, complete } = createController();
+                const abort = new AbortController();
+                const onStepComplete = sandbox.stub();
+                const executeStep = sandbox.stub().callsFake(async () => {
+                    if (cancelled) {
+                        abort.abort();
+                        return { success: true };
+                    }
+                    throw new Error("private-command-output");
+                });
+                await runAzureSqlContainerDeployment(
+                    controller,
+                    ContainerEngine.Docker,
+                    validForm(),
+                    AzureSqlContainerProvisioningStep.CreateContainer,
+                    abort.signal,
+                    onStepComplete,
+                    executeStep,
+                    true,
+                );
+                const event = cancelled ? telemetry.sendActionEvent : telemetry.sendErrorEvent;
+                expect(event).to.have.been.calledWith(
+                    TelemetryViews.AzureContainer,
+                    "AzureSqlContainerProvisioningStep",
+                    sinon.match({
+                        additionalProps: {
+                            step: AzureSqlContainerProvisioningStep.CreateContainer,
+                            status: cancelled ? "cancelled" : "failed",
+                            isRetry: "true",
+                        },
+                    }),
+                );
+                expect(event).to.have.been.calledWith(
+                    TelemetryViews.AzureContainer,
+                    "StartContainer",
+                    sinon.match({
+                        additionalProps: {
+                            status: cancelled ? "cancelled" : "failed",
+                            isRetry: "true",
+                        },
+                    }),
+                );
+                expect(event).to.have.been.calledWith(
+                    TelemetryViews.AzureContainer,
+                    "FinishAzureSqlContainerDeployment",
+                    sinon.match({
+                        additionalProps: { status: cancelled ? "cancelled" : "failed" },
+                    }),
+                );
+                expect(executeStep).not.to.have.been.calledWith(
+                    sinon.match.any,
+                    AzureSqlContainerProvisioningStep.WaitForReady,
+                );
+                expect(onStepComplete).to.have.been.calledWith(
+                    AzureSqlContainerProvisioningStep.CreateContainer,
+                    sinon.match({ success: false }),
+                );
+                expect(complete).to.have.been.calledWith(
+                    cancelled ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
+                    sinon.match.object,
+                );
+                expect(JSON.stringify(event.args)).not.to.include("private-command-output");
+            });
+        }
     });
 
     test("completes background provisioning after controller disposal", async () => {
