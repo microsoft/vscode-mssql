@@ -4,22 +4,34 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 
 import { CodeAnalysisWebViewController } from "../../src/codeAnalysis/codeAnalysisWebViewController";
-import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
+import {
+    CodeAnalysis as ExtLoc,
+    SqlProjects as SqlProjectsLoc,
+} from "../../src/constants/locConstants";
+import { cmdRestoreDatabaseProjectPackages } from "../../src/constants/constants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
 import {
     CodeAnalysisRuleInfo,
     GetCodeAnalysisRulesResult,
+    GetDatabaseReferencesResult,
     GetProjectPropertiesResult,
 } from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
-import { customRulesCategory, SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
+import {
+    customRulesCategory,
+    restorePackagesButtonId,
+    SqlCodeAnalysisRule,
+} from "../../src/sharedInterfaces/codeAnalysis";
 import { DialogMessageSpec } from "../../src/sharedInterfaces/dialogMessage";
 import { stubTelemetry, stubWebviewPanel } from "./utils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
@@ -702,6 +714,176 @@ suite("CodeAnalysisWebViewController Tests", () => {
             await getInternalController().loadRules();
 
             expect(controller.state.rules[0].category).to.equal("Performance");
+        });
+    });
+
+    suite("package restore", () => {
+        let projectDir: string;
+        let projectPath: string;
+
+        const sampleRulesReference = { packageName: "SampleRules", packageVersion: "1.0.4" };
+
+        setup(() => {
+            projectDir = fs.mkdtempSync(path.join(os.tmpdir(), "codeAnalysisRestore-"));
+            projectPath = path.join(projectDir, "TestProject.sqlproj");
+            sqlProjectsServiceStub.getDatabaseReferences.resolves({
+                success: true,
+                errorMessage: undefined,
+                nugetPackageReferences: [sampleRulesReference],
+            } as unknown as GetDatabaseReferencesResult);
+        });
+
+        teardown(() => {
+            fs.rmSync(projectDir, { recursive: true, force: true });
+        });
+
+        /** Writes an obj/project.assets.json that resolves SampleRules at the given version. */
+        function writeAssetsFile(version: string): void {
+            fs.mkdirSync(path.join(projectDir, "obj"), { recursive: true });
+            fs.writeFileSync(
+                path.join(projectDir, "obj", "project.assets.json"),
+                JSON.stringify({
+                    libraries: { [`SampleRules/${version}`]: { type: "package" } },
+                    project: {
+                        frameworks: {
+                            "net8.0": {
+                                dependencies: {
+                                    SampleRules: { target: "Package", version: `[${version}, )` },
+                                },
+                            },
+                        },
+                    },
+                    logs: [],
+                }),
+            );
+        }
+
+        function getRestoreHandler() {
+            const handler = getInternalController()._reducerHandlers.get("restorePackages");
+            expect(handler, "restorePackages reducer handler should be registered").to.not.be
+                .undefined;
+            return handler!;
+        }
+
+        test("warns with a restore button when the restored package is out of date", async () => {
+            writeAssetsFile("1.0.3");
+            createController(projectPath);
+
+            await getInternalController().loadRules();
+
+            expect(controller.state.message, "out-of-sync packages should warn").to.deep.equal({
+                message: ExtLoc.packagesOutOfSync,
+                intent: "warning",
+                buttons: [{ id: restorePackagesButtonId, label: ExtLoc.restorePackages }],
+            });
+        });
+
+        test("prefers the restore warning over the STS warning", async () => {
+            createController(projectPath);
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: mockRules,
+                warning: "Custom rules unavailable — run dotnet restore first.",
+            } as GetCodeAnalysisRulesResult);
+
+            await getInternalController().loadRules();
+
+            expect(controller.state.message?.message).to.equal(ExtLoc.packagesOutOfSync);
+        });
+
+        test("does not warn when the restored packages match the project", async () => {
+            writeAssetsFile("1.0.4");
+            createController(projectPath);
+
+            await getInternalController().loadRules();
+
+            expect(controller.state.message, "in-sync packages should not warn").to.be.undefined;
+        });
+
+        test("restores packages and refreshes the rule list", async () => {
+            writeAssetsFile("1.0.3");
+            createController(projectPath);
+            await getInternalController().loadRules();
+
+            const customRule: CodeAnalysisRuleInfo = {
+                ...mockRules[0],
+                ruleId: "SampleRules.SR9999",
+                shortRuleId: "SR9999",
+                isBuiltIn: false,
+            };
+            const executeCommandStub = sandbox
+                .stub(vscode.commands, "executeCommand")
+                .callsFake(async () => {
+                    writeAssetsFile("1.0.4");
+                    dacFxServiceStub.getCodeAnalysisRules.resolves({
+                        success: true,
+                        errorMessage: undefined,
+                        rules: [...mockRules, customRule],
+                    } as GetCodeAnalysisRulesResult);
+                    return true;
+                });
+
+            const newState = (await getRestoreHandler()(
+                controller.state,
+                {},
+            )) as typeof controller.state;
+
+            expect(
+                executeCommandStub,
+                "restore should run for this project",
+            ).to.have.been.calledWith(cmdRestoreDatabaseProjectPackages, projectPath);
+            expect(newState.message, "warning should clear once in sync").to.be.undefined;
+            expect(newState.isLoading, "loading should finish after the refresh").to.be.false;
+            expect(
+                newState.rules.map((rule) => rule.shortRuleId),
+                "rules should be reloaded after the restore",
+            ).to.include("SR9999");
+        });
+
+        test("surfaces a failed restore with a retry button", async () => {
+            writeAssetsFile("1.0.3");
+            const { telemetryStubs } = createController(projectPath);
+            await getInternalController().loadRules();
+            sandbox.stub(vscode.commands, "executeCommand").resolves(false);
+            dacFxServiceStub.getCodeAnalysisRules.resetHistory();
+
+            const newState = (await getRestoreHandler()(
+                controller.state,
+                {},
+            )) as typeof controller.state;
+
+            expect(newState.message, "the failure should replace the warning").to.deep.equal({
+                message: SqlProjectsLoc.projRestoreFailed(undefined),
+                intent: "error",
+                buttons: [{ id: restorePackagesButtonId, label: ExtLoc.restorePackages }],
+            });
+            expect(newState.isLoading, "loading should finish after a failed restore").to.be.false;
+            expect(
+                dacFxServiceStub.getCodeAnalysisRules,
+                "rules should not reload after a failed restore",
+            ).to.not.have.been.called;
+            expect(telemetryStubs.sendErrorEvent).to.have.been.calledWith(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.CodeAnalysisPackagesRestoreError,
+                sinon.match({ additionalProps: { operationId: sinon.match.string } }),
+            );
+        });
+
+        test("includes the error when the restore command throws", async () => {
+            createController(projectPath);
+            await getInternalController().loadRules();
+            sandbox
+                .stub(vscode.commands, "executeCommand")
+                .rejects(new Error("project could not be opened"));
+
+            const newState = (await getRestoreHandler()(
+                controller.state,
+                {},
+            )) as typeof controller.state;
+
+            expect(newState.message?.intent).to.equal("error");
+            expect(newState.message?.message).to.contain("project could not be opened");
         });
     });
 });

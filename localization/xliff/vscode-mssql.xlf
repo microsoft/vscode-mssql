@@ -10489,6 +10489,9 @@
     <trans-unit id="++CODE++ebfdfdb72b66a8a33a1322c64fae8c62b6a01bfb134cbaafb5b5d6b37a316aab">
       <source xml:lang="en">Restore editor and results split</source>
     </trans-unit>
+    <trans-unit id="++CODE++5b6163363cf9ecad20fbeba3079c09e532b24cfdc98df74e6c614ec48cf3ca61">
+      <source xml:lang="en">Restore packages</source>
+    </trans-unit>
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
     </trans-unit>
@@ -10500,6 +10503,9 @@
     </trans-unit>
     <trans-unit id="++CODE++895708605b1fa1662e072cf1b8faa934c1132cea6fb96969355bd3bbde6d8831">
       <source xml:lang="en">Restore the stacked results view</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c0872820a2ed27cff47bceebfb66b6fb376fa46130b2bce9cdca937fa8c789a">
+      <source xml:lang="en">Restoring NuGet packages...</source>
     </trans-unit>
     <trans-unit id="++CODE++059715b1246f29c5dd30aa69328e5185f7f5153f5c40a1c3951e16505df5542f">
       <source xml:lang="en">Restrict access to the restored database</source>
@@ -13338,6 +13344,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c812fadcca5e5a7389f189316b90b012f95494d986319f1c2fcb24af42d5ecb8">
+      <source xml:lang="en">This project&apos;s NuGet packages are not restored or are out of date with the project file, so custom code analysis rules may be missing or stale. Restore the packages to update the rules.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
