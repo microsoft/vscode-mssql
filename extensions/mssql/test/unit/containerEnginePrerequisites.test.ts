@@ -22,6 +22,7 @@ import {
 import * as containerEngine from "../../src/docker/containerEngine";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
+import { stubTelemetry } from "./utils";
 
 use(sinonChai);
 
@@ -30,6 +31,7 @@ suite("Container engine prerequisites", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        stubTelemetry(sandbox);
     });
 
     teardown(() => sandbox.restore());
@@ -48,6 +50,7 @@ suite("Container engine prerequisites", () => {
                     stderr: "",
                 }));
             const controller = sandbox.createStubInstance(DeploymentWebviewController);
+            sandbox.stub(controller, "workflowCorrelationId").get(() => "container-workflow");
             registerAzureSqlRpcHandlers(controller);
             const check = controller.onRequest.withArgs(
                 AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite,
