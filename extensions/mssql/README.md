@@ -9,6 +9,16 @@
 
 The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
 
+## Need a database for a new project?
+
+Create a new cloud development database with the Azure SQL Database free tier:
+
+1. Install the MSSQL extension, then follow [Create an Azure SQL Database](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration) to open **Deployments** and select **Create an Azure SQL Database**.
+2. Review the [free tier's eligibility, monthly allowances, and pause or paid-overage behavior](https://learn.microsoft.com/azure/azure-sql/database/free-tier) before creating resources. An Azure account and eligible subscription are required; supporting services can have separate charges.
+3. After provisioning, verify the intended database and follow [Use an existing database](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-run-first-query#use-an-existing-database) to create a sample table and run your first query. Skip the quickstart's generic database-creation step.
+
+Already have a database? Continue with [Using the MSSQL Extension](#using-the-mssql-extension) to connect to your existing SQL Server or Azure SQL database. Creating a cloud database is optional.
+
 ## Explore and Learn
 
 [![MSSQL Extension Demo Playlist](https://raw.githubusercontent.com/microsoft/vscode-mssql/main/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
@@ -31,7 +41,7 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [Object Explorer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#object-explorer-filtering)       | Browse and filter database objects with type-aware search                                                          |
 | [Database Object Search](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations#database-object-search)            | Search for tables, views, stored procedures, and other objects across a database                                   |
 | [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration)                                        | Browse Fabric workspaces and provision SQL databases                                                               |
-| [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane)                | View, sort, copy, and export query results                                                                         |
+| [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane)                | View, sort, filter, copy, and export query results, and freeze, show, or hide columns                              |
 | [Query Plan Visualizer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-plan-visualizer)     | Analyze execution plans with interactive node navigation                                                           |
 | [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                                | Real-time database activity monitoring with Extended Events                                                        |
 | [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer)                   | Create and manage tables with a visual interface                                                                   |
@@ -55,13 +65,15 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [GitHub Copilot in Data API builder](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-data-api-builder)                          | Generate Data API builder configs using natural language                                                           |
 | [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration)                            | Create and connect to free tier Azure SQL database                                                                 |
 | [Shortcuts Configuration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#shortcuts-configuration) | Create and manage keyboard shortcuts for Quick Queries, Query Editor, and Results Grid                             |
+| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter)                                                                                                      | SQL formatter with more formatting options                                                                         |
 
 ### Public Preview
 
-| Capability                                                                                                                                                                      | Description                                                                      |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [New Query Results Grid](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#query-results-pane) | New results grid experience with more column customizations (freeze, show, hide) |
-| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter)                                                                                                                      | New T-SQL formatter, enabled by default, with more formatting options            |
+| Capability                                                                                                                         | Description                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container) | Create and manage Azure SQL Database containers locally                                       |
+| [Local to Azure SQL deployment wizard](https://aka.ms/vscode-mssql-local-to-cloud-deployment)                                      | Deploy a local database to a free-tier Azure SQL database                                     |
+| [Query performance dashboard](https://aka.ms/vscode-mssql-querystore)                                                              | Analyze query performance, explore execution plans, and optimize queries with GitHub Copilot. |
 
 ## Using the MSSQL Extension
 
@@ -216,7 +228,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // Query Results & Grid
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
-  "mssql.preview.betaResultsGrid": true,                   // (Preview) New results grid; set to false to use the legacy grid
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"

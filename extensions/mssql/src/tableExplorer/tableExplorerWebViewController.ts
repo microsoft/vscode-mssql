@@ -16,6 +16,7 @@ import {
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
@@ -108,6 +109,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerRpcHandlers();
     }
 
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(this._connectionManager, this.state.ownerUri);
+    }
+
     private onEditSessionReady(result: EditSessionReadyParams): void {
         if (result.success) {
             this.state.ownerUri = result.ownerUri;
@@ -115,6 +120,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this.operationId,
                 },
@@ -148,6 +154,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
 
         sendErrorEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+            ...getConnectionTelemetryInfo(this._connectionManager, result.ownerUri),
             error: new Error("Edit session failed to initialize"),
             includeErrorMessage: true,
             additionalProps: {
@@ -221,6 +228,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     await this._connectionManager.connect(ownerUri, connectionCreds);
                 }
             }
+            endActivity.update(getConnectionTelemetryInfo(this._connectionManager, ownerUri));
 
             await this._tableExplorerService.initialize(
                 ownerUri,
@@ -492,6 +500,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CommitChanges,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -560,6 +569,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.LoadSubset,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -650,6 +660,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CreateRow,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -729,6 +740,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.DeleteRow,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -856,6 +868,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.UpdateCell,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1014,6 +1027,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertCell,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1144,6 +1158,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertRow,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1282,6 +1297,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.GenerateScript,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1353,6 +1369,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Opening script in SQL editor - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this.operationId,
                     context: "scriptEditor",
@@ -1389,6 +1406,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Copying script to clipboard - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.CopyResults, {
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this.operationId,
                     context: "script",
@@ -1428,6 +1446,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Close, {
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this.operationId,
                     context: "scriptPane",
@@ -1457,6 +1476,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.SaveResults,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1554,6 +1574,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Showing table query pane - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this.operationId,
                 },
@@ -1585,6 +1606,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RunTableQuery,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1712,6 +1734,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.ModifyTable,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1765,6 +1788,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.ViewTableDiagram,
                 {
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1833,6 +1857,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 });
                 await vscode.window.showTextDocument(doc, { preview: false });
                 sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                    ...this.telemetryContext,
                     additionalProps: {
                         operationId: this.operationId,
                         context: "showSql",

@@ -80,6 +80,15 @@ declare module "vscode-mssql" {
          */
         serverEdition: string;
 
+        /** Service tier of the current database, when exposed by the engine. */
+        databaseServiceTier?: string;
+
+        /** Service objective of the current database, when exposed by the engine. */
+        databaseServiceObjective?: string;
+
+        /** Connection target tags derived from the connection's endpoint. */
+        serverTypes?: string[];
+
         /**
          * Whether the SQL Server instance is running in the cloud (Azure) or not.
          */
@@ -316,6 +325,11 @@ declare module "vscode-mssql" {
          * connection is not hosted by a container
          */
         containerName: string | undefined;
+
+        /**
+         * Container engine used for lifecycle commands; omitted for legacy Docker profiles.
+         */
+        containerEngine?: "docker" | "podman" | "containerd" | "appleContainer" | "wslContainer";
     }
 
     /**

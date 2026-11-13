@@ -12,6 +12,7 @@ import {
     AzureSqlContainerProvisioningStep,
     AzureSqlDatabaseRequests,
     ContainerEngine,
+    azureSqlContainerProvisioningSteps as provisioningSteps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import {
     DeploymentReducers,
@@ -25,13 +26,6 @@ import { DeploymentStepCard } from "../deploymentStepCard";
 import { WhatsNextCard } from "../whatsNextCard";
 import { getContainerEngineDisplayName } from "./azureSqlDatabaseContainerEnginePage";
 import { ContainerDeploymentError } from "./containerDeploymentError";
-
-const provisioningSteps = [
-    AzureSqlContainerProvisioningStep.PullImage,
-    AzureSqlContainerProvisioningStep.CreateContainer,
-    AzureSqlContainerProvisioningStep.WaitForReady,
-    AzureSqlContainerProvisioningStep.Connect,
-] as const;
 
 const useStyles = makeStyles({
     outer: {

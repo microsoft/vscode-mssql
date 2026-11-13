@@ -22,6 +22,12 @@ const FLAG_ORDER: readonly (keyof OeV2NodeCapabilities & string)[] = [
     "canSearch",
     "canCopyName",
     "canCopyQualifiedName",
+    "canOpenQuery",
+    "canSelectTop",
+    "canGenerateScript",
+    "canScriptCreate",
+    "canScriptAlter",
+    "canScriptExecute",
 ];
 
 /** Serialize capabilities (+node kind) into the tree-item context value. */
@@ -51,7 +57,7 @@ export function capabilitiesFor(kind: OeV2NodeKind): OeV2NodeCapabilities {
         case "connectingConnection":
             return { canCancelConnect: true };
         case "connectedServer":
-            return { canDisconnect: true, canRefresh: true };
+            return { canDisconnect: true, canRefresh: true, canOpenQuery: true };
         case "lostConnection":
             return { canConnect: true, canDisconnect: true };
         case "connectionGroup":

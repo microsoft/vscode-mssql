@@ -52,7 +52,7 @@ export interface SearchableDropdownOptions {
     /**
      * Optional text color for the option
      */
-    color?: keyof typeof tokens;
+    color?: string;
 }
 
 export interface SearchableDropdownProps {
@@ -169,6 +169,13 @@ const getOptionDisplayText = (option: SearchableDropdownOptions, placeholder?: s
         return placeholder;
     }
     return optionText;
+};
+
+const getOptionTextColor = (color: string | undefined): string | undefined => {
+    if (!color || !(color in tokens)) {
+        return undefined;
+    }
+    return tokens[color as keyof typeof tokens];
 };
 
 const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
@@ -766,9 +773,8 @@ const SearchableDropdownCore = (props: SearchableDropdownCoreProps) => {
                                                   : "transparent",
                                             color: isSelected
                                                 ? "var(--vscode-list-activeSelectionForeground)"
-                                                : option.color
-                                                  ? tokens[option.color]
-                                                  : "var(--vscode-editorWidget-foreground, var(--vscode-foreground))",
+                                                : (getOptionTextColor(option.color) ??
+                                                  "var(--vscode-editorWidget-foreground, var(--vscode-foreground))"),
                                         }}>
                                         <div
                                             style={{

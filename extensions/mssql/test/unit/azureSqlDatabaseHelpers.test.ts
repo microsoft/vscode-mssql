@@ -24,8 +24,13 @@ import {
 import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
-import { registerAzureSqlDatabaseReducers } from "../../src/deployment/azureSqlDatabaseHelpers";
-import { stubTelemetry } from "./utils";
+import {
+    applyAuthenticationSelection,
+    applyServerAuthSettings,
+    initializeAzureSqlDatabaseState,
+    registerAzureSqlDatabaseReducers,
+} from "../../src/deployment/azureSqlDatabaseHelpers";
+import { stubLogger, stubTelemetry } from "./utils";
 import MainController from "../../src/controllers/mainController";
 import {
     BackgroundTaskHandle,
@@ -34,20 +39,75 @@ import {
 } from "../../src/backgroundTasks/backgroundTasksService";
 import { locConstants } from "../../src/webviews/common/locConstants";
 import { AzureSqlDatabaseInfoPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseInfoPage";
+import { AzureSqlDatabaseDeploymentComplete } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseDeploymentComplete";
+import { AzureSqlDatabaseReviewPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseReviewPage";
 
 chai.use(sinonChai);
+
+suite("Shared Azure SQL deployment completion", () => {
+    test("shows the free-tier database and Azure resource details in the finished view", () => {
+        const strings = locConstants.azureSqlDatabase;
+        const markup = renderToStaticMarkup(
+            createElement(AzureSqlDatabaseDeploymentComplete, {
+                databaseName: "Free DB",
+                metadata: [
+                    { label: strings.server, value: "free-server", sql: true },
+                    { label: strings.resourceGroup, value: "free-resources" },
+                    { label: strings.subscription, value: "Test subscription" },
+                    { label: strings.region, value: "West US" },
+                ],
+            }),
+        );
+        expect(markup).to.include(locConstants.azureSqlDatabase.deploymentReady);
+        for (const value of [
+            "Free DB",
+            "free-server",
+            "free-resources",
+            "Test subscription",
+            "West US",
+        ]) {
+            expect(markup).to.include(value);
+        }
+        expect(markup).to.include('role="status"');
+        expect(markup).not.to.include(locConstants.azureSqlDatabase.connectingToDatabase);
+    });
+
+    test("supports migration-specific metadata, post-deployment actions, logs and scripts", () => {
+        const strings = locConstants.azureSqlDatabase;
+        const markup = renderToStaticMarkup(
+            createElement(
+                AzureSqlDatabaseDeploymentComplete,
+                {
+                    databaseName: "Migrated DB",
+                    metadata: [
+                        { label: strings.deploymentSource, value: "Local inventory", sql: true },
+                        { label: strings.deploymentSchema, value: strings.deploymentObjects(12) },
+                    ],
+                    actions: createElement("button", {}, strings.openInAzurePortal),
+                    cardFooter: createElement("button", {}, strings.deploymentLog),
+                },
+                createElement("div", {}, strings.deploymentScriptsDescription),
+            ),
+        );
+        for (const value of [
+            "Migrated DB",
+            "Local inventory",
+            strings.deploymentObjects(12),
+            strings.openInAzurePortal,
+            strings.deploymentLog,
+            strings.deploymentScriptsDescription,
+        ]) {
+            expect(markup).to.include(value);
+        }
+    });
+});
 
 suite("Azure SQL Database terminology", () => {
     const messages = [
         {
             key: "azureSqlDatabaseDescription",
             expected:
-                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
-        },
-        {
-            key: "freeDescription",
-            expected:
-                "Try Azure SQL Database at no cost with the free tier \u2014 a fully managed cloud database, ready for your app, ORM, or migration tools.",
+                "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
         },
         {
             key: "freeLimitBehavior",
@@ -73,9 +133,7 @@ suite("Azure SQL Database terminology", () => {
     test("renders the working free tier documentation link", () => {
         const markup = renderToStaticMarkup(createElement(AzureSqlDatabaseInfoPage));
 
-        expect(markup).to.include(
-            'href="https://learn.microsoft.com/azure/azure-sql/database/free-offer"',
-        );
+        expect(markup).to.include('href="https://aka.ms/sqlfreeoffer"');
         expect(markup).to.include(locConstants.azureSqlDatabase.learnMoreAboutFreeTier);
     });
 });
@@ -129,6 +187,7 @@ suite("Azure SQL Database reducers", () => {
         reducers = new Map();
         controller = sandbox.createStubInstance(DeploymentWebviewController);
         sandbox.stub(controller, "state").value(controllerState);
+        sandbox.stub(controller, "workflowCorrelationId").get(() => "workflow-id");
         completeTaskStub = sandbox.stub();
         const taskHandle: BackgroundTaskHandle = {
             id: "azure-provisioning-task",
@@ -162,6 +221,124 @@ suite("Azure SQL Database reducers", () => {
         expect(reducer, `${name} reducer should be registered`).to.exist;
         return reducer!;
     }
+
+    test("migration review uses free tier wording and omits free-limit behavior", () => {
+        const markup = renderToStaticMarkup(
+            createElement(AzureSqlDatabaseReviewPage, {
+                source: {
+                    id: "local-source",
+                    profileName: "Local connection",
+                    server: "localhost",
+                    database: "Local DB",
+                    isConnected: true,
+                },
+                result: {
+                    validationId: "validation-id",
+                    sourceId: "local-source",
+                    database: "Local DB",
+                    deploymentContent: "schemaOnly",
+                    target: "AzureSqlDatabase",
+                    status: "passed",
+                    diagnostics: [],
+                },
+                azureState: azureSqlState,
+            }),
+        );
+
+        expect(markup).to.include("Azure SQL Database · Free tier");
+        expect(markup).not.to.include("Free offer");
+        expect(markup).not.to.include("Free limit");
+        expect(markup).not.to.include("Pause until next month");
+        for (const value of [
+            "Local DB",
+            azureSqlState.formState.databaseName,
+            locConstants.azureSqlDatabase.schemaOnly,
+            locConstants.azureSqlDatabase.reviewCompatibilityPassed,
+            locConstants.azureSqlDatabase.reviewAzureLocation,
+        ]) {
+            expect(markup).to.include(value);
+        }
+    });
+
+    for (const [name, administrators, expectedTypes] of [
+        ["SQL-only", undefined, [AuthenticationType.SqlLogin]],
+        ["Entra-only", { azureADOnlyAuthentication: true }, [AuthenticationType.AzureMFA]],
+        [
+            "dual-auth",
+            { azureADOnlyAuthentication: false },
+            [AuthenticationType.SqlLogin, AuthenticationType.AzureMFA],
+        ],
+    ] as const) {
+        test(`uses concrete connection authentication for a ${name} server`, async () => {
+            const state = await initializeAzureSqlDatabaseState(
+                controller,
+                [],
+                stubLogger(sandbox),
+                undefined,
+            );
+            state.servers = [
+                {
+                    name: "server",
+                    location: "westus",
+                    administratorLogin: "sql-admin",
+                    administrators,
+                },
+            ];
+            state.formState.serverName = "server";
+            state.formState.password = "previous-server-password";
+            applyServerAuthSettings(state, "server");
+            expect(state.formState.authenticationType).to.equal(expectedTypes[0]);
+            expect(
+                state.formComponents.authenticationType.options.map(({ value }) => value),
+            ).to.deep.equal(expectedTypes);
+            expect(state.formComponents.authenticationType.hidden).to.equal(
+                expectedTypes.length === 1,
+            );
+            expect(state.formState.password).to.equal("");
+            expect(
+                state.formComponents.authenticationType.validate(
+                    state,
+                    AuthenticationType.AzureMFAAndUser,
+                ).isValid,
+            ).to.be.false;
+        });
+    }
+
+    test("switches authentication without carrying SQL credentials into Entra", async () => {
+        const state = await initializeAzureSqlDatabaseState(
+            controller,
+            [],
+            stubLogger(sandbox),
+            undefined,
+        );
+        state.servers = [
+            {
+                name: "server",
+                location: "westus",
+                administratorLogin: "sql-admin",
+                administrators: { azureADOnlyAuthentication: false },
+            },
+        ];
+        state.formState.serverName = "server";
+        applyServerAuthSettings(state, "server");
+        state.formState.password = "sql-password";
+        state.formState.savePassword = true;
+        state.serverCreatedWithAuth = true;
+        state.formState.authenticationType = AuthenticationType.AzureMFA;
+        applyAuthenticationSelection(state);
+        expect(state.formState).to.include({
+            authenticationType: AuthenticationType.AzureMFA,
+            userName: "",
+            password: "",
+            savePassword: false,
+        });
+        expect(state.serverCreatedWithAuth).to.be.false;
+        expect(state.formComponents.password.validate(state, "").isValid).to.be.true;
+        state.formState.authenticationType = AuthenticationType.SqlLogin;
+        applyAuthenticationSelection(state);
+        expect(state.formState.userName).to.equal("sql-admin");
+        expect(state.formComponents.password.validate(state, "").isValid).to.be.false;
+    });
 
     test("loadAzureComponent ignores components that have already started loading", async () => {
         azureSqlState.azureComponentStatuses.tenantId = ApiStatus.Loading;
@@ -480,6 +657,7 @@ suite("Azure SQL Database reducers", () => {
             }),
         );
         expect(azureSqlState.formState.serverName).to.equal("new-server");
+        expect(azureSqlState.formState.authenticationType).to.equal(AuthenticationType.SqlLogin);
         expect(azureSqlState.formState.userName).to.equal("sql-admin");
         expect(azureSqlState.formState.password).to.equal("secret");
         expect(azureSqlState.formState.savePassword).to.be.true;

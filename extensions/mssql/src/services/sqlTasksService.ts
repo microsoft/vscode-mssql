@@ -81,6 +81,7 @@ namespace CancelTaskRequest {
 
 type ActiveTaskInfo = {
     taskInfo: TaskInfo;
+    suppressUI?: boolean;
     backgroundTaskHandle?: BackgroundTaskHandle;
     lastMessage?: string;
     /** Script content received from any notification, used as fallback when script arrives out of order */
@@ -154,6 +155,8 @@ export interface TaskCompletionHandler {
  */
 export const taskCreatedEmitter = new vscode.EventEmitter<TaskInfo>();
 export const onTaskCreated = taskCreatedEmitter.event;
+export const taskProgressEmitter = new vscode.EventEmitter<TaskProgressInfo>();
+export const onTaskProgress = taskProgressEmitter.event;
 
 /**
  * Event that is fired when a task is completed
@@ -174,6 +177,7 @@ export class SqlTasksService {
     private _activeTasks = new Map<string, ActiveTaskInfo>();
     private _completionHandlers = new Map<string, TaskCompletionHandler>();
     private _logger: ILogger;
+    private _taskUISuppressions = new Set<(taskInfo: TaskInfo) => boolean>();
 
     constructor(
         private _client: SqlToolsServiceClient,
@@ -212,6 +216,12 @@ export class SqlTasksService {
         }
     }
 
+    /** Hides task UI while preserving lifecycle events and cancellation. */
+    public suppressTaskUI(matches: (taskInfo: TaskInfo) => boolean): vscode.Disposable {
+        this._taskUISuppressions.add(matches);
+        return new vscode.Disposable(() => this._taskUISuppressions.delete(matches));
+    }
+
     private cancelTask(taskId: string): Thenable<boolean> {
         const params: CancelTaskParams = {
             taskId,
@@ -225,28 +235,32 @@ export class SqlTasksService {
      * @param taskInfo The info for the new task that was created
      */
     private handleTaskCreatedNotification(taskInfo: TaskInfo): void {
+        const suppressUI = [...this._taskUISuppressions].some((matches) => matches(taskInfo));
         const newTaskInfo: ActiveTaskInfo = {
             taskInfo,
-            backgroundTaskHandle: this._backgroundTasksService?.registerTask({
-                displayText: taskInfo.name,
-                description: taskInfo.description,
-                details: this.createBackgroundTaskDetails(taskInfo),
-                target: taskInfo.targetLocation,
-                tooltip: this.createBackgroundTaskTooltip(taskInfo),
-                canCancel: taskInfo.isCancelable,
-                cancel: taskInfo.isCancelable
-                    ? async () => {
-                          await this.cancelTask(taskInfo.taskId);
-                      }
-                    : undefined,
-                source: taskInfo.providerName,
-                message: taskInfo.progressMessage ?? taskInfo.description,
-                state: toBackgroundTaskState(taskInfo.status),
-                percent:
-                    taskInfo.percentComplete !== undefined && taskInfo.percentComplete >= 0
-                        ? taskInfo.percentComplete
-                        : undefined,
-            }),
+            suppressUI,
+            backgroundTaskHandle: suppressUI
+                ? undefined
+                : this._backgroundTasksService?.registerTask({
+                      displayText: taskInfo.name,
+                      description: taskInfo.description,
+                      details: this.createBackgroundTaskDetails(taskInfo),
+                      target: taskInfo.targetLocation,
+                      tooltip: this.createBackgroundTaskTooltip(taskInfo),
+                      canCancel: taskInfo.isCancelable,
+                      cancel: taskInfo.isCancelable
+                          ? async () => {
+                                await this.cancelTask(taskInfo.taskId);
+                            }
+                          : undefined,
+                      source: taskInfo.providerName,
+                      message: taskInfo.progressMessage ?? taskInfo.description,
+                      state: toBackgroundTaskState(taskInfo.status),
+                      percent:
+                          taskInfo.percentComplete !== undefined && taskInfo.percentComplete >= 0
+                              ? taskInfo.percentComplete
+                              : undefined,
+                  }),
         };
         this._activeTasks.set(taskInfo.taskId, newTaskInfo);
 
@@ -266,6 +280,7 @@ export class SqlTasksService {
             this._logger.warn(`Status update for unknown task ${taskProgressInfo.taskId}`);
             return;
         }
+        taskProgressEmitter.fire(taskProgressInfo);
         const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status, this._logger);
         if (
             taskProgressInfo.message &&
@@ -320,6 +335,10 @@ export class SqlTasksService {
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.
             this._activeTasks.delete(taskProgressInfo.taskId);
+
+            if (taskInfo.suppressUI) {
+                return;
+            }
 
             const targetLocation = handler
                 ? handler.getTargetLocation(taskInfo.taskInfo)

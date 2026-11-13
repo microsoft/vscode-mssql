@@ -1,0 +1,1288 @@
+/* Query Studio — M0 shell densities (doc 01 §3/§7): toolbar 35px, status
+   24px, 2px radii max, VS Code tokens only, no ornamental chrome. */
+
+/* The DOCUMENT never scrolls — panes own their scrollbars. `100%` (not
+   `100vh`) keeps the shell exactly the size of the #root clip container:
+   vh answers "viewport" questions the iframe can get subtly wrong (zoom,
+   scrollbar gutters), and any mismatch surfaces as a document scrollbar
+   with dead space under the status bar. */
+body {
+    overflow: hidden;
+}
+
+.qs-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-foreground);
+    font-size: 13px;
+}
+
+.qs-toolbar {
+    height: 35px;
+    flex: 0 0 35px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    background: var(--vscode-editorWidget-background);
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    user-select: none;
+}
+
+.qs-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.qs-btn:hover:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-btn:disabled {
+    color: var(--vscode-disabledForeground);
+    cursor: default;
+}
+.qs-btn.primary {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+.qs-btn:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+/* Narrow chevron half of a split button (Change ▾) */
+.qs-btn.qs-btn-chevron {
+    padding: 0 2px;
+    margin-left: -4px;
+}
+.qs-database {
+    min-width: 120px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qs-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--vscode-editorWidget-border);
+    margin: 0 3px;
+}
+
+.qs-spacer {
+    flex: 1;
+}
+
+.qs-muted {
+    color: var(--vscode-descriptionForeground);
+    padding: 0 6px;
+    user-select: none;
+}
+
+.qs-editor {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.qs-statusbar {
+    height: 24px;
+    flex: 0 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 8px;
+    background: var(--vscode-statusBar-background);
+    color: var(--vscode-statusBar-foreground);
+    font-size: 12px;
+    border-top: 1px solid var(--vscode-panel-border);
+    user-select: none;
+}
+
+/* The message is the only variable-length segment: it alone yields under
+   width pressure, truncating with an ellipsis instead of wrapping the fixed
+   24px row onto a second line. */
+.qs-status-message {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+.qs-status-message[data-kind="error"] {
+    background: var(--vscode-statusBarItem-errorBackground);
+    padding: 0 6px;
+}
+.qs-status-message[data-kind="warning"] {
+    background: var(--vscode-statusBarItem-warningBackground);
+    padding: 0 6px;
+}
+
+.qs-status-seg {
+    padding: 0 8px;
+    border-left: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.qs-status-tran {
+    color: var(--vscode-statusBarItem-warningForeground, inherit);
+    background: var(--vscode-statusBarItem-warningBackground, transparent);
+    font-weight: 600;
+}
+
+/* --- results region (doc 01 §4.4-4.6) --- */
+
+.qs-splitter {
+    height: 4px;
+    flex: 0 0 4px;
+    cursor: ns-resize;
+    background: var(--vscode-editorWidget-border);
+    user-select: none;
+}
+.qs-splitter:hover {
+    background: var(--vscode-focusBorder);
+}
+
+.qs-results {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+}
+
+.qs-results-tabs {
+    height: 30px;
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 2px;
+    background: var(--vscode-editorWidget-background);
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    user-select: none;
+}
+
+.qs-tab {
+    height: 24px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 2px 2px 0 0;
+    background: transparent;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    font-size: 12px;
+}
+.qs-tab.active {
+    color: var(--vscode-foreground);
+    border-bottom: 2px solid var(--vscode-focusBorder);
+}
+.qs-tab.has-errors {
+    color: var(--vscode-errorForeground);
+}
+
+.qs-tabbar-btn {
+    width: 26px;
+    height: 24px;
+    min-width: 26px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.qs-tabbar-btn:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-tabbar-btn:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.qs-streaming {
+    padding-right: 8px;
+    font-style: italic;
+    user-select: none;
+}
+
+.qs-text-view,
+.qs-text-view-loading {
+    height: 100%;
+    min-height: 0;
+}
+.qs-text-view-loading {
+    padding: 10px;
+    font-style: italic;
+    color: var(--vscode-descriptionForeground);
+}
+
+.qs-text-view {
+    display: flex;
+    flex-direction: column;
+}
+.qs-text-view-editor {
+    flex: 1;
+    min-height: 0;
+}
+
+.qs-results-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 6px;
+}
+.qs-results-body-panels {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+.qs-tab-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: auto;
+    padding: 4px 6px;
+}
+.qs-tab-panel[hidden] {
+    display: none !important;
+}
+.qs-tab-panel-fill {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.qs-pane-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 96px;
+    color: var(--vscode-errorForeground);
+}
+/* Fill mode (single result set, or a maximized grid): the grid's own
+   virtualized scrollbar is THE scrollbar — the pane itself never scrolls,
+   so there is exactly one scrollbar and no dead space (issue A). */
+.qs-results-body-fill {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.qs-query-plan-view {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
+.qs-grid-block {
+    margin-bottom: 8px;
+    position: relative;
+}
+.qs-grid-fill {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+}
+.qs-grid-fill > :not(.qs-grid-body) {
+    flex: 0 0 auto;
+}
+.qs-grid-fill > .qs-grid-body {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+/* Hosts the FluentResultGrid (heightMode fill — 100% of this box). Stacked
+   grids get an inline pixel height from the sizing-v2 layout; fill mode
+   flexes to the pane. */
+.qs-grid-body {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+}
+.qs-grid-surface {
+    height: 100%;
+    min-height: 0;
+}
+.qs-grid-surface [data-fluent-result-grid-toolbar="true"] [role="toolbar"] {
+    height: 100%;
+    min-height: 0;
+}
+.qs-grid-surface [data-fluent-result-grid-toolbar="true"] [data-overflow-menu] {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px;
+    flex-shrink: 0;
+}
+.qs-grid-surface .fluent-result-grid .slick-cell,
+.qs-grid-surface .fluent-result-grid .slick-cell .grid-cell-value-container,
+.qs-grid-surface .fluent-result-grid .slick-cell .fluent-result-grid-row-number {
+    cursor: default;
+    user-select: none;
+}
+.qs-grid-surface .fluent-result-grid .slick-cell a.grid-cell-value-container {
+    cursor: pointer;
+    pointer-events: auto;
+}
+.qs-grid-surface .fluent-result-grid .slick-cell span.grid-cell-value-container,
+.qs-grid-surface .fluent-result-grid .slick-cell .fluent-result-grid-row-number {
+    pointer-events: none;
+}
+.qs-grid-selecting .fluent-result-grid .slick-row:hover {
+    outline: none;
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.even:hover
+    .slick-cell:where(
+        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
+    ) {
+    background-color: var(--fluent-result-grid-row-even-background);
+    color: var(--fluent-result-grid-foreground);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.odd:hover
+    .slick-cell:where(
+        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
+    ) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+    color: var(--fluent-result-grid-foreground);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row:hover
+    .slick-cell.cell-null:not(.selected):not(.active) {
+    background-color: var(--fluent-result-grid-null-cell-background);
+    color: var(--fluent-result-grid-null-cell-foreground);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.even:hover
+    .slick-cell:where(.fluent-result-grid-row-number-cell) {
+    background-color: var(--fluent-result-grid-row-even-background);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.odd:hover
+    .slick-cell:where(.fluent-result-grid-row-number-cell) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+}
+.qs-grid-surface
+    .fluent-result-grid
+    .slick-row.even
+    .slick-cell:where(
+        .fluent-result-grid-row-number-cell.active,
+        .fluent-result-grid-row-number-cell.selected
+    ) {
+    background-color: var(--fluent-result-grid-row-even-background);
+    color: var(--fluent-result-grid-table-header-foreground);
+}
+.qs-grid-surface
+    .fluent-result-grid
+    .slick-row.odd
+    .slick-cell:where(
+        .fluent-result-grid-row-number-cell.active,
+        .fluent-result-grid-row-number-cell.selected
+    ) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+    color: var(--fluent-result-grid-table-header-foreground);
+}
+/* Stay mounted (scroll/sort/selection state) while another grid is maximized. */
+.qs-grid-hidden {
+    display: none;
+}
+/* Maximize/restore control on the grid caption strip. */
+.qs-grid-max {
+    margin-left: auto;
+    height: 20px;
+    padding: 0 4px;
+}
+
+.qs-grid-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 22px;
+    font-size: 12px;
+    user-select: none;
+}
+.qs-grid-caption-title {
+    font-weight: 600;
+}
+
+.qs-cell-link {
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+    text-decoration: underline;
+}
+.qs-cell-link:hover {
+    color: var(--vscode-textLink-activeForeground);
+}
+/* QS-1: "Open execution plan" caption link on plan-flagged result sets. */
+.qs-plan-link {
+    white-space: nowrap;
+}
+
+/* Transient inline note (copy guard / threshold / streaming gating). */
+.qs-grid-notice {
+    padding: 2px 6px;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-bottom: none;
+}
+
+/* Lazy-mount placeholder — same footprint as the mounted grid viewport. */
+.qs-grid-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--vscode-editorWidget-border);
+    background: var(--vscode-editor-background);
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+}
+
+/* --- messages tab --- */
+
+.qs-messages-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    contain: layout paint style;
+}
+.qs-messages-toolbar {
+    flex: 0 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 6px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    user-select: none;
+}
+.qs-messages-copy {
+    height: 22px;
+    padding: 0 6px;
+}
+.qs-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: var(--vscode-editor-font-size, 12px);
+    line-height: 18px;
+}
+.qs-message-row {
+    /* QO-7 virtualization: heights are line-count exact (18px per display
+       line), so rows must not wrap — long lines scroll horizontally, the
+       SSMS messages-pane behavior. */
+    height: auto;
+    min-height: 18px;
+    padding: 0 4px;
+    white-space: pre;
+    tab-size: 4;
+}
+.qs-message-line-link {
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+    font: inherit;
+    text-decoration: underline;
+}
+.qs-message-line-link:hover,
+.qs-message-line-link:active {
+    color: var(--vscode-textLink-activeForeground);
+}
+.qs-message-error {
+    color: var(--vscode-errorForeground);
+}
+.qs-message-warning {
+    color: var(--vscode-editorWarning-foreground);
+}
+.qs-message-nav {
+    cursor: pointer;
+}
+.qs-message-nav:hover {
+    text-decoration: underline;
+}
+.qs-message-server {
+    font-weight: 600;
+}
+
+/* --- B4 parity: db menu, toggles --- */
+
+.qs-db-wrap {
+    position: relative;
+    display: inline-flex;
+}
+.qs-db-menu {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    min-width: 180px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 20;
+}
+.qs-db-item {
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.qs-db-item:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-db-item.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.qs-btn.toggled {
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground);
+    border-color: var(--vscode-inputOption-activeBorder);
+}
+
+/* Text-label toolbar toggle (SQLCMD — SSMS toolbar parity). */
+.qs-btn-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0 6px;
+}
+/* Status-bar SQLCMD badge: rendered only while the mode is ON. */
+.qs-status-sqlcmd {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* --- Pinned results (C2D) ------------------------------------------------ */
+
+/* Per-grid pin button: quiet until the caption row is hovered. */
+.qs-grid-pin {
+    opacity: 0.55;
+    padding: 0 3px;
+}
+.qs-grid-caption:hover .qs-grid-pin,
+.qs-grid-pin:focus-visible {
+    opacity: 1;
+}
+
+.qs-pinned-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.qs-pinned-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    flex: none;
+}
+.qs-pinned-title {
+    font-weight: 600;
+}
+.qs-pinned-root .qs-results-body {
+    flex: 1;
+    overflow: auto;
+    padding: 4px;
+}
+.qs-pinned-root .qs-results-body-panels {
+    overflow: hidden;
+    padding: 0;
+}
+.qs-pinned-root .qs-tab-panel {
+    padding: 4px;
+}
+.qs-pinned-root .qs-results-body-fill {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.qs-pinned-loading {
+    padding: 12px;
+}
+.qs-pinned-expired {
+    max-width: 460px;
+    margin: 48px auto;
+    text-align: center;
+}
+.qs-pinned-expired .codicon-pinned {
+    font-size: 28px;
+    opacity: 0.6;
+}
+
+/* Production safety: when the server-group accent colors the status bar,
+   background + text ride CSS VARIABLES the app sets inline. The !important
+   here must NEVER use inherit on the container itself — that beats the
+   inline style and re-inherits the theme foreground (the unreadable-text
+   dogfood bug). Muted spans also drop their dimming: dimmed text over a
+   saturated accent is exactly the unreadable case. */
+.qs-statusbar-accent {
+    background: var(--qs-accent-bg) !important;
+    color: var(--qs-accent-fg) !important;
+}
+.qs-statusbar-accent .qs-muted,
+.qs-statusbar-accent span,
+.qs-statusbar-accent button {
+    color: var(--qs-accent-fg) !important;
+    opacity: 1;
+}
+/* Production safety: the far-left warning label (Karl 2026-07-10). */
+.qs-status-prod-warning {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding-right: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* --- Vector Workbench (VEC-5; statically hoisted — lazy-chunk CSS must ride
+   the entry stylesheet, cascade discipline per BOOT Entry 17) ------------- */
+.qs-vec-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    /* The pane clips; ONLY .qs-vec-workspace scrolls. Without this, tall
+       workspace content grows the root past the tab panel and the document
+       itself scrolls, stranding dead space under the status bar (issue A). */
+    overflow: hidden;
+    font-size: 13px;
+    color: var(--vscode-foreground);
+}
+.qs-vec-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    min-height: 28px;
+}
+.qs-vec-select {
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 2px 4px;
+    max-width: 320px;
+}
+.qs-vec-scope {
+    font-family: var(--vscode-editor-font-family);
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+.qs-vec-rail {
+    width: 160px;
+    flex: none;
+    border-right: 1px solid var(--vscode-editorWidget-border);
+    padding: 4px 0;
+    overflow-y: auto;
+}
+.qs-vec-rail-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    line-height: 24px;
+    padding: 0 12px;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+}
+.qs-vec-rail-item:hover:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-vec-rail-item.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+    border-left-color: var(--vscode-focusBorder);
+}
+.qs-vec-rail-item:disabled,
+.qs-vec-rail-item[aria-disabled="true"] {
+    color: var(--vscode-disabledForeground);
+    cursor: default;
+}
+.qs-vec-workspace {
+    flex: 1;
+    min-width: 0;
+    /* Shrink guard: as a stretched flex item its min-height defaults to
+       auto, which lets tall content force the row taller than the pane
+       instead of scrolling here. */
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 0 12px 12px;
+}
+.qs-vec-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 24px;
+    text-align: center;
+}
+.qs-vec-error {
+    color: var(--vscode-errorForeground);
+    max-width: 560px;
+}
+.qs-vec-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 18px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+    min-height: 24px;
+    align-items: center;
+}
+.qs-vec-facts label {
+    color: var(--vscode-descriptionForeground);
+    margin-right: 5px;
+}
+.qs-vec-num {
+    font-family: var(--vscode-editor-font-family);
+}
+.qs-vec-muted {
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec-section-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--vscode-descriptionForeground);
+    margin: 14px 0 6px;
+}
+.qs-vec-columns {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+    gap: 0 24px;
+}
+@media (max-width: 960px) {
+    .qs-vec-columns {
+        grid-template-columns: 1fr;
+    }
+}
+.qs-vec-hist {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+}
+.qs-vec-hist-bar {
+    flex: 1;
+    background: var(--vscode-charts-blue);
+    min-height: 0;
+}
+.qs-vec-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.qs-vec-hist-range {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    border-top: 1px solid var(--vscode-editorWidget-border);
+    padding-top: 2px;
+}
+.qs-vec-stats-row {
+    display: flex;
+    gap: 18px;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 12px;
+    padding: 4px 0;
+}
+.qs-vec-stats-row label {
+    display: block;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+}
+.qs-vec-variance {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 16px;
+    font-size: 12px;
+}
+.qs-vec-variance-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 19px;
+}
+.qs-vec-dim {
+    width: 64px;
+    flex: none;
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec-variance-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--vscode-editorWidget-border);
+    border-radius: 1px;
+    overflow: hidden;
+}
+.qs-vec-variance-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--vscode-charts-blue);
+}
+.qs-vec-findings {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.qs-vec-finding {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    color: var(--vscode-foreground);
+    text-align: left;
+    padding: 5px 2px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.qs-vec-finding:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-vec-finding-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.qs-vec-finding-main > .qs-vec-muted {
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+}
+.qs-vec-finding[data-severity="error"] .qs-vec-finding-main > span:first-child {
+    color: var(--vscode-errorForeground);
+}
+.qs-vec-finding[data-severity="warning"] .qs-vec-finding-main > span:first-child {
+    color: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+}
+.qs-vec-drawer {
+    width: 340px;
+    flex: none;
+    border-left: 1px solid var(--vscode-editorWidget-border);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.qs-vec-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec-drawer-close {
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    padding: 0 4px;
+}
+.qs-vec-drawer-body {
+    padding: 8px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+.qs-vec-ordinal-list {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+}
+.qs-vec-ordinal-list li {
+    display: flex;
+    justify-content: space-between;
+    line-height: 22px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+}
+.qs-vec-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 8px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+    font-family: var(--vscode-editor-font-family);
+}
+
+/* VEC-5 fidelity: norm toggle row (mock: L2 | L1 | L∞ + near-0 note). */
+.qs-vec-norm-toggle {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 6px;
+}
+.qs-vec-norm-toggle button {
+    background: none;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    line-height: 18px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+.qs-vec-norm-toggle button.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
+}
+.qs-vec-norm-note {
+    margin-left: auto;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+}
+
+/* --- qs-vec6: Compare + Projection workspaces (VEC-6; statically hoisted —
+   lazy-chunk CSS must ride the entry stylesheet, cascade discipline per
+   BOOT Entry 17). House rules: VS Code tokens only, ≤2px radii, 11px
+   uppercase section labels, mono numerics, flat regions. ------------------ */
+
+/* Shared property rows (label/value, hairline-separated — no cards). */
+.qs-vec6-prop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 22px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec6-prop-label {
+    color: var(--vscode-foreground);
+}
+.qs-vec6-signed {
+    min-width: 64px;
+    text-align: right;
+}
+
+/* Compare: ordinal entry + primary button. */
+.qs-vec6-compare {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+.qs-vec6-input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+}
+.qs-vec6-ordinal-input {
+    flex: 1;
+    max-width: 420px;
+    height: 24px;
+    box-sizing: border-box;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 0 6px;
+}
+.qs-vec6-primary-btn {
+    height: 24px;
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+.qs-vec6-primary-btn:hover:not(:disabled) {
+    background: var(--vscode-button-hoverBackground, var(--vscode-button-background));
+}
+.qs-vec6-primary-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+.qs-vec6-secondary-btn {
+    height: 22px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    font-size: 11.5px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+.qs-vec6-secondary-btn:hover {
+    background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+}
+.qs-vec6-inline-error {
+    font-size: 12px;
+    padding: 2px 0 6px;
+}
+
+/* Compare: basket rows (24px, mono key, badge-free letter prefix). */
+.qs-vec6-basket-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 24px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec6-letter {
+    width: 18px;
+    flex: none;
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec6-basket-key {
+    width: 88px;
+    flex: none;
+}
+.qs-vec6-basket-dims {
+    flex: 1;
+    font-size: 11px;
+}
+.qs-vec6-basket-norm {
+    text-align: right;
+}
+
+/* Compare: metric toggle inside the section label (small text-toggles). */
+.qs-vec6-metric-toggle {
+    display: inline-flex;
+    gap: 2px;
+    margin-right: 4px;
+}
+.qs-vec6-metric-toggle button {
+    background: none;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 10px;
+    line-height: 14px;
+    padding: 0 5px;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.qs-vec6-metric-toggle button.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
+}
+
+/* Compare: pairwise heat matrix (flat cells, 1px gaps, accessible table). */
+.qs-vec6-matrix {
+    border-collapse: separate;
+    border-spacing: 1px;
+    font-size: 11.5px;
+    margin: 2px 0 6px;
+}
+.qs-vec6-matrix th {
+    font-weight: normal;
+    color: var(--vscode-descriptionForeground);
+    text-align: center;
+    padding: 2px 6px;
+}
+.qs-vec6-matrix td {
+    min-width: 64px;
+    height: 24px;
+    text-align: center;
+    padding: 0 8px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--vscode-charts-blue) 4%, transparent);
+}
+
+/* Projection: fixed layout — the pane fills, inner regions scroll. */
+.qs-vec6-projection {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 280px;
+}
+.qs-vec6-proj-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 28px;
+    font-size: 12px;
+}
+.qs-vec6-truth-banner {
+    box-sizing: border-box;
+    max-height: 24px;
+    line-height: 18px;
+    padding: 2px 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 11.5px;
+    background: var(--vscode-inputValidation-warningBackground);
+    border-left: 3px solid var(--vscode-inputValidation-warningBorder);
+    border-radius: 0;
+}
+.qs-vec6-proj-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    margin-top: 6px;
+}
+.qs-vec6-canvas-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 240px;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.qs-vec6-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+.qs-vec6-canvas:active {
+    cursor: grabbing;
+}
+.qs-vec6-zoom-cluster {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.qs-vec6-zoom-cluster button {
+    width: 24px;
+    height: 22px;
+    background: var(--vscode-editorWidget-background);
+    color: var(--vscode-foreground);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+.qs-vec6-zoom-cluster button:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+/* Projection: synchronized virtualized point list (rowH 24). */
+.qs-vec6-point-panel {
+    width: 260px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-left: 8px;
+}
+.qs-vec6-point-header {
+    margin: 0 0 4px;
+}
+.qs-vec6-point-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+}
+.qs-vec6-point-spacer {
+    position: relative;
+}
+.qs-vec6-point-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px;
+    font-size: 12px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.qs-vec6-point-row:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-vec6-point-row.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+.qs-vec6-point-row.active .qs-vec-muted {
+    color: inherit;
+}
+.qs-vec6-swatch {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--vscode-charts-blue);
+    border-radius: 1px;
+}
+.qs-vec6-point-coords {
+    margin-left: auto;
+    font-size: 10px;
+}
+.qs-vec6-sr-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

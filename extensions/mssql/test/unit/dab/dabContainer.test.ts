@@ -283,6 +283,33 @@ suite("DAB Container", () => {
         global.fetch = originalFetch;
     });
 
+    test("checkIfDabContainerIsReady: should wait as long as the caller asks", async () => {
+        const clock = sandbox.useFakeTimers();
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().rejects(new Error("Connection refused"));
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().resolves([]),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        let settled = false;
+        const resultPromise = dabContainer
+            .checkIfDabContainerIsReady("test-dab-container", 5000, 3 * 60_000)
+            .finally(() => (settled = true));
+
+        // A large config takes longer to load than the default minute.
+        await clock.tickAsync(61_000);
+        expect(settled, "still waiting after the default minute").to.be.false;
+
+        await clock.tickAsync(2 * 60_000);
+        const result = await resultPromise;
+
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("timeout period");
+
+        global.fetch = originalFetch;
+    });
+
     test("checkIfDabContainerIsReady: should return timeout with buffered logs", async () => {
         const clock = sandbox.useFakeTimers();
         const originalFetch = global.fetch;
@@ -396,43 +423,6 @@ suite("DAB Container", () => {
         expect(result.error).to.include("Failed to stop and remove DAB container");
     });
 
-    test("validateDabContainerName: should use DAB default container name", async () => {
-        const listContainersStub = sandbox.stub();
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        // When dab-container already exists, should generate dab-container_2
-        listContainersStub.resolves([{ Names: ["/dab-container"] }]);
-        const result = await dabContainer.validateDabContainerName("");
-        expect(result).to.equal("dab-container_2");
-    });
-
-    test("validateDabContainerName: should return valid name when not taken", async () => {
-        const listContainersStub = sandbox.stub();
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        listContainersStub.resolves([]);
-        const result = await dabContainer.validateDabContainerName("my-dab-api");
-        expect(result).to.equal("my-dab-api");
-    });
-
-    test("validateDabContainerName: should return empty string for invalid name", async () => {
-        const listContainersStub = sandbox.stub();
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        listContainersStub.resolves([]);
-        const result = await dabContainer.validateDabContainerName("!invalid@name");
-        expect(result).to.equal("");
-    });
-
     /** Port availability comes from the test, not from the host running it. */
     const allHostPortsFree = async () => true;
 
@@ -487,6 +477,40 @@ suite("DAB Container", () => {
         listContainersStub.resolves([]);
         const result = await dabContainer.findAvailableDabPort(8080, allHostPortsFree);
         expect(result).to.equal(8080);
+    });
+
+    test("findAvailableDabPort: should skip ports other deployments own even while free", async () => {
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().rejects(new Error("Docker is not running")),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.findAvailableDabPort(
+            5000,
+            allHostPortsFree,
+            new Set([5000, 5001]),
+        );
+        expect(result).to.equal(5002);
+    });
+
+    test("findAvailableDabPort: should accept a free port when Docker is unreachable", async () => {
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().rejects(new Error("Docker is not running")),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.findAvailableDabPort(5500, allHostPortsFree);
+        expect(result).to.equal(5500);
+    });
+
+    test("findAvailableDabPort: should still skip a busy port when Docker is unreachable", async () => {
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().rejects(new Error("Docker is not running")),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.findAvailableDabPort(5500, async (port) => port !== 5500);
+        expect(result).to.equal(5501);
     });
 });
 

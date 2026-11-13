@@ -32,13 +32,13 @@ import {
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 
 /**
- * Clipboard and cell-formatting coverage for the preview results grid.
+ * Clipboard and cell-formatting coverage for the results grid.
  *
  * The fixture query runs once for the whole file; each test operates on the grid that is already
  * on screen and hands it back in the state it found it. That is what keeps the suite inside its
  * time budget - re-running the query per test would cost seconds, relaunching VS Code a minute.
  */
-test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
+test.describe("MSSQL Extension - Results Grid Clipboard", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 
@@ -297,15 +297,22 @@ test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
         await expect.poll(() => readClipboard(electronApp)).toContain(GUID_VALUE.toUpperCase());
     });
 
-    test("copying a rectangle preserves its row and column layout", async () => {
-        const { electronApp, page } = getContext();
-        await clearClipboard(electronApp);
-        await clickCell(grid, 0, 0);
-        await clickCell(grid, 1, 1, { modifiers: ["Shift"] });
-        await page.keyboard.press(`${getModifierKey()}+C`);
-        await expect.poll(() => readClipboard(electronApp)).toContain("1\tAda");
-        expect(await readClipboard(electronApp)).toContain("2\t  Bo");
-    });
+    for (const method of ["drag", "shift-click"] as const) {
+        test(`copying a rectangle selected by ${method} preserves its row and column layout`, async () => {
+            const { electronApp, page } = getContext();
+            await clearClipboard(electronApp);
+            if (method === "drag") {
+                await getCell(grid, 0, 0).dragTo(getCell(grid, 1, 1));
+            } else {
+                await clickCell(grid, 0, 0);
+                await clickCell(grid, 1, 1, { modifiers: ["Shift"] });
+            }
+            await expect(grid.locator(".slick-cell.selected")).toHaveCount(4);
+            await page.keyboard.press(`${getModifierKey()}+C`);
+            await expect.poll(() => readClipboard(electronApp)).toContain("1\tAda");
+            expect(await readClipboard(electronApp)).toContain("2\t  Bo");
+        });
+    }
 
     test("the copy-with-headers shortcut includes both selected column names", async () => {
         const { electronApp, page } = getContext();

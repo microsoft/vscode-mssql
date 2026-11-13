@@ -12,6 +12,7 @@ import * as chai from "chai";
 
 import { setTimeout } from "timers/promises";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { Answers } from "../../src/sharedInterfaces/userSurvey";
 import {
     FunnelSteps,
     NEVER_KEY,
@@ -20,6 +21,8 @@ import {
     UserSurvey,
     UserSurveyWebviewController,
     getGithubIssueText,
+    getStandardNPSQuestions,
+    sendSurveyTelemetry,
 } from "../../src/nps/userSurvey";
 import {
     TestFeature,
@@ -62,6 +65,50 @@ suite("UserSurvey Tests", () => {
         const instance = UserSurvey.getInstance();
         expect(instance).to.equal(UserSurvey.getInstance());
     });
+
+    test("includes an optional job role without changing required rating questions", () => {
+        const { questions } = getStandardNPSQuestions();
+        expect(questions.filter((question) => question.type === "jobRole")).to.deep.equal([
+            {
+                id: "jobRole",
+                type: "jobRole",
+                required: false,
+                otherAnswerId: "jobRoleOther",
+            },
+        ]);
+        expect(
+            questions
+                .filter((question) => question.type !== "divider" && question.required)
+                .map((question) => question.type),
+        ).to.deep.equal(["nps", "nsat"]);
+    });
+
+    const roleAnswerCases: Answers[] = [
+        {},
+        { jobRole: "applicationDeveloper" },
+        { jobRole: "other", jobRoleOther: "Technical program manager" },
+    ];
+    for (const roleAnswers of roleAnswerCases) {
+        test(`submits feedback with role answers ${JSON.stringify(roleAnswers)}`, () => {
+            stubPreviewService(sandbox, {});
+            sendSurveyTelemetry("nps", { nps: 8, nsat: 3, ...roleAnswers }, testSurveySource);
+
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.UserSurvey,
+                TelemetryActions.SurveySubmit,
+                {
+                    additionalProps: {
+                        surveyId: "nps",
+                        experimentalFeaturesEnabled: "false",
+                        surveySource: testSurveySource,
+                        previewFeatureOverrides: "{}",
+                        ...roleAnswers,
+                    },
+                    additionalMeasurements: { nps: 8, nsat: 3 },
+                },
+            );
+        });
+    }
 
     test("Should call promptUserForNPSFeedbackAsync when promptUserForNpsFeedback is called", async () => {
         const userSurvey = UserSurvey.getInstance();

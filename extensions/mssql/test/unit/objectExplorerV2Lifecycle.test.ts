@@ -16,6 +16,11 @@ import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2Se
 import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oeV2MetadataCoordinator";
 import { prepareConnection } from "../../src/services/metadata/profileAuthAdapter";
 import type { ISqlSession } from "../../src/services/sqlDataPlane/api";
+import { SqlDataPlaneService } from "../../src/services/sqlDataPlane/sqlDataPlaneService";
+import { FAKE_CAPABILITIES } from "../../src/services/sqlDataPlane/fakeBackend";
+import { MetadataStoreService } from "../../src/services/metadata/metadataStoreService";
+import { MetadataStore } from "../../src/services/metadata/metadataStore";
+import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 
 const flush = () => new Promise<void>((resolve) => setImmediate(resolve));
 
@@ -28,6 +33,123 @@ suite("Object Explorer v2 lifecycle", () => {
     teardown(() => {
         subscriptions.forEach((subscription) => subscription.dispose());
         sandbox.restore();
+    });
+
+    for (const containerName of [undefined, "new-container"]) {
+        test(`new ${containerName ? "container" : "ordinary"} profile connects at the correct credential boundary`, async () => {
+            let profiles: Array<{
+                id: string;
+                server: string;
+                authenticationType: string;
+                containerName?: string;
+            }> = [];
+            const changes = new vscode.EventEmitter<vscode.ConfigurationChangeEvent>();
+            subscriptions.push(changes);
+            sandbox.stub(vscode.workspace, "onDidChangeConfiguration").callsFake(changes.event);
+            const commands = new Map<string, (...args: unknown[]) => unknown>();
+            sandbox.stub(vscode.commands, "registerCommand").callsFake((name, callback) => {
+                commands.set(name, callback);
+                return new vscode.Disposable(() => undefined);
+            });
+            sandbox
+                .stub(vscode.window, "createTreeView")
+                .returns({ dispose: () => undefined } as vscode.TreeView<never>);
+            const connect = sandbox
+                .stub(OeV2TreeController.prototype, "connectProfile")
+                .resolves(true);
+            activateObjectExplorerV2({ subscriptions } as vscode.ExtensionContext, {
+                instantiationService: {} as OeV2ActivationDeps["instantiationService"],
+                profiles: {
+                    readAllConnections: async () => profiles,
+                    readAllConnectionGroups: async () => [],
+                    lookupPassword: async () => undefined,
+                    removeProfile: async () => undefined,
+                } as OeV2ActivationDeps["profiles"],
+                tokens: { acquireSqlAccessToken: async () => undefined },
+                isEnabled: () => true,
+            });
+            await flush();
+            profiles = [
+                {
+                    id: "new-profile",
+                    server: "localhost",
+                    authenticationType: "SqlLogin",
+                    containerName,
+                },
+            ];
+            changes.fire({
+                affectsConfiguration: (section) => section === "mssql.connections",
+            } as vscode.ConfigurationChangeEvent);
+            await flush();
+            if (containerName) {
+                expect(connect).not.to.have.been.called;
+                // The wizard explicitly connects once profile and secret are saved.
+                await commands.get("mssql.objectExplorerV2.connectProfileById")!("new-profile");
+            }
+            expect(connect).to.have.been.calledWith("new-profile");
+        });
+    }
+
+    test("expanding an Entra connection forwards token acquisition through activation", async () => {
+        const profile = {
+            id: "entra",
+            server: "server.database.windows.net",
+            authenticationType: "AzureMFA",
+            accountId: "account",
+            tenantId: "tenant",
+            email: "user@example.test",
+        };
+        const tokens = { acquireSqlAccessToken: sandbox.stub().resolves("token-canary") };
+        const session = {
+            info: { sessionId: "entra-session" },
+            onDidChangeState: () => ({ dispose: () => undefined }),
+            close: async () => undefined,
+        } as unknown as ISqlSession;
+        const dataPlane = sandbox.createStubInstance(SqlDataPlaneService);
+        sandbox.stub(SqlDataPlaneService, "get").returns(dataPlane);
+        sandbox.stub(dataPlane, "enabled").get(() => true);
+        dataPlane.availability.returns({
+            state: "available",
+            backend: "test",
+            capabilities: FAKE_CAPABILITIES,
+        });
+        dataPlane.openSessionWithFallback.callsFake(async (params) => {
+            expect(params.profile.authKind).to.equal("aad");
+            expect(await params.auth?.tokenProvider?.()).to.equal("token-canary");
+            expect(JSON.stringify(params.profile)).not.to.include("token-canary");
+            return { session };
+        });
+        const metadata = sandbox.createStubInstance(MetadataStoreService);
+        metadata.store.returns(sandbox.createStubInstance(MetadataStore));
+        sandbox.stub(MetadataStoreService, "get").returns(metadata);
+        sandbox.stub(OeV2MetadataCoordinator.prototype, "ensureServer").resolves();
+        let provider: vscode.TreeDataProvider<OeV2Node>;
+        sandbox.stub(vscode.window, "createTreeView").callsFake((_id, options) => {
+            provider = options.treeDataProvider as vscode.TreeDataProvider<OeV2Node>;
+            return { dispose: () => undefined } as vscode.TreeView<never>;
+        });
+        sandbox
+            .stub(vscode.commands, "registerCommand")
+            .returns(new vscode.Disposable(() => undefined));
+        activateObjectExplorerV2({ subscriptions } as vscode.ExtensionContext, {
+            instantiationService: {} as OeV2ActivationDeps["instantiationService"],
+            profiles: {
+                readAllConnections: async () => [profile],
+                readAllConnectionGroups: async () => [],
+                lookupPassword: async () => undefined,
+                removeProfile: async () => undefined,
+            } as OeV2ActivationDeps["profiles"],
+            tokens,
+            isEnabled: () => true,
+        });
+        const root = (await provider!.getChildren())!.find(
+            (node) => node.connectionId === profile.id,
+        )!;
+        await provider!.getChildren(root);
+        expect(tokens.acquireSqlAccessToken).to.have.been.calledWithMatch(profile);
+        expect(
+            (await provider!.getChildren())!.find((node) => node.connectionId === profile.id)?.kind,
+        ).to.equal("connectedServer");
     });
 
     test("disposing a registry during profile replacement prevents the replacement open", async () => {
@@ -98,6 +220,7 @@ suite("Object Explorer v2 lifecycle", () => {
                     lookupPassword: async () => undefined,
                     removeProfile: async () => undefined,
                 } as OeV2ActivationDeps["profiles"],
+                tokens: { acquireSqlAccessToken: async () => undefined },
                 legacyConnections: { connect: async () => true, disconnect: async () => true },
                 isEnabled: () => enabled,
             });

@@ -8,6 +8,114 @@ import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsC
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
+    public get queryStudioCore() {
+        return {
+            mSSQLInlineSQLCompletionAccepted: l10n.t("MSSQL inline SQL completion accepted"),
+            pinThisResultSetToAReadOnly: l10n.t("Pin this result set to a read-only tab"),
+            pinResultSet: l10n.t("Pin result set"),
+            pRODUCTIONConnectionModificationsWillAskForConfirmation: l10n.t(
+                "PRODUCTION connection — modifications will ask for confirmation",
+            ),
+            synchronizeBeforeActionFailed: l10n.t(
+                "Could not synchronize editor changes. Try again before saving or running the query.",
+            ),
+            results: l10n.t("Results"),
+            messages: l10n.t("Messages"),
+            queryPlan: l10n.t("Query Plan"),
+            queryStudioToolbar: l10n.t("Query Studio toolbar"),
+            changeConnection: l10n.t("Change connection"),
+            connectToASQLServer: l10n.t("Connect to a SQL Server"),
+            change: l10n.t("Change"),
+            connect: l10n.t("Connect"),
+            moreConnectionCommands: l10n.t("More connection commands"),
+            disconnect: l10n.t("Disconnect"),
+            changeDatabase: l10n.t("Change database"),
+            connectFirst: l10n.t("Connect first"),
+            loading: l10n.t("Loading…"),
+            executeF5CtrlE: l10n.t("Execute (F5 / Ctrl+E)"),
+            execute: l10n.t("Execute"),
+            cancelExecutingQueryAltB: l10n.t("Cancel executing query (Alt+B)"),
+            parseSyntaxCheckOnly: l10n.t("Parse (syntax check only)"),
+            displayEstimatedExecutionPlan: l10n.t("Display estimated execution plan"),
+            includeActualExecutionPlanAppliesToNextExecute: l10n.t(
+                "Include actual execution plan (applies to next execute)",
+            ),
+            toggleSQLCMDModeSetvarConnectROnError: l10n.t(
+                "Toggle SQLCMD mode (:setvar, :connect, :r, :on error, $(variables))",
+            ),
+            sQLCMD: l10n.t("SQLCMD"),
+            toggleResultsPaneCtrlR: l10n.t("Toggle results pane (Ctrl+R)"),
+            traceRecordingDigests: l10n.t("Trace: recording digests"),
+            pinAllResultsToAReadOnlyTab: l10n.t(
+                "Pin all results to a read-only tab that survives reruns",
+            ),
+            pinAllResults: l10n.t("Pin all results"),
+            switchToGridView: l10n.t("Switch to Grid View"),
+            switchToTextView: l10n.t("Switch to Text View"),
+            openInNewTab: l10n.t("Open in New Tab"),
+            openQueryPlanInNewTab: l10n.t("Open query plan in new tab"),
+            restoreEditorAndResultsSplit: l10n.t("Restore editor and results split"),
+            maximizeResultsPane: l10n.t("Maximize results pane"),
+            streaming: l10n.t("streaming…"),
+            wARNINGPRODUCTION: l10n.t("WARNING: PRODUCTION"),
+            sQLCMDModeIsOn: l10n.t("SQLCMD mode is on"),
+            valueOpenTransactionSOnThisSessionCOMMIT: (value0: string) =>
+                l10n.t(
+                    "{0} open transaction(s) on this session — COMMIT or ROLLBACK, or they roll back on disconnect",
+                    value0,
+                ),
+            tRAN: l10n.t("TRAN ("),
+            serverProcessId: l10n.t("Server process id"),
+            sPID: l10n.t("SPID"),
+            ln: l10n.t("Ln"),
+            col: l10n.t(", Col"),
+            loadingResultsView: l10n.t("Loading results view…"),
+            couldNotBeRendered: (label: string) => l10n.t("{0} could not be rendered.", label),
+            pinnedResults: l10n.t("Pinned Results"),
+            textViewWaitingForResults: l10n.t(
+                "Text output updates when each result set finishes loading.",
+            ),
+            retryValue: (value0: string) => l10n.t("Retry {0}", value0),
+            result: l10n.t("Result"),
+            truncatedValue: (value0: string) => l10n.t(" · truncated ({0})", value0),
+            streaming2: l10n.t(" · streaming…"),
+            openInTheExecutionPlanViewer: l10n.t("Open in the execution plan viewer"),
+            openExecutionPlan: l10n.t("Open execution plan"),
+            restoreTheStackedResultsView: l10n.t("Restore the stacked results view"),
+            maximizeThisGridToFillTheResultsPane: l10n.t(
+                "Maximize this grid to fill the results pane",
+            ),
+            restoreStackedView: l10n.t("Restore stacked view"),
+            maximizeGrid: l10n.t("Maximize grid"),
+            scrollToLoad: l10n.t("— scroll to load"),
+            goToLineValue: (value0: string) => l10n.t("Go to line {0}", value0),
+            copyAllMessages: l10n.t("Copy all messages"),
+            copyAll: l10n.t("Copy All"),
+            noMessages: l10n.t("No messages."),
+            loadingPinnedResults: l10n.t("Loading pinned results…"),
+            thesePinnedResultsAreNoLongerAvailable: l10n.t(
+                "These pinned results are no longer available",
+            ),
+            pinnedResultsLiveInMemoryForThisWindow: l10n.t(
+                "Pinned results live in memory for this window session. They are released when the tab closes, when the window reloads, or when the retention limit or time-to-live is reached. Re-run the query and pin the results again.",
+            ),
+            resultSet: l10n.t("result set"),
+            pinnedValue: (value0: string) => l10n.t(" · pinned {0}", value0),
+            readOnly: l10n.t("· read-only"),
+            resultsValue: (value0: string) => l10n.t("Results{0}", value0),
+            messagesValue: (value0: string) => l10n.t("Messages{0}", value0),
+            loadingMessages: l10n.t("Loading messages…"),
+            loadingPlanView: l10n.t("Loading plan view…"),
+            couldNotStartTheRun: l10n.t("Could not start the run."),
+            couldNotSwitchDatabase: l10n.t("Could not switch database."),
+            executionPlanCouldNotBeLoaded: l10n.t("Execution plan could not be loaded."),
+            database: l10n.t("Database"),
+            readyNotConnected: l10n.t("Ready — not connected"),
+            value0Ms: (value0: string) => l10n.t("{0}ms", value0),
+            queryResults: l10n.t("Query results"),
+        };
+    }
+
     private static _instance = new LocConstants();
     private constructor() {}
 
@@ -17,6 +125,575 @@ export class LocConstants {
 
     public static createInstance(): void {
         LocConstants._instance = new LocConstants();
+    }
+
+    public get inlineCompletionDebug() {
+        return {
+            detailText1: l10n.t("Queued for replay..."),
+            detailText2: (value0: string) => l10n.t("Skipped{0}", value0),
+            detailText3: l10n.t("selecting model"),
+            detailText4: l10n.t("checking model access"),
+            detailText5: l10n.t("building schema context"),
+            detailText6: l10n.t("counting input tokens"),
+            detailText7: l10n.t("counting trimmed input tokens"),
+            detailText8: l10n.t("waiting for model response"),
+            detailText9: l10n.t("reading model response"),
+            detailText10: l10n.t("counting output tokens"),
+            detailText11: l10n.t("not saved yet"),
+            detailText12: l10n.t(
+                "Event detail is no longer available (dropped from the live ring).",
+            ),
+            detailText13: l10n.t("Couldn't load event detail — select the event again to retry."),
+            detailText14: l10n.t("Event"),
+            detailText15: l10n.t("Time"),
+            detailText16: l10n.t("Document"),
+            detailText17: (value0: string, value1: string, value2: string) =>
+                l10n.t("{0} | Ln {1}, Col {2}", value0, value1, value2),
+            detailText18: l10n.t("Trigger"),
+            detailText19: l10n.t("Mode"),
+            detailText20: (value0: string, value1: string) =>
+                l10n.t("{0} | intentMode={1}", value0, value1),
+            detailText21: l10n.t("Model"),
+            detailText22: l10n.t("Result"),
+            detailText23: l10n.t("Latency"),
+            detailText24: l10n.t("Tokens"),
+            detailText25: (value0: string, value1: string) =>
+                l10n.t("in={0} | out={1}", value0, value1),
+            detailText26: l10n.t("LM Request"),
+            detailText27: l10n.t("Schema"),
+            detailText28: (value0: string, value1: string, value2: string) =>
+                l10n.t("{0} objs | system={1} | fks={2}", value0, value1, value2),
+            detailText29: l10n.t("stripped fences"),
+            detailText30: l10n.t("removed echoed line prefix"),
+            detailText31: l10n.t("trimmed host-only text"),
+            detailText32: l10n.t("truncated at completion limit"),
+            detailText33: (value0: string) => l10n.t("{0} ms", value0),
+            detailText34: (value0: string) => l10n.t("{0} ms (pending)", value0),
+            detailText35: l10n.t("in flight"),
+            detailText36: (value0: string) => l10n.t("cell {0}", value0),
+            detailText37: (value0: string) => l10n.t("src {0}", value0),
+            detailText38: l10n.t("Captured schema"),
+            detailText39: (value0: string) => l10n.t("{0}ms", value0),
+            detailText40: (value0: string) => l10n.t("{0}s", value0),
+            detailText41: (value0: string, value1: string) => l10n.t("{0}m {1}s", value0, value1),
+            detailText42: (value0: string) => l10n.t("{0}s ago", value0),
+            detailText43: (value0: string) => l10n.t("{0}m ago", value0),
+            detailText44: l10n.t("Maximum schemas listed in the prompt-ready context."),
+            detailText45: l10n.t("Maximum detailed table entries after relevance ranking."),
+            detailText46: l10n.t("Maximum detailed view entries after relevance ranking."),
+            detailText47: l10n.t("Maximum detailed procedure and function entries."),
+            detailText48: l10n.t("Maximum columns emitted for each detailed table or view."),
+            detailText49: l10n.t("Maximum foreign keys kept for each detailed table."),
+            detailText50: l10n.t("Additional table names shown without column details."),
+            detailText51: l10n.t("Additional view names shown without column details."),
+            detailText52: l10n.t("Additional routine names shown without parameter details."),
+            detailText53: l10n.t("Maximum system catalog and DMV objects shown."),
+            detailText54: l10n.t("Maximum extracted SQL/name terms used for relevance scoring."),
+            detailText55: l10n.t("Maximum parameters emitted for each detailed routine."),
+            detailText56: l10n.t(
+                "Object count at or below which small-schema expansion can include more detail.",
+            ),
+            detailText57: l10n.t("Object count where large-schema compaction starts."),
+            detailText58: l10n.t("Object count where inventory-first outlier safeguards kick in."),
+            detailText59: l10n.t(
+                "Hard character budget for formatted schema context before degradation.",
+            ),
+            detailText60: l10n.t(
+                "Optional token budget for formatted schema context before degradation.",
+            ),
+            detailText61: l10n.t(
+                "How long fetched schema metadata remains cached for this connection.",
+            ),
+            detailText62: l10n.t("Custom"),
+            detailText63: l10n.t("Balanced (default)"),
+            detailText64: l10n.t("Session-only debug settings"),
+            detailText65: l10n.t("Schema context budget"),
+            detailText66: l10n.t("Shape"),
+            detailText67: l10n.t("Column representation"),
+            detailText68: l10n.t(
+                "Controls whether columns are names only, types without nullability, or verbose definitions.",
+            ),
+            detailText69: l10n.t(
+                "Promotes directly or indirectly related foreign-key tables into detailed context.",
+            ),
+            detailText70: l10n.t("Include routines"),
+            detailText71: l10n.t(
+                "Includes procedures and scalar/table-valued functions in the schema context.",
+            ),
+            detailText72: l10n.t("Recency bias"),
+            detailText73: l10n.t(
+                "Weights terms near the cursor more strongly during schema ranking.",
+            ),
+            detailText74: l10n.t("Size adaptivity"),
+            detailText75: l10n.t("Adaptive"),
+            detailText76: l10n.t("Changes strategy for small, medium, large, and outlier schemas."),
+            detailText77: l10n.t("Caps"),
+            detailText78: l10n.t("Prompt budgets"),
+            detailText79: l10n.t("Weights"),
+            detailText80: l10n.t("Default schema weight"),
+            detailText81: l10n.t("Adds relevance to objects in the connection default schema."),
+            detailText82: (value0: string) => l10n.t("Column-name relevance {0}", value0),
+            detailText83: l10n.t("Multiplier for matches between query terms and column names."),
+            detailText84: l10n.t("Cache"),
+            detailText85: l10n.t("Prompt assembly"),
+            detailText86: l10n.t("Message order"),
+            detailText87: l10n.t("Orders the rules and data messages sent to the language model."),
+            detailText88: l10n.t("Schema channel"),
+            detailText89: l10n.t(
+                "Places schema context inside the data message or in its own message.",
+            ),
+            detailText90: l10n.t("Continuation"),
+            detailText91: l10n.t("Intent"),
+            detailText92: l10n.t("Sessions"),
+            detailText93: l10n.t("Filename"),
+            detailText94: l10n.t("Source"),
+            detailText95: l10n.t("Saved"),
+            detailText96: l10n.t("Events"),
+            detailText97: l10n.t("Size"),
+            detailText98: l10n.t("Profile"),
+            detailText99: l10n.t("Schema"),
+            detailText100: l10n.t("Replay"),
+            detailText101: (value0: string) =>
+                l10n.t("{0} (right-click to add to replay trace)", value0),
+            detailText102: l10n.t("model x profile x schema"),
+            detailText103: (
+                value0: string,
+                value1: string,
+                value2: string,
+                value3: string,
+                value4: string,
+                value5: string,
+            ) =>
+                l10n.t(
+                    "{0}: {1} / {2} = {3}/{4} · cohort: {5}",
+                    value0,
+                    value1,
+                    value2,
+                    value3,
+                    value4,
+                    value5,
+                ),
+            detailText104: l10n.t("Group"),
+            detailText105: (value0: string) => l10n.t("{0} ms", value0),
+            detailText106: l10n.t("No events"),
+            detailText107: (value0: string) => l10n.t("{0} ms", value0),
+            detailText108: l10n.t(
+                "Journal-backed capture session from the local observability store (read-only; retention owns deletion)",
+            ),
+            detailText109: l10n.t("Trace file added explicitly"),
+            detailText110: l10n.t("Trace file from the configured trace folder"),
+            detailText111: (value0: string) => l10n.t("{0} MB", value0),
+            detailText112: (value0: string) => l10n.t("{0} KB", value0),
+            detailText113: (value0: string) => l10n.t("{0}s", value0),
+            detailText114: (value0: string) => l10n.t("{0}ms", value0),
+            detailText115: (value0: string) => l10n.t("{0}M", value0),
+            detailText116: (value0: string) => l10n.t("{0}k", value0),
+            cancellingWaitingForTheActiveItem: l10n.t("Cancelling — waiting for the active item…"),
+            schemasCapturedAxisDisabled: l10n.t("Schemas · captured (axis disabled)"),
+            selectAtLeastOneProfileAndSchema: l10n.t("Select at least one profile and schema."),
+            configModelProfileSchema: l10n.t("Config (model · profile · schema)"),
+            promptPreview: l10n.t("Prompt preview"),
+            snapshot: l10n.t("snapshot"),
+            override: l10n.t("override"),
+            defaultLiveModel: l10n.t("Default live model"),
+            clearOverride: l10n.t("Clear override"),
+            useLiveSettings: l10n.t("Use live settings"),
+            capturedSnapshotReadOnly: l10n.t("Captured snapshot (read-only)"),
+            rulesThenData: l10n.t("Rules then data"),
+            inlineWithData: l10n.t("Inline with data"),
+            dataThenRules: l10n.t("Data then rules"),
+            separateMessage: l10n.t("Separate message"),
+            exportCSV: l10n.t("Export CSV"),
+            aICompletionsEnabledOpenAConnectedSql: l10n.t(
+                "AI completions enabled — open a connected .sql editor and start typing.",
+            ),
+            settingsSavedReloadTheVSCodeWindow: l10n.t(
+                "Settings saved. Reload the VS Code window to activate AI completions.",
+            ),
+            aICompletionsDisabled: l10n.t("AI completions disabled."),
+            completions: l10n.t("Completions"),
+            enablement: l10n.t("Enablement"),
+            profile: l10n.t("profile"),
+            model: l10n.t("· model"),
+            vendors: l10n.t("· vendors"),
+            diagnostics: l10n.t("· diagnostics"),
+            traceCapture: l10n.t("· trace capture"),
+            disableAICompletions: l10n.t("Disable AI completions"),
+            enableAICompletions: l10n.t("✦ Enable AI completions"),
+            fullFidelityPromptsResponsesSchemaContextReplay: l10n.t(
+                "Full fidelity: prompts, responses, schema context, replay",
+            ),
+            enableWrites: l10n.t("Enable writes"),
+            andQuietsGitHubCopilotForSQL: l10n.t("and quiets GitHub Copilot for SQL ("),
+            githubCopilotEnableSqlFalse: l10n.t("github.copilot.enable.sql = false"),
+            reloadIsRequiredAfterFirstEnablementCompletions: l10n.t(
+                '). Reload is required after first enablement. Completions also need a language model (GitHub Copilot Chat, or an SDK provider + API key via the "Set … API Key" commands) and a connected .sql editor for schema context.',
+            ),
+            loading: l10n.t("loading…"),
+            loadingDebugTools: l10n.t("loading debug tools…"),
+            liveActivitySubstrateRedacted: l10n.t("Live activity (substrate, redacted)"),
+            noCompletionActivityInThisSource: l10n.t("No completion activity in this source"),
+            time: l10n.t("time"),
+            type: l10n.t("type"),
+            status: l10n.t("status"),
+            triggerStage: l10n.t("trigger/stage"),
+            result: l10n.t("result"),
+            latency: l10n.t("latency"),
+            value0Ms: (value0: string) => l10n.t("{0}ms", value0),
+            value0Traces1Events: (value0: string, value1: string) =>
+                l10n.t("{0} traces · {1} events", value0, value1),
+            value0IncludedTraceFiles1IncludedEvents: (value0: string, value1: string) =>
+                l10n.t("{0} included trace files, {1} included events", value0, value1),
+            traceFolderIsScannedWhenTheSessions: l10n.t(
+                "Trace folder is scanned when the Sessions tab is opened.",
+            ),
+            live: l10n.t("Live"),
+            sessions: l10n.t("Sessions"),
+            vscodeMssqlCopilotCompletionDebug: l10n.t("vscode-mssql · copilot-completion-debug"),
+            close: l10n.t("Close"),
+            customSystemPrompt: l10n.t("Custom system prompt"),
+            storedInWorkspaceStateMementoInternalTestingOnly: l10n.t(
+                "Stored in workspaceState memento | internal testing only | takes effect on next completion",
+            ),
+            placeholders: l10n.t("Placeholders:"),
+            inferredSystemQuery: l10n.t("{{inferredSystemQuery}}"),
+            intentMode: l10n.t("{{intentMode}}"),
+            schemaContext: l10n.t("{{schemaContext}}"),
+            linePrefix: l10n.t("{{linePrefix}}"),
+            statementPrefix: l10n.t("{{statementPrefix}}"),
+            charsLastSaved: l10n.t("chars | last saved"),
+            resetToDefault: l10n.t("Reset to default"),
+            cancel: l10n.t("Cancel"),
+            saveAmpUseCustom: l10n.t("Save & use custom"),
+            selectAnEventToInspectItsPrompt: l10n.t(
+                "Select an event to inspect its prompt and response.",
+            ),
+            loading2: l10n.t("Loading …"),
+            summary: l10n.t("Summary"),
+            systemPrompt: l10n.t("System Prompt"),
+            userPrompt: l10n.t("User Prompt"),
+            rawResponse: l10n.t("Raw Response"),
+            sanitized: l10n.t("Sanitized"),
+            schemaContext2: l10n.t("Schema Context"),
+            localsDump: l10n.t("Locals Dump"),
+            telemetry: l10n.t("Telemetry"),
+            copy: l10n.t("Copy"),
+            userText: l10n.t("User text"),
+            sanitizedResponse: l10n.t("Sanitized response"),
+            noNotableSanitizationChanges: l10n.t("No notable sanitization changes."),
+            notSentUnsentInput0: (value0: string) => l10n.t("not sent | unsent input={0}", value0),
+            notSent: l10n.t("not sent"),
+            family0: (value0: string) => l10n.t(", family={0}", value0),
+            time2: l10n.t("Time"),
+            document: l10n.t("Document"),
+            lnCol: l10n.t("Ln:Col"),
+            trigger: l10n.t("Trigger"),
+            mode: l10n.t("Mode"),
+            queued0: (value0: string) => l10n.t("queued {0}", value0),
+            model2: l10n.t("Model"),
+            latency2: l10n.t("Latency"),
+            value0Ms2: (value0: string) => l10n.t("{0} ms", value0),
+            inOut: l10n.t("In/Out"),
+            result2: l10n.t("Result"),
+            infoSanitizedCompletion: l10n.t("Info (sanitized completion)"),
+            copyID: l10n.t("Copy ID"),
+            copyAsJSON: l10n.t("Copy as JSON"),
+            copyPrompt: l10n.t("Copy prompt"),
+            copyRawResponse: l10n.t("Copy raw response"),
+            copySanitizedResponse: l10n.t("Copy sanitized response"),
+            replayThisEvent: l10n.t("Replay this event"),
+            addToReplayTrace: l10n.t("Add to Replay Trace"),
+            replayCancelling01: (value0: string, value1: string) =>
+                l10n.t("Replay cancelling {0}/{1}", value0, value1),
+            replayRunning01: (value0: string, value1: string) =>
+                l10n.t("Replay running {0}/{1}", value0, value1),
+            replay: l10n.t("Replay"),
+            openTheReplayTraceBuilderWhileThe: l10n.t(
+                "Open the replay trace builder while the current run continues",
+            ),
+            openTheReplayTraceBuilder: l10n.t("Open the replay trace builder"),
+            addEventsToTheReplayTraceFirst: l10n.t("Add events to the replay trace first"),
+            back: l10n.t("Back"),
+            runConfigMatrix: l10n.t("Run config matrix"),
+            replayTraceBuilder: l10n.t("Replay Trace Builder"),
+            value0EventsXSelectedConfigs: (value0: string) =>
+                l10n.t("{0} events x selected configs", value0),
+            value0EventsEst1SequentialAtAvg: (value0: string, value1: string, value2: string) =>
+                l10n.t("{0} events · est. {1} sequential at avg {2}/event", value0, value1, value2),
+            profiles0Selected: (value0: string) => l10n.t("Profiles · {0} selected", value0),
+            schemas0Selected: (value0: string) => l10n.t("Schemas · {0} selected", value0),
+            totalCompletions: l10n.t("Total completions"),
+            estSequential: l10n.t("Est. sequential"),
+            matrixCells: l10n.t("Matrix cells"),
+            profilesX: l10n.t("profiles x"),
+            value0Schemas: (value0: string) => l10n.t("{0} schemas", value0),
+            capturedSchema: l10n.t("captured schema"),
+            x: l10n.t("x"),
+            events: l10n.t("events ="),
+            mode2: l10n.t("· mode"),
+            over100Completions: l10n.t(" · over 100 completions"),
+            executionOrder: l10n.t("Execution order"),
+            cell: l10n.t("cell"),
+            events1: l10n.t("events 1.."),
+            matrixRunsIgnorePerRowCartOverrides: l10n.t(
+                "Matrix runs ignore per-row cart overrides; the matrix cell profile and schema win. Resulting events are tagged with replayTraceId, replayRunId, replayMatrixCellId, and replaySourceEventId.",
+            ),
+            runQueuesImmediatelyIntoLiveAndExecutes: l10n.t(
+                "Run queues immediately into Live and executes sequentially.",
+            ),
+            startAnyway0: (value0: string) => l10n.t("Start anyway · {0}", value0),
+            startMatrixRun0: (value0: string) => l10n.t("Start matrix run · {0}", value0),
+            whenRequiredCurrentSchemaIsUnavailableFall: l10n.t(
+                "When required current schema is unavailable, fall back to the captured schema context (recorded as explicitFallback). Unchecked: those items are blocked.",
+            ),
+            capturedFallback: l10n.t("Captured fallback"),
+            anotherRunIsActiveQueueControlsAre: l10n.t(
+                "Another run is active; queue controls are paused.",
+            ),
+            queueEveryRowWithCurrentToolbarSettings: l10n.t(
+                "Queue every row with current toolbar settings. Row settings stay unchanged.",
+            ),
+            useLive: l10n.t("Use live"),
+            reverseOrder: l10n.t("Reverse order"),
+            clearAll: l10n.t("Clear all"),
+            source: l10n.t("Source"),
+            state: l10n.t("State"),
+            actions: l10n.t("Actions"),
+            editConfigRow: l10n.t("Edit config · row"),
+            useLive2: l10n.t("use live"),
+            captured0: (value0: string) => l10n.t("Captured ({0})", value0),
+            profile2: l10n.t("Profile"),
+            schema: l10n.t("Schema"),
+            remove: l10n.t("Remove"),
+            apply: l10n.t("Apply"),
+            rightClickCompletedEventsInLiveOr: l10n.t(
+                "Right-click completed events in Live or Sessions and add them to the replay trace.",
+            ),
+            snapshotAddTimeConfigOverrideRowConfig: l10n.t(
+                "Snapshot = add-time config · Override = row config · Live = current toolbar.",
+            ),
+            runTheCartAcrossAProfileX: l10n.t(
+                "Run the cart across a profile x schema config matrix.",
+            ),
+            matrix: l10n.t("Matrix..."),
+            queue: l10n.t("Queue"),
+            oK: l10n.t("OK"),
+            moveUp: l10n.t("Move up"),
+            up: l10n.t("Up"),
+            moveDown: l10n.t("Move down"),
+            down: l10n.t("Down"),
+            tight: l10n.t("Tight"),
+            smallestPromptFootprintFavorsTheMostRelevant: l10n.t(
+                "Smallest prompt footprint; favors the most relevant objects.",
+            ),
+            balancedDefault: l10n.t("Balanced (default)"),
+            defaultSchemaBudgetCloseToProductionBehavior: l10n.t(
+                "Default schema budget close to production behavior.",
+            ),
+            generous: l10n.t("Generous"),
+            moreObjectsColumnsRoutinesAndTwoHop: l10n.t(
+                "More objects, columns, routines, and two-hop FK expansion.",
+            ),
+            unlimited: l10n.t("Unlimited"),
+            veryBroadContextForStressTestingLarge: l10n.t(
+                "Very broad context for stress testing large prompt windows.",
+            ),
+            custom: l10n.t("Custom"),
+            sessionOnlySchemaContextOverridesFromThe: l10n.t(
+                "Session-only schema context overrides from the controls below.",
+            ),
+            schemas: l10n.t("Schemas"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            routines: l10n.t("Routines"),
+            colsObject: l10n.t("Cols/object"),
+            fKsObject: l10n.t("FKs/object"),
+            tableInventory: l10n.t("Table inventory"),
+            viewInventory: l10n.t("View inventory"),
+            routineInventory: l10n.t("Routine inventory"),
+            systemObjects: l10n.t("System objects"),
+            relevanceTerms: l10n.t("Relevance terms"),
+            paramsRoutine: l10n.t("Params/routine"),
+            smallThreshold: l10n.t("Small threshold"),
+            largeThreshold: l10n.t("Large threshold"),
+            outlierThreshold: l10n.t("Outlier threshold"),
+            maxPromptChars: l10n.t("Max prompt chars"),
+            maxPromptTokens: l10n.t("Max prompt tokens"),
+            tTLMs: l10n.t("TTL (ms)"),
+            auto: l10n.t("auto"),
+            customActive: l10n.t("Custom (active)"),
+            continuation: l10n.t("Continuation"),
+            intent: l10n.t("Intent"),
+            defaultAuto: l10n.t("Default (auto)"),
+            noCategories: l10n.t("No categories"),
+            recording: l10n.t("Recording"),
+            fullCapturePromptsAndModelResponsesAre: l10n.t(
+                "Full capture: prompts and model responses are being persisted to the local capture journal.",
+            ),
+            fullCapture: l10n.t("Full capture"),
+            continuation2: l10n.t("| continuation"),
+            diagnostics2: l10n.t("| diagnostics"),
+            eagerness: l10n.t("| eagerness"),
+            ms: l10n.t("ms"),
+            eventsAvg: l10n.t("events | avg"),
+            keepRecordingWhileTheDebugPanelIs: l10n.t(
+                "Keep recording while the debug panel is closed",
+            ),
+            recordClosed: l10n.t("Record closed"),
+            clearTheInMemoryRingBuffer: l10n.t("Clear the in-memory ring buffer"),
+            clear: l10n.t("Clear"),
+            keepTheNewestEventVisibleAsRows: l10n.t("Keep the newest event visible as rows arrive"),
+            autoScroll: l10n.t("Auto Scroll"),
+            continuationModel: l10n.t("Continuation Model"),
+            customize: l10n.t("Customize"),
+            includeNearbySQLErrorDiagnosticsInThe: l10n.t(
+                "Include nearby SQL error diagnostics in the completion prompt",
+            ),
+            diagnostics3: l10n.t("Diagnostics"),
+            enabledCompletionCategories: l10n.t("Enabled completion categories"),
+            eagerness2: l10n.t("Eagerness"),
+            automaticTriggerDebounce: l10n.t("Automatic trigger debounce"),
+            maxTok: l10n.t("Max tok"),
+            maximumTokens: l10n.t("Maximum tokens"),
+            texture: l10n.t("Texture"),
+            editTheSavedCustomPrompt: l10n.t("Edit the saved custom prompt"),
+            editSavedCustomPrompt: l10n.t("Edit saved custom prompt"),
+            clearTheSavedCustomPrompt: l10n.t("Clear the saved custom prompt"),
+            clearSavedCustomPrompt: l10n.t("Clear saved custom prompt"),
+            inlineCompletionDebugImports: l10n.t("Inline completion debug imports"),
+            importJSONSession: l10n.t("Import JSON session"),
+            exportJSONSession: l10n.t("Export JSON session"),
+            saveTraceNow2: l10n.t("Save trace now"),
+            customizeSchema: l10n.t("Customize schema"),
+            refreshNow: l10n.t("Refresh now"),
+            resetOverrides: l10n.t("Reset overrides"),
+            compact: l10n.t("Compact"),
+            types: l10n.t("Types"),
+            verbose: l10n.t("Verbose"),
+            off0: l10n.t("Off (0)"),
+            direct1: l10n.t("Direct (1)"),
+            twoHop2: l10n.t("Two-hop (2)"),
+            resultErrorAndDocOrders: l10n.t('result != "error" and doc ~= "orders"'),
+            events2: l10n.t("events |"),
+            docsAvg: l10n.t("docs | avg"),
+            value0Default: (value0: string) => l10n.t("{0} default", value0),
+            value0ProfileContinuation: (value0: string) =>
+                l10n.t("{0} (profile continuation)", value0),
+            useDefaultModel: l10n.t("Use default model"),
+            value0ConfiguredContinuation: (value0: string) =>
+                l10n.t("{0} (configured continuation)", value0),
+            replayMatrixRun: l10n.t("Replay matrix run"),
+            replayRun: l10n.t("Replay run"),
+            cell012X3: (value0: string, value1: string, value2: string, value3: string) =>
+                l10n.t("cell {0}/{1} · {2} x {3} · ", value0, value1, value2, value3),
+            event: l10n.t("event"),
+            cancelQueue: l10n.t("Cancel queue"),
+            olderEvent: l10n.t("older event"),
+            droppedFromTheLiveRingBoundedBuffer: l10n.t(
+                "dropped from the live ring (bounded buffer) — save or export sooner to keep them.",
+            ),
+            invalidFilterExpression: l10n.t("Invalid filter expression."),
+            useAndOrOrBetweenClauses: l10n.t("Use `and` or `or` between clauses."),
+            couldnTParse0TryResultSuccess: (value0: string) =>
+                l10n.t(
+                    'Couldn\'t parse `{0}`. Try `result = "success"` or `latency > 1000`.',
+                    value0,
+                ),
+            unknownFilterField0: (value0: string) => l10n.t("Unknown filter field `{0}`.", value0),
+            value0ExpectsANumericValue: (value0: string) =>
+                l10n.t("`{0}` expects a numeric value.", value0),
+            inFlight0: (value0: string) => l10n.t("In flight: {0}...", value0),
+            inFlight: l10n.t("In flight..."),
+            schemaBudget: l10n.t("Schema budget"),
+            schemaSize: l10n.t("Schema size"),
+            language: l10n.t("Language"),
+            systemQuery: l10n.t("System query"),
+            completionKind: l10n.t("Completion kind"),
+            matrixCell: l10n.t("Matrix cell"),
+            replaySource: l10n.t("Replay source"),
+            replayMode: l10n.t("Replay mode"),
+            replayTrace: l10n.t("Replay trace"),
+            cohort: l10n.t("Cohort"),
+            showFilters: l10n.t("Show filters"),
+            groupBy: l10n.t("Group by"),
+            thenBy: l10n.t("then by"),
+            events3: l10n.t("events"),
+            noLoadedEventsMatchTheCurrentDataset: l10n.t(
+                "No loaded events match the current dataset and filters.",
+            ),
+            traceCollectionIsOff: l10n.t("Trace collection is off"),
+            enableCollectionToSaveInlineCompletionSessions: l10n.t(
+                "Enable collection to save inline completion sessions to",
+            ),
+            orAddExistingTraceJSONFiles: l10n.t(", or add existing trace JSON files."),
+            enableTraceCollection: l10n.t("Enable Trace Collection"),
+            addTraceFile: l10n.t("Add Trace File"),
+            hideTraceFiles: l10n.t("Hide trace files"),
+            showTraceFiles: l10n.t("Show trace files"),
+            folder: l10n.t("Folder"),
+            traces: l10n.t("traces ·"),
+            enableTraceCollection2: l10n.t("Enable trace collection"),
+            selectAllTraces: l10n.t("Select all traces"),
+            all: l10n.t("All"),
+            deselectAllTraces: l10n.t("Deselect all traces"),
+            none: l10n.t("None"),
+            refresh: l10n.t("Refresh"),
+            changeFolder: l10n.t("Change folder"),
+            addFile: l10n.t("Add file"),
+            add: l10n.t("Add"),
+            run: l10n.t("Run"),
+            events4: l10n.t("Events"),
+            value0Traces: (value0: string) => l10n.t("{0} traces", value0),
+            cohort01Terminal2PendingQueued: (value0: string, value1: string, value2: string) =>
+                l10n.t(
+                    "Cohort: {0} · {1} terminal · {2} pending/queued/blocked (excluded from every rate)",
+                    value0,
+                    value1,
+                    value2,
+                ),
+            latencyMean: l10n.t("Latency mean"),
+            p950: (value0: string) => l10n.t("p95 {0}", value0),
+            latencyP99: l10n.t("Latency p99"),
+            max0: (value0: string) => l10n.t("max {0}", value0),
+            acceptRate: l10n.t("Accept rate"),
+            value01Shown: (value0: string, value1: string) =>
+                l10n.t("{0}/{1} shown", value0, value1),
+            inputTokens: l10n.t("Input tokens"),
+            avg0: (value0: string) => l10n.t("avg {0}", value0),
+            outputTokens: l10n.t("Output tokens"),
+            configs: l10n.t("Configs"),
+            value81ProvenanceCohortAppliedToEvery: l10n.t(
+                "§8.1 provenance cohort applied to every metric, facet, and pivot on this tab (selector in the filter rail)",
+            ),
+            filters: l10n.t("Filters"),
+            collapseFilters: l10n.t("Collapse filters"),
+            minMs: l10n.t("Min ms"),
+            maxMs: l10n.t("Max ms"),
+            eventsHiddenByTheCurrentCohortSelection: l10n.t(
+                "Events hidden by the current cohort selection",
+            ),
+            excluded: l10n.t("excluded"),
+            none2: l10n.t("(none)"),
+            n: l10n.t("N"),
+            sample: l10n.t("Sample"),
+            latMean: l10n.t("Lat mean"),
+            latP95: l10n.t("Lat p95"),
+            latP99: l10n.t("Lat p99"),
+            acceptedAcceptedShownNotAccepted82: l10n.t(
+                "accepted / (accepted + shown-not-accepted) — §8.2 corrected denominator; pending/queued/blocked never counted",
+            ),
+            accept: l10n.t("Accept"),
+            errorTerminalsAllTerminalRequests: l10n.t("error terminals / all terminal requests"),
+            errors: l10n.t("Errors"),
+            inTok: l10n.t("In tok"),
+            outTok: l10n.t("Out tok"),
+            schemaChars: l10n.t("Schema chars"),
+            byGroupLatencyP95: l10n.t("By group · latency p95"),
+            noData: l10n.t("No data"),
+            acceptanceFunnel: l10n.t("Acceptance funnel"),
+            tokenCostInOut: l10n.t("Token cost in / out"),
+            timeSeriesLatencyP95: l10n.t("Time series · latency p95"),
+        };
     }
 
     // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
@@ -715,6 +1392,7 @@ export class LocConstants {
             loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
+            addAccount: l10n.t("Add account"),
             account: l10n.t("Account"),
             tenantId: l10n.t("Tenant ID"),
             fabricDatabases: l10n.t("Fabric Databases"),
@@ -1173,6 +1851,18 @@ export class LocConstants {
 
     public get userFeedback() {
         return {
+            primaryJobRole: l10n.t("Which of the following best describes your primary job role?"),
+            selectJobRole: l10n.t("Select a role (optional)"),
+            applicationDeveloper: l10n.t("Application Developer"),
+            databaseDeveloper: l10n.t("Database Developer"),
+            databaseAdministrator: l10n.t("Database Administrator"),
+            dataEngineer: l10n.t("Data Engineer"),
+            dataAnalyst: l10n.t("Data Analyst / BI Professional"),
+            dataScientist: l10n.t("Data Scientist"),
+            dataArchitect: l10n.t("Data Architect"),
+            itDevOpsProfessional: l10n.t("IT / DevOps Professional"),
+            otherJobRole: l10n.t("Other (Please specify)"),
+            specifyJobRole: l10n.t("Please specify your job role (optional)"),
             microsoftWouldLikeYourFeedback: l10n.t("Microsoft would like your feedback"),
             overallHowSatisfiedAreYouWithMSSQLExtension: l10n.t(
                 "Overall, how satisfied are you with the MSSQL extension?",
@@ -1204,27 +1894,11 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
-            resultBetaTabTooltip: (shortcut?: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Results Preview ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
-                    });
-                }
-                return l10n.t("Results Preview");
-            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
-                }),
-            resultsBeta: (count: number) =>
-                l10n.t({
-                    message: "Results Preview ({0})",
-                    args: [count],
-                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
@@ -1241,25 +1915,9 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
-            moreActions: l10n.t("More Actions"),
-            previewGrid: l10n.t("Preview Grid"),
-            previewGridSwitchTooltip: l10n.t(
-                "Switch between the classic and the preview results grid",
-            ),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: (shortcut: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Show Menu ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for showing the menu"],
-                    });
-                }
-                return l10n.t("Show Menu");
-            },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
-            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {
@@ -1537,6 +2195,48 @@ export class LocConstants {
         };
     }
 
+    public get multiResults() {
+        return {
+            resultsList: l10n.t("Query results"),
+            resultSetCount: (count: number) =>
+                l10n.t({
+                    message: "Result sets: {0}",
+                    args: [count],
+                    comment: ["{0} is the number of result sets the query returned"],
+                }),
+            running: l10n.t("Running"),
+            hasErrors: l10n.t("Completed with errors"),
+            closedEditorTitle: (title: string) =>
+                l10n.t({
+                    message: "{0} (closed)",
+                    args: [title],
+                    comment: ["{0} is the name of a query file whose editor has been closed"],
+                }),
+            closedEditorTooltip: l10n.t(
+                "The editor for these results is closed. The results stay until you close them.",
+            ),
+            closeResults: l10n.t("Close Results"),
+            moveToNewGroup: l10n.t("Move to New Group"),
+            joinGroup: l10n.t("Join Group"),
+            resultActions: (title: string) =>
+                l10n.t({
+                    message: "Actions for {0}",
+                    args: [title],
+                    comment: ["{0} is the name of a query file"],
+                }),
+            resultsFor: (title: string) =>
+                l10n.t({
+                    message: "Results for {0}",
+                    args: [title],
+                    comment: ["{0} is the name of a query file"],
+                }),
+            noResultsHeader: l10n.t("No query results"),
+            noResultsMessage: l10n.t(
+                "Run a query to see its results here. Drag results onto each other to view them side by side.",
+            ),
+        };
+    }
+
     public get schemaDesigner() {
         return {
             schema: l10n.t("Schema"),
@@ -1606,7 +2306,7 @@ export class LocConstants {
             ),
             dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
             dabCopilotDiscoveryBody: l10n.t(
-                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
+                "Use GitHub Copilot chat to review or change the API configuration. Changes apply here immediately.",
             ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
@@ -2089,7 +2789,7 @@ export class LocConstants {
             ),
             enableMcpForEntity: l10n.t("Expose this entity through MCP"),
             enableMcpForEntityHelp: l10n.t(
-                "Enable MCP in API Type to expose this entity through MCP.",
+                "To expose this entity through MCP, enable MCP in API type.",
             ),
             storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
             storedProcedureRestMethodsHelp: l10n.t(
@@ -2132,7 +2832,7 @@ export class LocConstants {
                 }),
             enableApiTypeForEntity: (apiType: string) =>
                 l10n.t({
-                    message: "Enable {0} in API Type to expose this entity.",
+                    message: "To expose this entity, enable {0} in API type.",
                     args: [apiType],
                     comment: ["{0} is the API type, e.g. REST, GraphQL, or MCP"],
                 }),
@@ -2230,20 +2930,9 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
-            dabDeploymentNotSupported: l10n.t(
-                "Local container deployment is currently only supported with SQL Authentication connections.",
-            ),
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             missingLogicalKeyRequired: l10n.t(
-                "Select at least one logical key column before applying or deploying this exposed table or view.",
-            ),
-            authenticationNotSupported: l10n.t("Authentication not supported"),
-            dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
-            ),
-            unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
-            dabUnsupportedDataTypesBanner: l10n.t(
-                "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
+                "Select at least one logical key column to expose this table or view.",
             ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
@@ -2278,12 +2967,10 @@ export class LocConstants {
             required: l10n.t("Required"),
             requiredParameter: l10n.t("Required parameter"),
             optional: l10n.t("Optional"),
-            noColumnsDiscovered: l10n.t("No columns were discovered for this entity."),
+            noColumnsDiscovered: l10n.t("No columns found for this entity."),
             filterColumns: l10n.t("Filter columns..."),
             noColumnsMatchFilter: l10n.t("No columns match the current filter."),
-            noParametersDiscovered: l10n.t(
-                "No parameters were discovered for this stored procedure.",
-            ),
+            noParametersDiscovered: l10n.t("No parameters found for this stored procedure."),
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
@@ -2351,7 +3038,7 @@ export class LocConstants {
                 }),
             logicalKeyColumnExposureLocked: (columnName: string) =>
                 l10n.t({
-                    message: "{0} is a logical key column and can't be hidden.",
+                    message: "{0} is a logical key column. It cannot be hidden.",
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
@@ -2377,35 +3064,13 @@ export class LocConstants {
                     comment: ["{0} is the action name (Create, Read, etc.)"],
                 }),
 
-            // DAB Deployment Dialog
-            deployDabContainer: l10n.t("Deploy DAB Container"),
-            localContainerDeployment: l10n.t("Local Container Deployment"),
-            deployDabContainerDescription: (apiTypes: string) =>
-                l10n.t({
-                    message:
-                        "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
-                    args: [apiTypes],
-                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
-                }),
-            requirements: l10n.t("Requirements:"),
             dockerDesktopRequirement: l10n.t(
-                "Docker Desktop must be installed and running on your machine.",
+                "Requires Docker Desktop to be installed and running.",
             ),
-            containerSettings: l10n.t("Container Settings"),
             containerName: l10n.t("Container Name"),
-            containerNameRequired: l10n.t("Container name is required"),
-            containerNameInvalid: l10n.t(
-                "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
-            ),
-            containerNameHint: l10n.t("Name for the Docker container running DAB"),
             port: l10n.t("Port"),
             portInvalid: l10n.t("Port must be between 1 and 65535"),
-            portHint: l10n.t("Port to expose the API on (default: 5000)"),
-            deploymentComplete: l10n.t("Deployment Complete"),
             deploymentFailed: l10n.t("Deployment Failed"),
-            dabContainerRunning: l10n.t("DAB container is running!"),
-            dabEngineRunning: l10n.t("Data API builder is running!"),
-            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
             copyUrl: (apiType: string) =>
                 l10n.t({
                     message: "Copy {0} URL",
@@ -2419,21 +3084,120 @@ export class LocConstants {
             openNitro: l10n.t("Open Nitro"),
 
             // DAB Deployments dialog
-            deployments: l10n.t("Deployments"),
-            createNewDeployment: l10n.t("Create new"),
-            noDeployments: l10n.t("No deployments yet"),
-            loadingDeployments: l10n.t("Loading deployments"),
-            refreshDeployments: l10n.t("Refresh"),
+            deployDataApiBuilder: l10n.t("Deploy Data API builder"),
+            deploymentTarget: l10n.t("Deployment target"),
+            dabDeploymentWaiting: l10n.t("Complete the step below to start the API."),
+            dabDeploymentFailed: l10n.t("A step failed. Fix the issue and retry."),
+            showDeploymentLog: l10n.t("Show log"),
+            dabStepDone: l10n.t("Done"),
+            dabStepWaitingForYou: l10n.t("Waiting for you"),
+            dabStepCheckDocker: l10n.t("Check Docker"),
+            dabStepCheckDockerRunning: l10n.t("Checking for Docker"),
+            dabStepStartDocker: l10n.t("Start Docker"),
+            dabStepStartDockerRunning: l10n.t("Starting Docker Desktop"),
+            dabStepDockerEngine: l10n.t("Wait for Docker engine"),
+            dabStepDockerEngineRunning: l10n.t("Waiting for Docker to start"),
+            dabStepPullImage: l10n.t("Get Data API builder image"),
+            dabStepPullImageRunning: l10n.t("Downloading the container image"),
+            dabStepStartContainerRunning: l10n.t("Creating and starting the container"),
+            dabStepPrepareCli: l10n.t("Prepare Data API builder"),
+            dabStepPrepareCliRunning: l10n.t("Downloading the CLI and .NET runtime"),
+            dabStepCheckDotnet: l10n.t("Check .NET runtime"),
+            dabStepCheckDotnetRunning: l10n.t("Finding a .NET runtime"),
+            dabStepGetAzureCli: l10n.t("Get Azure CLI"),
+            dabStepGetAzureCliRunning: l10n.t("Checking for the Azure CLI"),
+            dabStepSignInEntra: l10n.t("Sign in to Microsoft Entra"),
+            dabStepSignInEntraRunning: l10n.t("Checking for an existing sign-in"),
+            dabStepSigningInBrowser: l10n.t("Complete sign-in in your browser"),
+            dabStepSigningInCode: l10n.t("Enter the code on the sign-in page"),
+            dabStepValidateConfig: l10n.t("Validate configuration"),
+            dabStepValidateConfigRunning: l10n.t(
+                "Validating the configuration against the database",
+            ),
+            dabStepStartApi: l10n.t("Start API"),
+            dabStepStartApiRunning: l10n.t("Launching the engine"),
+            dabStepWaitForApi: l10n.t("Wait for API to start"),
+            dabStepWaitForApiRunning: l10n.t("Waiting for the API to respond"),
+            dabProgressDownloading: (completedMegabytes: number, totalMegabytes: number) =>
+                l10n.t({
+                    message: "Downloading Azure CLI · {0} of {1} MB",
+                    args: [completedMegabytes, totalMegabytes],
+                    comment: ["{0} is megabytes downloaded so far", "{1} is the total megabytes"],
+                }),
+            dabProgressDownloadingUnknownSize: (completedMegabytes: number) =>
+                l10n.t({
+                    message: "Downloading Azure CLI · {0} MB",
+                    args: [completedMegabytes],
+                    comment: ["{0} is megabytes downloaded so far"],
+                }),
+            dabProgressUnpacking: (completedFiles: number, totalFiles: number) =>
+                l10n.t({
+                    message: "Unpacking · {0} of {1} files",
+                    args: [completedFiles, totalFiles],
+                    comment: ["{0} is files unpacked so far", "{1} is the total number of files"],
+                }),
+            dabProgressInstalling: (percent: number) =>
+                l10n.t({
+                    message: "Installing with pip ({0}%). This can take a few minutes.",
+                    args: [percent],
+                    comment: ["{0} is the percentage of the install done so far"],
+                }),
+            dabProgressLoadingEntities: (entityCount: number, elapsed: string) =>
+                l10n.t({
+                    message: "Loading {0} entities from the database · {1}",
+                    args: [entityCount, elapsed],
+                    comment: [
+                        "{0} is the number of entities",
+                        "{1} is the time spent so far, such as 2:05",
+                    ],
+                }),
+            viewChanges: l10n.t("View changes"),
+            deploymentConfigChangedBanner: l10n.t(
+                "The configuration changed since the last deployment.",
+            ),
+            deploymentNotRunningBanner: l10n.t("This deployment is not running."),
+            deploymentMissingBanner: l10n.t("This deployment no longer exists."),
+            deploymentStatusPillMissing: l10n.t("Missing"),
+            deploymentTargetShortCli: l10n.t("DAB CLI"),
+            deploymentTargetShortDocker: l10n.t("Docker"),
+            deploymentMeta: (target: string, port: number, deployed: string) =>
+                l10n.t({
+                    message: "{0} · Port {1} · {2}",
+                    args: [target, port, deployed],
+                    comment: [
+                        "{0} is where the deployment runs, such as DAB CLI",
+                        "{1} is the port number",
+                        "{2} is when it was deployed, such as 'Deployed 6 hours ago'",
+                    ],
+                }),
+            deployedToCurrent: l10n.t("Deployed → current"),
+            loadingChanges: l10n.t("Loading changes"),
+            noConfigChanges: l10n.t("No changes since the last deployment."),
+            runInBackground: l10n.t("Run in background"),
+            cancelDeployment: l10n.t("Cancel deployment"),
+            deployingDataApiBuilder: l10n.t("Deploying Data API builder"),
+            updatingDataApiBuilder: l10n.t("Updating Data API builder"),
+            dabDeploymentSubtitle: (databaseName: string, status: string) =>
+                l10n.t({
+                    message: "{0} · {1}",
+                    args: [databaseName, status],
+                    comment: ["{0} is the database name", "{1} is what the deployment is doing"],
+                }),
+            dabDeploymentCanceled: l10n.t("The deployment was canceled."),
+            browserDidNotOpen: l10n.t("Browser did not open?"),
+            entraAccountCaption: l10n.t("Microsoft Entra account for this connection"),
+            signIn: l10n.t("Sign in"),
+            useCodeInstead: l10n.t("Use a code instead"),
+            deviceCodeInstructions: l10n.t("Go to the sign-in page and enter this code:"),
+            openSignInPage: l10n.t("Open sign-in page"),
+            copyCode: l10n.t("Copy code"),
+            showErrorDetails: l10n.t("Show details"),
+            hideErrorDetails: l10n.t("Hide details"),
+            engineLogs: l10n.t("Engine logs"),
+            loadingDeployment: l10n.t("Loading deployment"),
             deploymentStatusRunning: l10n.t("Running"),
             deploymentStatusStopped: l10n.t("Stopped"),
-            deploymentStatusMissing: l10n.t("Container no longer exists"),
-            deploymentStatusMissingCli: l10n.t("Configuration no longer exists"),
             deploymentStatusUnknown: l10n.t("Status unavailable"),
-            deploymentConfigUpToDate: l10n.t("Up to date"),
-            deploymentConfigOutdated: l10n.t("Config changed"),
-            deploymentConfigOutdatedTooltip: l10n.t(
-                "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
-            ),
             deployedOn: (relativeTime: string) =>
                 l10n.t({
                     message: "Deployed {0}",
@@ -2447,144 +3211,89 @@ export class LocConstants {
                     comment: ["{0} is a localized absolute date and time"],
                 }),
             justNow: l10n.t("just now"),
-            deploymentPort: (port: number) =>
+            applyDeploymentChanges: l10n.t("Apply changes"),
+            restartDeployment: l10n.t("Restart"),
+            dabStatusLive: l10n.t("Live"),
+            dabStatusStopped: l10n.t("Stopped"),
+            dabStatusUnavailable: l10n.t("Unavailable"),
+            dabStatusLiveTooltip: (port: number) =>
                 l10n.t({
-                    message: "Port {0}",
+                    message: "Running on port {0}",
                     args: [port],
-                    comment: ["{0} is the host port number"],
+                    comment: ["{0} is the port number"],
                 }),
-            redeploy: l10n.t("Redeploy"),
-            redeployTooltip: l10n.t(
-                "Replace this container with a new one on the same name and port, running your current configuration.",
+            dabStatusNotLiveTooltip: (port: number) =>
+                l10n.t({
+                    message: "Not running (port {0})",
+                    args: [port],
+                    comment: ["{0} is the port number"],
+                }),
+            dabDeploymentActions: l10n.t("Deployment actions"),
+            dabStatusDeploying: l10n.t("Deploying…"),
+            dabStatusUpdating: l10n.t("Updating…"),
+            dabStatusSignInNeeded: l10n.t("Sign in needed"),
+            dabStatusDeployFailed: l10n.t("Deploy failed"),
+            dabStatusChangesTooltip: l10n.t(
+                "Configuration changed. Apply the changes to update the API.",
             ),
-            startContainer: l10n.t("Start"),
-            stopContainer: l10n.t("Stop"),
+            copyApiUrl: l10n.t("Copy API URL"),
+            stopDeployment: l10n.t("Stop"),
             deleteDeployment: l10n.t("Delete"),
             deleteDeploymentConfirmTitle: l10n.t("Delete deployment?"),
             deleteDeploymentConfirmMessage: (containerName: string) =>
                 l10n.t({
                     message:
-                        "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+                        "This stops and removes the container {0}. Its endpoints stop responding.",
                     args: [containerName],
                     comment: ["{0} is the Docker container name"],
                 }),
-            deploymentActions: l10n.t("More actions"),
-            deploymentConfigOutdatedTitle: l10n.t("Configuration has changed"),
-            deploymentNotRunningTitle: l10n.t("Not running"),
-            deploymentNotRunningBody: l10n.t(
-                "This deployment is not serving requests. Start it to bring its endpoints back.",
-            ),
-            deploymentNotRunningOutdatedBody: l10n.t(
-                "This deployment is not serving requests, and it is running an earlier version of your configuration.",
-            ),
-            updateAndStart: l10n.t("Update and start"),
-            deploymentMissingTitle: l10n.t("This deployment no longer exists"),
-            deploymentMissingBodyDocker: l10n.t(
-                "Its container has been removed. Redeploy to create it again.",
-            ),
-            deploymentMissingBodyCli: l10n.t(
-                "Its generated configuration has been removed. Redeploy to create it again.",
-            ),
-            deploymentConfigOutdatedBody: l10n.t(
-                "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
-            ),
             deleteCliDeploymentConfirmMessage: (name: string) =>
                 l10n.t({
                     message:
-                        "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+                        "This stops the engine for {0} and removes its generated configuration. Its endpoints stop responding.",
                     args: [name],
                     comment: ["{0} is the deployment name"],
                 }),
-            showEndpoints: l10n.t("Show endpoints"),
-            hideEndpoints: l10n.t("Hide endpoints"),
-            endpointsUnavailableWhenStopped: l10n.t("Start the container to use these endpoints."),
-            selectDeploymentTarget: l10n.t("Select a deployment target"),
-            selectDeploymentTargetDescription: l10n.t(
-                "Choose where to run Data API builder for this database.",
+            endpointsUnavailableWhenStopped: l10n.t(
+                "Restart the deployment to use these endpoints.",
             ),
             deploymentTargetDocker: l10n.t("Local Docker container"),
             deploymentTargetDockerDescription: l10n.t(
-                "Runs Data API builder in a container on this machine, published on a local port.",
+                "Run the API in a Docker container on this machine.",
             ),
-            backToDeployments: l10n.t("Back to deployments"),
-            redeployingContainer: (containerName: string) =>
-                l10n.t({
-                    message: "Redeploying {0}",
-                    args: [containerName],
-                    comment: ["{0} is the Docker container name"],
-                }),
 
             // DAB CLI deployment
             deploymentTargetDabCli: l10n.t("Data API builder CLI"),
-            deploymentTargetDabCliDescription: l10n.t(
-                "Runs Data API builder as a local process on this machine. No Docker required.",
-            ),
-            deployDabCli: l10n.t("Run with the Data API builder CLI"),
-            deployDabCliDescription: (apiTypes: string) =>
-                l10n.t({
-                    message:
-                        "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
-                    args: [apiTypes],
-                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
-                }),
-            dotnetRequirement: l10n.t(
-                "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
-            ),
-            gettingDabCliReady: l10n.t("Getting Data API builder ready"),
-            gettingDabCli: l10n.t("Getting Data API builder CLI"),
-            downloadingDabCli: l10n.t("Downloading and unpacking the CLI package"),
-            checkingDotnetRuntime: l10n.t("Checking .NET runtime"),
-            resolvingDotnetRuntime: l10n.t("Resolving a runtime that can run the CLI"),
-            validatingDabConfig: l10n.t("Validating configuration"),
-            checkingGeneratedConfig: l10n.t("Checking the generated configuration"),
-            startingDabEngine: l10n.t("Starting Data API builder"),
-            launchingDabEngine: l10n.t("Launching the engine process"),
-            checkingEngineReadiness: l10n.t("Checking engine readiness"),
-            deploymentSettings: l10n.t("Deployment settings"),
-            preparingDeploymentSettings: l10n.t("Preparing deployment settings"),
-            preparingContainerSettings: l10n.t("Preparing container settings"),
+            deploymentTargetDabCliDescription: l10n.t("Run the API as a local process."),
             deploymentName: l10n.t("Name"),
-            deploymentNameHint: l10n.t("A name for this deployment"),
-
             // DAB reset configuration
             resetConfig: l10n.t("Reset"),
-            resetConfigTooltip: l10n.t("Reset the configuration to the defaults for this schema"),
+            resetConfigTooltip: l10n.t("Reset the configuration to the schema defaults"),
             resetConfigConfirmTitle: l10n.t("Reset DAB configuration?"),
             resetConfigConfirmMessage: l10n.t(
-                "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
+                "This discards all entity, action, column, and advanced settings, including changes from Copilot, and rebuilds the configuration from the current schema.",
             ),
 
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
                 l10n.t({
-                    message:
-                        "{0} must define one or more key fields to be used with Data API builder",
+                    message: "{0} has no key fields. Data API builder requires at least one.",
                     args: [sourceType],
                     comment: ["{0} is the DAB source type, e.g. Table or View"],
                 }),
             unsupportedDataTypes: (columns: string, sourceType: string = "Table") =>
                 l10n.t({
-                    message: "{0} contains column types not supported by Data API builder: {1}",
+                    message: "{0} has column types that Data API builder does not support: {1}",
                     args: [sourceType, columns],
                     comment: [
                         "{0} is the DAB source type, e.g. Table or View",
                         "{1} is a comma-separated list of column names and their data types",
                     ],
                 }),
+            unsupportedUnnamedResultColumns: l10n.t(
+                "A result column has no name. Add an alias to each expression in the result set.",
+            ),
 
-            // DAB Deployment Steps
-            checkingDockerInstallation: l10n.t("Checking Docker installation"),
-            verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
-            startingDockerDesktop: l10n.t("Starting Docker Desktop"),
-            ensuringDockerDesktopRunning: l10n.t("Ensuring Docker Desktop is running"),
-            checkingDockerEngine: l10n.t("Checking Docker engine"),
-            verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
-            pullingDabImage: l10n.t("Pulling DAB container image"),
-            downloadingDabImage: l10n.t("Downloading the Data API builder container image"),
-            startingDabContainer: l10n.t("Starting DAB container"),
-            creatingAndStartingContainer: l10n.t("Creating and starting the container"),
-            checkingContainerReadiness: l10n.t("Checking container readiness"),
-            verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
             containerLogs: l10n.t("Container logs"),
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
@@ -2614,6 +3323,9 @@ export class LocConstants {
             ),
             connection: l10n.t("Connection"),
             database: l10n.t("Database"),
+            selectConnection: l10n.t("Select a connection"),
+            noConnectionsFound: l10n.t("No connections found"),
+            noDatabasesFound: l10n.t("No databases found"),
             defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),
             file: l10n.t("File"),
@@ -2925,6 +3637,9 @@ export class LocConstants {
                 }),
             name: l10n.t("Name"),
             enterConnectionGroupName: l10n.t("Enter connection group name"),
+            parentGroup: l10n.t("Parent group"),
+            root: l10n.t("Root"),
+            searchConnectionGroups: l10n.t("Search connection groups"),
             description: l10n.t("Description"),
             enterDescription: l10n.t("Enter description (optional)"),
             color: l10n.t("Color"),
@@ -2933,6 +3648,9 @@ export class LocConstants {
             hue: l10n.t("Hue"),
             saturation: l10n.t("Saturation"),
             brightness: l10n.t("Brightness"),
+            organizationNote: l10n.t(
+                "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
+            ),
         };
     }
 
@@ -2941,15 +3659,21 @@ export class LocConstants {
             loadingDeploymentPage: l10n.t("Loading deployment"),
             deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
+            localProvisioning: l10n.t("Run locally"),
+            remoteProvisioning: l10n.t("Run in the cloud"),
+            deployToCloud: l10n.t("Deploy to the cloud"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerCardHeader: l10n.t("SQL Server container"),
             dockerSqlServerDescription: l10n.t(
-                "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+                "Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.",
             ),
             fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
+            fabricProvisioningCardHeader: l10n.t("SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
-                "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+                "A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.",
             ),
+            azureSqlDatabaseCardHeader: l10n.t("Azure SQL Database"),
         };
     }
 
@@ -3050,11 +3774,28 @@ export class LocConstants {
 
     public get azureSqlContainer() {
         return {
+            applicationClientId: l10n.t("Application (client) ID"),
+            enterApplicationClientId: l10n.t("Enter the application client ID"),
+            servicePrincipalAdministratorDescription: l10n.t(
+                "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
+            ),
+            pfxFilePath: l10n.t("PFX file path"),
+            selectPfxFile: l10n.t("Select a PFX file"),
+            browsePfxFile: l10n.t("Browse for a PFX file"),
             sqlLogin: l10n.t("SQL Login"),
             entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
             entraDefault: l10n.t("Microsoft Entra ID - Default"),
             entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
-            authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
+            servicePrincipalClientSecret: l10n.t("Client secret"),
+            servicePrincipalClientSecretPlaceholder: l10n.t("Enter the client secret"),
+            servicePrincipalClientSecretTooltip: l10n.t(
+                "Client secret for the selected app registration. This is separate from the SQL administrator password.",
+            ),
+            sqlAdministratorUserName: l10n.t("SQL administrator user name"),
+            sqlAdministratorPassword: l10n.t("SQL administrator password"),
+            authenticationTooltip: l10n.t(
+                "Choose SQL Login or Microsoft Entra ID authentication for the developer container.",
+            ),
             userNameTooltip: l10n.t(
                 "The built-in administrator login for the developer container.",
             ),
@@ -3094,7 +3835,7 @@ export class LocConstants {
             gettingContainerReady: l10n.t("Getting container ready for connections"),
             pullingContainerImage: l10n.t("Pulling container image"),
             pullingContainerImageDescription: l10n.t(
-                "Downloading the Azure SQL Database developer container image from the private registry.",
+                "Downloading the Azure SQL Database developer container image from the registry.",
             ),
             creatingContainer: l10n.t("Creating container"),
             creatingContainerDescription: l10n.t(
@@ -3114,16 +3855,261 @@ export class LocConstants {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
             azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
-                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
+                "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
             ),
-            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
-            localContainer: l10n.t("Local container (Preview)"),
+            deployLocalDatabase: l10n.t("Local database to Azure SQL Database (Preview)"),
+            deployLocalDatabaseDescription: l10n.t(
+                "Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.",
+            ),
+            deployToAzureSql: l10n.t("Deploy a database to Azure SQL (Preview)"),
+            deployToAzureSqlDescription: l10n.t(
+                "Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.",
+            ),
+            sourceStep: l10n.t("Choose source database"),
+            compatibilityStep: l10n.t("Verify Azure SQL compatibility"),
+            compatibilityLabel: l10n.t("Compatibility"),
+            azureStep: l10n.t("Configure your Azure SQL database"),
+            reviewStep: l10n.t("Review deployment specifications"),
+            deployStep: l10n.t("Deploying to Azure"),
+            selectLocalDatabase: l10n.t("Select a local database"),
+            localDatabase: l10n.t("Local database"),
+            changeLocalDatabase: l10n.t("Change"),
+            sourceConnection: l10n.t("Connection"),
+            sourceServer: l10n.t("Server"),
+            sourceDatabase: l10n.t("Database"),
+            sourceSqlServer: l10n.t("SQL Server"),
+            sourceSqlAzure: l10n.t("SQL Azure"),
+            sourceStatus: l10n.t("Status"),
+            sourceConnected: l10n.t("Connected"),
+            sourceConnecting: l10n.t("Connecting..."),
+            sourceNotConnected: l10n.t("Not connected"),
+            sourceVersionUnavailable: l10n.t("Not available"),
+            deployDatabaseToAzure: (database: string) =>
+                l10n.t({
+                    message: "Deploy {0} to Azure SQL (Preview)",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityDescription: (database: string) =>
+                l10n.t({
+                    message: "We'll validate the {0} schema before creating cloud resources.",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityChecking: l10n.t("Validating database schema"),
+            compatibilityExtractingSchema: l10n.t("Capturing current schema"),
+            compatibilityValidatingSchema: l10n.t("Building and checking Azure SQL support"),
+            compatibilityCheckingPackage: l10n.t("Verifying deployment package"),
+            compatibilityPrerequisites: l10n.t(
+                "This check runs locally and requires the .NET SDK. Restoring SQL build dependencies may require internet access.",
+            ),
+            compatibilityResult: l10n.t("Azure SQL compatibility result"),
+            compatibilityDiagnostics: l10n.t("Compatibility diagnostics"),
+            compatibilityPassed: l10n.t("Compatible with Azure SQL"),
+            compatibilityWarnings: (count: number) =>
+                count === 1
+                    ? l10n.t("Compatible with 1 warning")
+                    : l10n.t("Compatible with {0} warnings", count),
+            compatibilityWarningDescription: (database: string, count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message:
+                              "{0} schema can be deployed to Azure SQL, but we found one item you may want to review.",
+                          args: [database],
+                          comment: ["{0} is the database name"],
+                      })
+                    : l10n.t({
+                          message:
+                              "{0} schema can be deployed to Azure SQL, but we found {1} items you may want to review.",
+                          args: [database, count],
+                          comment: ["{0} is the database name; {1} is the number of warnings"],
+                      }),
+            compatibilityBlocked: l10n.t("Schema isn't compatible with Azure SQL"),
+            compatibilityBlockedDescription: (database: string) =>
+                l10n.t({
+                    message:
+                        "These constructs aren't supported by your Azure SQL Database target. Update {0} schema, then run the check again.",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityUpdateSource: l10n.t(
+                "Update the source database schema, then run the check again. No Azure resources have been created.",
+            ),
+            openCompatibilityOutput: l10n.t("Open output"),
+            compatibilityFailed: l10n.t("Could not validate compatibility"),
+            compatibilityCancelled: l10n.t("Compatibility check cancelled"),
+            compatibilitySuccessDescription: (database: string) =>
+                l10n.t({
+                    message: "{0} schema packaged and validated successfully.",
+                    args: [database],
+                    comment: ["{0} is the selected database name"],
+                }),
+            compatibilityRetryDescription: l10n.t(
+                "Review the validation details and retry the compatibility check.",
+            ),
+            compatibilitySchemaPackage: l10n.t("Schema package"),
+            compatibilityPackagePassed: l10n.t("Passed"),
+            compatibilityTarget: l10n.t("Azure SQL target"),
+            compatibilitySupported: l10n.t("Supported"),
+            compatibilityValidationDetails: l10n.t("Validation details"),
+            compatibilitySource: l10n.t("Source"),
+            compatibilityCurrentSchema: l10n.t("Current database schema"),
+            compatibilityPackage: l10n.t("Package"),
+            compatibilityPackageSucceeded: l10n.t("Succeeded"),
+            compatibilityTargetPlatform: l10n.t("Target platform"),
+            compatibilityAzureSqlDatabase: l10n.t("Azure SQL Database"),
+            compatibilityDacpac: l10n.t("DACPAC"),
+            compatibilityReferences: l10n.t("Database references"),
+            compatibilityReferencesResolved: l10n.t("Resolved"),
+            compatibilityReferencesUnresolved: l10n.t("Unresolved references reported"),
+            compatibilityObjects: l10n.t("Objects validated"),
+            compatibilitySqlCodeAnalysis: l10n.t("SQL Code Analysis"),
+            compatibilityCodeCompatible: l10n.t("Compatible"),
+            compatibilityWarningCount: (count: number) =>
+                count === 1 ? l10n.t("1 warning") : l10n.t("{0} warnings", count),
+            viewCompatibilityDetails: l10n.t("Show validation details"),
+            hideCompatibilityDetails: l10n.t("Hide validation details"),
+            retryCompatibility: l10n.t("Run check again"),
+            compatibilityErrorCode: l10n.t("Error code"),
+            compatibilityErrorText: l10n.t("Error text"),
+            compatibilityWarningCode: l10n.t("Warning code"),
+            compatibilityWarningText: l10n.t("Warning text"),
+            compatibilityIssueColumn: l10n.t("Issue"),
+            compatibilityLineColumn: l10n.t("Line"),
+            compatibilityDependency: l10n.t("Unresolved schema dependency"),
+            compatibilityTooling: l10n.t("Build or tooling issue"),
+            compatibilityIssue: l10n.t("Schema compatibility issue"),
+            compatibilityLocation: (file: string, line: number) =>
+                l10n.t({
+                    message: "{0}, line {1}",
+                    args: [file, line],
+                    comment: ["{0} is the source file; {1} is its line number"],
+                }),
+            compatibilityContinueBlocked: l10n.t(
+                "Resolve blocking issues and complete compatibility validation before continuing.",
+            ),
+            continueToAzure: l10n.t("Continue to Azure"),
+            reviewAndDeploy: l10n.t("Review and deploy"),
+            reviewDescription: l10n.t("Confirm what will be created, then deploy."),
+            reviewSourceDescription: (engine: string, version: string) =>
+                l10n.t("Local database · {0} {1}", engine, version),
+            reviewTargetDescription: l10n.t("Azure SQL Database · Free tier"),
+            reviewIncludes: l10n.t("Includes"),
+            reviewIncludesObjects: (content: string, count: number) =>
+                count === 1
+                    ? l10n.t("{0} · 1 object", content)
+                    : l10n.t("{0} · {1} objects", content, count.toLocaleString()),
+            reviewViewObjects: l10n.t("View object list"),
+            reviewSchemaObjects: l10n.t("Schema objects"),
+            reviewSearchObjects: l10n.t("Search schema objects"),
+            reviewNoMatchingObjects: l10n.t("No schema objects match your search."),
+            reviewNoObjects: l10n.t("No schema objects were included in the validated package."),
+            reviewCompatibilityPassed: l10n.t("Ready for Azure SQL · 0 blocking"),
+            reviewCompatibilityWarnings: (count: number) =>
+                count === 1
+                    ? l10n.t("Ready for Azure SQL · 1 warning · 0 blocking")
+                    : l10n.t(
+                          "Ready for Azure SQL · {0} warnings · 0 blocking",
+                          count.toLocaleString(),
+                      ),
+            reviewAzureLocation: l10n.t("Azure location"),
+            reviewAzureDestination: (subscription: string, resourceGroup: string, server: string) =>
+                l10n.t({
+                    message: "{0} · {1} · {2}",
+                    args: [subscription, resourceGroup, server],
+                    comment: [
+                        "{0} is the Azure subscription; {1} is the resource group; {2} is the SQL server",
+                    ],
+                }),
+            reviewSchemaNotice: l10n.t(
+                "Database schema will be copied to Azure SQL. Your local database and container will stay unchanged.",
+            ),
+            reviewDataNotice: l10n.t(
+                "Schema and table rows will be copied to Azure SQL. Your local database and container will stay unchanged.",
+            ),
+            createAndDeploy: l10n.t("Create and Deploy"),
+            compatibilityCopyValue: l10n.t("Copy Value"),
+            compatibilityTableActionFailed: (error: string) =>
+                l10n.t({
+                    message: "Unable to complete the diagnostics table action: {0}",
+                    args: [error],
+                    comment: ["{0} is the error returned by a diagnostics table action"],
+                }),
+            deploymentProgress: l10n.t("Deployment progress"),
+            deployingDatabase: (database: string) =>
+                l10n.t({
+                    message: "Deploying {0} to Azure SQL",
+                    args: [database],
+                    comment: ["{0} is the database being deployed"],
+                }),
+            deploymentStageLabels: {
+                authenticating: l10n.t("Authenticate to Azure"),
+                validatingSettings: l10n.t("Validate Azure resources and schema package"),
+                exportingData: l10n.t("Export source schema and data"),
+                creatingDatabase: l10n.t("Create Azure SQL database"),
+                connecting: l10n.t("Connect to Azure SQL"),
+                publishingSchema: l10n.t("Publish validated schema"),
+                importingData: l10n.t("Import schema and data"),
+                verifying: l10n.t("Verify deployment"),
+                savingConnection: l10n.t("Connecting to Azure SQL"),
+            },
+            deploymentReady: l10n.t("Your Azure SQL Database is ready"),
+            deploymentCancelled: l10n.t("Deployment cancelled"),
+            deploymentResourcesRemain: l10n.t(
+                "Any Azure resources created have been left in place. Check the target before retrying and choose a new database name.",
+            ),
+            deploymentLog: l10n.t("View deployment log"),
+            openInAzurePortal: l10n.t("Open in Azure portal"),
+            deploymentScriptsDescription: l10n.t(
+                "Save Infrastructure-as-Code templates to your workspace to recreate this database later. Templates provision infrastructure only; schema and data are not included.",
+            ),
+            deploymentCancelling: l10n.t("Cancelling deployment..."),
+            deploymentSchema: l10n.t("Schema"),
+            deploymentConnection: l10n.t("Connection"),
+            deploymentSource: l10n.t("Source"),
+            deploymentObjects: (count: number) =>
+                count === 1
+                    ? l10n.t("1 object deployed")
+                    : l10n.t({
+                          message: "{0} objects deployed",
+                          args: [count],
+                          comment: ["{0} is the number of verified schema objects"],
+                      }),
+            deploymentConnected: l10n.t("Saved and connected"),
+            whatToDeploy: l10n.t("What to deploy"),
+            schemaAndData: l10n.t("Schema and data"),
+            schemaAndDataDescription: (database: string) =>
+                l10n.t({
+                    message:
+                        "Copy the structure of {0} and the rows in its tables - a working copy of your database, ready to run in Azure SQL.",
+                    args: [database],
+                    comment: ["{0} is the selected local database name"],
+                }),
+            schemaOnly: l10n.t("Schema only"),
+            schemaOnlyDescription: l10n.t(
+                "Deploy tables, views, and procedures without copying any rows. You can move data later.",
+            ),
+            loadingLocalConnections: l10n.t("Loading local connections..."),
+            noLocalServerDatabases: l10n.t("No user databases found on this server."),
+            localServerDatabasesLoadFailed: (error: string) =>
+                l10n.t({
+                    message: "Unable to load databases: {0}. Select Refresh to retry.",
+                    args: [error],
+                    comment: ["{0} is the error returned while loading databases"],
+                }),
+            noLocalConnections: l10n.t(
+                "No saved local connections found. Add a localhost server or database connection in the Connections view, then refresh this list.",
+            ),
+            localConnectionsLoadFailed: (error: string) =>
+                l10n.t({
+                    message: "Unable to load local connections: {0}",
+                    args: [error],
+                    comment: ["{0} is the error returned while loading connections"],
+                }),
+            continueDeployment: l10n.t("Continue"),
+            developerContainerPreview: l10n.t("Azure SQL Database container (Preview)"),
             localContainerDescription: l10n.t(
-                "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
-            ),
-            free: l10n.t("Free"),
-            freeDescription: l10n.t(
-                "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+                "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
             ),
             localContainerTbd: l10n.t("TBD"),
             localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),
@@ -3160,6 +4146,9 @@ export class LocConstants {
             engineNotDetected: l10n.t("Engine not detected"),
             selectContainerEngine: l10n.t("Select a container engine"),
             containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            containerEngineDetectionRetryHint: l10n.t(
+                "After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.",
+            ),
             containerEngineNotRunning: (engine: string) =>
                 l10n.t({
                     message: "Unable to connect to {0}. Make sure it is running and retry.",
@@ -3653,6 +4642,712 @@ export class LocConstants {
             vectorReadonlyTooltip: l10n.t(
                 "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
             ),
+        };
+    }
+
+    public get navigation() {
+        return {
+            breadcrumb: l10n.t("Breadcrumb"),
+            back: l10n.t("Back"),
+        };
+    }
+
+    public get performanceDashboard() {
+        return {
+            noChartData: l10n.t("No data for this time range."),
+            total: l10n.t("Total"),
+            average: l10n.t("Average"),
+            maximum: l10n.t("Max"),
+            minimum: l10n.t("Min"),
+            standardDeviation: l10n.t("Std dev"),
+            rankedMetric: (statistic: string, metric: string) =>
+                l10n.t({
+                    message: "{0} {1}",
+                    args: [statistic, metric],
+                    comment: [
+                        "{0} is a statistic, for example Total or Average",
+                        "{1} is a metric with its unit, for example CPU (ms)",
+                    ],
+                }),
+            cpuMs: l10n.t("CPU (ms)"),
+            durationMetric: l10n.t({
+                message: "duration",
+                comment: ["A metric after a statistic, for example Total duration"],
+            }),
+            logicalReadsMetric: l10n.t({
+                message: "logical reads",
+                comment: ["A metric after a statistic, for example Total logical reads"],
+            }),
+            highCpu: l10n.t("High CPU"),
+            durationCategory: l10n.t({
+                message: "Duration",
+                comment: ["A category of the Queries page: the queries that run longest"],
+            }),
+            mostFrequent: l10n.t("Most frequent"),
+            highReads: l10n.t("High reads"),
+            highMemory: l10n.t("High memory"),
+            highMemoryQueries: l10n.t("High memory queries"),
+            durationMs: l10n.t("duration (ms)"),
+            logicalReadsKb: l10n.t("logical reads (KB)"),
+            memoryKb: l10n.t("memory (KB)"),
+            mostFrequentQueries: l10n.t("Most frequent queries"),
+            durationQueries: l10n.t("Queries by duration"),
+            highReadQueries: l10n.t("High read queries"),
+            queryCategory: l10n.t("Query category"),
+            rankBy: l10n.t("Rank by"),
+            searchQueries: l10n.t("Search queries"),
+            favoritesOnly: l10n.t("Favorites only"),
+            noMatchingQueries: l10n.t("No queries match."),
+            addFavorite: (queryId: string) =>
+                l10n.t({
+                    message: "Add query {0} to favorites",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            removeFavorite: (queryId: string) =>
+                l10n.t({
+                    message: "Remove query {0} from favorites",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            queryNumber: (queryId: string) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            queryNotFound: l10n.t("Query Store has no data for this query in this time range."),
+            objectName: l10n.t("Object name"),
+            lastExecuted: l10n.t("Last executed"),
+            planForcedBadge: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0} forced",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            notForced: l10n.t("Not forced"),
+            minShort: l10n.t({ message: "Min", comment: ["Short for minimum"] }),
+            maxShort: l10n.t({ message: "Max", comment: ["Short for maximum"] }),
+            executionHistory: l10n.t("Execution history"),
+            plans: l10n.t("Plans"),
+            queryTextTitle: l10n.t("Query text"),
+            queryViews: l10n.t("Query views"),
+            queryTextEditor: l10n.t("Query text, read-only"),
+            noQueryText: l10n.t("The query text is not available."),
+            copySql: l10n.t("Copy SQL"),
+            copied: l10n.t("Copied"),
+            durationMsOption: l10n.t("Duration (ms)"),
+            logicalReadsKbOption: l10n.t("Logical reads (KB)"),
+            memoryKbOption: l10n.t("Memory (KB)"),
+            milliseconds: (value: string) =>
+                l10n.t({
+                    message: "{0} ms",
+                    args: [value],
+                    comment: ["{0} is a number of milliseconds, for example 46.54"],
+                }),
+            kilobytes: (value: string) =>
+                l10n.t({
+                    message: "{0} KB",
+                    args: [value],
+                    comment: ["{0} is a number of kilobytes, for example 2,588"],
+                }),
+            totalDuration: l10n.t("Total duration"),
+            totalCpu: l10n.t("Total CPU"),
+            logicalReads: l10n.t("Logical reads"),
+            viewBy: l10n.t("View by"),
+            timeInterval: l10n.t("Time interval"),
+            timeIntervalRange: (start: string, end: string) =>
+                l10n.t({
+                    message: "{0} - {1}",
+                    args: [start, end],
+                    comment: ["{0} is the start date and time", "{1} is the end time"],
+                }),
+            noPlans: l10n.t("Query Store has no plans for this query."),
+            selectPlan: (planId: string) =>
+                l10n.t({
+                    message: "Select plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            plan: l10n.t("Plan"),
+            planLegend: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planBandDescription: l10n.t("The plan that ran most in each interval"),
+            planRanMost: (planId: string, start: string, end: string) =>
+                l10n.t({
+                    message: "Plan {0} ran most from {1} to {2}",
+                    args: [planId, start, end],
+                    comment: [
+                        "{0} is the Query Store plan ID",
+                        "{1} and {2} are the start and end date and time",
+                    ],
+                }),
+            planExecutions: (planId: string, executions: string) =>
+                l10n.t({
+                    message: "Plan {0}: {1} executions",
+                    args: [planId, executions],
+                    comment: ["{0} is the Query Store plan ID", "{1} is the number of executions"],
+                }),
+            planSummaryTitle: (metric: string) =>
+                l10n.t({
+                    message: "Plan summary: {0}",
+                    args: [metric],
+                    comment: ["{0} is the statistic and metric, for example Total Duration (ms)"],
+                }),
+            runs: l10n.t("Runs"),
+            mean: l10n.t("Mean duration"),
+            meanCpu: l10n.t("Mean CPU"),
+            force: l10n.t("Force"),
+            forcedManually: l10n.t("Forced (Manual)"),
+            forcedAutomatically: l10n.t("Forced (Automatic tuning)"),
+            forceFailed: (reason: string) =>
+                l10n.t({
+                    message: "Last force failed: {0}",
+                    args: [reason],
+                    comment: ["{0} is the failure reason code, for example NO_INDEX"],
+                }),
+            selectPlans: l10n.t("Select one plan to open or force, or two plans to compare."),
+            onePlanSelected: l10n.t("1 selected"),
+            selectTwoToCompare: l10n.t("select two plans to compare"),
+            twoPlansSelected: l10n.t("2 selected"),
+            openPlanXml: l10n.t("Open plan XML"),
+            planActions: (planId: string) =>
+                l10n.t({
+                    message: "Actions for plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            openPlan: (planId: string) =>
+                l10n.t({
+                    message: "Open plan {0} in the execution plan viewer",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            comparePlansAction: l10n.t("Compare plans"),
+            forcePlan: l10n.t("Force plan"),
+            unforcePlan: l10n.t("Unforce plan"),
+            planXmlNotFound: (planId: string) =>
+                l10n.t({
+                    message: "Query Store has no plan XML for plan {0}.",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planCompareFailed: l10n.t("The plans could not be read for the comparison."),
+            reviewForcePlan: (planId: string) =>
+                l10n.t({
+                    message: "Force plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            reviewUnforcePlan: (planId: string) =>
+                l10n.t({
+                    message: "Unforce plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planForced: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0} is forced.",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planUnforced: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0} is no longer forced.",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            verifyExplanation: l10n.t(
+                "Verify after the query runs again: Query Store counts the executions from the interval after the change.",
+            ),
+            verifyForcedPlan: l10n.t("Verify"),
+            verifyForcedPlanInUse: l10n.t("New executions use the forced plan."),
+            verifyOtherPlansInUse: l10n.t(
+                "Some new executions use another plan. The last force failure can say why.",
+            ),
+            verifyNoExecutions: l10n.t("The query has not run since the change."),
+            verifyWaiting: l10n.t(
+                "The first Query Store interval after the change has not started yet. Verify again later.",
+            ),
+            verifyNotForced: l10n.t("The plan is not forced."),
+            planBlockerQueryStoreNotReadWrite: l10n.t(
+                "Query Store must be read-write to change plan forcing.",
+            ),
+            planBlockerPlanNotFound: l10n.t("Query Store does not have this plan."),
+            planBlockerPlanNotForQuery: l10n.t("The plan belongs to another query."),
+            planBlockerAlreadyForced: l10n.t("The plan is already forced."),
+            planBlockerNotForced: l10n.t("The plan is not forced."),
+            planBlockerAutoForced: l10n.t(
+                "Automatic tuning forced a plan for this query, so the plan forcing cannot be changed here.",
+            ),
+            planBlockerDispatcher: l10n.t(
+                "A dispatcher plan cannot be forced. Force one of its variant plans.",
+            ),
+            planBlockerStateChanged: l10n.t(
+                "The plan forcing changed after you prepared the change. Prepare it again.",
+            ),
+            planWarningReplacesForced: l10n.t(
+                "Another plan of this query is forced. This change replaces it.",
+            ),
+            planWarningForcingTypeUnknown: l10n.t(
+                "This version cannot tell manual from automatic forcing.",
+            ),
+            planWarningVariant: l10n.t("This is a variant plan of a parameter-sensitive query."),
+            planWarningDispatcher: l10n.t("This is a dispatcher plan."),
+            planWarningPreviousFailures: l10n.t(
+                "Forcing this plan failed before. Check the last failure reason.",
+            ),
+            serverAndDatabase: (serverName: string, databaseName: string) =>
+                l10n.t({
+                    message: "{0} / {1}",
+                    args: [serverName, databaseName],
+                    comment: ["{0} is the server name", "{1} is the database name"],
+                }),
+            database: l10n.t("Database"),
+            searchDatabases: l10n.t("Search databases"),
+            connectionFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not read from the database: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            databaseListFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not load the database list: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            queries: l10n.t("Queries"),
+            query: (queryId: string) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            settings: l10n.t("Settings"),
+            openQueryStoreSettings: l10n.t("Open Query Store settings"),
+            updatedAt: (time: string) =>
+                l10n.t({
+                    message: "Updated {0}",
+                    args: [time],
+                    comment: ["{0} is a time, for example 3:02 AM"],
+                }),
+            queryStore: l10n.t("Query Store"),
+            stateCollecting: l10n.t("Collecting"),
+            stateReadOnly: l10n.t("Read-only"),
+            stateOff: l10n.t("Off"),
+            stateError: l10n.t("Error"),
+            stateReadCapture: l10n.t("Capturing secondary replicas"),
+            storageUsed: (usedMb: string, maxMb: string) =>
+                l10n.t({
+                    message: "{0} MB of {1} MB",
+                    args: [usedMb, maxMb],
+                    comment: ["{0} is the used size in MB", "{1} is the maximum size in MB"],
+                }),
+            storageUsedAmount: (usedMb: string) =>
+                l10n.t({
+                    message: "{0} MB",
+                    args: [usedMb],
+                    comment: ["{0} is the used size in MB"],
+                }),
+            storageOfMax: (maxMb: string) =>
+                l10n.t({
+                    message: "of {0} MB used",
+                    args: [maxMb],
+                    comment: ["{0} is the maximum size in MB. It follows the used size, 1 MB"],
+                }),
+            storageLabel: l10n.t("Query Store storage"),
+            cleanupAt: (percent: string) =>
+                l10n.t({
+                    message: "Cleanup starts at {0}",
+                    args: [percent],
+                    comment: ["{0} is a percentage of the maximum size, for example 90%"],
+                }),
+            cleanupOff: l10n.t("Size-based cleanup off"),
+            readWrite: l10n.t("Read-write"),
+            readOnly: l10n.t("Read-only"),
+            off: l10n.t("Off"),
+            captureAuto: l10n.t("Auto"),
+            captureAll: l10n.t("All"),
+            captureNone: l10n.t("None"),
+            captureCustom: l10n.t("Custom"),
+            minutes: (count: string) =>
+                l10n.t({
+                    message: "{0} min",
+                    args: [count],
+                    comment: ["{0} is a number of minutes"],
+                }),
+            operationMode: l10n.t("Operation mode"),
+            operationModeDescription: l10n.t(
+                "Read-only stops collecting new data. Off also stops plan forcing.",
+            ),
+            captureMode: l10n.t("Capture mode"),
+            captureModeDescription: l10n.t("Auto skips infrequent and insignificant queries"),
+            capturePolicyStale: l10n.t("Evaluation period"),
+            capturePolicyStaleDescription: l10n.t(
+                "Custom capture: the period in which a query must reach a threshold below",
+            ),
+            capturePolicyExecutionCount: l10n.t("Execution count"),
+            capturePolicyExecutionCountDescription: l10n.t(
+                "Capture a query that runs at least this many times",
+            ),
+            capturePolicyCompileCpu: l10n.t("Compile CPU"),
+            capturePolicyCompileCpuDescription: l10n.t(
+                "Or that uses at least this much CPU to compile",
+            ),
+            capturePolicyExecutionCpu: l10n.t("Execution CPU"),
+            capturePolicyExecutionCpuDescription: l10n.t(
+                "Or that uses at least this much CPU to run",
+            ),
+            maxSize: l10n.t("Max size"),
+            maxSizeDescription: l10n.t("Storage limit for collected data"),
+            sizeBasedCleanup: l10n.t("Size-based cleanup"),
+            sizeBasedCleanupDescription: l10n.t(
+                "At 90% of the max size, removes the oldest and least costly queries until about 80%. SQL Server sets these thresholds.",
+            ),
+            flushInterval: l10n.t("Data flush interval"),
+            flushIntervalDescription: l10n.t("How often collected data is written to disk"),
+            keepQueriesFor: l10n.t("Keep queries for"),
+            keepQueriesDescription: l10n.t("Older query data is removed"),
+            statisticsInterval: l10n.t("Statistics interval"),
+            groupCollection: l10n.t("Collection"),
+            groupStorage: l10n.t("Storage"),
+            groupTiming: l10n.t("Timing"),
+            unitMb: l10n.t({ message: "MB", comment: ["Megabytes, after a number"] }),
+            unitDays: l10n.t({ message: "days", comment: ["After a number of days"] }),
+            unitHours: l10n.t({ message: "hours", comment: ["After a number of hours"] }),
+            unitMinutes: l10n.t({ message: "min", comment: ["Minutes, after a number"] }),
+            unitMs: l10n.t({ message: "ms", comment: ["Milliseconds, after a number"] }),
+            oneHour: l10n.t("1 hour"),
+            oneDay: l10n.t("1 day"),
+            noChanges: l10n.t("No changes"),
+            changeCount: (count: number) =>
+                count === 1
+                    ? l10n.t("1 change")
+                    : l10n.t({
+                          message: "{0} changes",
+                          args: [count],
+                          comment: ["{0} is the number of changed settings"],
+                      }),
+            intervalDescription: l10n.t("How often runtime statistics are aggregated"),
+            waitStatistics: l10n.t("Wait statistics"),
+            waitStatisticsDescription: l10n.t("Capture what queries spend time waiting on"),
+            alterPermissionMissing: l10n.t(
+                "You need ALTER permission on the database to change the Query Store settings.",
+            ),
+            prepareForReview: l10n.t("Review change"),
+            changeQueryStoreSettings: l10n.t("Change Query Store settings"),
+            changeScript: l10n.t("The T-SQL of the change, read-only"),
+            reviewDescription: l10n.t(
+                "Apply runs this script on the database. You can also open it in a query editor and run it yourself.",
+            ),
+            openInQueryEditor: l10n.t("Open in query editor"),
+            settingsChanged: l10n.t("Query Store settings changed."),
+            settingsNotChangeable: l10n.t(
+                "Query Store settings can't be changed from here on this platform.",
+            ),
+            noQueryStoreSettings: l10n.t("This platform has no Query Store settings."),
+            queryStoreReadOnlyBecause: (reason: string) =>
+                l10n.t({
+                    message: "Query Store is read-only. {0}",
+                    args: [reason],
+                    comment: [
+                        "{0} is the reason, for example: Query Store reached its maximum size.",
+                    ],
+                }),
+            readOnlyDbReadOnly: l10n.t("The database is read-only."),
+            readOnlyDbInSingleUserMode: l10n.t("The database is in single-user mode."),
+            readOnlyDbInEmergencyMode: l10n.t("The database is in emergency mode."),
+            readOnlyDbInLogAcceptMode: l10n.t("The database is a secondary that applies the log."),
+            readOnlyDiskSizeLimit: l10n.t("Query Store reached its maximum size."),
+            readOnlyMemoryLimit: l10n.t("Query Store reached its memory limit."),
+            warningMaxSizeBelowCurrentSize: l10n.t(
+                "The new maximum size is less than the current size, so Query Store becomes read-only.",
+            ),
+            warningReadOnlyStopsCapture: l10n.t(
+                "Read-only stops the capture of new queries and statistics.",
+            ),
+            warningCaptureNoneStopsNewQueries: l10n.t(
+                "Capture mode None stops the capture of new queries.",
+            ),
+            warningTurnsQueryStoreOn: l10n.t("This change turns Query Store on."),
+            warningTurnsQueryStoreOff: l10n.t(
+                "Query Store stops collecting data, and forced plans are no longer forced. The data that it has stays.",
+            ),
+            warningSizeBasedCleanupOff: l10n.t(
+                "Without size-based cleanup, Query Store becomes read-only when it reaches its max size.",
+            ),
+            warningLongerFlushInterval: l10n.t(
+                "A longer flush interval loses more data if the server stops unexpectedly.",
+            ),
+            warningShorterIntervalUsesMoreStorage: l10n.t(
+                "A shorter interval gives more detail but uses more storage.",
+            ),
+            blockerNoChange: l10n.t("No value is different from the current settings."),
+            blockerPermissionMissing: l10n.t("You need the ALTER permission on the database."),
+            blockerPlatformUnsupported: l10n.t(
+                "Query Store settings can't be changed from here on this platform.",
+            ),
+            blockerWaitStatsUnsupported: l10n.t(
+                "This version of SQL Server does not capture wait statistics in Query Store.",
+            ),
+            blockerCapturePolicyUnsupported: l10n.t(
+                "This version of SQL Server does not have the custom capture policy.",
+            ),
+            blockerTurnOffUnsupported: l10n.t(
+                "Query Store can't be turned off on Azure SQL Database.",
+            ),
+            blockerQueryStoreError: l10n.t(
+                "Query Store is in the error state. Turn it off and on again to recover it.",
+            ),
+            blockerSettingsChanged: l10n.t(
+                "The settings changed after you prepared the change. Prepare it again.",
+            ),
+            blockerPreparedSqlMismatch: l10n.t(
+                "The script is not the script for this change. Prepare it again.",
+            ),
+            pastHour: l10n.t("Past hour"),
+            past12Hours: l10n.t("Past 12 hours"),
+            past24Hours: l10n.t("Past 24 hours"),
+            past7Days: l10n.t("Past 7 days"),
+            past30Days: l10n.t("Past 30 days"),
+            metric: l10n.t("Metric"),
+            notAvailable: l10n.t("N/A"),
+            highCpuQueries: l10n.t("High CPU usage queries"),
+            queryId: l10n.t("Query ID"),
+            averageShort: l10n.t({
+                message: "Avg",
+                comment: ["Short for average, before a metric"],
+            }),
+            metricCpu: l10n.t({
+                message: "CPU",
+                comment: ["A metric after a statistic, for example Total CPU"],
+            }),
+            metricDuration: l10n.t({
+                message: "duration",
+                comment: ["A metric after a statistic, for example Total duration"],
+            }),
+            metricMemory: l10n.t({
+                message: "memory",
+                comment: ["A metric after a statistic, for example Total memory"],
+            }),
+            metricReads: l10n.t({
+                message: "reads",
+                comment: ["Logical reads, after a statistic, for example Total reads"],
+            }),
+            criticalAtOrAbove: (threshold: string) =>
+                l10n.t({
+                    message: "Critical (≥ {0})",
+                    args: [threshold],
+                    comment: ["{0} is the threshold, for example 80%"],
+                }),
+            compareTab: l10n.t("Compare"),
+            compareCpu: l10n.t({ message: "CPU", comment: ["A choice of measure: CPU time"] }),
+            compareMemory: l10n.t({ message: "Memory", comment: ["A choice of measure: memory"] }),
+            resizeQueryText: l10n.t("Resize the query text"),
+            compareRecent: l10n.t({
+                message: "Recent",
+                comment: ["The recent period of a comparison"],
+            }),
+            compareBaseline: l10n.t({
+                message: "Baseline",
+                comment: ["The earlier period that a comparison compares with"],
+            }),
+            versus: l10n.t({ message: "vs", comment: ["Short for versus, between two periods"] }),
+            recentSetByRange: l10n.t("The recent period is the time range at the top of the page."),
+            baselineSameLength: l10n.t("Same length before"),
+            baseline7Days: l10n.t("7 days before"),
+            baseline30Days: l10n.t("30 days before"),
+            regressed: l10n.t({
+                message: "Regressed",
+                comment: ["A category of the Queries page: the queries that got worse"],
+            }),
+            regressedQueries: l10n.t("Regressed queries"),
+            addedMetric: (metric: string) =>
+                l10n.t({
+                    message: "Added {0}",
+                    args: [metric],
+                    comment: [
+                        "{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions",
+                    ],
+                }),
+            newPlans: l10n.t({
+                message: "New plans",
+                comment: ["The plans that ran in the recent period and not in the baseline period"],
+            }),
+            noRegressedQueries: l10n.t("No query got worse between these periods."),
+            baselineOverlapsRecent: l10n.t(
+                "The baseline must end before the recent period starts. Choose another baseline.",
+            ),
+            baselineRangeLabel: (range: string) =>
+                l10n.t({
+                    message: "Baseline period: {0}",
+                    args: [range],
+                    comment: ["{0} is the selected time range, for example 7 days before"],
+                }),
+            averagePerExecution: l10n.t("Average per execution"),
+            totalPerDay: l10n.t("Total per day"),
+            change: l10n.t({
+                message: "Change",
+                comment: ["The change from one period to another"],
+            }),
+            executionsRecentBaseline: l10n.t("Executions (recent / baseline)"),
+            noCompareData: l10n.t("The query did not run in the recent or the baseline period."),
+            compareNote: l10n.t(
+                "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.",
+            ),
+            recentPeriod: (value: string) =>
+                l10n.t({
+                    message: "Recent · {0}",
+                    args: [value],
+                    comment: ["{0} is a period, for example past 24 hours"],
+                }),
+            baselinePeriod: (value: string) =>
+                l10n.t({
+                    message: "Baseline · {0} that",
+                    args: [value],
+                    comment: ["{0} is a period, for example 30 days before"],
+                }),
+            recentColumn: (value: string) =>
+                l10n.t({
+                    message: "Recent {0}",
+                    args: [value],
+                    comment: ["{0} is a measure, for example Avg CPU"],
+                }),
+            baselineColumn: (value: string) =>
+                l10n.t({
+                    message: "Baseline {0}",
+                    args: [value],
+                    comment: ["{0} is a measure, for example Avg CPU"],
+                }),
+            metricPerDay: (value: string) =>
+                l10n.t({
+                    message: "{0} per day",
+                    args: [value],
+                    comment: ["{0} is a measure, for example CPU"],
+                }),
+            queryText: l10n.t("Query"),
+            cpuTime: l10n.t("CPU time"),
+            shareOfAllQueries: (share: string, value: string) =>
+                l10n.t({
+                    message: "{0} of the total of all queries, {1}",
+                    args: [share, value],
+                    comment: [
+                        "{0} is a percentage, for example 91.3%",
+                        "{1} is the exact value, for example 34,630 ms",
+                    ],
+                }),
+            executionCount: l10n.t("Executions"),
+            noQueries: l10n.t("No queries ran in this time range."),
+            queryStoreOffTitle: l10n.t("Query Store is off"),
+            queryStoreOff: l10n.t(
+                "Query Store needs to be enabled on this database to see query performance.",
+            ),
+            enableQueryStoreLink: l10n.t("Learn how to enable Query Store"),
+            queryStoreReadOnly: l10n.t(
+                "Query Store is read-only, so it does not capture new data. The data can be old.",
+            ),
+            metricUnsupported: l10n.t("This platform does not record this data in Query Store."),
+            permissionMissing: l10n.t(
+                "You need the VIEW DATABASE STATE permission to read Query Store data.",
+            ),
+            temporarilyUnavailable: (errorMessage: string) =>
+                l10n.t({
+                    message: "The database did not answer in time. Try again. {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            readFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not read the data: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            dataPlaneDisabled: l10n.t(
+                "Performance monitoring is off. Turn on the mssql.performanceMonitoring.enabled setting, then reload the window.",
+            ),
+            reloadRequired: l10n.t("Reload the window to turn on performance monitoring."),
+            dataPlaneUnavailable: l10n.t("The SQL data plane is not available."),
+            connectionNotFound: l10n.t(
+                "The connection was not found. Connect to the database again.",
+            ),
+            authenticationUnsupported: l10n.t(
+                "The SQL data plane does not support the authentication type of this connection.",
+            ),
+            waitsTab: l10n.t({ message: "Waits", comment: ["A tab: what the query waits on"] }),
+            totalWait: l10n.t("Total wait"),
+            waitingShare: l10n.t({
+                message: "Waiting",
+                comment: ["The part of the query's duration that it spent waiting"],
+            }),
+            topWait: l10n.t("Top wait"),
+            waitCategory: l10n.t("Wait category"),
+            avgWaitPerExecution: l10n.t("Average per execution"),
+            maxWait: l10n.t("Longest wait"),
+            shareOfWaits: l10n.t("Share of waits"),
+            waitTimeMs: l10n.t("Wait time (ms)"),
+            otherWaits: l10n.t({ message: "Other", comment: ["The other wait categories"] }),
+            allPlans: l10n.t("All plans"),
+            noWaits: l10n.t("No waits were recorded in this time range."),
+            waitCaptureOff: l10n.t(
+                "Query Store does not capture wait statistics, so new waits are not recorded.",
+            ),
+            turnOnWaitCapture: l10n.t("Turn on wait statistics capture"),
+            chat: l10n.t("Chat"),
+            openInChat: l10n.t("Open in GitHub Copilot Chat"),
+            preview: l10n.t("Preview"),
+            databaseHubEyebrow: l10n.t("Continue in Fabric Database Hub"),
+            databaseHubTitle: l10n.t("Continue investigating this database"),
+            databaseHubDescription: l10n.t(
+                "Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.",
+            ),
+            databaseHubNotNow: l10n.t("Not now"),
+            openInDatabaseHub: l10n.t("Open in Database Hub"),
+            queryActions: (queryId: string) =>
+                l10n.t({
+                    message: "Actions for query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+        };
+    }
+
+    public get timeRange() {
+        return {
+            timeRangeLabel: (range: string) =>
+                l10n.t({
+                    message: "Time range: {0}",
+                    args: [range],
+                    comment: ["{0} is the selected time range, for example Past 24 hours"],
+                }),
+            range: (from: string, to: string) =>
+                l10n.t({
+                    message: "{0} - {1}",
+                    args: [from, to],
+                    comment: ["{0} is the start date and time", "{1} is the end date and time"],
+                }),
+            partial: l10n.t({
+                message: "Partial",
+                comment: ["A time range that starts before the oldest data"],
+            }),
+            customRange: l10n.t("Custom range"),
+            from: l10n.t("From"),
+            to: l10n.t("To"),
+            fromDate: l10n.t("From date"),
+            fromTime: l10n.t("From time"),
+            toDate: l10n.t("To date"),
+            toTime: l10n.t("To time"),
+            invalidRange: l10n.t("The start must be before the end, inside the available data."),
+            dataStarts: (from: string) =>
+                l10n.t({
+                    message: "Data starts {0}. Partial ranges show what's available.",
+                    args: [from],
+                    comment: ["{0} is the date and time of the oldest data"],
+                }),
         };
     }
 
@@ -4293,11 +5988,13 @@ export class LocConstants {
                 }),
             showReleaseNotesAfterUpdates: l10n.t("Show release notes after updates"),
             addConnection: l10n.t("Add connection"),
-            deploy: l10n.t("Deploy"),
-            moreDeployOptions: l10n.t("More deploy options"),
+            create: l10n.t("Create"),
+            moreCreateOptions: l10n.t("More create options"),
+            newAzureSqlContainer: l10n.t("Local Azure SQL Database container (Preview)"),
             newLocalContainer: l10n.t("Local SQL Server container"),
             newFabricDatabase: l10n.t("SQL database in Fabric"),
             newAzureSqlDatabase: l10n.t("Azure SQL Database"),
+            deployLocalDatabase: l10n.t("Deploy local database to Azure SQL (Preview)"),
             freeTag: l10n.t("Free"),
             moreNewOptions: l10n.t("More new options"),
             newQuery: l10n.t("New query"),
@@ -4483,6 +6180,13 @@ export class LocConstants {
             ),
             featureQueryEditorTitle: l10n.t("Query Editor"),
             featureQueryEditorDescription: l10n.t("Write T-SQL with IntelliSense."),
+            featureQueryPerformanceDashboardTitle: l10n.t("Query Performance Dashboard"),
+            featureQueryPerformanceDashboardHeading: l10n.t(
+                "Query Performance Dashboard (Preview)",
+            ),
+            featureQueryPerformanceDashboardDescription: l10n.t(
+                "Use the Query Performance Dashboard to find query store insights, analyze performance trends, investigate execution plans, and optimize queries with GitHub Copilot.",
+            ),
             featureQueryPlansTitle: l10n.t("Query Plans"),
             featureQueryPlansDescription: l10n.t(
                 "Analyze execution plans with interactive node navigation",
@@ -4668,8 +6372,10 @@ export class LocConstants {
             learnMoreAboutTemplate: l10n.t("Learn more about this template"),
 
             videos: l10n.t("Videos"),
-            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
-            videoWhatsNewSubtitle: l10n.t("Agent skills, SQL formatter, and landing page"),
+            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension (v1.48)"),
+            videoWhatsNewSubtitle: l10n.t(
+                "Local Azure SQL Database container, query performance dashboard, and more",
+            ),
             videoGettingStartedTitle: l10n.t(
                 "Getting started with the MSSQL extension in 5 minutes",
             ),
@@ -4731,9 +6437,20 @@ export class LocConstants {
             watchDemos: l10n.t("Watch demos on YouTube"),
             viewRoadmap: l10n.t("View the roadmap"),
             readDocs: l10n.t("Read the docs on Microsoft Learn"),
+            joinSqlAiWorkshop: l10n.t("Join a free SQL + AI workshop"),
             reportBug: l10n.t("Report a bug"),
             requestFeature: l10n.t("Request a feature"),
             joinDiscussions: l10n.t("Join the discussions"),
+
+            eventDates: l10n.t("Event dates"),
+            eventLocation: l10n.t("Event location"),
+            copyDiscountCode: (code: string) =>
+                l10n.t({
+                    message: "Copy discount code {0}",
+                    args: [code],
+                    comment: ["{0} is a registration discount code, e.g. VSCODE200"],
+                }),
+            discountCodeCopied: l10n.t("Discount code copied"),
         };
     }
 }

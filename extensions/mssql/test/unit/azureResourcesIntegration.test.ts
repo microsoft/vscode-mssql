@@ -101,6 +101,8 @@ suite("AzureResourcesExtensionIntegration Tests", () => {
         expect(params.get("server")).to.equal(`${mockServerName}${dnsSuffix}`);
         expect(params.get("database")).to.equal(database.name);
         expect(params.get("profileName")).to.equal(`${mockServerName}/${database.name}`);
+        // Database Hub opens the server's databases by the server's ARM ID.
+        expect(params.get("resourceId")).to.equal(mockAzureResources.azureSqlDbServer.id);
     });
 
     test("falls back to the resource name when the id has no server segment", async () => {

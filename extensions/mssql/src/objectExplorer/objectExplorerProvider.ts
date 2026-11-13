@@ -15,6 +15,7 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 import { ConnectionGroupExpansionStateStore } from "./connectionGroupExpansionStateStore";
+import { applyDatabaseHubContext } from "../databaseHub/databaseHubEligibility";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -53,6 +54,9 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public getTreeItem(node: TreeNodeInfo): TreeNodeInfo {
+        if (node instanceof TreeNodeInfo) {
+            applyDatabaseHubContext(node);
+        }
         return node;
     }
 
@@ -118,12 +122,16 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._onDidChangeTreeData.fire(node);
     }
 
-    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
+    /** Removes tree nodes, optionally preserving saved profiles during connection edits. */
+    public async removeConnectionNodes(
+        connections: IConnectionInfo[],
+        options?: { preserveProfiles: boolean },
+    ): Promise<void> {
         if (connections.length === 0) {
             return;
         }
 
-        await this._objectExplorerService.removeConnectionNodes(connections);
+        await this._objectExplorerService.removeConnectionNodes(connections, options);
         this.refresh(undefined);
     }
 

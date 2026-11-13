@@ -15,7 +15,11 @@
 
 import { diag, diagnosticErrorClass } from "../../../diagnostics/diagnosticsCore";
 import { PreparedConnection } from "../../../services/metadata/profileAuthAdapter";
-import { ISqlSession, OpenSessionParams } from "../../../services/sqlDataPlane/api";
+import {
+    ISqlSession,
+    OpenSessionParams,
+    SqlDataPlaneError,
+} from "../../../services/sqlDataPlane/api";
 import { FallbackDecision } from "../../../services/sqlDataPlane/providerSuggestions";
 
 /**
@@ -44,6 +48,8 @@ export interface OeV2ConnectionSession {
     readonly serverVersion?: string;
     readonly databaseAtOpen?: string;
     readonly failureReason?: string;
+    /** Safe normalized identity, retained even when provider text is redacted. */
+    readonly failureCode?: string;
     /** Milliseconds spent connecting so far (B27 slow-connect surfacing). */
     readonly connectingForMs?: number;
 }
@@ -54,6 +60,7 @@ interface Entry {
     state: OeV2ConnectionState;
     session: ISqlSession | undefined;
     failureReason: string | undefined;
+    failureCode?: string;
     stateSubscription: { dispose(): void } | undefined;
     connectingSince: number | undefined;
     /** The in-flight open — a second connect() JOINS it (outcome, not snapshot). */
@@ -105,8 +112,9 @@ export class OeV2SessionRegistry {
     async connect(
         connectionId: string,
         prepared: PreparedConnection,
+        signal?: AbortSignal,
     ): Promise<OeV2ConnectionSession> {
-        if (this.disposed) {
+        if (this.disposed || signal?.aborted) {
             return { connectionId, state: "disconnected" };
         }
         const existing = this.entries.get(connectionId);
@@ -131,7 +139,12 @@ export class OeV2SessionRegistry {
             // state listener. Retire it before replacing the map slot so a
             // reconnect cannot orphan data-plane state.
             await this.retire(existing);
-            if (this.disposed) {
+            if (this.disposed || signal?.aborted) {
+                if (signal?.aborted && this.entries.get(connectionId) === existing) {
+                    existing.state = "disconnected";
+                    existing.failureReason = undefined;
+                    this.notify(connectionId);
+                }
                 return { connectionId, state: "disconnected" };
             }
         }
@@ -146,8 +159,14 @@ export class OeV2SessionRegistry {
             pending: undefined,
         };
         this.entries.set(connectionId, entry);
+        const cancel = () => {
+            if (this.entries.get(connectionId) === entry) this.cancelConnect(connectionId);
+        };
+        signal?.addEventListener("abort", cancel, { once: true });
+        if (signal?.aborted) cancel();
         this.notify(connectionId);
         const pending = this.runConnect(connectionId, entry, prepared).finally(() => {
+            signal?.removeEventListener("abort", cancel);
             if (entry.pending === pending) {
                 entry.pending = undefined;
             }
@@ -225,6 +244,7 @@ export class OeV2SessionRegistry {
             }
             entry.state = "failed";
             entry.failureReason = error instanceof Error ? error.message : String(error);
+            entry.failureCode = error instanceof SqlDataPlaneError ? error.code : undefined;
             span.end("error", {
                 errorClass: {
                     raw: diagnosticErrorClass(error),
@@ -299,6 +319,7 @@ export class OeV2SessionRegistry {
         this.notify(connectionId);
         await this.retire(entry);
         entry.state = "disconnected";
+        entry.failureReason = undefined;
         diag.emit({
             feature: "objectExplorer",
             kind: "event",
@@ -336,6 +357,7 @@ function snapshotOf(entry: Entry): OeV2ConnectionSession {
         ...(info?.serverVersion ? { serverVersion: info.serverVersion } : {}),
         ...(info?.database ? { databaseAtOpen: info.database } : {}),
         ...(entry.failureReason ? { failureReason: entry.failureReason } : {}),
+        ...(entry.failureReason && entry.failureCode ? { failureCode: entry.failureCode } : {}),
         ...(entry.state === "connecting" && entry.connectingSince !== undefined
             ? { connectingForMs: Date.now() - entry.connectingSince }
             : {}),

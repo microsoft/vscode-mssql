@@ -7,6 +7,9 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
+import { QueryStudioCompletionMetadataResolver } from "../queryStudio/queryStudioCompletionMetadataResolver";
+import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
@@ -14,6 +17,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
+import { changeSqlCmdModeForFile } from "../languageservice/utils";
 import { Perf } from "../perf/perfTelemetry";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -28,6 +32,11 @@ import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { ConnectionGroupExpansionStateStore } from "../objectExplorer/connectionGroupExpansionStateStore";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
+import {
+    ContainerConnectAdapter,
+    oeV2ContainerConnectAdapter,
+} from "../deployment/containerConnectAdapter";
+import { registerOeV2ContainerPerfSeams } from "../objectExplorer/v2/perf/oeV2ContainerPerfSeams";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
@@ -37,6 +46,7 @@ import {
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import { vscodeSqlTokenSource } from "../services/sqlDataPlane/vscodeSqlTokenSource";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -63,6 +73,7 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import {
     PrivatePreviewContextKey,
     PrivatePreviewFeature,
+    performanceMonitoringActiveContextKey,
     previewService,
 } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
@@ -99,6 +110,23 @@ import {
     CreateSessionResult,
 } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { SqlInlineCompletionProvider } from "../copilot/sqlInlineCompletionProvider";
+import {
+    ClassicCompletionMetadataResolver,
+    ClassicConnectionSource,
+    CompletionSchemaContextService,
+} from "../copilot/completionSchemaContextService";
+import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import { saveInlineCompletionTraceOnDeactivateJournalAware } from "../copilot/inlineCompletionDebug/journalPrimaryPersistence";
+import { configureCompletionsDebugHost } from "../diagnostics/completionsDebugConsoleHost";
+import {
+    initializeCompletionsCaptureJournal,
+    flushCompletionsCaptureJournalOnDeactivate,
+} from "../copilot/inlineCompletionDebug/completionsJournalBinding";
+import { configureCompletionsReplayRunPersistence } from "../copilot/inlineCompletionDebug/completionsReplayRunPersistence";
+import { ObservabilityBundleManager } from "../diagnostics/sessionBundle/bundleManager";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -117,6 +145,18 @@ import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
 import {
+    AnalyzeQueryTool,
+    OpenPerformanceDashboardTool,
+    PlanForcingTool,
+    PlanSummaryTool,
+    QueryDetailsTool,
+    QueryHistoryTool,
+    QueryStoreStatusTool,
+    TopQueriesTool,
+    VerifyForcedPlanTool,
+    WaitStatsTool,
+} from "../copilot/tools/queryStoreTools";
+import {
     ConnectionGroupNode,
     getConnectionGroupIdsInSubtree,
 } from "../objectExplorer/nodes/connectionGroupNode";
@@ -132,6 +172,14 @@ import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
+import { createMssqlInternalApi } from "./internalApiFactory";
+import { QueryStoreService, createQueryStoreService } from "../performance/queryStoreService";
+import {
+    PerformanceDashboardTarget,
+    performanceDashboardTargetForNode,
+} from "../performance/performanceDashboardWebviewController";
+import { PerformanceDashboards } from "../performance/performanceDashboards";
+import { PerformanceDashboardSource } from "../performance/performanceDashboardTelemetry";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
@@ -146,6 +194,8 @@ import {
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { AgentPluginsInstaller, AgentSkillsDownloads } from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
+import type { LocalDatabaseSource } from "../sharedInterfaces/azureSqlDatabase";
+import { getLocalDatabaseSources } from "../deployment/localToCloudHelpers";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -167,7 +217,6 @@ import {
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
-import { FabricDatabaseHubIntegration } from "../integration/fabricDatabaseHubIntegration";
 
 const overviewVisibilityStorageKey = "overviewVisibility";
 
@@ -222,9 +271,12 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    /** Set when performance monitoring was on at activation. */
+    public performanceDashboards: PerformanceDashboards | undefined;
+    private completionBundles: ObservabilityBundleManager | undefined;
+    public inlineCompletionSchemaContextService: CompletionSchemaContextService | undefined;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
-    public fabricDatabaseHubIntegration: FabricDatabaseHubIntegration;
 
     /**
      * The main controller constructor
@@ -301,6 +353,11 @@ export default class MainController implements vscode.Disposable {
      */
     public async deactivate(): Promise<void> {
         this._logger.debug("Extension de-activated.");
+        await saveInlineCompletionTraceOnDeactivateJournalAware(this._context);
+        await flushCompletionsCaptureJournalOnDeactivate();
+        await this.completionBundles?.dispose();
+        configureCompletionsDebugHost(undefined);
+        configureCompletionsReplayRunPersistence(undefined);
         await MetadataStoreService.get().flush();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
@@ -363,6 +420,10 @@ export default class MainController implements vscode.Disposable {
                 await this.onClearPooledConnections();
             });
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
+            this.registerCommandWithArgs(Constants.cmdDeployDatabaseToAzure);
+            this._event.on(Constants.cmdDeployDatabaseToAzure, (node?: TreeNodeInfo) => {
+                this.onDeployDatabaseToAzure(node);
+            });
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string | undefined;
                 let initialDeploymentType: DeploymentType | undefined;
@@ -425,8 +486,8 @@ export default class MainController implements vscode.Disposable {
                 },
             );
             this.registerCommand(Constants.cmdToggleSqlCmd);
-            this._event.on(Constants.cmdToggleSqlCmd, async () => {
-                await this.onToggleSqlCmd();
+            this._event.on(Constants.cmdToggleSqlCmd, () => {
+                this.onToggleSqlCmd();
             });
             this.registerCommand(Constants.cmdAadRemoveAccount);
             this._event.on(Constants.cmdAadRemoveAccount, () =>
@@ -486,6 +547,8 @@ export default class MainController implements vscode.Disposable {
                 ),
             );
 
+            this.activateInlineCompletions();
+
             await this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
@@ -532,7 +595,11 @@ export default class MainController implements vscode.Disposable {
                 // create new connection
                 if (!this.connectionManager.isConnected(uri)) {
                     await this.promptToConnect();
-                    sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.CreateConnection,
+                        getConnectionTelemetryInfo(this._connectionMgr, uri),
+                    );
                 }
 
                 // Open chat window
@@ -541,10 +608,20 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
-                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatWithDatabase);
+                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                sendActionEvent(
+                    TelemetryViews.MssqlCopilot,
+                    TelemetryActions.ChatWithDatabase,
+                    getConnectionTelemetryInfo(
+                        this._connectionMgr,
+                        treeNodeInfo.connectionProfile,
+                        databaseName === LocalizedConstants.defaultDatabaseLabel
+                            ? ""
+                            : (databaseName ?? ""),
+                    ),
+                );
 
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
-                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 if (
                     databaseName !== connectionCredentials.database &&
                     databaseName !== LocalizedConstants.defaultDatabaseLabel
@@ -613,13 +690,20 @@ export default class MainController implements vscode.Disposable {
             this._event.on(
                 Constants.cmdChatWithDatabaseInAgentMode,
                 async (treeNodeInfo: TreeNodeInfo) => {
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.ChatWithDatabaseInAgentMode,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            treeNodeInfo.connectionProfile,
+                            databaseName === LocalizedConstants.defaultDatabaseLabel
+                                ? ""
+                                : (databaseName ?? ""),
+                        ),
                     );
 
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
                         databaseName &&
                         databaseName !== connectionCredentials.database &&
@@ -688,7 +772,14 @@ export default class MainController implements vscode.Disposable {
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
-                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ExplainQuery);
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.ExplainQuery,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            Utils.getActiveTextEditorUri(),
+                        ),
+                    );
 
                     await launchEditorChatWithPrompt(
                         Prompts.explainQueryPrompt,
@@ -700,7 +791,14 @@ export default class MainController implements vscode.Disposable {
             // -- REWRITE QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdRewriteQuery, async () => {
-                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.RewriteQuery);
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.RewriteQuery,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            Utils.getActiveTextEditorUri(),
+                        ),
+                    );
 
                     await launchEditorChatWithPrompt(
                         Prompts.rewriteQueryPrompt,
@@ -715,6 +813,10 @@ export default class MainController implements vscode.Disposable {
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.AnalyzeQueryPerformance,
+                        getConnectionTelemetryInfo(
+                            this._connectionMgr,
+                            Utils.getActiveTextEditorUri(),
+                        ),
                     );
 
                     await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
@@ -761,7 +863,9 @@ export default class MainController implements vscode.Disposable {
 
             // Initialize profiler service and session manager
             const profilerService = new ProfilerService(this._connectionMgr.client);
-            const profilerSessionManager = new ProfilerSessionManager(profilerService);
+            const profilerSessionManager = new ProfilerSessionManager(profilerService, (uri) =>
+                getConnectionTelemetryInfo(this._connectionMgr, uri),
+            );
 
             // Initialize profiler controller
             this.profilerController = new ProfilerController(
@@ -842,11 +946,8 @@ export default class MainController implements vscode.Disposable {
             this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
                 this.protocolHandler,
             );
-            this.fabricDatabaseHubIntegration = new FabricDatabaseHubIntegration();
-
             this._context.subscriptions.push(
                 this.azureResourcesIntegration.registerOpenInMssqlCommand(),
-                this.fabricDatabaseHubIntegration.registerOpenInFabricDatabaseHubCommand(),
             );
 
             // Register a virtual document provider once during extension activation
@@ -1066,6 +1167,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     private async openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void> {
+        const designer = SchemaDesignerWebviewManager.getInstance().getActiveDesigner();
         const scenario = args?.scenario ?? "schemaDesigner";
         const entryPoint = args?.entryPoint ?? "schemaDesignerToolbar";
         const promptOverride = args?.prompt?.trim();
@@ -1074,6 +1176,7 @@ export default class MainController implements vscode.Disposable {
             reason?: "noActiveDesigner" | "chatCommandMissing",
         ) => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
+                ...designer?.telemetryContext,
                 additionalProps: {
                     entryPoint,
                     scenario,
@@ -1084,7 +1187,7 @@ export default class MainController implements vscode.Disposable {
             });
         };
 
-        if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
+        if (!designer) {
             sendCopilotChatEntryTelemetry(false, "noActiveDesigner");
             vscode.window.showErrorMessage(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
@@ -1138,6 +1241,8 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this.executionPlanService,
+            undefined,
+            (uri) => getConnectionTelemetryInfo(this._connectionMgr, uri),
         );
 
         // Init connection manager and connection MRU
@@ -1150,6 +1255,7 @@ export default class MainController implements vscode.Disposable {
             );
         }
         this.initializeMetadataStore();
+        this.initializePerformanceMonitoring();
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -1218,6 +1324,204 @@ export default class MainController implements vscode.Disposable {
 
         this._initialized = true;
         return true;
+    }
+
+    /**
+     * Registers the private-preview inline completion provider only when both
+     * the extension-wide experimental switch and the feature-specific switch
+     * were enabled at activation. The provider repeats the check per request.
+     */
+    private activateInlineCompletions(): void {
+        if (!isInlineCompletionFeatureEnabled()) {
+            return;
+        }
+
+        const classicConnections: ClassicConnectionSource = {
+            getConnectionFacts: (ownerUri) => {
+                const credentials = this._connectionMgr.getConnectionInfo(ownerUri)?.credentials;
+                if (!credentials?.server) {
+                    return undefined;
+                }
+                return {
+                    id: (credentials as IConnectionProfile).id,
+                    port: credentials.port,
+                    savePassword: (credentials as IConnectionProfile).savePassword,
+                    server: credentials.server,
+                    database: credentials.database,
+                    user: credentials.user,
+                    email: credentials.email,
+                    accountId: credentials.accountId,
+                    tenantId: credentials.tenantId,
+                    authenticationType: credentials.authenticationType,
+                    encrypt: credentials.encrypt,
+                    trustServerCertificate: credentials.trustServerCertificate,
+                };
+            },
+            lookupPassword: async (facts) => {
+                const password = await this._connectionMgr.connectionStore.lookupPassword(
+                    facts as Parameters<
+                        typeof this._connectionMgr.connectionStore.lookupPassword
+                    >[0],
+                );
+                return password || undefined;
+            },
+        };
+        const schemaContextService = new CompletionSchemaContextService([
+            new QueryStudioCompletionMetadataResolver(),
+            new ClassicCompletionMetadataResolver(classicConnections, vscodeSqlTokenSource),
+        ]);
+        const provider = new SqlInlineCompletionProvider(this._context, schemaContextService);
+        setSharedInlineCompletionProvider(provider);
+        const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
+        this.inlineCompletionSchemaContextService = schemaContextService;
+        configureCompletionsDebugHost({ extensionContext: this._context, schemaContextService });
+        const storeRoot = path.join(this._context.globalStorageUri.fsPath, "completion-debug");
+        this.completionBundles = new ObservabilityBundleManager({
+            storeRoot,
+            currentHostSessionId: diag.sessionId,
+            provenance: {
+                extensionVersion: this._context.extension.packageJSON.version,
+                vscodeVersion: vscode.version,
+                platform: process.platform,
+            },
+        });
+        initializeCompletionsCaptureJournal(this._context, {
+            storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleManager: this.completionBundles,
+        });
+        configureCompletionsReplayRunPersistence({
+            storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleRegistrar: this.completionBundles,
+        });
+        this._context.subscriptions.push(
+            schemaContextService,
+            provider,
+            { dispose: () => setSharedInlineCompletionProvider(undefined) },
+            copilotEnableSettingsGuard,
+            vscode.languages.registerInlineCompletionItemProvider(
+                { language: Constants.languageId },
+                provider,
+            ),
+        );
+    }
+
+    /**
+     * Creates the Query Store dashboards when performance monitoring is on, which it is by
+     * default. The data plane starts only at activation, so a change of the setting takes effect
+     * after a reload, and the context key keeps the menu hidden until then.
+     */
+    private initializePerformanceMonitoring(): void {
+        const active = previewService.performanceMonitoringEnabled;
+        void vscode.commands.executeCommand(
+            "setContext",
+            performanceMonitoringActiveContextKey,
+            active,
+        );
+        if (!active) {
+            return;
+        }
+        const queryStoreService = createQueryStoreService(this._connectionMgr);
+        this._context.subscriptions.push(queryStoreService);
+        this.performanceDashboards = new PerformanceDashboards(this._context, queryStoreService, {
+            openPlan: (planXml, name) =>
+                openExecutionPlanWebview(
+                    this._context,
+                    this.executionPlanService,
+                    this.sqlDocumentService,
+                    planXml,
+                    name,
+                ),
+            comparePlans: (first, second) =>
+                createMssqlInternalApi(this).compareExecutionPlans(first, second),
+            openQuery: (sql, target) => this.openPerformanceQuery(sql, target),
+        });
+        this.registerQueryStoreLanguageModelTools(queryStoreService, this.performanceDashboards);
+    }
+
+    /**
+     * Registers the Query Store tools. They read through the same service as the dashboards, so
+     * they exist only while performance monitoring is active.
+     */
+    private registerQueryStoreLanguageModelTools(
+        queryStoreService: QueryStoreService,
+        dashboards: PerformanceDashboards,
+    ): void {
+        const connections = this._connectionMgr;
+        const tools: [string, vscode.LanguageModelTool<unknown>][] = [
+            [
+                Constants.copilotQueryStoreStatusToolName,
+                new QueryStoreStatusTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreTopQueriesToolName,
+                new TopQueriesTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreQueryDetailsToolName,
+                new QueryDetailsTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreQueryHistoryToolName,
+                new QueryHistoryTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreWaitStatsToolName,
+                new WaitStatsTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStorePlanSummaryToolName,
+                new PlanSummaryTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreAnalyzeQueryToolName,
+                new AnalyzeQueryTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStorePlanForcingToolName,
+                new PlanForcingTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreVerifyForcedPlanToolName,
+                new VerifyForcedPlanTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotOpenPerformanceDashboardToolName,
+                new OpenPerformanceDashboardTool(connections, (target, location) => {
+                    dashboards.open(target, location, PerformanceDashboardSource.Copilot);
+                }),
+            ],
+        ];
+        for (const [name, tool] of tools) {
+            this._context.subscriptions.push(vscode.lm.registerTool(name, tool));
+        }
+    }
+
+    /**
+     * Opens T-SQL from a performance dashboard in a query editor that is connected to the
+     * dashboard's profile and database, or not connected when the profile is gone.
+     */
+    private async openPerformanceQuery(
+        sql: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void> {
+        const profile =
+            await this._connectionMgr.connectionStore.connectionConfig.getConnectionById(
+                target.profileId,
+            );
+        await this.sqlDocumentService.newQuery({
+            content: sql,
+            ...(profile
+                ? {
+                      connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                      connectionInfo: {
+                          ...profile,
+                          ...(target.databaseName ? { database: target.databaseName } : {}),
+                      },
+                  }
+                : { connectionStrategy: ConnectionStrategy.DoNotConnect }),
+        });
     }
 
     /**
@@ -1465,6 +1769,10 @@ export default class MainController implements vscode.Disposable {
      * Sanitize the connection profiles in the settings.
      */
     public async sanitizeConnectionProfiles(): Promise<void> {
+        // Read settings only after startup fixups have saved missing IDs and groups. Otherwise this
+        // can write back an older copy of the connections without them, which hides those connections.
+        await this.connectionManager.connectionStore.connectionConfig.initialized;
+
         const sanitize = async (
             connectionProfiles: IConnectionProfile[],
             target: vscode.ConfigurationTarget,
@@ -1566,6 +1874,8 @@ export default class MainController implements vscode.Disposable {
             objectExplorerProvider ??
             new ObjectExplorerProvider(this._connectionMgr, this._groupExpansionStateStore);
 
+        const overviewVisibilityChanged = new vscode.EventEmitter<boolean>();
+        this._context.subscriptions.push(overviewVisibilityChanged);
         const isOverviewVisible =
             this._context.globalState.get<boolean>(overviewVisibilityStorageKey, true) ?? true;
         this._objectExplorerProvider.setOverviewVisibility(isOverviewVisible);
@@ -1583,6 +1893,7 @@ export default class MainController implements vscode.Disposable {
                 isVisible,
             );
             this._objectExplorerProvider.setOverviewVisibility(isVisible);
+            overviewVisibilityChanged.fire(isVisible);
         };
 
         this._context.subscriptions.push(
@@ -1624,12 +1935,34 @@ export default class MainController implements vscode.Disposable {
             objectExplorerV2ActiveAtActivation,
         );
         if (objectExplorerV2ActiveAtActivation) {
+            registerOeV2ContainerPerfSeams(this._context, {
+                isEnabled: objectExplorerV2Enabled,
+                saveProfile: (profile) => this.connectionManager.connectionUI.saveProfile(profile),
+                removeProfile: async (profile) => {
+                    await this.connectionManager.connectionStore.removeProfile(profile);
+                },
+            });
             activateObjectExplorerV2(this._context, {
+                deployNewDatabase: () =>
+                    this.onDeployNewDatabase(
+                        undefined,
+                        undefined,
+                        oeV2ContainerConnectAdapter(this),
+                    ),
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
+                tokens: vscodeSqlTokenSource,
                 legacyConnections: this._connectionMgr,
                 groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
                 isEnabled: objectExplorerV2Enabled,
+                overviewVisibility: {
+                    isVisible: () =>
+                        this._context.globalState.get<boolean>(
+                            overviewVisibilityStorageKey,
+                            true,
+                        ) ?? true,
+                    onDidChange: overviewVisibilityChanged.event,
+                },
             });
         }
 
@@ -2076,20 +2409,36 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        this.registerCommand(Constants.cmdConnectionGroupCreate);
-        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+        const openCreateConnectionGroupDialog = (parentGroupId?: string) => {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 undefined,
+                parentGroupId,
             );
             connGroupDialog.revealToForeground();
+        };
+
+        this.registerCommand(Constants.cmdConnectionGroupCreate);
+        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+            openCreateConnectionGroupDialog();
         });
+
+        this.registerCommandWithArgs(Constants.cmdConnectionGroupCreateWithParent);
+        this._event.on(
+            Constants.cmdConnectionGroupCreateWithParent,
+            (node: ConnectionGroupNode) => {
+                if (node instanceof ConnectionGroupNode) {
+                    openCreateConnectionGroupDialog(node.connectionGroup.id);
+                }
+            },
+        );
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 node.connectionGroup,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
@@ -2170,6 +2519,13 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
                 this.onSearchDatabase(node),
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenPerformanceDashboard,
+                (node?: TreeNodeInfo) => this.onOpenPerformanceDashboard(node),
             ),
         );
 
@@ -2558,26 +2914,28 @@ export default class MainController implements vscode.Disposable {
                     await this._objectExplorerProvider.setNodeLoading(node);
                     this._objectExplorerProvider.refresh(node);
 
-                    await stopContainer(containerName).then(async (stoppedSuccessfully) => {
-                        if (stoppedSuccessfully) {
-                            node.loadingLabel =
-                                LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
+                    await stopContainer(containerName, node.connectionProfile.containerEngine).then(
+                        async (stoppedSuccessfully) => {
+                            if (stoppedSuccessfully) {
+                                node.loadingLabel =
+                                    LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
 
-                            await this._objectExplorerProvider
-                                .disconnectNode(node as ConnectionNode)
-                                .then(() => this._objectExplorerProvider.refresh(undefined));
-                        }
+                                await this._objectExplorerProvider
+                                    .disconnectNode(node as ConnectionNode)
+                                    .then(() => this._objectExplorerProvider.refresh(undefined));
+                            }
 
-                        vscode.window.showInformationMessage(
-                            stoppedSuccessfully
-                                ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
-                                      containerName,
-                                  )
-                                : LocalizedConstants.LocalContainers.failStopContainer(
-                                      containerName,
-                                  ),
-                        );
-                    });
+                            vscode.window.showInformationMessage(
+                                stoppedSuccessfully
+                                    ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
+                                          containerName,
+                                      )
+                                    : LocalizedConstants.LocalContainers.failStopContainer(
+                                          containerName,
+                                      ),
+                            );
+                        },
+                    );
                 },
             ),
         );
@@ -2861,27 +3219,16 @@ export default class MainController implements vscode.Disposable {
     /**
      * Handles the command to toggle SQLCMD mode
      */
-    private async onToggleSqlCmd(): Promise<void> {
-        let isSqlCmd: boolean;
+    private onToggleSqlCmd(): void {
         const uri = Utils.getActiveTextEditorUri();
-        if (!uri) {
+        if (!uri || !Utils.isEditingSqlFile()) {
             vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return;
         }
-        const queryRunner = this._outputContentProvider.getQueryRunner(uri);
-        // if a query runner exists, use it
-        if (queryRunner) {
-            isSqlCmd = queryRunner.isSqlCmd;
-        } else {
-            // otherwise create a new query runner
-            isSqlCmd = false;
-            const editor = vscode.window.activeTextEditor;
-            const title = path.basename(editor?.document.fileName ?? uri);
-            await this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
-        }
-        await this._outputContentProvider.toggleSqlCmd(uri);
-        await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        this._statusview.sqlCmdModeChanged(uri, !isSqlCmd);
+        const isSqlCmd = !this._statusview.getSqlCmdMode(uri);
+        this._outputContentProvider.setSqlCmdMode(uri, isSqlCmd);
+        this._statusview.sqlCmdModeChanged(uri, isSqlCmd);
+        changeSqlCmdModeForFile(SqlToolsServerClient.instance, uri, isSqlCmd);
     }
 
     /**
@@ -3030,6 +3377,10 @@ export default class MainController implements vscode.Disposable {
             TelemetryViews.MssqlCopilot,
             TelemetryActions.CopilotNewQueryWithConnection,
             {
+                ...getConnectionTelemetryInfo(
+                    this._connectionMgr,
+                    isSqlEditor && !forceNewEditor ? activeUri : undefined,
+                ),
                 additionalProps: {
                     forceNewEditor: forceNewEditor?.toString() ?? "false",
                     forceConnect: forceConnect?.toString() ?? "false",
@@ -3070,6 +3421,8 @@ export default class MainController implements vscode.Disposable {
     public onDeployNewDatabase(
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        containerConnect?: ContainerConnectAdapter,
+        initialLocalDatabaseSource?: LocalDatabaseSource,
     ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
@@ -3078,8 +3431,33 @@ export default class MainController implements vscode.Disposable {
             this,
             initialConnectionGroup,
             initialDeploymentType,
+            containerConnect,
+            initialLocalDatabaseSource,
         );
         reactPanel.revealToForeground();
+    }
+
+    public onDeployDatabaseToAzure(node?: TreeNodeInfo): void {
+        const isDatabase =
+            node instanceof TreeNodeInfo &&
+            (node.nodeType === "Database" ||
+                node.context.subType === "Database" ||
+                node.context.subType === "DockerContainerDatabase");
+        const source = isDatabase
+            ? getLocalDatabaseSources([
+                  {
+                      ...node.connectionProfile,
+                      database: ObjectExplorerUtils.getDatabaseName(node),
+                  },
+              ])[0]
+            : undefined;
+        if (!source?.database) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.LocalToCloud.localDatabaseRequired,
+            );
+            return;
+        }
+        this.onDeployNewDatabase(node.connectionProfile.groupId, undefined, undefined, source);
     }
 
     /**
@@ -3411,7 +3789,11 @@ export default class MainController implements vscode.Disposable {
 
         const result = await this.promptToConnect();
         if (result) {
-            sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+            sendActionEvent(
+                TelemetryViews.QueryEditor,
+                TelemetryActions.CreateConnection,
+                getConnectionTelemetryInfo(this._connectionMgr, uri),
+            );
         }
         return result;
     }
@@ -3583,6 +3965,25 @@ export default class MainController implements vscode.Disposable {
         tableExplorerWebView.revealToForeground();
     }
 
+    /** Opens the Query Store performance dashboard for the database of an Object Explorer node. */
+    public onOpenPerformanceDashboard(node?: TreeNodeInfo): void {
+        if (!this.performanceDashboards) {
+            return;
+        }
+        const target = performanceDashboardTargetForNode(node);
+        if (!target) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.PerformanceDashboard.noSavedConnection,
+            );
+            return;
+        }
+        this.performanceDashboards.open(
+            target,
+            undefined,
+            PerformanceDashboardSource.ObjectExplorer,
+        );
+    }
+
     public async onSearchDatabase(node?: TreeNodeInfo): Promise<void> {
         const connectionCredentials = this.getSearchDatabaseConnection(node);
         if (!connectionCredentials) {
@@ -3724,6 +4125,10 @@ export default class MainController implements vscode.Disposable {
         const configSettingsRequiringReload = [
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
+            Constants.configCopilotInlineCompletionsEnabled,
+            Constants.configCopilotSdkProvidersAnthropicEnabled,
+            Constants.configCopilotSdkProvidersOpenAiEnabled,
+            Constants.configCopilotSdkProvidersXAiEnabled,
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
@@ -3918,7 +4323,10 @@ export default class MainController implements vscode.Disposable {
             await this.connectionManager.connectionStore.connectionConfig.getConnections();
         const otherConnectionsUsingContainer = savedConnections.filter(
             (profile) =>
-                profile.id !== connectionProfile.id && profile.containerName === containerName,
+                profile.id !== connectionProfile.id &&
+                profile.containerName === containerName &&
+                (profile.containerEngine ?? "docker") ===
+                    (connectionProfile.containerEngine ?? "docker"),
         );
         if (otherConnectionsUsingContainer.length > 0) {
             const confirmation = await vscode.window.showWarningMessage(
@@ -3954,7 +4362,10 @@ export default class MainController implements vscode.Disposable {
         await this._objectExplorerProvider.setNodeLoading(node);
         this._objectExplorerProvider.refresh(node);
 
-        const deletedSuccessfully = await deleteContainer(containerName);
+        const deletedSuccessfully = await deleteContainer(
+            containerName,
+            connectionProfile.containerEngine,
+        );
         void vscode.window.showInformationMessage(
             deletedSuccessfully
                 ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(containerName)

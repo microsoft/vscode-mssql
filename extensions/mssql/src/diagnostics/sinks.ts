@@ -16,6 +16,8 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as path from "path";
+import { isSessionManifest } from "./sessionStore";
+import { containedPath } from "./containedPath";
 import { DiagEvent, GapRecord, SessionManifest, SinkHealth } from "../sharedInterfaces/diagnostics";
 import { diagnosticErrorClass, DiagnosticSink } from "./diagnosticsCore";
 
@@ -471,11 +473,46 @@ export class SessionDiagSink implements DiagnosticSink {
             provenance,
             status: "active",
         };
+        const manifestPath = containedPath(storeRoot, path.join(this.sessionDir, "manifest.json"));
+        if (fs.existsSync(manifestPath)) {
+            if (fs.statSync(manifestPath).size > 4 * 1024 * 1024) {
+                throw new Error("Session manifest is too large to resume");
+            }
+            const previous: unknown = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            if (!isSessionManifest(previous, sessionId)) {
+                throw new Error("Invalid session manifest; refusing to overwrite it");
+            }
+            this.manifest = { ...previous, captureMode, policyId, status: "active" };
+            this.segmentIndex = previous.segments.length + 1;
+            this.manifest.segments.push({
+                file: `segment-${String(this.segmentIndex).padStart(6, "0")}.jsonl`,
+                firstSeq: 0,
+                lastSeq: 0,
+                events: 0,
+            });
+            this.gaps = previous.gapCount;
+            this.sizeBytes = previous.sizeBytes ?? 0;
+            this.droppedRanges = previous.droppedRanges ?? [];
+        }
         this.writeManifest();
     }
 
     public get directory(): string {
         return this.sessionDir;
+    }
+
+    /** Keep the durable session metadata aligned with the active capture policy. */
+    public updateCapturePolicy(
+        captureMode: SessionManifest["captureMode"],
+        policyId: string,
+    ): void {
+        if (this.manifest.captureMode === captureMode && this.manifest.policyId === policyId) {
+            return;
+        }
+        this.manifest.captureMode = captureMode;
+        this.manifest.policyId = policyId;
+        this.manifest.updatedUtc = new Date().toISOString();
+        this.writeManifest();
     }
 
     public tryWrite(event: DiagEvent): void {

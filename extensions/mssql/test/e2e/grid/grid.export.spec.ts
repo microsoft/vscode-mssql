@@ -15,7 +15,7 @@ import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { clickCell, getCell, resetGrid, stageQuery } from "./gridActions";
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 
-test.describe("MSSQL Extension - Preview Grid Export", () => {
+test.describe("MSSQL Extension - Results Grid Export", () => {
     let grid: Locator;
     let resultsFrame: FrameLocator;
     const exportDir = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-grid-export-"));
@@ -177,14 +177,14 @@ FROM sys.all_objects a CROSS JOIN sys.all_objects b CROSS JOIN sys.all_objects c
             await expect(footer).toHaveAttribute("aria-live", "polite", { timeout: 15_000 });
             await resultsFrame
                 .getByTestId("results-tab-list")
-                .getByRole("tab", { name: /Results Preview/ })
+                .getByRole("tab", { name: /^Results/ })
                 .click();
             grid = await waitForResultGrid(resultsFrame, "0_0", MIXED_TYPES_ROW_COUNT);
         }
     });
 });
 
-test.describe("MSSQL Extension - Preview Grid Open After Save", () => {
+test.describe("MSSQL Extension - Results Grid Open After Save", () => {
     let grid: Locator;
     const exportDir = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-grid-open-after-save-"));
     const getContext = useSharedVsCodeLifecycle({

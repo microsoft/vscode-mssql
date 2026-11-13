@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import {
     AzureSqlDatabaseRequests,
     ContainerEngine,
@@ -14,14 +12,16 @@ import {
     AzureSqlContainerFormErrors,
     AzureSqlContainerProvisioningResult,
     AzureSqlContainerProvisioningStep,
+    azureSqlContainerProvisioningSteps as containerProvisioningSteps,
+    isAzureSqlContainerEntraAuthentication,
 } from "../sharedInterfaces/azureSqlDatabase";
 import { getErrorMessage } from "../utils/utils";
 import { DeploymentWebviewController } from "./deploymentWebviewController";
 import { validateSqlServerPassword } from "./sqlServerContainer";
-import { AzureSqlContainer } from "../constants/locConstants";
+import { Accounts, AzureSqlContainer, ConnectionDialog } from "../constants/locConstants";
 import * as dockerUtils from "../docker/dockerUtils";
 import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
-import { IConnectionProfile } from "../models/interfaces";
+import { ConnectionProfile } from "../models/connectionProfile";
 import MainController from "../controllers/mainController";
 import { Deferred } from "../protocol";
 import {
@@ -37,20 +37,40 @@ import {
     waitForContainerConnection,
     waitForContainerDelay,
 } from "./localContainersHelpers";
+import {
+    executeContainerEngineCommand,
+    getContainerEngineExecutable,
+} from "../docker/containerEngine";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import {
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
+} from "../azure/vscodeEntraMfaUtils";
+import * as vscode from "vscode";
+import * as path from "node:path";
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import fixPath from "fix-path";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { logger } from "../models/logger";
+export { executeContainerEngineCommand } from "../docker/containerEngine";
 
-const execFileAsync = promisify(execFile);
 export const defaultAzureSqlContainerName = "azure_sql_db_container";
-export const azureSqlContainerImage =
-    "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest";
-const containerReadyMessage = "ready for client connections";
+export const azureSqlContainerImage = "mcr.microsoft.com/mssql/azure-sql-db-server:latest";
 const containerReadyTimeoutMs = 300_000;
 const containerReadyPollIntervalMs = 2_000;
-const containerProvisioningSteps = [
-    AzureSqlContainerProvisioningStep.PullImage,
-    AzureSqlContainerProvisioningStep.CreateContainer,
-    AzureSqlContainerProvisioningStep.WaitForReady,
-    AzureSqlContainerProvisioningStep.Connect,
-] as const;
+const containerEntraCertificatePath = "/var/opt/mssql/mssql-entra-id.pfx";
+const guidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+
+const firstConnectionKey = "azureSqlContainer.hasConnected";
+const connectedStores = new WeakSet<vscode.Memento>();
+
+interface ContainerEntraAdministrator {
+    id: string;
+    name: string;
+}
 
 interface AzureSqlContainerDeployment {
     abortController: AbortController;
@@ -148,12 +168,46 @@ export function registerAzureSqlRpcHandlers(
         return errors;
     };
     deploymentController.onRequest(AzureSqlDatabaseRequests.ValidateContainerForm, validateForm);
+    deploymentController.onRequest(
+        AzureSqlDatabaseRequests.ContainerEntraAccounts,
+        async ({ signIn }) => {
+            if (signIn) {
+                await VsCodeAzureHelper.signIn(true);
+            }
+            const accounts = await VsCodeAzureHelper.getAccounts();
+            return accounts.map((account) => ({
+                value: account.id,
+                displayName: account.label,
+            }));
+        },
+    );
+    deploymentController.onRequest(
+        AzureSqlDatabaseRequests.ContainerEntraTenants,
+        async ({ accountId }) => {
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(accountId);
+            return tenants.map((tenant) => ({
+                value: tenant.tenantId,
+                displayName: tenant.displayName,
+            }));
+        },
+    );
     deploymentController.onRequest(AzureSqlDatabaseRequests.PrepareContainerForm, async (form) => {
         const result = await prepareAzureSqlContainerForm(form);
         return {
             form: result.form,
             errors: { ...validateForm(result.form), ...result.errors },
         };
+    });
+
+    deploymentController.onRequest(AzureSqlDatabaseRequests.SelectContainerPfxFile, async () => {
+        const selection = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: AzureSqlContainer.selectPfxFile,
+            filters: { [AzureSqlContainer.pfxFiles]: ["pfx"] },
+        });
+        return selection?.[0]?.fsPath;
     });
 
     deploymentController.onRequest(
@@ -181,18 +235,91 @@ export function registerAzureSqlRpcHandlers(
         generateAzureSqlContainerName(),
     );
 
-    deploymentController.onRequest(AzureSqlDatabaseRequests.DetectContainerEngines, async () =>
-        detectContainerEngines(),
-    );
+    deploymentController.onRequest(AzureSqlDatabaseRequests.DetectContainerEngines, async () => {
+        const startedAt = performance.now();
+        const workflowCorrelationId = deploymentController.workflowCorrelationId;
+        const properties = {
+            hostArchitecture: os.arch(),
+            hostOS: os.platform(),
+            initiatedBy: "VSCode",
+            ...(workflowCorrelationId ? { workflowCorrelationId } : {}),
+        };
+        try {
+            const results = await detectContainerEngines();
+            sendActionEvent(TelemetryViews.AzureContainer, "DetectContainerEngines", {
+                additionalProps: {
+                    ...properties,
+                    status: "succeeded",
+                    ...Object.fromEntries(
+                        Object.entries(results).map(([engine, result]) => [
+                            `${engine}Detected`,
+                            String(result.success),
+                        ]),
+                    ),
+                },
+                additionalMeasurements: { durationInMs: performance.now() - startedAt },
+            });
+            return results;
+        } catch (error) {
+            sendErrorEvent(TelemetryViews.AzureContainer, "DetectContainerEngines", {
+                additionalProps: { ...properties, status: "failed" },
+                additionalMeasurements: { durationInMs: performance.now() - startedAt },
+                errorType: "AzureSqlContainerOperationFailed",
+                includeErrorMessage: false,
+            });
+            throw error;
+        }
+    });
 
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite,
-        async (payload) => checkContainerEnginePrerequisite(payload.engine, payload.prerequisite),
+        async (payload) => {
+            const startedAt = performance.now();
+            const result = await checkContainerEnginePrerequisite(
+                payload.engine,
+                payload.prerequisite,
+            );
+            const workflowCorrelationId = deploymentController.workflowCorrelationId;
+            const telemetry = {
+                additionalProps: {
+                    containerEngine:
+                        Object.values(ContainerEngine).find((value) => value === payload.engine) ??
+                        "unknown",
+                    hostArchitecture: os.arch(),
+                    hostOS: os.platform(),
+                    initiatedBy: "VSCode",
+                    ...(workflowCorrelationId ? { workflowCorrelationId } : {}),
+                    prerequisite:
+                        Object.values(ContainerEnginePrerequisite).find(
+                            (value) => value === payload.prerequisite,
+                        ) ?? "unknown",
+                    status: result.success ? "succeeded" : "failed",
+                },
+                additionalMeasurements: { durationInMs: performance.now() - startedAt },
+            };
+            if (result.success) {
+                sendActionEvent(
+                    TelemetryViews.AzureContainer,
+                    "CheckContainerEnginePrerequisite",
+                    telemetry,
+                );
+            } else {
+                sendErrorEvent(TelemetryViews.AzureContainer, "CheckContainerEnginePrerequisite", {
+                    ...telemetry,
+                    errorType: "AzureSqlContainerOperationFailed",
+                    includeErrorMessage: false,
+                });
+            }
+            return result;
+        },
     );
 
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.RunContainerProvisioningStep,
         async (payload) => {
+            if (!containerProvisioningSteps.includes(payload.step)) {
+                return { success: false, error: AzureSqlContainer.invalidProvisioningStep };
+            }
             let deployment = azureSqlContainerDeployments.get(deploymentController);
             if (payload.retry && deployment) {
                 await deployment.promise;
@@ -307,6 +434,8 @@ function startAzureSqlContainerDeployment(
             stepResults.set(step, result);
             stepCompletions.get(step)?.resolve(result);
         },
+        undefined,
+        previousResults !== undefined,
     );
     return deployment;
 }
@@ -322,10 +451,32 @@ export async function runAzureSqlContainerDeployment(
         result: AzureSqlContainerProvisioningResult,
     ) => void,
     executeStep = runAzureSqlContainerProvisioningStep,
+    isRetry = false,
 ): Promise<void> {
     const startIndex = containerProvisioningSteps.indexOf(startStep);
+    const startedAt = performance.now();
+    const workflowCorrelationId = deploymentController.workflowCorrelationId;
+    const properties = {
+        containerEngine:
+            Object.values(ContainerEngine).find((value) => value === engine) ?? "unknown",
+        hostArchitecture: os.arch(),
+        hostOS: os.platform(),
+        initiatedBy: "VSCode",
+        ...(workflowCorrelationId ? { workflowCorrelationId } : {}),
+        startStep,
+        isRetry: String(isRetry),
+    };
     let currentStep = startStep;
+    let startupStartedAt =
+        startStep === AzureSqlContainerProvisioningStep.WaitForReady ? startedAt : undefined;
+    let outcome = BackgroundTaskState.Failed;
+    sendActionEvent(TelemetryViews.AzureContainer, "StartAzureSqlContainerDeployment", {
+        additionalProps: properties,
+    });
     try {
+        if (startIndex < 0) {
+            throw new Error(AzureSqlContainer.invalidProvisioningStep);
+        }
         startProvisioningTask(
             deploymentController,
             DeploymentType.AzureSqlDatabase,
@@ -335,22 +486,110 @@ export async function runAzureSqlContainerDeployment(
 
         for (const step of containerProvisioningSteps.slice(startIndex)) {
             currentStep = step;
-            updateProvisioningTask(
-                deploymentController,
-                DeploymentType.AzureSqlDatabase,
-                getProvisioningStepMessage(step),
-            );
-            const result = await executeStep(
-                engine,
-                step,
-                form,
-                deploymentController.mainController,
-                signal,
-            );
+            const stepStartedAt = performance.now();
+            if (step === AzureSqlContainerProvisioningStep.CreateContainer) {
+                startupStartedAt = stepStartedAt;
+            }
+            let result: AzureSqlContainerProvisioningResult | undefined;
+            try {
+                updateProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    getProvisioningStepMessage(step),
+                );
+                result = await executeStep(
+                    engine,
+                    step,
+                    form,
+                    deploymentController.mainController,
+                    signal,
+                );
+            } finally {
+                const status = result?.success
+                    ? "succeeded"
+                    : signal.aborted
+                      ? "cancelled"
+                      : "failed";
+                const stepTelemetry = {
+                    additionalProps: { ...properties, step, status },
+                    additionalMeasurements: { durationInMs: performance.now() - stepStartedAt },
+                };
+                if (status === "failed") {
+                    sendErrorEvent(
+                        TelemetryViews.AzureContainer,
+                        "AzureSqlContainerProvisioningStep",
+                        {
+                            ...stepTelemetry,
+                            errorType: "AzureSqlContainerOperationFailed",
+                            includeErrorMessage: false,
+                        },
+                    );
+                } else {
+                    sendActionEvent(
+                        TelemetryViews.AzureContainer,
+                        "AzureSqlContainerProvisioningStep",
+                        stepTelemetry,
+                    );
+                }
+                if (
+                    step === AzureSqlContainerProvisioningStep.PullImage ||
+                    step === AzureSqlContainerProvisioningStep.Connect
+                ) {
+                    const action =
+                        step === AzureSqlContainerProvisioningStep.PullImage
+                            ? TelemetryActions.PullImage
+                            : TelemetryActions.ConnectToContainer;
+                    const telemetry =
+                        step === AzureSqlContainerProvisioningStep.PullImage
+                            ? {
+                                  ...stepTelemetry,
+                                  additionalProps: {
+                                      ...stepTelemetry.additionalProps,
+                                      pullType: "requested",
+                                  },
+                              }
+                            : stepTelemetry;
+                    if (status === "failed") {
+                        sendErrorEvent(TelemetryViews.AzureContainer, action, {
+                            ...telemetry,
+                            errorType: "AzureSqlContainerOperationFailed",
+                            includeErrorMessage: false,
+                        });
+                    } else {
+                        sendActionEvent(TelemetryViews.AzureContainer, action, telemetry);
+                    }
+                }
+                if (
+                    startupStartedAt !== undefined &&
+                    (step === AzureSqlContainerProvisioningStep.WaitForReady || !result?.success)
+                ) {
+                    const startupTelemetry = {
+                        ...stepTelemetry,
+                        additionalMeasurements: {
+                            durationInMs: performance.now() - startupStartedAt,
+                        },
+                    };
+                    if (status === "failed") {
+                        sendErrorEvent(TelemetryViews.AzureContainer, "StartContainer", {
+                            ...startupTelemetry,
+                            errorType: "AzureSqlContainerOperationFailed",
+                            includeErrorMessage: false,
+                        });
+                    } else {
+                        sendActionEvent(
+                            TelemetryViews.AzureContainer,
+                            "StartContainer",
+                            startupTelemetry,
+                        );
+                    }
+                    startupStartedAt = undefined;
+                }
+            }
             onStepComplete(step, result);
 
             if (!result.success) {
                 const canceled = signal.aborted;
+                outcome = canceled ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed;
                 completeProvisioningTask(
                     deploymentController,
                     DeploymentType.AzureSqlDatabase,
@@ -365,20 +604,50 @@ export async function runAzureSqlContainerDeployment(
                 return;
             }
         }
+        outcome = BackgroundTaskState.Succeeded;
     } catch (error) {
-        const errorMessage = sanitizeProvisioningError(error, form.password);
+        const errorMessage = sanitizeProvisioningError(error, form);
         onStepComplete(currentStep, {
             success: false,
             error: errorMessage,
             fullErrorText: errorMessage,
         });
+        outcome = signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed;
         completeProvisioningTask(
             deploymentController,
             DeploymentType.AzureSqlDatabase,
-            BackgroundTaskState.Failed,
-            AzureSqlContainer.provisioningTaskFailed(form.containerName, errorMessage),
+            signal.aborted ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
+            signal.aborted
+                ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
+                : AzureSqlContainer.provisioningTaskFailed(form.containerName, errorMessage),
         );
         return;
+    } finally {
+        const telemetry = {
+            additionalProps: {
+                ...properties,
+                status:
+                    outcome === BackgroundTaskState.Succeeded
+                        ? "succeeded"
+                        : outcome === BackgroundTaskState.Canceled
+                          ? "cancelled"
+                          : "failed",
+            },
+            additionalMeasurements: { durationInMs: performance.now() - startedAt },
+        };
+        if (outcome === BackgroundTaskState.Failed) {
+            sendErrorEvent(TelemetryViews.AzureContainer, "FinishAzureSqlContainerDeployment", {
+                ...telemetry,
+                errorType: "AzureSqlContainerOperationFailed",
+                includeErrorMessage: false,
+            });
+        } else {
+            sendActionEvent(
+                TelemetryViews.AzureContainer,
+                "FinishAzureSqlContainerDeployment",
+                telemetry,
+            );
+        }
     }
 
     completeProvisioningTask(
@@ -397,6 +666,36 @@ export function validateAzureSqlContainerForm(
     form: AzureSqlContainerForm,
 ): AzureSqlContainerFormErrors {
     const errors: AzureSqlContainerFormErrors = {};
+    if (isAzureSqlContainerEntraAuthentication(form.authenticationType)) {
+        if (!form.accountId) {
+            errors.accountId = AzureSqlContainer.selectEntraAccount;
+        }
+        if (!form.tenantId) {
+            errors.tenantId = ConnectionDialog.tenantIdIsRequired;
+        }
+        if (!guidPattern.test(form.applicationId ?? "")) {
+            errors.applicationId = AzureSqlContainer.invalidApplicationClientId;
+        }
+        if (
+            !form.pfxFilePath ||
+            !path.isAbsolute(form.pfxFilePath) ||
+            path.extname(form.pfxFilePath).toLowerCase() !== ".pfx"
+        ) {
+            errors.pfxFilePath = AzureSqlContainer.pfxFileRequired;
+        }
+        if (
+            form.authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal &&
+            !form.servicePrincipalClientSecret?.trim()
+        ) {
+            errors.servicePrincipalClientSecret =
+                AzureSqlContainer.servicePrincipalClientSecretRequired;
+        }
+    } else if (
+        form.authenticationType !== undefined &&
+        form.authenticationType !== AuthenticationType.SqlLogin
+    ) {
+        errors.authenticationType = AzureSqlContainer.invalidAuthenticationType;
+    }
     const passwordError = validateSqlServerPassword(form.password);
     if (passwordError) {
         errors.password = passwordError;
@@ -435,6 +734,7 @@ export async function detectContainerEngines(
 export async function detectContainerEngines(
     checkPrerequisite = checkContainerEnginePrerequisite,
 ): Promise<Record<ContainerEngine, ContainerEnginePrerequisiteResult>> {
+    fixPath();
     const detectionResults = await Promise.all(
         Object.values(ContainerEngine).map(async (engine) => {
             const result = await checkPrerequisite(
@@ -461,10 +761,7 @@ export async function checkContainerEnginePrerequisite(
     }
 
     try {
-        const result = await execFileAsync(command.executable, command.args, {
-            timeout: 15_000,
-            windowsHide: true,
-        });
+        const result = await executeContainerEngineCommand(command, 15_000);
 
         if (
             engine === ContainerEngine.Docker &&
@@ -486,28 +783,17 @@ export async function checkContainerEnginePrerequisite(
     }
 }
 
-function getContainerEngineExecutable(engine: ContainerEngine): string {
-    switch (engine) {
-        case ContainerEngine.Docker:
-            return "docker";
-        case ContainerEngine.Podman:
-            return "podman";
-        case ContainerEngine.Containerd:
-            return "nerdctl";
-        case ContainerEngine.AppleContainer:
-            return "container";
-        case ContainerEngine.WslContainer:
-            return "wslc";
-    }
-}
-
 function getPullArguments(engine: ContainerEngine): string[] {
     return engine === ContainerEngine.AppleContainer
         ? ["image", "pull", azureSqlContainerImage]
         : ["pull", azureSqlContainerImage];
 }
 
-function getRunArguments(engine: ContainerEngine, form: AzureSqlContainerForm): string[] {
+function getRunArguments(
+    engine: ContainerEngine,
+    form: AzureSqlContainerForm,
+    administrator?: ContainerEntraAdministrator,
+): string[] {
     const args = engine === ContainerEngine.AppleContainer ? ["run", "--detach"] : ["run", "-d"];
     args.push(
         "--name",
@@ -522,6 +808,29 @@ function getRunArguments(engine: ContainerEngine, form: AzureSqlContainerForm): 
     if (form.hostname) {
         args.push("--hostname", form.hostname);
     }
+    if (isAzureSqlContainerEntraAuthentication(form.authenticationType)) {
+        if (
+            !administrator ||
+            !guidPattern.test(administrator.id) ||
+            !administrator.name.trim() ||
+            !form.applicationId ||
+            !form.tenantId ||
+            !form.pfxFilePath
+        ) {
+            throw new Error(AzureSqlContainer.invalidEntraAdministrator);
+        }
+        for (const setting of [
+            `MSSQL_AAD_CLIENT_ID=${form.applicationId}`,
+            `MSSQL_AAD_PRIMARY_TENANT=${form.tenantId}`,
+            `MSSQL_AAD_CERTIFICATE_FILE_PATH=${containerEntraCertificatePath}`,
+            `MSSQL_AAD_SERVER_ADMIN_NAME=${administrator.name}`,
+            "MSSQL_AAD_SERVER_ADMIN_TYPE=0",
+            `MSSQL_AAD_SERVER_ADMIN_SID=${administrator.id}`,
+        ]) {
+            args.push("-e", setting);
+        }
+        args.push("-v", `${form.pfxFilePath}:${containerEntraCertificatePath}:ro`);
+    }
     args.push(azureSqlContainerImage);
     return args;
 }
@@ -530,103 +839,190 @@ export function getAzureSqlContainerProvisioningCommand(
     engine: ContainerEngine,
     step:
         | AzureSqlContainerProvisioningStep.PullImage
-        | AzureSqlContainerProvisioningStep.CreateContainer,
+        | AzureSqlContainerProvisioningStep.CreateContainer
+        | AzureSqlContainerProvisioningStep.WaitForReady,
     form: AzureSqlContainerForm,
+    administrator?: ContainerEntraAdministrator,
 ): PrerequisiteCommand {
+    if (step === AzureSqlContainerProvisioningStep.WaitForReady) {
+        return {
+            executable: getContainerEngineExecutable(engine),
+            args: [
+                "exec",
+                "--env",
+                "SQLCMDPASSWORD",
+                form.containerName,
+                "/opt/mssql-tools18/bin/sqlcmd",
+                "-S",
+                localhost,
+                "-U",
+                sa,
+                "-C",
+                "-b",
+                "-l",
+                "5",
+                "-t",
+                "5",
+                "-Q",
+                "SELECT 1",
+            ],
+            env: { SQLCMDPASSWORD: form.password },
+        };
+    }
     return {
         executable: getContainerEngineExecutable(engine),
         args:
             step === AzureSqlContainerProvisioningStep.PullImage
                 ? getPullArguments(engine)
-                : getRunArguments(engine, form),
+                : getRunArguments(engine, form, administrator),
         ...(step === AzureSqlContainerProvisioningStep.CreateContainer
-            ? { env: { MSSQL_SA_PASSWORD: form.password } }
+            ? {
+                  env: {
+                      MSSQL_SA_PASSWORD: form.password,
+                  },
+              }
             : {}),
     };
 }
 
-export async function executeContainerEngineCommand(
-    command: PrerequisiteCommand,
-    timeout: number,
-    signal?: AbortSignal,
-): Promise<{ stdout: string; stderr: string }> {
-    return execFileAsync(command.executable, command.args, {
-        timeout,
-        windowsHide: true,
-        maxBuffer: 10 * 1024 * 1024,
-        signal,
-        // Inherit credentials by name without exposing their values in the command line.
-        env: command.env ? { ...process.env, ...command.env } : undefined,
-    });
-}
-
-async function waitForAzureSqlContainer(
+export async function waitForAzureSqlContainer(
     engine: ContainerEngine,
-    containerName: string,
-    password: string,
+    form: AzureSqlContainerForm,
     signal?: AbortSignal,
+    executeCommand = executeContainerEngineCommand,
 ): Promise<AzureSqlContainerProvisioningResult> {
+    const command = getAzureSqlContainerProvisioningCommand(
+        engine,
+        AzureSqlContainerProvisioningStep.WaitForReady,
+        form,
+    );
     const deadline = Date.now() + containerReadyTimeoutMs;
-    let lastLogs = "";
+    let lastError: unknown;
 
     while (Date.now() < deadline && !signal?.aborted) {
         try {
-            const result = await executeContainerEngineCommand(
-                {
-                    executable: getContainerEngineExecutable(engine),
-                    args: ["logs", containerName],
-                },
-                15_000,
+            await executeCommand(
+                command,
+                Math.max(1, Math.min(15_000, deadline - Date.now())),
                 signal,
             );
-            lastLogs = `${result.stdout}\n${result.stderr}`;
-            if (lastLogs.toLowerCase().includes(containerReadyMessage)) {
+            if (!signal?.aborted && Date.now() < deadline) {
                 return { success: true };
             }
         } catch (error) {
-            lastLogs = getErrorMessage(error);
+            lastError = error;
         }
-        await waitForContainerDelay(containerReadyPollIntervalMs, signal);
+        await waitForContainerDelay(
+            Math.min(containerReadyPollIntervalMs, Math.max(0, deadline - Date.now())),
+            signal,
+        );
     }
 
     return {
         success: false,
         error: AzureSqlContainer.containerNotReady,
-        fullErrorText: sanitizeProvisioningError(lastLogs, password),
+        ...(lastError === undefined
+            ? {}
+            : { fullErrorText: sanitizeProvisioningError(lastError, form) }),
     };
 }
 
-function sanitizeProvisioningError(error: unknown, password: string): string {
-    const errorText = typeof error === "string" ? error : getErrorMessage(error);
-    const passwordRedactedText = password ? errorText.replaceAll(password, "******") : errorText;
-    return dockerUtils.sanitizeErrorText(passwordRedactedText);
+function sanitizeProvisioningError(error: unknown, form: AzureSqlContainerForm): string {
+    let errorText = typeof error === "string" ? error : getErrorMessage(error);
+    const secrets = [form.password, form.servicePrincipalClientSecret].sort(
+        (a, b) => (b?.length ?? 0) - (a?.length ?? 0),
+    );
+    for (const secret of secrets) {
+        if (secret) {
+            errorText = errorText.replaceAll(secret, "******");
+        }
+    }
+    return dockerUtils.sanitizeErrorText(errorText);
 }
 
 async function addAzureSqlContainerConnection(
+    engine: ContainerEngine,
     form: AzureSqlContainerForm,
     mainController: MainController,
     signal?: AbortSignal,
 ): Promise<AzureSqlContainerProvisioningResult> {
-    const connection: unknown = {
+    const connection = new ConnectionProfile();
+    Object.assign(connection, {
         server: `${localhost},${form.port}`,
         profileName: form.profileName || form.containerName,
+        // Mark the profile as a container now, rather than when a later connection matches the
+        // machine name: the container reports the Azure SQL Database engine edition.
+        containerName: form.containerName,
+        containerEngine: engine,
         groupId: form.groupId,
-        password: form.password,
-        savePassword: form.savePassword,
-        emptyPasswordInput: false,
-        // Default to SQL Login until Entra authentication is added in a follow-up PR.
-        authenticationType: sqlAuthentication,
-        user: sa,
         trustServerCertificate: true,
-    };
-
+    } satisfies Partial<ConnectionProfile>);
     try {
         if (signal?.aborted) {
             return { success: false };
         }
+        if (form.authenticationType === AuthenticationType.AzureMFA) {
+            if (!form.accountId) {
+                throw new Error(AzureSqlContainer.selectEntraAccount);
+            }
+            if (!form.tenantId) {
+                throw new Error(ConnectionDialog.tenantIdIsRequired);
+            }
+            const account = await VsCodeAzureHelper.getAccountById(form.accountId);
+            if (!account) {
+                throw new Error(
+                    Accounts.accountNotAvailableThroughVsCode(form.accountId, form.tenantId),
+                );
+            }
+            Object.assign(connection, {
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: account.id,
+                tenantId: form.tenantId,
+                user: account.label,
+                email: account.label,
+                password: "",
+                savePassword: false,
+                emptyPasswordInput: true,
+            } satisfies Partial<ConnectionProfile>);
+        } else if (form.authenticationType === AuthenticationType.ActiveDirectoryDefault) {
+            Object.assign(connection, {
+                authenticationType: AuthenticationType.ActiveDirectoryDefault,
+                tenantId: form.tenantId,
+                user: "",
+                password: "",
+                savePassword: false,
+                emptyPasswordInput: true,
+            } satisfies Partial<ConnectionProfile>);
+        } else if (form.authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal) {
+            if (!form.applicationId) {
+                throw new Error(AzureSqlContainer.invalidApplicationClientId);
+            }
+            if (!form.tenantId) {
+                throw new Error(ConnectionDialog.tenantIdIsRequired);
+            }
+            if (!form.servicePrincipalClientSecret?.trim()) {
+                throw new Error(AzureSqlContainer.servicePrincipalClientSecretRequired);
+            }
+            Object.assign(connection, {
+                authenticationType: AuthenticationType.ActiveDirectoryServicePrincipal,
+                tenantId: form.tenantId,
+                user: form.applicationId,
+                password: form.servicePrincipalClientSecret,
+                savePassword: false,
+                emptyPasswordInput: false,
+            } satisfies Partial<ConnectionProfile>);
+        } else {
+            Object.assign(connection, {
+                authenticationType: sqlAuthentication,
+                user: sa,
+                password: form.password,
+                savePassword: form.savePassword,
+                emptyPasswordInput: false,
+            } satisfies Partial<ConnectionProfile>);
+        }
         if (
             !(await waitForContainerConnection(
-                connection as IConnectionProfile,
+                connection,
                 form.containerName,
                 mainController,
                 signal,
@@ -634,9 +1030,32 @@ async function addAzureSqlContainerConnection(
         ) {
             return { success: false, error: AzureSqlContainer.connectContainerFailed };
         }
-        const profile = await mainController.connectionManager.connectionUI.saveProfile(
-            connection as IConnectionProfile,
-        );
+        const state = mainController.context.globalState;
+        if (!connectedStores.has(state) && state.get<boolean>(firstConnectionKey, false) !== true) {
+            // Claim before awaiting persistence to prevent duplicate concurrent milestones.
+            connectedStores.add(state);
+            sendActionEvent(TelemetryViews.AzureContainer, "FirstSuccessfulConnection", {
+                connectionInfo: connection,
+                serverInfo: mainController.connectionManager.getServerInfo(
+                    connection,
+                    connection.database ?? "",
+                ),
+                additionalProps: {
+                    containerEngine:
+                        Object.values(ContainerEngine).find((value) => value === engine) ??
+                        "unknown",
+                    hostArchitecture: os.arch(),
+                    hostOS: os.platform(),
+                    initiatedBy: "VSCode",
+                },
+            });
+            try {
+                await state.update(firstConnectionKey, true);
+            } catch (error) {
+                logger.error(`Failed to persist Azure SQL container adoption milestone: ${error}`);
+            }
+        }
+        const profile = await mainController.connectionManager.connectionUI.saveProfile(connection);
         if (signal?.aborted) {
             return { success: false };
         }
@@ -654,9 +1073,43 @@ async function addAzureSqlContainerConnection(
         return {
             success: false,
             error: AzureSqlContainer.connectContainerFailed,
-            fullErrorText: sanitizeProvisioningError(error, form.password),
+            fullErrorText: sanitizeProvisioningError(error, form),
         };
     }
+}
+
+async function resolveContainerEntraAdministrator(
+    form: AzureSqlContainerForm,
+): Promise<ContainerEntraAdministrator> {
+    const identity = await acquireTokenFromVscodeAccountForResource(
+        getCloudResourceEndpoint("armResource"),
+        form.accountId,
+        form.tenantId,
+    );
+    const parts = identity.session.accessToken.split(".");
+    let claims: unknown;
+    try {
+        claims =
+            parts.length === 3
+                ? JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"))
+                : undefined;
+    } catch {
+        throw new Error(AzureSqlContainer.invalidEntraAdministrator);
+    }
+    if (
+        !claims ||
+        typeof claims !== "object" ||
+        !("oid" in claims) ||
+        typeof claims.oid !== "string" ||
+        !guidPattern.test(claims.oid) ||
+        !("tid" in claims) ||
+        typeof claims.tid !== "string" ||
+        claims.tid.toLowerCase() !== form.tenantId?.toLowerCase() ||
+        !identity.account.label.trim()
+    ) {
+        throw new Error(AzureSqlContainer.invalidEntraAdministrator);
+    }
+    return { id: claims.oid, name: identity.account.label.trim() };
 }
 
 export async function runAzureSqlContainerProvisioningStep(
@@ -674,14 +1127,34 @@ export async function runAzureSqlContainerProvisioningStep(
                 return { success: true };
             }
             case AzureSqlContainerProvisioningStep.CreateContainer: {
-                const command = getAzureSqlContainerProvisioningCommand(engine, step, form);
+                signal?.throwIfAborted();
+                let administrator: ContainerEntraAdministrator | undefined;
+                if (isAzureSqlContainerEntraAuthentication(form.authenticationType)) {
+                    const validationError = Object.values(validateAzureSqlContainerForm(form))[0];
+                    if (validationError) {
+                        throw new Error(validationError);
+                    }
+                    if (!form.pfxFilePath || !(await fs.stat(form.pfxFilePath)).isFile()) {
+                        throw new Error(AzureSqlContainer.pfxFileRequired);
+                    }
+                    await fs.access(form.pfxFilePath, fs.constants.R_OK);
+                    signal?.throwIfAborted();
+                    administrator = await resolveContainerEntraAdministrator(form);
+                    signal?.throwIfAborted();
+                }
+                const command = getAzureSqlContainerProvisioningCommand(
+                    engine,
+                    step,
+                    form,
+                    administrator,
+                );
                 await executeContainerEngineCommand(command, 120_000, signal);
                 return { success: true };
             }
             case AzureSqlContainerProvisioningStep.WaitForReady:
-                return waitForAzureSqlContainer(engine, form.containerName, form.password, signal);
+                return waitForAzureSqlContainer(engine, form, signal);
             case AzureSqlContainerProvisioningStep.Connect:
-                return addAzureSqlContainerConnection(form, mainController, signal);
+                return addAzureSqlContainerConnection(engine, form, mainController, signal);
         }
     } catch (error) {
         const errorMessage =
@@ -691,7 +1164,7 @@ export async function runAzureSqlContainerProvisioningStep(
         return {
             success: false,
             error: errorMessage,
-            fullErrorText: sanitizeProvisioningError(error, form.password),
+            fullErrorText: sanitizeProvisioningError(error, form),
         };
     }
 }

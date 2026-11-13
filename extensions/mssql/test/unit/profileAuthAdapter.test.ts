@@ -4,7 +4,40 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { stableProfileId } from "../../src/services/metadata/profileAuthAdapter";
+import * as sinon from "sinon";
+import { prepareConnection, stableProfileId } from "../../src/services/metadata/profileAuthAdapter";
+
+suite("profileAuthAdapter SQL credentials", () => {
+    const sandbox = sinon.createSandbox();
+    teardown(() => sandbox.restore());
+
+    test("honors an explicit profile password without putting it in connection metadata", async () => {
+        const lookupPassword = sandbox.stub().resolves("saved-secret");
+        const prepared = prepareConnection(
+            {
+                server: "test",
+                user: "test-user",
+                authenticationType: "SqlLogin",
+                password: "inline-secret-canary",
+                savePassword: false,
+            },
+            { lookupPassword },
+        );
+        expect(await prepared.auth.passwordProvider!()).to.equal("inline-secret-canary");
+        sinon.assert.notCalled(lookupPassword);
+        expect(JSON.stringify(prepared)).not.to.contain("inline-secret-canary");
+    });
+
+    test("defers saved-password lookup until open when no explicit password was supplied", async () => {
+        const lookupPassword = sandbox.stub().resolves("saved-secret");
+        const profile = { server: "test", authenticationType: "SqlLogin", password: "" };
+        const prepared = prepareConnection(profile, { lookupPassword });
+        sinon.assert.notCalled(lookupPassword);
+        expect(await prepared.auth.passwordProvider!()).to.equal("saved-secret");
+        sinon.assert.calledWith(lookupPassword, profile);
+        expect(JSON.stringify(prepared)).not.to.contain("saved-secret");
+    });
+});
 
 suite("profileAuthAdapter stableProfileId", () => {
     test("a saved id always wins over the derived recipe", () => {

@@ -26,14 +26,22 @@ suite("LiveQueryStatisticsMonitor", () => {
     let sandbox: sinon.SinonSandbox;
     let sendRequest: sinon.SinonStub;
     let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let callbacks: { onPlans: sinon.SinonStub; onError: sinon.SinonStub };
+    let callbacks: {
+        onPlans: sinon.SinonStub;
+        onEmptyRead: sinon.SinonStub;
+        onError: sinon.SinonStub;
+    };
 
     setup(() => {
         sandbox = sinon.createSandbox();
         client = sandbox.createStubInstance(SqlToolsServiceClient);
         sendRequest = client.sendRequest;
         sendRequest.withArgs(EndLiveExecutionPlanRequest.type, sinon.match.any).resolves(true);
-        callbacks = { onPlans: sandbox.stub(), onError: sandbox.stub() };
+        callbacks = {
+            onPlans: sandbox.stub(),
+            onEmptyRead: sandbox.stub(),
+            onError: sandbox.stub(),
+        };
     });
 
     teardown(() => {
@@ -83,6 +91,33 @@ suite("LiveQueryStatisticsMonitor", () => {
             sessionId: 57,
         });
         expect(callbacks.onPlans.firstCall.args).to.deep.equal([[graph]]);
+    });
+
+    test("reports a read that returned no plan", async () => {
+        stubReads().resolves({ graphs: [] });
+        const monitor = createMonitor();
+
+        monitor.start();
+        await waitFor(() => callbacks.onEmptyRead.called);
+        monitor.dispose();
+
+        expect(callbacks.onEmptyRead).to.have.been.called;
+        expect(callbacks.onPlans).not.to.have.been.called;
+        expect(callbacks.onError).not.to.have.been.called;
+    });
+
+    test("doesn't report an empty read that returns after monitoring stopped", async () => {
+        const read = new Deferred<unknown>();
+        stubReads().returns(read.promise);
+        const monitor = createMonitor();
+
+        monitor.start();
+        await waitFor(() => requestsOf(GetLiveExecutionPlanRequest.type).length > 0);
+        monitor.dispose();
+        read.resolve({ graphs: [] });
+        await monitor.closed;
+
+        expect(callbacks.onEmptyRead).not.to.have.been.called;
     });
 
     test("waits for the previous generation's in-flight read and close before reopening", async () => {

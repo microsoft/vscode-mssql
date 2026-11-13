@@ -3,7 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useContext,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import {
     FluentResultGrid,
     FluentResultGridCommand,
@@ -12,6 +21,7 @@ import {
     type FluentResultGridCommandConfiguration,
     type FluentResultGridCommandEvent,
     type FluentResultGridKeyBindingMap,
+    type FluentResultGridHandle,
     type FluentResultGridState,
     type FluentResultGridStrings,
     type FluentResultGridTheme,
@@ -25,10 +35,13 @@ import {
     type WebviewKeyBindings,
 } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { QueryResultsGridView } from "./queryResultsGridView";
+import {
+    QueryResultsGridView,
+    type ResultGridHandle,
+    type ResultGridProps,
+} from "./queryResultsGridView";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { getFluentResultGridInitialFrozenColumnIndex } from "../../common/FluentResultGrid/internal/fluentResultGridState";
 
 const DEFAULT_FONT_SIZE = 12;
@@ -488,6 +501,15 @@ function areResultSetSummariesEquivalent(
 }
 
 const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props, ref) => {
+    const fluentGridRef = useRef<FluentResultGridHandle | null>(null);
+    useImperativeHandle(
+        ref,
+        () => ({
+            focusGrid: () => fluentGridRef.current?.focusGrid(),
+            clearSelection: () => fluentGridRef.current?.clearSelection?.(),
+        }),
+        [],
+    );
     const context = useContext(QueryResultCommandsContext);
     const extensionRpc = context?.extensionRpc;
     const uri = useQueryResultSelector((state) => state.uri);
@@ -835,7 +857,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
     return (
         <FluentResultGrid
-            ref={ref}
+            ref={fluentGridRef}
             gridId={props.gridId}
             resultSetSummary={resultSetSummary}
             dataSource={dataSource}
@@ -891,11 +913,7 @@ export function QueryResultFluentResultGridView() {
             theme={theme}
             overlayRootProps={vscodeOverlayRootProps}
             defaultCommands={defaultCommands}>
-            <QueryResultsGridView
-                GridComponent={QueryResultFluentResultGrid}
-                deferOffscreenGridRendering
-                showExternalCommandBar={false}
-            />
+            <QueryResultsGridView GridComponent={QueryResultFluentResultGrid} />
         </FluentResultGridProvider>
     );
 }

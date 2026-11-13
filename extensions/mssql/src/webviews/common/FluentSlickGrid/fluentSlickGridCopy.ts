@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Column, ContextMenu, SlickgridReactInstance } from "slickgrid-react";
+import type { Column, ContextMenu, SlickgridReactInstance } from "slickgrid-react";
 
 export const FLUENT_SLICK_GRID_COPY_COMMAND = "copy";
 
@@ -30,7 +30,8 @@ export function createFluentSlickGridCopyMenu(copyLabel: string): ContextMenu {
 }
 
 export function getFluentSlickGridSelectionText(
-    reactGrid: SlickgridReactInstance | undefined,
+    reactGrid: Pick<SlickgridReactInstance, "slickGrid" | "dataView"> | undefined,
+    options: { includeHeaders?: boolean; headersOnly?: boolean } = {},
 ): string | undefined {
     const grid = reactGrid?.slickGrid;
     const dataView = reactGrid?.dataView;
@@ -70,6 +71,13 @@ export function getFluentSlickGridSelectionText(
 
     const lines: string[] = [];
     for (const range of rangesToProcess) {
+        const selectedColumns = visibleColumns.slice(range.fromCell, range.toCell + 1);
+        if (options.includeHeaders || options.headersOnly) {
+            lines.push(selectedColumns.map((column) => String(column.name ?? "")).join("\t"));
+        }
+        if (options.headersOnly) {
+            continue;
+        }
         for (let row = range.fromRow; row <= range.toRow; row++) {
             const item = dataView.getItem(row);
             if (!item) {
@@ -77,8 +85,7 @@ export function getFluentSlickGridSelectionText(
             }
 
             lines.push(
-                visibleColumns
-                    .slice(range.fromCell, range.toCell + 1)
+                selectedColumns
                     .map((column) => {
                         if (!column.field) {
                             return "";

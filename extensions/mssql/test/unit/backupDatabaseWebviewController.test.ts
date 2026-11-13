@@ -35,7 +35,7 @@ import {
     ObjectManagementWebviewState,
 } from "../../src/sharedInterfaces/objectManagement";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import * as utils from "../../src/controllers/sharedDisasterRecoveryUtils";
 
 chai.use(sinonChai);
@@ -183,6 +183,49 @@ suite("BackupDatabaseWebviewController", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("initialization and shared telemetry use the backup database's own connection", async () => {
+        const credentials = { ...mockProfile, database: "backup-target" };
+        const serverInfo = {
+            engineEditionId: 3,
+            databaseServiceTier: "target-tier",
+            databaseServiceObjective: "target-objective",
+        };
+        mockConnectionManager.connect.resolves(true);
+        mockConnectionManager.getConnectionInfo
+            .withArgs("backup-target_ownerUri")
+            .returns(Object.assign(new ConnectionInfo(), { credentials, serverInfo }));
+        controller = new BackupDatabaseWebviewController(
+            mockContext,
+            mockObjectManagementService,
+            mockConnectionManager,
+            mockFileBrowserService,
+            mockAzureBlobService,
+            mockProfile,
+            "ownerUri",
+            credentials.database,
+        );
+
+        await controller["initializeDialog"]();
+
+        expect(controller["telemetryContext"]).to.deep.equal({
+            connectionInfo: credentials,
+            serverInfo,
+        });
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.Backup,
+            TelemetryActions.InitializeBackup,
+            sinon.match({ connectionInfo: credentials, serverInfo }),
+        );
+        sinon.assert.notCalled(mockConnectionManager.getServerInfo);
+    });
+
+    test("shared telemetry has no database metadata before the backup connection is available", () => {
+        controller.state.ownerUri = "";
+
+        expect(controller["telemetryContext"].serverInfo).to.equal(undefined);
+        sinon.assert.notCalled(mockConnectionManager.getServerInfo);
     });
 
     test("should initialize with correct state", async () => {

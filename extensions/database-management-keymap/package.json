@@ -98,5 +98,8 @@
     },
     "devDependencies": {
         "@vscode/vsce": "^4.0.0"
+    },
+    "overrides": {
+        "qs": "6.16.1"
     }
 }

@@ -28,6 +28,7 @@ import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWeb
 import { fetchUserGroups } from "../azure/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -91,7 +92,7 @@ export async function initializeFabricProvisioningState(
         TelemetryViews.FabricProvisioning,
         TelemetryActions.StartFabricProvisioningDeployment,
         {
-            additionalProps: {},
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
             additionalMeasurements: {
                 localContainersInitTimeInMs: Date.now() - startTime,
             },
@@ -116,6 +117,7 @@ export function registerFabricProvisioningReducers(
         const fabricProvisioningState = await handleWorkspaceFormAction(
             state.deploymentTypeState as fp.FabricProvisioningState,
             payload.workspaceId,
+            deploymentController.workflowCorrelationId,
         );
         state.deploymentTypeState = fabricProvisioningState;
         state.formState = fabricProvisioningState.formState;
@@ -137,6 +139,7 @@ export function registerFabricProvisioningReducers(
         fabricProvisioningState = await handleWorkspaceFormAction(
             fabricProvisioningState,
             fabricProvisioningState.formState.workspace,
+            deploymentController.workflowCorrelationId,
         );
         updateFabricProvisioningState(deploymentController, fabricProvisioningState);
 
@@ -453,7 +456,7 @@ export async function getWorkspaces(
             "";
         updateFabricProvisioningState(deploymentController, state);
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
-            additionalProps: {},
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
             additionalMeasurements: {
                 numWorkspaces: state.workspaces.length,
                 workspaceLoadTimeInMs: Date.now() - startTime,
@@ -464,6 +467,7 @@ export async function getWorkspaces(
         sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
             error: err,
             includeErrorMessage: false,
+            additionalProps: { workflowCorrelationId: deploymentController.workflowCorrelationId },
         });
         updateFabricProvisioningState(deploymentController, state);
     }
@@ -473,7 +477,9 @@ export async function getRoleForWorkspace(
     state: fp.FabricProvisioningState,
     workspace: IWorkspace,
     tenantId?: string,
+    workflowCorrelationId?: string,
 ): Promise<IWorkspace> {
+    const workflowProps = workflowCorrelationId ? { workflowCorrelationId } : {};
     if (state.formState.tenantId === "" && !tenantId) return;
     workspace.role = WorkspaceRole.Viewer;
     const startTime = Date.now();
@@ -493,7 +499,7 @@ export async function getRoleForWorkspace(
             }
         }
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
-            additionalProps: {},
+            additionalProps: workflowProps,
             additionalMeasurements: {
                 workspaceRoleLoadTimeInMs: Date.now() - startTime,
             },
@@ -503,6 +509,7 @@ export async function getRoleForWorkspace(
         sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
             error: err,
             includeErrorMessage: false,
+            additionalProps: workflowProps,
         });
     }
     return workspace;
@@ -531,7 +538,12 @@ export async function sortWorkspacesByPermission(
     if (workspaces.length < WORKSPACE_ROLE_REQUEST_LIMIT) {
         const workspacesWithRoles = await Promise.all(
             workspaces.map(async (workspace) => {
-                return await getRoleForWorkspace(state, workspace, tenantId);
+                return await getRoleForWorkspace(
+                    state,
+                    workspace,
+                    tenantId,
+                    deploymentController.workflowCorrelationId,
+                );
             }),
         );
 
@@ -547,7 +559,9 @@ export async function sortWorkspacesByPermission(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetPermissionsForWorkspaces,
             {
-                additionalProps: {},
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     workspacePermissionsLoadTimeInMs: Date.now() - startTime,
                 },
@@ -569,6 +583,7 @@ export async function sortWorkspacesByPermission(
 export async function handleWorkspaceFormAction(
     state: fp.FabricProvisioningState,
     workspaceId: string,
+    workflowCorrelationId?: string,
 ): Promise<fp.FabricProvisioningState> {
     // Clean up "databaseName" error if new workspace is selected
     state.formErrors = state.formErrors.filter((err) => err !== "databaseName");
@@ -585,6 +600,7 @@ export async function handleWorkspaceFormAction(
             state,
             workspace,
             state.formState.tenantId,
+            workflowCorrelationId,
         );
 
         // Add workspace to respective role list
@@ -619,7 +635,7 @@ export async function handleWorkspaceFormAction(
             (database) => database.displayName,
         );
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetFabricDatabases, {
-            additionalProps: {},
+            additionalProps: workflowCorrelationId ? { workflowCorrelationId } : {},
             additionalMeasurements: {
                 fabricDatabasesLoadTimeInMs: Date.now() - startTime,
             },
@@ -677,7 +693,9 @@ export async function provisionDatabase(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
             {
-                additionalProps: {},
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     provisionDatabaseLoadTimeInMs: Date.now() - startTime,
                 },
@@ -697,7 +715,13 @@ export async function provisionDatabase(
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
-            { error: err, includeErrorMessage: false },
+            {
+                error: err,
+                includeErrorMessage: false,
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
+            },
         );
     }
 }
@@ -706,6 +730,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (!state.database) return;
     const startTime = Date.now();
+    let telemetryConnection: IConnectionDialogProfile | undefined;
     state.connectionLoadState = ApiStatus.Loading;
     updateFabricProvisioningState(deploymentController, state);
 
@@ -729,6 +754,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         databaseConnectionProfile.groupId = state.formState.groupId;
         databaseConnectionProfile.authenticationType = AuthenticationType.AzureMFA;
         databaseConnectionProfile.accountId = state.formState.accountId;
+        telemetryConnection = databaseConnectionProfile;
 
         // Connect to database
         const profile =
@@ -757,7 +783,13 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
             {
-                additionalProps: {},
+                ...getConnectionTelemetryInfo(
+                    deploymentController.mainController.connectionManager,
+                    databaseConnectionProfile,
+                ),
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
                 additionalMeasurements: {
                     connectToDatabaseLoadTimeInMs: Date.now() - startTime,
                 },
@@ -771,13 +803,26 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            { error: err, includeErrorMessage: false },
+            {
+                ...getConnectionTelemetryInfo(
+                    deploymentController.mainController.connectionManager,
+                    telemetryConnection,
+                ),
+                error: err,
+                includeErrorMessage: false,
+                additionalProps: {
+                    workflowCorrelationId: deploymentController.workflowCorrelationId,
+                },
+            },
         );
     }
     updateFabricProvisioningState(deploymentController, state);
 }
 
-export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvisioningState): void {
+export function sendFabricProvisioningCloseEventTelemetry(
+    state: fp.FabricProvisioningState,
+    workflowCorrelationId?: string,
+): void {
     sendActionEvent(
         TelemetryViews.FabricProvisioning,
         TelemetryActions.FinishFabricProvisioningDeployment,
@@ -788,6 +833,7 @@ export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvis
                 errorMessage: state.errorMessage,
                 provisionState: state.provisionLoadState,
                 connectionState: state.connectionLoadState,
+                ...(workflowCorrelationId && { workflowCorrelationId }),
             },
         },
     );

@@ -74,6 +74,8 @@ suite("SqlNotebookController", () => {
         createConnectionDetails: sinon.SinonStub;
         sendRequest: sinon.SinonStub;
         getConnectionInfoFromUri: sinon.SinonStub;
+        getServerInfo: sinon.SinonStub;
+        getConnectionInfo: sinon.SinonStub;
         connectionStore: { getPickListItems: sinon.SinonStub };
         connectionUI: { promptForConnection: sinon.SinonStub };
     };
@@ -285,6 +287,8 @@ suite("SqlNotebookController", () => {
 
         // Mock ConnectionManager (used for connection UI flows)
         connectionMgr = {
+            getServerInfo: sandbox.stub(),
+            getConnectionInfo: sandbox.stub(),
             connect: sandbox.stub().resolves(true),
             listDatabases: sandbox.stub().resolves(["master", "TestDB"]),
             createConnectionDetails: sandbox.stub().returns({}),

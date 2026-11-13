@@ -280,6 +280,55 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ).to.be.false;
         });
 
+        suite("Configuration location", () => {
+            test("new connection inherits its workspace parent location", async () => {
+                connectionConfig.getGroupById.resetBehavior();
+                connectionConfig.getGroupById.returns({
+                    id: "workspace-parent",
+                    name: "Workspace Parent",
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    configSource: vscode.ConfigurationTarget.Workspace,
+                });
+
+                const preparedConnection = await controller["prepareConnectionForSave"]({
+                    server: "test-server",
+                    authenticationType: AuthenticationType.Integrated,
+                    groupId: "workspace-parent",
+                } as IConnectionDialogProfile);
+
+                expect((preparedConnection as IConnectionProfileWithSource).configSource).to.equal(
+                    vscode.ConfigurationTarget.Workspace,
+                );
+                expect((preparedConnection as IConnectionProfileWithSource).workspaceFolderUri).to
+                    .be.undefined;
+            });
+
+            test("new connection inherits its workspace folder parent location", async () => {
+                const workspaceFolderUri = vscode.Uri.file("/workspace/folder").toString();
+                connectionConfig.getGroupById.resetBehavior();
+                connectionConfig.getGroupById.returns({
+                    id: "folder-parent",
+                    name: "Folder Parent",
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    configSource: vscode.ConfigurationTarget.WorkspaceFolder,
+                    workspaceFolderUri,
+                });
+
+                const preparedConnection = await controller["prepareConnectionForSave"]({
+                    server: "test-server",
+                    authenticationType: AuthenticationType.Integrated,
+                    groupId: "folder-parent",
+                } as IConnectionDialogProfile);
+
+                expect((preparedConnection as IConnectionProfileWithSource).configSource).to.equal(
+                    vscode.ConfigurationTarget.WorkspaceFolder,
+                );
+                expect(
+                    (preparedConnection as IConnectionProfileWithSource).workspaceFolderUri,
+                ).to.equal(workspaceFolderUri);
+            });
+        });
+
         test("should hide the recent profile name when the saved profile database differs", async () => {
             const sharedSavedConnection = {
                 id: "shared-profile-id",
@@ -1148,6 +1197,58 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
         });
 
+        test("saveWithoutConnecting updates an edited connection", async () => {
+            connectionStore.updateProfile.resolves(true);
+            const testConnection = {
+                id: "saved-profile-id",
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionDialogProfile;
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
+                connection: testConnection,
+            });
+
+            await controller["_reducerHandlers"].get("saveWithoutConnecting")(controller.state, {});
+
+            expect(connectionStore.updateProfile).to.have.been.calledOnce;
+            expect(connectionStore.updateProfile.firstCall.args[1]).to.deep.include(testConnection);
+            expect(connectionStore.saveProfile).to.not.have.been.called;
+            expect(connectionStore.removeProfile).to.not.have.been.called;
+            expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledWith(
+                [sinon.match(testConnection)],
+                { preserveProfiles: true },
+            );
+            expect(controller["_connectionBeingEdited"]).to.be.undefined;
+            expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
+        });
+
+        test("saveWithoutConnecting keeps an edited connection open when updating is cancelled", async () => {
+            connectionStore.updateProfile.resolves(false);
+            const testConnection = {
+                id: "saved-profile-id",
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionDialogProfile;
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
+                connection: testConnection,
+            });
+
+            await controller["_reducerHandlers"].get("saveWithoutConnecting")(controller.state, {});
+
+            expect(connectionStore.updateProfile).to.have.been.calledOnce;
+            expect(connectionStore.saveProfile).to.not.have.been.called;
+            expect(connectionStore.removeProfile).to.not.have.been.called;
+            expect(mockObjectExplorerProvider.removeConnectionNodes).to.not.have.been.called;
+            expect(controller["_connectionBeingEdited"]).to.deep.include(testConnection);
+            expect(controller.state.connectionStatus).to.equal(ApiStatus.NotStarted);
+        });
+
         test("loadConnectionAsNewDraft", async () => {
             controller.state.formMessage = { message: "Sample error" };
             connectionManager.connect.resolves(true);
@@ -1289,6 +1390,46 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledOnce).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
+            });
+
+            test("Connect uses the final saved profile fields and retains in-memory credentials", async () => {
+                connectionStore.updateProfile.callsFake(async (profile) => {
+                    profile.server = "latest-server";
+                    profile.database = "latest-database";
+                    delete profile.containerName;
+                    return true;
+                });
+                mockObjectExplorerProvider.createSession.resolves({
+                    sessionId: "testSessionId",
+                    rootNode: mockConnectionNode,
+                    success: true,
+                } as CreateSessionResponse);
+                connectionManager.connect.resolves(true);
+                mainController.objectExplorerTree = {
+                    reveal: sandbox.stub().resolves(),
+                } as unknown as vscode.TreeView<TreeNodeInfo>;
+                const original = {
+                    ...testFormState,
+                    id: "editing-profile",
+                    containerName: "old-container",
+                };
+                await controller["_reducerHandlers"].get("loadConnectionForEdit")(
+                    controller.state,
+                    { connection: original },
+                );
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(connectionStore.updateProfile).to.have.been.called;
+                expect(mockObjectExplorerProvider.createSession).to.have.been.calledWith(
+                    sinon
+                        .match({
+                            server: "latest-server",
+                            database: "latest-database",
+                            password: "testPassword",
+                        })
+                        .and(sinon.match((profile) => !Object.hasOwn(profile, "containerName"))),
+                );
             });
 
             test("testConnection only validates connectivity without saving or creating session", async () => {

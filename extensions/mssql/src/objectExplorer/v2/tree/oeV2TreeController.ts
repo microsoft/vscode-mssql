@@ -17,6 +17,9 @@
  * plane like classic OE unless the user explicitly disconnected it.
  */
 
+import { diag } from "../../../diagnostics/diagnosticsCore";
+import { DataPlaneErrorCodes } from "../../../services/sqlDataPlane/api";
+import { isTransientSqlStartupError } from "../../../services/sqlDataPlane/connectionOpenErrors";
 import {
     PreparedConnection,
     prepareConnection,
@@ -29,9 +32,10 @@ import {
     ConnectionProfileSource,
     OeV2ProfileRecord,
     OeV2ProfileTree,
+    OeV2StoredProfile,
     readProfileTree,
 } from "../sessions/oeV2ProfileAdapter";
-import { OeV2SessionRegistry } from "../sessions/oeV2SessionRegistry";
+import { OeV2ConnectionSession, OeV2SessionRegistry } from "../sessions/oeV2SessionRegistry";
 import {
     databaseChildren,
     databaseFolderChildren,
@@ -45,6 +49,9 @@ import {
     systemDatabasesFolderChildren,
 } from "./oeV2Browse";
 import { folderDef, isSystemDatabaseName, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
+import { CatalogLanguageMetadataProvider } from "../../../sqlLanguage/provider/catalogProvider";
+import { createStrictScriptingService } from "../../../sqlLanguage/host/scriptingHost";
+import type { ScriptOperation } from "../../../sqlScripting/api";
 import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { OeV2Node } from "./oeV2Node";
 import {
@@ -66,6 +73,20 @@ export interface OeV2BrowseSettings {
     readonly showSystemDatabases: boolean;
 }
 
+/**
+ * Docker operations seam (DOCK-3): the activation edge supplies the real
+ * implementation over the shared docker core (which owns Docker Desktop
+ * launch, container start and readiness); tests supply fakes. `restart`
+ * reports its progress through the controller's container-activity text.
+ */
+export interface OeV2ContainerOps {
+    restart(
+        containerName: string,
+        connectionId: string,
+        signal: AbortSignal,
+    ): Promise<boolean | undefined>;
+}
+
 export interface OeV2TreeControllerDeps {
     readonly profiles: ConnectionProfileSource;
     readonly dataPlane: DataPlaneProbe;
@@ -75,10 +96,16 @@ export interface OeV2TreeControllerDeps {
     readonly sessions?: OeV2SessionRegistry;
     readonly coordinatorFactory?: (prepared: PreparedConnection) => OeV2MetadataCoordinator;
     readonly settings?: () => OeV2BrowseSettings;
+    /** Container lifecycle (DOCK-3) — absent means no docker pre-flight. */
+    readonly containers?: OeV2ContainerOps;
     /** Test seam: expansion wait ceilings (defaults EXPAND/CONNECT_KICK). */
     readonly waits?: {
         expandMs?: number;
         connectKickMs?: number;
+        containerPreflightMs?: number;
+        containerOpenRetryBackoffMs?: number;
+        containerOpenRetryBudgetMs?: number;
+        containerLoginRetryGraceMs?: number;
     };
 }
 
@@ -86,9 +113,25 @@ interface ConnectionRuntime {
     prepared: PreparedConnection;
     coordinator: OeV2MetadataCoordinator;
     subscription: { dispose(): void };
+    clearTransientAuth?: () => void;
+}
+
+export interface OeV2ConnectOptions {
+    /** Wizard credential: scoped to this connection, never saved by the tree. */
+    readonly password?: string;
+    /** Only the wizard's first open may retry the brief initial-login race. */
+    readonly freshContainer?: boolean;
 }
 
 const DEFAULT_SETTINGS: OeV2BrowseSettings = { groupBySchema: false, showSystemDatabases: true };
+
+function containerOperationKey(
+    container: Pick<OeV2StoredProfile, "containerName" | "containerEngine"> | undefined,
+): string | undefined {
+    return container?.containerName
+        ? JSON.stringify([container.containerEngine ?? "docker", container.containerName])
+        : undefined;
+}
 
 export class OeV2TreeController {
     private disposed = false;
@@ -97,6 +140,11 @@ export class OeV2TreeController {
     private runtimes = new Map<string, ConnectionRuntime>();
     private explicitlyDisconnected = new Set<string>();
     private registrySubscription: { dispose(): void } | undefined;
+    private readonly profileLookupEpoch = new Map<string, number>();
+    private readonly containerConnects = new Map<
+        string,
+        { cancellation: AbortController; pending: Promise<boolean>; containerKey: string }
+    >();
 
     constructor(private readonly deps: OeV2TreeControllerDeps) {
         this.registrySubscription = deps.sessions?.onDidChange(() => this.fireChange());
@@ -197,25 +245,144 @@ export class OeV2TreeController {
             .map((info) => ({ schema: info.schema, name: info.name, kind: info.kind }));
     }
 
+    async scriptObject(
+        node: OeV2Node,
+        operation: Extract<ScriptOperation, "create" | "alter" | "drop" | "execute">,
+        offlineMode: boolean,
+    ): Promise<{ script?: string; error?: string }> {
+        if (!node.connectionId || !node.database || !node.schema || !node.objectName) {
+            return { error: ObjectExplorerV2.selectObjectToScript };
+        }
+        const runtime = this.runtimes.get(node.connectionId);
+        if (!runtime) {
+            return { error: ObjectExplorerV2.connectBeforeScripting };
+        }
+        const lease = await runtime.coordinator.ensureDatabase(node.database);
+        const session = this.deps.sessions?.get(node.connectionId);
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => lease,
+            serverVersion: () => session?.serverVersion,
+            currentDatabase: () => node.database,
+            databases: () => undefined,
+            subscribeStatus: () => () => undefined,
+        });
+        const resolution = provider.pin().resolveObject([node.schema, node.objectName]);
+        if (resolution.kind !== "resolved") {
+            return {
+                script:
+                    ObjectExplorerV2.objectMissingForScript(node.schema, node.objectName) + "\r\n",
+            };
+        }
+        const scripting = createStrictScriptingService({
+            lease: () => lease,
+            pin: () => provider.pin(),
+            offlineMode: () => offlineMode,
+        });
+        const result = await scripting.script({
+            target: { ref: resolution.ref },
+            operation,
+        });
+        return { script: result.text };
+    }
+
     // -- commands (wired by activation) ---------------------------------------
 
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
-    async connectProfile(connectionId: string): Promise<boolean> {
-        if (this.disposed) {
+    async connectProfile(connectionId: string, options?: OeV2ConnectOptions): Promise<boolean> {
+        if (this.disposed || this.containerOperationFor(connectionId)) {
             return false;
         }
         this.explicitlyDisconnected.delete(connectionId);
-        const { sessions, secrets, tokens, coordinatorFactory } = this.deps;
+        const lookupEpoch = this.profileLookupEpoch.get(connectionId);
+        const { sessions, secrets, coordinatorFactory } = this.deps;
         if (!sessions || !secrets || !coordinatorFactory) {
             return false;
         }
         const profile = await this.findProfile(connectionId);
-        if (!profile || this.disposed) {
+        if (
+            this.disposed ||
+            !profile ||
+            this.containerOperationFor(connectionId, profile.stored) ||
+            this.profileLookupEpoch.get(connectionId) !== lookupEpoch
+        ) {
             return false;
         }
+        const containerKey = containerOperationKey(profile.stored);
+        if (!containerKey) {
+            return this.connectPreparedProfile(connectionId, profile, undefined, options);
+        }
+        // The wizard and profile-change reconciliation can request the same
+        // connection together. Share the entire startup, including Docker.
+        const existing = this.containerConnects.get(connectionId);
+        if (existing) {
+            return existing.pending;
+        }
+        const cancellation = new AbortController();
+        const pending = this.connectPreparedProfile(
+            connectionId,
+            profile,
+            cancellation,
+            options,
+        ).finally(() => {
+            if (this.containerConnects.get(connectionId)?.cancellation === cancellation) {
+                this.containerConnects.delete(connectionId);
+                this.setContainerActivity(connectionId, undefined);
+            }
+        });
+        this.containerConnects.set(connectionId, {
+            cancellation,
+            pending,
+            containerKey,
+        });
+        this.fireChange();
+        return pending;
+    }
+
+    private async connectPreparedProfile(
+        connectionId: string,
+        profile: OeV2ProfileRecord,
+        cancellation?: AbortController,
+        options?: OeV2ConnectOptions,
+    ): Promise<boolean> {
+        const { sessions, secrets, tokens, coordinatorFactory } = this.deps;
+        // Container pre-flight (DOCK-3): stopped containers start before the
+        // data-plane open, exactly like v1's expand-while-stopped behavior.
+        let preflightWarning: string | undefined;
+        if (profile.stored.containerName && cancellation) {
+            const ready = await this.ensureContainerReady(
+                connectionId,
+                profile.stored.containerName,
+                cancellation,
+            );
+            if (
+                this.disposed ||
+                cancellation.signal.aborted ||
+                this.containerOperationFor(connectionId, profile.stored) ||
+                !ready.proceed
+            ) {
+                return false;
+            }
+            preflightWarning = ready.warning;
+        }
         let prepared: PreparedConnection;
+        let password = options?.password;
+        const clearTransientAuth = () => {
+            password = undefined;
+        };
         try {
-            prepared = prepareConnection(profile.stored, secrets, tokens);
+            prepared =
+                password === undefined
+                    ? prepareConnection(profile.stored, secrets, tokens)
+                    : prepareConnection(
+                          { ...profile.stored, password: undefined },
+                          {
+                              lookupPassword: (credentials) =>
+                                  password === undefined
+                                      ? secrets.lookupPassword(credentials)
+                                      : Promise.resolve(password),
+                          },
+                          tokens,
+                      );
         } catch (error) {
             sessions.recordPreparationFailure(
                 connectionId,
@@ -232,16 +399,43 @@ export class OeV2TreeController {
         ) {
             this.releaseRuntime(connectionId);
         }
-        const session = await sessions.connect(connectionId, prepared);
-        if (this.disposed || session.state !== "connected") {
+        const session = cancellation
+            ? await this.openContainerSessionWithRetry(
+                  connectionId,
+                  prepared,
+                  cancellation.signal,
+                  options?.freshContainer === true,
+              )
+            : await sessions.connect(connectionId, prepared);
+        if (this.disposed || cancellation?.signal.aborted || session.state !== "connected") {
+            clearTransientAuth();
+            if (
+                preflightWarning &&
+                session.state === "failed" &&
+                !cancellation?.signal.aborted &&
+                !this.disposed
+            ) {
+                const reason = ObjectExplorerV2.containerAndConnectionFailed(
+                    preflightWarning,
+                    session.failureReason ?? ObjectExplorerV2.unknownError,
+                );
+                sessions.recordPreparationFailure(connectionId, reason, new Error(reason));
+            }
             return false;
         }
         if (!this.runtimes.has(connectionId)) {
             const coordinator = coordinatorFactory(prepared);
             const subscription = coordinator.onDidChange(() => this.fireChange());
-            this.runtimes.set(connectionId, { prepared, coordinator, subscription });
+            this.runtimes.set(connectionId, {
+                prepared,
+                coordinator,
+                subscription,
+                clearTransientAuth,
+            });
             // Kick the server catalog so Databases is warm by first expand.
             void coordinator.ensureServer().catch(() => undefined);
+        } else {
+            clearTransientAuth();
         }
         return true;
     }
@@ -251,14 +445,24 @@ export class OeV2TreeController {
      * the pending open self-supersedes when its deadline settles it.
      */
     cancelConnect(connectionId: string): void {
-        this.deps.sessions?.cancelConnect(connectionId);
         this.explicitlyDisconnected.add(connectionId);
+        const hadContainerAttempt = this.containerConnects.has(connectionId);
+        this.cancelContainerConnect(connectionId);
+        const cancelled = this.deps.sessions?.cancelConnect(connectionId);
+        if (
+            !cancelled &&
+            hadContainerAttempt &&
+            this.deps.sessions?.stateOf(connectionId) === "failed"
+        ) {
+            void this.deps.sessions.disconnect(connectionId);
+        }
     }
 
     async disconnectProfile(connectionId: string): Promise<void> {
+        this.explicitlyDisconnected.add(connectionId);
+        this.cancelContainerConnect(connectionId);
         this.releaseRuntime(connectionId);
         await this.deps.sessions?.disconnect(connectionId);
-        this.explicitlyDisconnected.add(connectionId);
     }
 
     /**
@@ -267,6 +471,7 @@ export class OeV2TreeController {
      * again on its next expansion using the new connection facts.
      */
     async retireProfile(connectionId: string): Promise<void> {
+        this.cancelContainerConnect(connectionId);
         this.releaseRuntime(connectionId);
         await this.deps.sessions?.disconnect(connectionId);
         this.explicitlyDisconnected.delete(connectionId);
@@ -577,8 +782,13 @@ export class OeV2TreeController {
 
     dispose(): void {
         this.disposed = true;
+        for (const connectionId of this.containerConnects.keys()) {
+            this.cancelContainerConnect(connectionId);
+        }
+        this.containerOperations.clear();
         this.registrySubscription?.dispose();
         for (const runtime of this.runtimes.values()) {
+            runtime.clearTransientAuth?.();
             runtime.subscription.dispose();
             runtime.coordinator.dispose();
         }
@@ -618,8 +828,16 @@ export class OeV2TreeController {
 
     private connectionFacts(profileId: string): ConnectionNodeFacts | undefined {
         const session = this.deps.sessions?.get(profileId);
+        const operation = this.containerOperationFor(profileId);
+        const activityText = this.containerActivity.get(profileId) ?? operation?.text;
+        if (operation || this.containerConnects.has(profileId)) {
+            return {
+                state: operation ? "disconnecting" : "connecting",
+                ...(activityText !== undefined ? { activityText } : {}),
+            };
+        }
         if (!session) {
-            return undefined;
+            return activityText !== undefined ? { state: "disconnected", activityText } : undefined;
         }
         return {
             state: session.state,
@@ -628,7 +846,237 @@ export class OeV2TreeController {
             ...(session.connectingForMs !== undefined
                 ? { connectingForMs: session.connectingForMs }
                 : {}),
+            ...(activityText !== undefined ? { activityText } : {}),
         };
+    }
+
+    // -- docker containers (DOCK-2/3) -----------------------------------------
+
+    /** Transient per-connection docker activity text (renders as description). */
+    private readonly containerActivity = new Map<string, string>();
+    private readonly containerOperations = new Map<
+        string,
+        { text: string; containerKey: string }
+    >();
+
+    /** Hold every profile for this engine/container busy until Stop/Delete finishes. */
+    beginContainerOperation(
+        connectionId: string,
+        text: string,
+        container: Pick<OeV2StoredProfile, "containerName" | "containerEngine">,
+    ): { dispose(): void } | undefined {
+        const containerKey = containerOperationKey(container);
+        if (this.disposed || !containerKey || this.containerOperationFor(connectionId, container)) {
+            return undefined;
+        }
+        const operation = { text, containerKey };
+        this.containerOperations.set(connectionId, operation);
+        // A different saved profile can be opening the same physical container.
+        // Cancel its pre-flight and pending SQL open before engine teardown.
+        const affected = new Set([connectionId]);
+        for (const [profileId, pending] of this.containerConnects) {
+            if (pending.containerKey === containerKey) affected.add(profileId);
+        }
+        for (const profileId of affected) this.cancelConnect(profileId);
+        this.fireChange();
+        return {
+            dispose: () => {
+                if (this.containerOperations.get(connectionId) !== operation) return;
+                this.containerOperations.delete(connectionId);
+                this.fireChange();
+            },
+        };
+    }
+
+    private containerOperationFor(
+        connectionId: string,
+        container?: Pick<OeV2StoredProfile, "containerName" | "containerEngine">,
+    ): { text: string; containerKey: string } | undefined {
+        if (this.containerOperations.size === 0) return undefined;
+        const own = this.containerOperations.get(connectionId);
+        if (own) return own;
+        const key = containerOperationKey(
+            container ??
+                this.tree?.profiles.find((profile) => profile.profileId === connectionId)?.stored,
+        );
+        if (!key) return undefined;
+        for (const operation of this.containerOperations.values()) {
+            if (operation.containerKey === key) return operation;
+        }
+        return undefined;
+    }
+
+    private cancelContainerConnect(connectionId: string): void {
+        this.profileLookupEpoch.set(
+            connectionId,
+            (this.profileLookupEpoch.get(connectionId) ?? 0) + 1,
+        );
+        const pending = this.containerConnects.get(connectionId);
+        if (pending) {
+            pending.cancellation.abort();
+            this.containerConnects.delete(connectionId);
+            this.setContainerActivity(connectionId, undefined);
+        }
+    }
+
+    setContainerActivity(connectionId: string, text: string | undefined): void {
+        if (this.disposed) {
+            return;
+        }
+        if (text === undefined) {
+            this.containerActivity.delete(connectionId);
+        } else {
+            this.containerActivity.set(connectionId, text);
+        }
+        this.fireChange();
+    }
+
+    /**
+     * Container pre-flight (DOCK-3): a stopped container transparently
+     * starts (Docker Desktop launch → container start → readiness wait)
+     * BEFORE the data-plane open. BOUNDED by a backstop above the shared
+     * core's own 300s readiness cap — a wedged docker daemon fails the node
+     * with an honest reason, never an infinite spinner.
+     */
+    private async ensureContainerReady(
+        connectionId: string,
+        containerName: string,
+        cancellation: AbortController,
+    ): Promise<{ proceed: boolean; warning?: string }> {
+        const containers = this.deps.containers;
+        if (!containers) {
+            return { proceed: true }; // no docker seam wired (tests/shell) — open directly
+        }
+        const span = diag.startSpan({
+            feature: "objectExplorer",
+            kind: "span",
+            type: "objectExplorerV2.container.preflight",
+            fields: {},
+        });
+        try {
+            const outcome = await waitForContainerResult(
+                containers
+                    .restart(containerName, connectionId, cancellation.signal)
+                    .then((value) => ({ value })),
+                cancellation.signal,
+                this.deps.waits?.containerPreflightMs ?? CONTAINER_PREFLIGHT_WAIT_MS,
+            );
+            if (cancellation.signal.aborted) {
+                span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+                return { proceed: false };
+            }
+            if (outcome?.value === true) {
+                span.end("ok");
+                return { proceed: true };
+            }
+            const timedOut = outcome === undefined;
+            if (!timedOut && outcome.value === undefined) {
+                cancellation.abort();
+                span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+                return { proceed: false };
+            }
+            const reason = timedOut
+                ? ObjectExplorerV2.containerStartupTimedOut
+                : ObjectExplorerV2.containerStartupFailed;
+            if (timedOut) {
+                cancellation.abort();
+                this.deps.sessions?.recordPreparationFailure(
+                    connectionId,
+                    reason,
+                    new Error(reason),
+                );
+            }
+            span.end("error", {
+                errorClass: {
+                    raw: timedOut ? "preflightTimeout" : "preflightFailed",
+                    cls: "diagnostic.metadata",
+                },
+            });
+            return timedOut ? { proceed: false } : { proceed: true, warning: reason };
+        } catch (error) {
+            if (cancellation.signal.aborted) {
+                span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+                return { proceed: false };
+            }
+            const reason = error instanceof Error ? error.message : String(error);
+            span.end("error", {
+                errorClass: { raw: "preflightError", cls: "diagnostic.metadata" },
+            });
+            return { proceed: true, warning: reason };
+        }
+    }
+
+    /**
+     * A container reports "ready" (its log line appears) a beat before SQL
+     * Server will actually accept a session: during that boot window the
+     * server briefly resets the pre-login endpoint (TCP "forcibly closed").
+     * Real SQL clients ride this out with a short retry, so does the OE v2
+     * open retries transport failures for container profiles. Only the
+     * wizard's initial connection gets a brief login-initialization grace
+     * period; ordinary saved profiles still fail fast on bad credentials.
+     */
+    private async openContainerSessionWithRetry(
+        connectionId: string,
+        prepared: PreparedConnection,
+        signal: AbortSignal,
+        freshContainer = false,
+    ): Promise<OeV2ConnectionSession> {
+        const sessions = this.deps.sessions!;
+        const backoffMs =
+            this.deps.waits?.containerOpenRetryBackoffMs ?? CONTAINER_OPEN_RETRY_BACKOFF_MS;
+        const budgetMs =
+            this.deps.waits?.containerOpenRetryBudgetMs ?? CONTAINER_OPEN_RETRY_BUDGET_MS;
+        const startedAt = Date.now();
+        const loginGraceMs = freshContainer
+            ? (this.deps.waits?.containerLoginRetryGraceMs ?? 5_000)
+            : 0;
+        const retryable = (session: OeV2ConnectionSession) =>
+            session.failureCode === DataPlaneErrorCodes.transportClosed ||
+            isTransientSqlStartupError(session.failureReason) ||
+            (Date.now() - startedAt < loginGraceMs &&
+                /^(?:Login failed for user\b|SQL authentication failed\.?$)/i.test(
+                    session.failureReason ?? "",
+                ));
+        let session = await sessions.connect(connectionId, prepared, signal);
+        let attempt = 0;
+        while (
+            !this.disposed &&
+            !signal.aborted &&
+            session.state === "failed" &&
+            retryable(session) &&
+            Date.now() - startedAt < budgetMs
+        ) {
+            attempt++;
+            const span = diag.startSpan({
+                feature: "objectExplorer",
+                kind: "span",
+                type: "objectExplorerV2.container.openRetry",
+                fields: { attempt: { raw: attempt, cls: "diagnostic.metadata" } },
+            });
+            await waitForContainerResult(undefined, signal, backoffMs);
+            if (
+                this.disposed ||
+                signal.aborted ||
+                Date.now() - startedAt >= budgetMs ||
+                !retryable(session)
+            ) {
+                span.end("info", {
+                    result: {
+                        raw: signal.aborted || this.disposed ? "canceled" : "exhausted",
+                        cls: "diagnostic.metadata",
+                    },
+                });
+                break;
+            }
+            session = await sessions.connect(connectionId, prepared, signal);
+            span.end(session.state === "connected" ? "ok" : "info", {
+                result: {
+                    raw: session.state === "connected" ? "recovered" : "retrying",
+                    cls: "diagnostic.metadata",
+                },
+            });
+        }
+        return session;
     }
 
     private async connectionChildren(connectionId: string): Promise<OeV2Node[]> {
@@ -671,8 +1119,24 @@ export class OeV2TreeController {
                     ),
                 ];
             }
-            default:
+            default: {
+                const profile = await this.findProfile(connectionId);
+                if (profile?.stored.containerName) {
+                    return [
+                        {
+                            ...statusNode(
+                                `connection/${connectionId}`,
+                                ObjectExplorerV2.startContainer,
+                                connectionId,
+                            ),
+                            connectionId,
+                            containerName: profile.stored.containerName,
+                            action: "startContainer",
+                        },
+                    ];
+                }
                 return [disconnectedHint(connectionId)];
+            }
         }
     }
 
@@ -770,6 +1234,7 @@ export class OeV2TreeController {
             return;
         }
         runtime.subscription.dispose();
+        runtime.clearTransientAuth?.();
         runtime.coordinator.dispose();
         this.runtimes.delete(connectionId);
     }
@@ -820,6 +1285,55 @@ export class OeV2TreeController {
  */
 const EXPAND_WAIT_MS = 6_000;
 const CONNECT_KICK_WAIT_MS = 400;
+/** DOCK-3 backstop ABOVE the docker core's 300s readiness cap: even a wedged
+ *  dockerode call (npipe hang) fails the node honestly, never spins forever. */
+const CONTAINER_PREFLIGHT_WAIT_MS = 360_000;
+
+/**
+ * A container can be *running yet not accepting connections* — its SQL Server
+ * is mid-boot (the `alreadyRunning` pre-flight short-circuit is v1-correct, but
+ * "running" ≠ "ready"). This happens on a full cold boot (docker auto-start on
+ * machine login, or a restart raced by another connect). The open then retries
+ * on the transient reset until SQL is up. Bound by wall-clock, not attempt
+ * count, because each failed open itself takes a variable moment; 60s covers a
+ * cold SQL Server boot and is well under the 300s readiness-log ceiling.
+ */
+const CONTAINER_OPEN_RETRY_BUDGET_MS = 60_000;
+const CONTAINER_OPEN_RETRY_BACKOFF_MS = 2_000;
+
+/** Stop waiting immediately on cancellation; observe late errors without reviving the attempt. */
+function waitForContainerResult<T>(
+    promise: Promise<T> | undefined,
+    signal: AbortSignal,
+    ms: number,
+): Promise<T | undefined> {
+    return new Promise((resolve, reject) => {
+        const cleanup = () => {
+            clearTimeout(timer);
+            signal.removeEventListener("abort", cancelled);
+        };
+        const cancelled = () => {
+            cleanup();
+            resolve(undefined);
+        };
+        const timer = setTimeout(cancelled, ms);
+        signal.addEventListener("abort", cancelled, { once: true });
+        promise?.then(
+            (value) => {
+                cleanup();
+                resolve(value);
+            },
+            (error) => {
+                cleanup();
+                reject(error);
+            },
+        );
+        if (signal.aborted) {
+            cancelled();
+        }
+    });
+}
+
 /**
  * Race a promise against a ceiling: undefined past the deadline, and the
  * underlying work always continues (its completion drives change events).
