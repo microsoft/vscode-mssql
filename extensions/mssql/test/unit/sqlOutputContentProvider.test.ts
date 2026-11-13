@@ -601,7 +601,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     });
 
     test("setSqlCmdMode should update the existing queryRunner", () => {
-        const queryRunner = { isSqlCmd: false } as QueryRunner;
+        const queryRunner = { isSqlCmd: false, autoDetectSqlCmd: true } as QueryRunner;
         contentProvider.setResultsMap = new Map([
             ["test_uri", { queryRunner } as QueryRunnerState],
         ]);
@@ -609,6 +609,19 @@ suite("SqlOutputProvider Tests using mocks", () => {
         contentProvider.setSqlCmdMode("test_uri", true);
 
         expect(queryRunner.isSqlCmd).to.be.true;
+        expect(queryRunner.autoDetectSqlCmd).to.be.false;
+    });
+
+    test("createQueryRunner should initialize SQLCMD auto-detection from the status view", async () => {
+        statusView.getSqlCmdAutoDetect.withArgs(testUri).returns(true);
+
+        const queryRunner = await contentProvider.createQueryRunner(
+            statusViewInstance,
+            testUri,
+            testUri,
+        );
+
+        expect(queryRunner?.autoDetectSqlCmd).to.be.true;
     });
 
     test("createQueryRunner should initialize SQLCMD mode from the status view", async () => {

@@ -2978,6 +2978,10 @@ export class StatusBar {
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
     public static sqlCmdModeOnLabel = l10n.t("SQLCMD: On");
     public static sqlCmdModeOffLabel = l10n.t("SQLCMD: Off");
+    public static sqlCmdModeAutoLabel = l10n.t("SQLCMD: Auto");
+    public static sqlCmdModeAutoTooltip = l10n.t(
+        "SQLCMD mode is enabled for an execution only if the executed text contains SQLCMD syntax. Click to turn SQLCMD mode on.",
+    );
     public static serverProcessIdLabel = (serverProcessId: string) => {
         return l10n.t({
             message: "SPID: {0}",
