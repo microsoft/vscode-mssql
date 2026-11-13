@@ -930,7 +930,7 @@ export class SqlOutputContentProvider {
                         hasError,
                     );
                     if (isFullExecutionComplete) {
-                        void this._queryCompletionSoundService.play();
+                        void this._queryCompletionSoundService.play(hasError);
                     }
                 }
 

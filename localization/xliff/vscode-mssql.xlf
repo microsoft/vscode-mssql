@@ -16895,7 +16895,7 @@
       <source xml:lang="en">Place the joined table source on a new line after the JOIN keyword.</source>
     </trans-unit>
     <trans-unit id="mssql.query.playCompletionSound.description">
-      <source xml:lang="en">Play a sound after a query finishes executing.</source>
+      <source xml:lang="en">Play a sound after a query finishes executing. An error sound plays instead of the completion sound when any batch fails.</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.preserveComments">
       <source xml:lang="en">Preserve comments during formatting.</source>
@@ -17406,6 +17406,9 @@
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.name">
       <source xml:lang="en">The name of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.errorSoundFile.description">
+      <source xml:lang="en">The path to a custom WAV file to play after a query finishes executing with errors. The bundled default error sound is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</source>
     </trans-unit>
     <trans-unit id="mssql.query.completionSoundFile.description">
       <source xml:lang="en">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</source>
