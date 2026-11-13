@@ -44,7 +44,6 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
-import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as notebookController from "../../src/notebooks/sqlNotebookController";
@@ -277,13 +276,14 @@ suite("MainController Tests", function () {
 
     suite("onToggleSqlCmd Tests", () => {
         const testUri = "file:///test/query.sql";
+        const document = { uri: vscode.Uri.parse(testUri) } as vscode.TextDocument;
         type ToggleSqlCmdAccess = {
             onToggleSqlCmd(): void;
             _outputContentProvider: { setSqlCmdMode: sinon.SinonStub };
             _statusview: { getSqlCmdMode: sinon.SinonStub; sqlCmdModeChanged: sinon.SinonStub };
+            _sqlCmdLanguageFlavorTracker: { update: sinon.SinonStub };
         };
         let controllerAccess: ToggleSqlCmdAccess;
-        let sendNotification: sinon.SinonStub;
 
         setup(() => {
             controllerAccess = mainController as unknown as ToggleSqlCmdAccess;
@@ -292,19 +292,21 @@ suite("MainController Tests", function () {
                 getSqlCmdMode: sandbox.stub().returns(Constants.SqlCmdMode.Off),
                 sqlCmdModeChanged: sandbox.stub(),
             };
-            sendNotification = sandbox.stub();
-            sandbox.stub(SqlToolsServiceClient, "instance").value({ sendNotification });
+            controllerAccess._sqlCmdLanguageFlavorTracker = { update: sandbox.stub() };
             sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "getActiveTextEditor").returns({
+                document,
+            } as vscode.TextEditor);
         });
 
-        const sqlCmdModeCycle: [Constants.SqlCmdMode, Constants.SqlCmdMode, string][] = [
-            [Constants.SqlCmdMode.Off, Constants.SqlCmdMode.On, "sqlcmd"],
-            [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto, "sqlcmd"],
-            [Constants.SqlCmdMode.Auto, Constants.SqlCmdMode.Off, Constants.languageId],
+        const sqlCmdModeCycle: [Constants.SqlCmdMode, Constants.SqlCmdMode][] = [
+            [Constants.SqlCmdMode.Off, Constants.SqlCmdMode.On],
+            [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto],
+            [Constants.SqlCmdMode.Auto, Constants.SqlCmdMode.Off],
         ];
 
-        for (const [currentMode, nextMode, language] of sqlCmdModeCycle) {
-            test(`toggles SQLCMD mode from ${currentMode} to ${nextMode} and notifies the language service`, () => {
+        for (const [currentMode, nextMode] of sqlCmdModeCycle) {
+            test(`toggles SQLCMD mode from ${currentMode} to ${nextMode}`, () => {
                 sandbox.stub(Utils, "isEditingSqlFile").returns(true);
                 controllerAccess._statusview.getSqlCmdMode.returns(currentMode);
 
@@ -317,10 +319,9 @@ suite("MainController Tests", function () {
                     testUri,
                     nextMode,
                 );
-                expect(sendNotification).to.have.been.calledWith(
-                    LanguageFlavorChangedNotification.type,
-                    sinon.match({ uri: testUri, language }),
-                );
+                expect(
+                    controllerAccess._sqlCmdLanguageFlavorTracker.update,
+                ).to.have.been.calledWith(document, nextMode);
             });
         }
 
@@ -333,7 +334,7 @@ suite("MainController Tests", function () {
                 LocalizedConstants.msgOpenSqlFile,
             );
             expect(controllerAccess._outputContentProvider.setSqlCmdMode).to.not.have.been.called;
-            expect(sendNotification).to.not.have.been.called;
+            expect(controllerAccess._sqlCmdLanguageFlavorTracker.update).to.not.have.been.called;
         });
     });
 

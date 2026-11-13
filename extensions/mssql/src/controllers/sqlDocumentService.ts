@@ -7,10 +7,10 @@ import * as vscode from "vscode";
 import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
+import { SqlCmdLanguageFlavorTracker } from "../languageservice/sqlCmdLanguageFlavorTracker";
 import { uriOwnershipCoordinator } from "../extension";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
-import { changeSqlCmdModeForFile, usesSqlCmdLanguage } from "../languageservice/utils";
 import { removeUndefinedProperties, getUriKey, uuid } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
@@ -60,12 +60,14 @@ export default class SqlDocumentService implements vscode.Disposable {
     private _connectionMgr: ConnectionManager | undefined;
     private _outputContentProvider: SqlOutputContentProvider | undefined;
     private _statusview: StatusView | undefined;
+    private _sqlCmdLanguageFlavorTracker: SqlCmdLanguageFlavorTracker | undefined;
 
     constructor(private _mainController: MainController) {
         // In unit tests mocks may provide an undefined main controller; guard initialization.
         this._connectionMgr = this._mainController?.connectionManager;
         this._outputContentProvider = this._mainController?.outputContentProvider;
         this._statusview = this._mainController?.statusview;
+        this._sqlCmdLanguageFlavorTracker = this._mainController?.sqlCmdLanguageFlavorTracker;
         this.setupListeners();
     }
 
@@ -374,10 +376,9 @@ export default class SqlDocumentService implements vscode.Disposable {
         if (
             !doc.isClosed &&
             sqlCmdMode !== undefined &&
-            usesSqlCmdLanguage(sqlCmdMode) &&
             !uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(doc.uri)
         ) {
-            changeSqlCmdModeForFile(SqlToolsServerClient.instance, docUri, sqlCmdMode);
+            this._sqlCmdLanguageFlavorTracker?.update(doc, sqlCmdMode);
         }
 
         if (this._newUriFromRenameOrSave.has(docUri)) {

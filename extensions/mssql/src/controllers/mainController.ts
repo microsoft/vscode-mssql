@@ -17,7 +17,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
-import { changeSqlCmdModeForFile } from "../languageservice/utils";
+import { SqlCmdLanguageFlavorTracker } from "../languageservice/sqlCmdLanguageFlavorTracker";
 import { Perf } from "../perf/perfTelemetry";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -224,6 +224,7 @@ export default class MainController implements vscode.Disposable {
     private _event: events.EventEmitter = new events.EventEmitter();
     private _outputContentProvider: SqlOutputContentProvider;
     private _statusview: StatusView;
+    private _sqlCmdLanguageFlavorTracker: SqlCmdLanguageFlavorTracker;
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
     private _initialized: boolean = false;
@@ -358,6 +359,7 @@ export default class MainController implements vscode.Disposable {
         this._shortcutsConfigurationController?.dispose();
         this._shortcutsConfigurationController = undefined;
         this._statusview.dispose();
+        this._sqlCmdLanguageFlavorTracker?.dispose();
     }
 
     /**
@@ -1219,6 +1221,7 @@ export default class MainController implements vscode.Disposable {
         await SqlToolsServerClient.instance.initialize(this._context);
         // Init status bar
         this._statusview = new StatusView();
+        this._sqlCmdLanguageFlavorTracker = new SqlCmdLanguageFlavorTracker();
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter();
@@ -3222,7 +3225,7 @@ export default class MainController implements vscode.Disposable {
         const sqlCmdMode = MainController.getNextSqlCmdMode(this._statusview.getSqlCmdMode(uri));
         this._outputContentProvider.setSqlCmdMode(uri, sqlCmdMode);
         this._statusview.sqlCmdModeChanged(uri, sqlCmdMode);
-        changeSqlCmdModeForFile(SqlToolsServerClient.instance, uri, sqlCmdMode);
+        this._sqlCmdLanguageFlavorTracker.update(Utils.getActiveTextEditor().document, sqlCmdMode);
     }
 
     /**
@@ -3837,6 +3840,10 @@ export default class MainController implements vscode.Disposable {
 
     public get statusview(): StatusView {
         return this._statusview;
+    }
+
+    public get sqlCmdLanguageFlavorTracker(): SqlCmdLanguageFlavorTracker {
+        return this._sqlCmdLanguageFlavorTracker;
     }
 
     public get sqlDocumentService(): SqlDocumentService {

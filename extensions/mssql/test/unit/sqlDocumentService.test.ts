@@ -15,8 +15,8 @@ import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
 import StatusView from "../../src/views/statusView";
+import { SqlCmdLanguageFlavorTracker } from "../../src/languageservice/sqlCmdLanguageFlavorTracker";
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -737,7 +737,7 @@ suite("SqlDocumentService Tests", () => {
     }).timeout(5000);
 
     suite("SQLCMD mode on open", () => {
-        let sendNotificationStub: sinon.SinonStub;
+        let updateSqlCmdLanguage: sinon.SinonStub;
 
         function stubSqlCmdMode(sqlCmdMode: Constants.SqlCmdMode): void {
             sqlDocumentService["_statusview"] = {
@@ -747,48 +747,33 @@ suite("SqlDocumentService Tests", () => {
         }
 
         setup(() => {
-            sendNotificationStub = sandbox.stub();
-            (SqlToolsServerClient.instance as unknown as Record<string, unknown>).sendNotification =
-                sendNotificationStub;
+            updateSqlCmdLanguage = sandbox.stub();
+            sqlDocumentService["_sqlCmdLanguageFlavorTracker"] = {
+                update: updateSqlCmdLanguage,
+            } as unknown as SqlCmdLanguageFlavorTracker;
             sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
         });
 
-        for (const sqlCmdMode of [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto]) {
-            test(`sends the SQLCMD language flavor when the editor's SQLCMD mode is ${sqlCmdMode}`, async () => {
+        for (const sqlCmdMode of Object.values(Constants.SqlCmdMode)) {
+            test(`updates the SQLCMD language flavor for SQLCMD mode ${sqlCmdMode}`, async () => {
                 stubSqlCmdMode(sqlCmdMode);
-                const doc = mockTextDocument("file:///sqlcmd.sql");
+                const doc = mockTextDocument("file:///query.sql");
 
                 await openSqlDocumentAfterSaveOrRenameDelay(doc);
 
-                expect(sendNotificationStub).to.have.been.calledWith(
-                    LanguageFlavorChangedNotification.type,
-                    sinon.match({ uri: doc.uri.toString(), language: "sqlcmd" }),
-                );
+                expect(updateSqlCmdLanguage).to.have.been.calledWith(doc, sqlCmdMode);
             });
         }
 
-        test("does not send a language flavor when the editor's SQLCMD mode is off", async () => {
-            stubSqlCmdMode(Constants.SqlCmdMode.Off);
+        test("updates the SQLCMD language flavor for documents transferred by rename or save", async () => {
+            stubSqlCmdMode(Constants.SqlCmdMode.Auto);
+            const doc = mockTextDocument("file:///saved.sql");
+            sqlDocumentService["_newUriFromRenameOrSave"].add(doc.uri.toString());
 
-            await openSqlDocumentAfterSaveOrRenameDelay(mockTextDocument("file:///plain.sql"));
+            await openSqlDocumentAfterSaveOrRenameDelay(doc);
 
-            expect(sendNotificationStub).to.not.have.been.called;
+            expect(updateSqlCmdLanguage).to.have.been.calledWith(doc, Constants.SqlCmdMode.Auto);
         });
-
-        for (const sqlCmdMode of [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto]) {
-            test(`sends the SQLCMD language flavor for documents transferred by rename or save in SQLCMD mode ${sqlCmdMode}`, async () => {
-                stubSqlCmdMode(sqlCmdMode);
-                const doc = mockTextDocument("file:///saved.sql");
-                sqlDocumentService["_newUriFromRenameOrSave"].add(doc.uri.toString());
-
-                await openSqlDocumentAfterSaveOrRenameDelay(doc);
-
-                expect(sendNotificationStub).to.have.been.calledWith(
-                    LanguageFlavorChangedNotification.type,
-                    sinon.match({ uri: doc.uri.toString(), language: "sqlcmd" }),
-                );
-            });
-        }
     });
 
     test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {

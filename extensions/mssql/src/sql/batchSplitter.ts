@@ -32,7 +32,7 @@ export interface SqlBatch {
     repeatTotal: number;
 }
 
-interface LexState {
+export interface LexState {
     /** Region kind the scanner is inside at a line start. */
     region: "code" | "blockComment" | "string" | "bracket" | "quotedIdent";
     /** Block comments nest in T-SQL. */
@@ -42,13 +42,21 @@ interface LexState {
 /**
  * Scan one line, updating multi-line region state. Returns the state at the
  * END of the line (line comments never carry across lines).
+ * @param visit optional callback invoked with the index and current region of
+ * each character the scanner examines (characters in line comments and the
+ * second character of escapes and comment delimiters aren't visited)
  */
-export function scanLine(line: string, state: LexState): LexState {
+export function scanLine(
+    line: string,
+    state: LexState,
+    visit?: (index: number, region: LexState["region"]) => void,
+): LexState {
     let { region, blockDepth } = state;
     let i = 0;
     while (i < line.length) {
         const ch = line[i];
         const next = line[i + 1];
+        visit?.(i, region);
         switch (region) {
             case "code":
                 if (ch === "-" && next === "-") {
