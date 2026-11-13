@@ -4764,10 +4764,26 @@
                         "description": "%mssql.objectExplorer.groupBySchema%",
                         "default": false
                     },
+                    "mssql.objectExplorer.defaultGroupExpansion": {
+                        "type": "string",
+                        "default": "preserved",
+                        "enum": [
+                            "preserved",
+                            "expanded",
+                            "collapsed"
+                        ],
+                        "enumDescriptions": [
+                            "%mssql.objectExplorer.defaultGroupExpansion.preserved.description%",
+                            "%mssql.objectExplorer.defaultGroupExpansion.expanded.description%",
+                            "%mssql.objectExplorer.defaultGroupExpansion.collapsed.description%"
+                        ],
+                        "description": "%mssql.objectExplorer.defaultGroupExpansion.description%",
+                        "scope": "window"
+                    },
                     "mssql.objectExplorer.collapseConnectionGroupsOnStartup": {
                         "type": "boolean",
                         "description": "%mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription%",
-                        "default": false,
+                        "deprecationMessage": "%mssql.objectExplorer.collapseConnectionGroupsOnStartup.deprecationMessage%",
                         "scope": "window"
                     },
                     "mssql.objectExplorer.expandTimeout": {

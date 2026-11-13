@@ -14,6 +14,7 @@ import { serverLabel } from "../constants/constants";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
+import { ConnectionGroupExpansionStateStore } from "./connectionGroupExpansionStateStore";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -24,10 +25,17 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _objectExplorerService: ObjectExplorerService;
     private _logger: ILogger = logger.withPrefix("ObjectExplorerProvider");
 
-    constructor(connectionManager: ConnectionManager) {
-        this._objectExplorerService = new ObjectExplorerService(connectionManager, (node) => {
-            this.refresh(node);
-        });
+    constructor(
+        connectionManager: ConnectionManager,
+        groupExpansionStateStore?: ConnectionGroupExpansionStateStore,
+    ) {
+        this._objectExplorerService = new ObjectExplorerService(
+            connectionManager,
+            (node) => {
+                this.refresh(node);
+            },
+            groupExpansionStateStore,
+        );
     }
 
     public getParent(element: TreeNodeInfo) {

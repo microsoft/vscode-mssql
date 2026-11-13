@@ -247,6 +247,25 @@ export function stubExtensionContext(
     return context;
 }
 
+/**
+ * Creates a minimal in-memory `vscode.Memento` for tests that need real storage round-trips.
+ */
+export function createInMemoryMemento(): vscode.Memento {
+    const values = new Map<string, unknown>();
+    return {
+        keys: () => Array.from(values.keys()),
+        get: <T>(key: string, defaultValue?: T): T | undefined =>
+            values.has(key) ? (values.get(key) as T) : defaultValue,
+        update: async (key: string, value: unknown): Promise<void> => {
+            if (value === undefined) {
+                values.delete(key);
+            } else {
+                values.set(key, value);
+            }
+        },
+    } as vscode.Memento;
+}
+
 export function createStubLogger(
     sandbox?: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<ILogger> {

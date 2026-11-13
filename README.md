@@ -241,7 +241,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // Object Explorer
 {
   "mssql.objectExplorer.groupBySchema": false,             // Group database objects by schema (tables, views, etc.)
-  "mssql.objectExplorer.collapseConnectionGroupsOnStartup": false,  // Auto-collapse connection groups on extension startup
+  "mssql.objectExplorer.defaultGroupExpansion": "preserved",  // Connection group expansion on load: "preserved" | "expanded" | "collapsed"
   "mssql.objectExplorer.expandTimeout": 45                 // Timeout in seconds for expanding object explorer node children
 }
 

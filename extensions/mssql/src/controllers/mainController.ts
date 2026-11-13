@@ -26,6 +26,7 @@ import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { ConnectionGroupExpansionStateStore } from "../objectExplorer/connectionGroupExpansionStateStore";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
@@ -115,7 +116,10 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
-import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
+import {
+    ConnectionGroupNode,
+    getConnectionGroupIdsInSubtree,
+} from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
 import {
@@ -180,6 +184,7 @@ export default class MainController implements vscode.Disposable {
     private _initialized: boolean = false;
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
+    private _groupExpansionStateStore: ConnectionGroupExpansionStateStore | undefined;
     private _queryHistoryProvider: QueryHistoryProvider;
     private _overviewController: OverviewWebviewController | undefined;
     private _recentSqlFilesStore: RecentSqlFilesStore;
@@ -1153,6 +1158,7 @@ export default class MainController implements vscode.Disposable {
             this._sqlDocumentService;
 
         await this.migrateTransferActiveEditorConnectionsSetting();
+        await this.migrateCollapseConnectionGroupsOnStartupSetting();
 
         void this.showOnLaunchPrompts();
 
@@ -1553,8 +1559,12 @@ export default class MainController implements vscode.Disposable {
         objectExplorerProvider?: ObjectExplorerProvider,
     ): Promise<void> {
         // Register the object explorer tree provider
+        this._groupExpansionStateStore = new ConnectionGroupExpansionStateStore(
+            this._context.globalState,
+        );
         this._objectExplorerProvider =
-            objectExplorerProvider ?? new ObjectExplorerProvider(this._connectionMgr);
+            objectExplorerProvider ??
+            new ObjectExplorerProvider(this._connectionMgr, this._groupExpansionStateStore);
 
         const isOverviewVisible =
             this._context.globalState.get<boolean>(overviewVisibilityStorageKey, true) ?? true;
@@ -1598,6 +1608,9 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+        this._context.subscriptions.push(
+            this._groupExpansionStateStore.trackTreeView(this.objectExplorerTree),
+        );
 
         const objectExplorerV2Enabled = () =>
             previewService.isPrivatePreviewEnabled(
@@ -2111,15 +2124,9 @@ export default class MainController implements vscode.Disposable {
                 result === LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents ||
                 result === LocalizedConstants.Common.delete
             ) {
-                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
-                    node.connectionGroup.id,
-                    "delete",
-                );
+                void this.removeConnectionGroup(node, "delete");
             } else if (result === LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents) {
-                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
-                    node.connectionGroup.id,
-                    "move",
-                );
+                void this.removeConnectionGroup(node, "move");
             }
         });
 
@@ -3969,14 +3976,84 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Removes a connection group and clears the saved Object Explorer expansion state for every
+     * group that was removed as a result.
+     * @param node The connection group node to remove
+     * @param contentAction Whether to delete the group's contents or move them to the root group
+     */
+    private async removeConnectionGroup(
+        node: ConnectionGroupNode,
+        contentAction: "delete" | "move",
+    ): Promise<void> {
+        const removed = await this.connectionManager.connectionStore.connectionConfig.removeGroup(
+            node.connectionGroup.id,
+            contentAction,
+        );
+
+        if (!removed) {
+            return;
+        }
+
+        const removedGroupIds =
+            contentAction === "delete"
+                ? getConnectionGroupIdsInSubtree(node)
+                : [node.connectionGroup.id];
+        await this._groupExpansionStateStore?.remove(removedGroupIds);
+    }
+
+    /**
      * Migrates the deprecated `mssql.transferActiveEditorConnections` boolean setting to
      * `mssql.newEditorConnectionBehavior` and removes the old setting.
      * This runs once on activation. If the old setting was never explicitly set, it is a no-op.
      */
     private async migrateTransferActiveEditorConnectionsSetting(): Promise<void> {
+        await this.migrateDeprecatedBooleanSetting(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            Constants.configTransferActiveEditorConnections,
+            Constants.configNewEditorConnectionBehavior,
+            (value) =>
+                value
+                    ? Constants.NewEditorConnectionBehavior.TransferActive
+                    : Constants.NewEditorConnectionBehavior.None,
+            TelemetryActions.MigrateEditorConnectionBehavior,
+        );
+    }
+
+    /**
+     * Migrates the deprecated `mssql.objectExplorer.collapseConnectionGroupsOnStartup` boolean
+     * setting to `mssql.objectExplorer.defaultGroupExpansion` and removes the old setting.
+     * This runs once on activation. If the old setting was never explicitly set, it is a no-op,
+     * leaving the new setting's default (`preserved`) in effect.
+     */
+    private async migrateCollapseConnectionGroupsOnStartupSetting(): Promise<void> {
+        await this.migrateDeprecatedBooleanSetting(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            Constants.configObjectExplorerCollapseConnectionGroupsOnStartup,
+            Constants.configObjectExplorerDefaultGroupExpansion,
+            (value) =>
+                value
+                    ? Constants.DefaultGroupExpansion.Collapsed
+                    : Constants.DefaultGroupExpansion.Expanded,
+            TelemetryActions.MigrateObjectExplorerDefaultGroupExpansion,
+        );
+    }
+
+    /**
+     * Migrates an explicitly-set deprecated boolean setting to its replacement setting at the
+     * Global and Workspace scopes, then removes the deprecated setting from those scopes.
+     * @param oldSettingName Full name of the deprecated boolean setting
+     * @param newSettingName Full name of the replacement setting
+     * @param mapValue Maps the deprecated setting's value to the replacement setting's value
+     * @param telemetryAction Telemetry action used to report each migration
+     */
+    private async migrateDeprecatedBooleanSetting<TNew>(
+        oldSettingName: string,
+        newSettingName: string,
+        mapValue: (oldValue: boolean) => TNew,
+        telemetryAction: TelemetryActions,
+    ): Promise<void> {
         const config = vscode.workspace.getConfiguration();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const inspected = config.inspect<boolean>(Constants.configTransferActiveEditorConnections);
+        const inspected = config.inspect<boolean>(oldSettingName);
 
         const targets: Array<{
             value: boolean | undefined;
@@ -3997,46 +4074,31 @@ export default class MainController implements vscode.Disposable {
                 continue;
             }
 
-            const newBehavior = value
-                ? Constants.NewEditorConnectionBehavior.TransferActive
-                : Constants.NewEditorConnectionBehavior.None;
+            const newValue = mapValue(value);
 
             const scopeName =
                 configLocation === vscode.ConfigurationTarget.Global ? "global" : "workspace";
 
             try {
-                await config.update(
-                    Constants.configNewEditorConnectionBehavior,
-                    newBehavior,
-                    configLocation,
-                );
+                await config.update(newSettingName, newValue, configLocation);
 
                 // unset old setting
                 await config.update(
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    Constants.configTransferActiveEditorConnections,
+                    oldSettingName,
                     undefined, // value
                     configLocation,
                 );
 
-                sendActionEvent(
-                    TelemetryViews.General,
-                    TelemetryActions.MigrateEditorConnectionBehavior,
-                    { additionalProps: { migratedValue: newBehavior, scope: scopeName } },
-                );
+                sendActionEvent(TelemetryViews.General, telemetryAction, {
+                    additionalProps: { migratedValue: String(newValue), scope: scopeName },
+                });
             } catch (err) {
-                this._logger.error(
-                    `Failed to migrate transferActiveEditorConnections setting: ${err}`,
-                );
-                sendErrorEvent(
-                    TelemetryViews.General,
-                    TelemetryActions.MigrateEditorConnectionBehavior,
-                    {
-                        error: err instanceof Error ? err : new Error(String(err)),
-                        includeErrorMessage: false,
-                        additionalProps: { scope: scopeName },
-                    },
-                );
+                this._logger.error(`Failed to migrate ${oldSettingName} setting: ${err}`);
+                sendErrorEvent(TelemetryViews.General, telemetryAction, {
+                    error: err instanceof Error ? err : new Error(String(err)),
+                    includeErrorMessage: false,
+                    additionalProps: { scope: scopeName },
+                });
             }
         }
     }

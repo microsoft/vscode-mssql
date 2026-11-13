@@ -59,12 +59,14 @@ import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import {
+    createInMemoryMemento,
     createStubLogger,
     initializeIconUtils,
     stubLogger,
     stubMessageBoxes,
     stubUseMsalEntraMfaAuthConfig,
 } from "./utils";
+import { ConnectionGroupExpansionStateStore } from "../../src/objectExplorer/connectionGroupExpansionStateStore";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { OverviewTreeNode } from "../../src/objectExplorer/nodes/overviewTreeNode";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
@@ -2660,6 +2662,82 @@ suite("OE Service Tests", () => {
 
             expect(topLevelConnection.parentNode).to.be.undefined;
             expect(rootNode.children).to.include(topLevelConnection);
+        });
+
+        suite("default group expansion", () => {
+            let groups: IConnectionGroup[];
+            let groupExpansionStateStore: ConnectionGroupExpansionStateStore;
+
+            async function getGroupStates(
+                defaultGroupExpansion: Constants.DefaultGroupExpansion,
+            ): Promise<vscode.TreeItemCollapsibleState[]> {
+                sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                    get: <T>(section: string, defaultValue?: T) =>
+                        section === Constants.configObjectExplorerDefaultGroupExpansion
+                            ? defaultGroupExpansion
+                            : defaultValue,
+                } as vscode.WorkspaceConfiguration);
+
+                const service = new ObjectExplorerService(
+                    mockConnectionManager,
+                    () => {},
+                    groupExpansionStateStore,
+                );
+                await service.initialized;
+                await (service as any).getRootNodes();
+
+                const groupNodes = (service as any)._connectionGroupNodes as Map<
+                    string,
+                    ConnectionGroupNode
+                >;
+                return groups.map((group) => groupNodes.get(group.id).collapsibleState);
+            }
+
+            setup(async () => {
+                groups = createMockConnectionGroups(2);
+                mockConnectionStore.readAllConnectionGroups.resolves([
+                    createMockRootConnectionGroup(),
+                    ...groups,
+                ]);
+                mockConnectionStore.readAllConnections.resolves(createMockConnectionProfiles(1));
+
+                groupExpansionStateStore = new ConnectionGroupExpansionStateStore(
+                    createInMemoryMemento(),
+                );
+            });
+
+            test("preserved restores saved collapsed state and expands groups without saved state", async () => {
+                await groupExpansionStateStore.setExpanded(groups[0].id, false);
+
+                const states = await getGroupStates(Constants.DefaultGroupExpansion.Preserved);
+
+                expect(states).to.deep.equal([
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    vscode.TreeItemCollapsibleState.Expanded,
+                ]);
+            });
+
+            test("collapsed collapses groups regardless of saved state", async () => {
+                await groupExpansionStateStore.setExpanded(groups[0].id, true);
+
+                const states = await getGroupStates(Constants.DefaultGroupExpansion.Collapsed);
+
+                expect(states).to.deep.equal([
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                ]);
+            });
+
+            test("expanded expands groups regardless of saved state", async () => {
+                await groupExpansionStateStore.setExpanded(groups[0].id, false);
+
+                const states = await getGroupStates(Constants.DefaultGroupExpansion.Expanded);
+
+                expect(states).to.deep.equal([
+                    vscode.TreeItemCollapsibleState.Expanded,
+                    vscode.TreeItemCollapsibleState.Expanded,
+                ]);
+            });
         });
     });
 
