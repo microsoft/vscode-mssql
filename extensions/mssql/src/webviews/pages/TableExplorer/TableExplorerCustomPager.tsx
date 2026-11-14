@@ -155,6 +155,7 @@ const TableExplorerCustomPager = React.forwardRef<TableExplorerCustomPagerRef>((
             <div className="page-size-selector">
                 <span className="page-size-label">{loc.tableExplorer.rowsPerPage}</span>
                 <Dropdown
+                    aria-label={loc.tableExplorer.rowsPerPage}
                     value={selectedPageSize}
                     selectedOptions={[selectedPageSize]}
                     onOptionSelect={onPageSizeChanged}

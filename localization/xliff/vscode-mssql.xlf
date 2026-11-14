@@ -10885,6 +10885,9 @@
     <trans-unit id="++CODE++095cedeb21477c41b2a8a4aebb8ada471ae5b60c59b00351c60dc6754a31f482">
       <source xml:lang="en">SQL Notebooks</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e102fec018a4571dcfde67747f66ed72beba29015f3824d3e01ecb24fbedd39">
+      <source xml:lang="en">SQL Pane Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
     </trans-unit>
