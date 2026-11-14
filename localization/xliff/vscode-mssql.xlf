@@ -654,6 +654,9 @@
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++9443ff69463ef46b44b157857314868717154d30db2cac7ba70fc75b0225785c">
+      <source xml:lang="en">Advanced options</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
     </trans-unit>
@@ -2281,6 +2284,11 @@
     <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
       <source xml:lang="en">Column width must be at least {0} pixels.</source>
       <note>{0} is the minimum column width in pixels</note>
+    </trans-unit>
+    <trans-unit id="++CODE++365efc277a542f38d0b7178059138406a33a8aec5b38d372814edad997f0b5a8">
+      <source xml:lang="en">Column {0}, type {1}</source>
+      <note>{0} is the column name
+{1} is the column data type</note>
     </trans-unit>
     <trans-unit id="++CODE++b1a0de936573c226a131cb553ddc6023055f220482b818a5f74b7fc552568ae9">
       <source xml:lang="en">Column-name relevance {0}</source>
@@ -6163,6 +6171,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3c0d499ad57dfbf4d649d9b69968eb325bd3389658018c1bd887fb1c7a7c9aae">
       <source xml:lang="en">Foreign key column mappings must be the same length.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8f207b92a91acefd971e020525609fa61c3effcbd1c951b0ab8c1b56f46e4169">
+      <source xml:lang="en">Foreign key name</source>
     </trans-unit>
     <trans-unit id="++CODE++734fe7596bed714a9902c100524bdcd5e92d18970daa3d1f7776394185b7e211">
       <source xml:lang="en">Foreign keys</source>
@@ -12655,6 +12666,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
       <source xml:lang="en">Table updated in schema designer successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1b84dc2913b87bd65e9a3c947197eff337e80974a3413635796b130dc3a7759">
+      <source xml:lang="en">Table {0}</source>
+      <note>{0} is the schema-qualified table name</note>
     </trans-unit>
     <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
       <source xml:lang="en">Table-Valued Function</source>

@@ -2454,6 +2454,20 @@ export class LocConstants {
                     comment: ["{0} is the column name"],
                 }),
             manageRelationships: l10n.t("Manage relationships"),
+            tableNodeAriaLabel: (tableName: string) =>
+                l10n.t({
+                    message: "Table {0}",
+                    args: [tableName],
+                    comment: ["{0} is the schema-qualified table name"],
+                }),
+            columnNodeAriaLabel: (columnName: string, dataType: string) =>
+                l10n.t({
+                    message: "Column {0}, type {1}",
+                    args: [columnName, dataType],
+                    comment: ["{0} is the column name", "{1} is the column data type"],
+                }),
+            advancedOptions: l10n.t("Advanced options"),
+            foreignKeyName: l10n.t("Foreign key name"),
             noChangesDetected: l10n.t("No changes detected"),
             allowNull: l10n.t("Allow Null"),
             maxLength: l10n.t("Max Length"),

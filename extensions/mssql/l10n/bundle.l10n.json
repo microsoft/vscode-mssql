@@ -4880,6 +4880,16 @@
         "comment": ["{0} is the column name"]
     },
     "Manage relationships": "Manage relationships",
+    "Table {0}/{0} is the schema-qualified table name": {
+        "message": "Table {0}",
+        "comment": ["{0} is the schema-qualified table name"]
+    },
+    "Column {0}, type {1}/{0} is the column name{1} is the column data type": {
+        "message": "Column {0}, type {1}",
+        "comment": ["{0} is the column name", "{1} is the column data type"]
+    },
+    "Advanced options": "Advanced options",
+    "Foreign key name": "Foreign key name",
     "No changes detected": "No changes detected",
     "Allow Null": "Allow Null",
     "Max Length": "Max Length",
