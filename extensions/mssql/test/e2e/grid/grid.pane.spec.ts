@@ -22,6 +22,7 @@ import {
     MIXED_TYPES_ROW_COUNT,
     RUN_ID_QUERY,
 } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 /**
  * How long a one-row SELECT may take from the execute shortcut to a rendered, finished result.
@@ -92,22 +93,26 @@ test.describe("MSSQL Extension - Results Grid Pane", () => {
         await expect(getCell(grid, 0, 2)).not.toHaveCSS("justify-content", "flex-end");
     });
 
-    test("shows result count and switches between results and messages", async () => {
-        const tabs = resultsFrame.getByTestId("results-tab-list");
-        const resultsTab = tabs.getByRole("tab", { name: "Results (1)" });
-        const messagesTab = tabs.getByRole("tab", { name: "Messages" });
-        await expect(resultsTab).toHaveAttribute("aria-selected", "true");
-        await expect(grid).toHaveAttribute("data-row-count", String(MIXED_TYPES_ROW_COUNT));
-        await expect(
-            resultsFrame.getByTestId("summary-footer").locator('[data-metric="rows"]'),
-        ).toContainText(String(MIXED_TYPES_ROW_COUNT));
+    test(
+        "shows result count and switches between results and messages",
+        testCases(5878837),
+        async () => {
+            const tabs = resultsFrame.getByTestId("results-tab-list");
+            const resultsTab = tabs.getByRole("tab", { name: "Results (1)" });
+            const messagesTab = tabs.getByRole("tab", { name: "Messages" });
+            await expect(resultsTab).toHaveAttribute("aria-selected", "true");
+            await expect(grid).toHaveAttribute("data-row-count", String(MIXED_TYPES_ROW_COUNT));
+            await expect(
+                resultsFrame.getByTestId("summary-footer").locator('[data-metric="rows"]'),
+            ).toContainText(String(MIXED_TYPES_ROW_COUNT));
 
-        await messagesTab.click();
-        await expect(messagesTab).toHaveAttribute("aria-selected", "true");
-        await resultsTab.click();
-        await expect(resultsTab).toHaveAttribute("aria-selected", "true");
-        await expect(grid).toBeVisible();
-    });
+            await messagesTab.click();
+            await expect(messagesTab).toHaveAttribute("aria-selected", "true");
+            await resultsTab.click();
+            await expect(resultsTab).toHaveAttribute("aria-selected", "true");
+            await expect(grid).toBeVisible();
+        },
+    );
 
     test("the footer reports count, average and sum for a numeric selection", async () => {
         await clickCell(grid, 0, 3);

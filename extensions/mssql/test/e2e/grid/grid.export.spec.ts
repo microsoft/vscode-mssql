@@ -14,6 +14,7 @@ import { setQueryText, waitForResultGrid } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { clickCell, getCell, resetGrid, stageQuery } from "./gridActions";
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 test.describe("MSSQL Extension - Results Grid Export", () => {
     let grid: Locator;
@@ -68,7 +69,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         return filePath;
     }
 
-    test("Save as CSV writes the result to the chosen path", async () => {
+    test("Save as CSV writes the result to the chosen path", testCases(5878841), async () => {
         const filePath = await saveFromToolbar("Save as CSV", "results.csv");
         await expect
             .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
@@ -83,7 +84,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content).not.toContain(GUID_VALUE.toUpperCase());
     });
 
-    test("Save as JSON writes a parseable result file", async () => {
+    test("Save as JSON writes a parseable result file", testCases(5878840), async () => {
         const filePath = await saveFromToolbar("Save as JSON", "results.json");
         await expect
             .poll(
@@ -207,15 +208,33 @@ test.describe("MSSQL Extension - Results Grid Open After Save", () => {
         fs.rmSync(exportDir, { recursive: true, force: true });
     });
 
-    test("openAfterSave opens the exported text document", async () => {
+    /** Saves through a toolbar button and waits for the saved file to open in an editor tab. */
+    async function saveAndExpectOpened(buttonName: string, fileName: string): Promise<void> {
         const { page } = getContext();
-        const filePath = path.join(exportDir, "opened-results.csv");
-        await grid.getByRole("button", { name: "Save as CSV" }).click();
+        const filePath = path.join(exportDir, fileName);
+        // A previous save leaves its exported document active, which hides the query's results.
+        await page
+            .getByRole("tab", { name: /Untitled-1/ })
+            .first()
+            .click();
+        await grid.getByRole("button", { name: buttonName }).click();
         const picker = new QuickInput(page);
         await expect(picker.widget).toBeVisible();
         await picker.input.fill(filePath);
         await picker.input.press("Enter");
         await expect.poll(() => fs.existsSync(filePath)).toBe(true);
-        await expect(page.locator(".tab").filter({ hasText: "opened-results.csv" })).toBeVisible();
+        await expect(page.locator(".tab").filter({ hasText: fileName })).toBeVisible();
+    }
+
+    test("openAfterSave opens the exported CSV document", testCases(5878841), async () => {
+        await saveAndExpectOpened("Save as CSV", "opened-results.csv");
+    });
+
+    test("openAfterSave opens the exported JSON document", testCases(5878840), async () => {
+        await saveAndExpectOpened("Save as JSON", "opened-results.json");
+        const { page } = getContext();
+        await expect(page.locator(".editor-group-container.active .view-lines")).toContainText(
+            "Ada",
+        );
     });
 });

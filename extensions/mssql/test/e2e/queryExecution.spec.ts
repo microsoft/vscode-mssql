@@ -21,6 +21,7 @@ import {
 } from "./utils/envConfigReader";
 import { test, expect } from "./baseFixtures";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { testCases } from "./utils/testCases";
 
 test.describe("MSSQL Extension - Query Execution", async () => {
     const getContext = useSharedVsCodeLifecycle({
@@ -61,32 +62,36 @@ DROP DATABASE TestDB;`;
         await screenshot(vsCodePage, testInfo, "BeforeEach");
     });
 
-    test("Create table, insert data, and execute query", async ({}, testInfo) => {
-        const { page: vsCodePage } = getContext();
-        await openNewQueryEditor(vsCodePage);
-        await screenshot(vsCodePage, testInfo, "NewEditorOpened");
+    test(
+        "Create table, insert data, and execute query",
+        testCases(5878837),
+        async ({}, testInfo) => {
+            const { page: vsCodePage } = getContext();
+            await openNewQueryEditor(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "NewEditorOpened");
 
-        const createTestDB = "CREATE DATABASE TestDB;";
-        await enterTextIntoQueryEditor(vsCodePage, createTestDB);
-        await screenshot(vsCodePage, testInfo, "CreateDbTyped");
-        await executeQuery(vsCodePage);
-        await screenshot(vsCodePage, testInfo, "CreateDbExecuted");
+            const createTestDB = "CREATE DATABASE TestDB;";
+            await enterTextIntoQueryEditor(vsCodePage, createTestDB);
+            await screenshot(vsCodePage, testInfo, "CreateDbTyped");
+            await executeQuery(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "CreateDbExecuted");
 
-        await screenshot(vsCodePage, testInfo, "NewEditorOpened2");
-        await openNewQueryEditor(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "NewEditorOpened2");
+            await openNewQueryEditor(vsCodePage);
 
-        const sqlScript = `
+            const sqlScript = `
 USE TestDB;
 CREATE TABLE TestTable (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
 INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
 SELECT Name FROM TestTable;`;
 
-        await enterTextIntoQueryEditor(vsCodePage, sqlScript);
-        await screenshot(vsCodePage, testInfo, "CreateTableTyped");
-        await executeQuery(vsCodePage);
-        await screenshot(vsCodePage, testInfo, "CreateTableExecuted");
+            await enterTextIntoQueryEditor(vsCodePage, sqlScript);
+            await screenshot(vsCodePage, testInfo, "CreateTableTyped");
+            await executeQuery(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "CreateTableExecuted");
 
-        const nameQueryResult = await vsCodePage.getByText("Doe");
-        await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
-    });
+            const nameQueryResult = await vsCodePage.getByText("Doe");
+            await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
+        },
+    );
 });

@@ -27,6 +27,7 @@ import {
     LARGE_QUERY,
     MULTI_RESULT_QUERY,
 } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 /**
  * Budget for the text view's first paint: a dynamic import plus Monaco initialization, rather
@@ -47,34 +48,38 @@ test.describe("MSSQL Extension - Results Grid Layout", () => {
         },
     });
 
-    test("renders three result sets and restores them after maximizing one", async () => {
-        // The grid deliberately lazy-mounts offscreen result sets.
-        await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
-        const secondGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
-        const thirdGrid = await waitForResultGrid(resultsFrame, "0_2", 1);
-        await expect(getCell(firstGrid, 0, 0)).toHaveText("1");
-        await expect(getCell(secondGrid, 0, 0)).toHaveText("2");
-        await expect(getCell(thirdGrid, 0, 0)).toHaveText("4");
+    test(
+        "renders three result sets and restores them after maximizing one",
+        testCases(5878837),
+        async () => {
+            // The grid deliberately lazy-mounts offscreen result sets.
+            await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
+            const secondGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
+            const thirdGrid = await waitForResultGrid(resultsFrame, "0_2", 1);
+            await expect(getCell(firstGrid, 0, 0)).toHaveText("1");
+            await expect(getCell(secondGrid, 0, 0)).toHaveText("2");
+            await expect(getCell(thirdGrid, 0, 0)).toHaveText("4");
 
-        const { page } = getContext();
-        await getCell(firstGrid, 0, 0).click();
-        await page.keyboard.press(GRID_KEYS.maximizeGrid);
-        await expect(firstGrid).toBeVisible();
-        await expect(secondGrid).toHaveCount(0);
-        await expect(thirdGrid).toHaveCount(0);
+            const { page } = getContext();
+            await getCell(firstGrid, 0, 0).click();
+            await page.keyboard.press(GRID_KEYS.maximizeGrid);
+            await expect(firstGrid).toBeVisible();
+            await expect(secondGrid).toHaveCount(0);
+            await expect(thirdGrid).toHaveCount(0);
 
-        const tabs = resultsFrame.getByTestId("results-tab-list");
-        await tabs.getByRole("tab", { name: "Messages" }).click();
-        await tabs.getByRole("tab", { name: /^Results/ }).click();
-        await expect(firstGrid).toBeVisible();
-        await expect(secondGrid).toHaveCount(0);
-        await expect(thirdGrid).toHaveCount(0);
+            const tabs = resultsFrame.getByTestId("results-tab-list");
+            await tabs.getByRole("tab", { name: "Messages" }).click();
+            await tabs.getByRole("tab", { name: /^Results/ }).click();
+            await expect(firstGrid).toBeVisible();
+            await expect(secondGrid).toHaveCount(0);
+            await expect(thirdGrid).toHaveCount(0);
 
-        await getCell(firstGrid, 0, 0).click();
-        await page.keyboard.press(GRID_KEYS.maximizeGrid);
-        await expect(secondGrid).toBeVisible();
-        await expect(thirdGrid).toBeVisible();
-    });
+            await getCell(firstGrid, 0, 0).click();
+            await page.keyboard.press(GRID_KEYS.maximizeGrid);
+            await expect(secondGrid).toBeVisible();
+            await expect(thirdGrid).toBeVisible();
+        },
+    );
 
     test("Ctrl+Down and Ctrl+Up move focus between result grids", async () => {
         const { page } = getContext();
@@ -125,55 +130,59 @@ test.describe("MSSQL Extension - Results Grid Layout", () => {
         }
     });
 
-    test("renders results in batch order with heights based on row counts", async () => {
-        const { electronApp, page } = getContext();
-        await setQueryText(
-            electronApp,
-            page,
-            `SELECT 1 AS first_result;
+    test(
+        "renders results in batch order with heights based on row counts",
+        testCases(5878837),
+        async () => {
+            const { electronApp, page } = getContext();
+            await setQueryText(
+                electronApp,
+                page,
+                `SELECT 1 AS first_result;
              SELECT 2 AS second_result UNION ALL SELECT 3 UNION ALL SELECT 4;
              GO
              SELECT TOP (20) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS third_result
              FROM sys.all_objects;`,
-        );
-        await executeQueryAndWait(page);
-        try {
-            const containers = ["0_0", "0_1", "1_0"].map((id) =>
-                resultsFrame.locator(`[id="${id}"]`),
             );
-            await expect(containers[2]).toBeVisible();
-            await expect
-                .poll(async () =>
-                    resultsFrame
-                        .locator('[id="0_0"], [id="0_1"], [id="1_0"]')
-                        .evaluateAll((elements) => elements.map((element) => element.id)),
-                )
-                .toEqual(["0_0", "0_1", "1_0"]);
-
-            for (const [index, id, rowCount] of [
-                [0, "1", 1],
-                [1, "2", 3],
-                [2, "1", 20],
-            ] as const) {
-                await containers[index].scrollIntoViewIfNeeded();
-                const result = await waitForResultGrid(
-                    resultsFrame,
-                    ["0_0", "0_1", "1_0"][index],
-                    rowCount,
-                );
-                await expect(getCell(result, 0, 0)).toHaveText(id);
-            }
-            const heights = await Promise.all(
-                containers.map(async (container) => (await container.boundingBox())!.height),
-            );
-            expect(heights[1]).toBeGreaterThan(heights[0]);
-            expect(heights[2]).toBeGreaterThan(heights[1]);
-        } finally {
-            await setQueryText(electronApp, page, MULTI_RESULT_QUERY);
             await executeQueryAndWait(page);
-            firstGrid = await waitForResultGrid(resultsFrame, "0_0", 1);
-        }
-    });
+            try {
+                const containers = ["0_0", "0_1", "1_0"].map((id) =>
+                    resultsFrame.locator(`[id="${id}"]`),
+                );
+                await expect(containers[2]).toBeVisible();
+                await expect
+                    .poll(async () =>
+                        resultsFrame
+                            .locator('[id="0_0"], [id="0_1"], [id="1_0"]')
+                            .evaluateAll((elements) => elements.map((element) => element.id)),
+                    )
+                    .toEqual(["0_0", "0_1", "1_0"]);
+
+                for (const [index, id, rowCount] of [
+                    [0, "1", 1],
+                    [1, "2", 3],
+                    [2, "1", 20],
+                ] as const) {
+                    await containers[index].scrollIntoViewIfNeeded();
+                    const result = await waitForResultGrid(
+                        resultsFrame,
+                        ["0_0", "0_1", "1_0"][index],
+                        rowCount,
+                    );
+                    await expect(getCell(result, 0, 0)).toHaveText(id);
+                }
+                const heights = await Promise.all(
+                    containers.map(async (container) => (await container.boundingBox())!.height),
+                );
+                expect(heights[1]).toBeGreaterThan(heights[0]);
+                expect(heights[2]).toBeGreaterThan(heights[1]);
+            } finally {
+                await setQueryText(electronApp, page, MULTI_RESULT_QUERY);
+                await executeQueryAndWait(page);
+                firstGrid = await waitForResultGrid(resultsFrame, "0_0", 1);
+            }
+        },
+    );
 
     test("switches to text results and back without rerunning the query", async () => {
         const { page } = getContext();
