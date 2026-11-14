@@ -409,6 +409,7 @@ const ForeignKeyCard = ({
                     <Label>{locConstants.schemaDesigner.name}</Label>
                     <Input
                         size="small"
+                        aria-label={locConstants.schemaDesigner.foreignKeyName}
                         value={foreignKey.name}
                         ref={(element) => {
                             inputRef.current = element;

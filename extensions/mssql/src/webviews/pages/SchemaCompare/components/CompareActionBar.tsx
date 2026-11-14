@@ -213,7 +213,11 @@ const CompareActionBar = (props: Props) => {
 
     return (
         <div className={classes.toolbarContainer}>
-            <Toolbar ref={toolbarRef} size="small" className={classes.toolbar}>
+            <Toolbar
+                ref={toolbarRef}
+                size="small"
+                className={classes.toolbar}
+                aria-label={loc.schemaCompare.schemaCompareActions}>
                 <Button
                     size="small"
                     appearance="primary"

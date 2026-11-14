@@ -218,6 +218,7 @@ export function renderSearchableDropdown(
                 disabled={options?.disabled}
                 clearable={options?.clearable}
                 showPlaceholder={options?.showPlaceholder}
+                ariaLabel={component.label}
                 onSelect={(option) => onSelect(option.value)}
                 style={{ width: "100%" }}
             />
@@ -324,6 +325,8 @@ export function renderCheckbox(
             component.label
         ));
 
+    const labelId = `${component.propertyName}-label`;
+
     return (
         <Field
             key={component.propertyName}
@@ -340,10 +343,11 @@ export function renderCheckbox(
                 <Checkbox
                     size="medium"
                     checked={checked}
+                    aria-labelledby={labelId}
                     onChange={(_, data) => handleChange(data.checked === true)}
                 />
                 <span style={{ whiteSpace: "normal" }}>
-                    {labelContent}
+                    <span id={labelId}>{labelContent}</span>
                     {component.required && (
                         <span style={{ color: "red", marginLeft: "4px" }}>*</span>
                     )}

@@ -283,6 +283,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
             <Checkbox
                 key={option.key}
                 checked={option.value}
+                aria-label={option.displayName}
                 onChange={(_, data) => handleOptionChange(option.key, data.checked === true)}
                 label={
                     option.description ? (

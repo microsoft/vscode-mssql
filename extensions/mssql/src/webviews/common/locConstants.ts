@@ -2454,6 +2454,20 @@ export class LocConstants {
                     comment: ["{0} is the column name"],
                 }),
             manageRelationships: l10n.t("Manage relationships"),
+            tableNodeAriaLabel: (tableName: string) =>
+                l10n.t({
+                    message: "Table {0}",
+                    args: [tableName],
+                    comment: ["{0} is the schema-qualified table name"],
+                }),
+            columnNodeAriaLabel: (columnName: string, dataType: string) =>
+                l10n.t({
+                    message: "Column {0}, type {1}",
+                    args: [columnName, dataType],
+                    comment: ["{0} is the column name", "{1} is the column data type"],
+                }),
+            advancedOptions: l10n.t("Advanced options"),
+            foreignKeyName: l10n.t("Foreign key name"),
             noChangesDetected: l10n.t("No changes detected"),
             allowNull: l10n.t("Allow Null"),
             maxLength: l10n.t("Max Length"),
@@ -3400,6 +3414,7 @@ export class LocConstants {
                 "Load source, target, and options saved in an .scmp file",
             ),
             saveScmpFile: l10n.t("Save .scmp file"),
+            schemaCompareActions: l10n.t("Schema Compare actions"),
             saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
                 "Save source and target, options, and excluded elements",
             ),
@@ -4606,6 +4621,7 @@ export class LocConstants {
             viewTableDiagram: l10n.t("View Table Diagram"),
             showSqlPane: l10n.t("Show SQL Pane"),
             hideSqlPane: l10n.t("Hide SQL Pane"),
+            sqlPaneOptions: l10n.t("SQL Pane Options"),
             scriptChanges: l10n.t("Changes"),
             tableQuery: l10n.t("SQL"),
             export: l10n.t("Export"),
@@ -5399,6 +5415,12 @@ export class LocConstants {
             schema: l10n.t("Schema"),
             type: l10n.t("Type"),
             actions: l10n.t("Actions"),
+            actionsFor: (objectName: string) =>
+                l10n.t({
+                    message: "Actions for {0}",
+                    args: [objectName],
+                    comment: ["{0} is the schema-qualified name of a database object"],
+                }),
 
             // Empty state
             noObjectsFound: l10n.t("No objects found"),
@@ -5833,6 +5855,7 @@ export class LocConstants {
                 }),
             noResultsMatchFilter: l10n.t("No results match the current filters"),
             noDataToDisplay: l10n.t("No data to display."),
+            eventsGridAriaLabel: l10n.t("Profiler events"),
 
             // Quick filter
             quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
@@ -5946,6 +5969,34 @@ export class LocConstants {
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
             importNewFile: l10n.t("Import New File"),
+            dataPreviewTable: l10n.t("Data preview"),
+            columnSettingsTable: l10n.t("Column settings"),
+            columnNameFor: (columnName: string) =>
+                l10n.t({
+                    message: "Column name for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            dataTypeFor: (columnName: string) =>
+                l10n.t({
+                    message: "Data type for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            primaryKeyFor: (columnName: string) =>
+                l10n.t({
+                    message: "Primary key for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            allowNullsFor: (columnName: string) =>
+                l10n.t({
+                    message: "Allow nulls for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            selectAllPrimaryKey: l10n.t("Set all columns as primary key"),
+            selectAllAllowNulls: l10n.t("Allow nulls for all columns"),
         };
     }
 

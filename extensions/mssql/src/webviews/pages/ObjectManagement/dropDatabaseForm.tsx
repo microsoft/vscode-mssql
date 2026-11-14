@@ -110,7 +110,9 @@ export const DropDatabaseForm = ({
                     </div>
                 </div>
                 <div className={styles.tableContainer}>
-                    <table className={styles.table}>
+                    <table
+                        className={styles.table}
+                        aria-label={locConstants.dropDatabase.detailsSection}>
                         <thead>
                             <tr>
                                 <th className={styles.tableHeaderCell}>

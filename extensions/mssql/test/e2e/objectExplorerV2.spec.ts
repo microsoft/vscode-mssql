@@ -34,80 +34,90 @@ test.describe("Object Explorer v2 view parity", () => {
         },
     });
 
-    test("matches the classic toolbar, group expansion, and Getting Started actions", async ({}, testInfo) => {
-        const { page } = getContext();
-        const classic = page.locator(".pane").filter({
-            has: page.getByRole("heading", { name: "Connections", exact: true }),
-        });
-        const preview = page.locator(".pane").filter({
-            has: page.getByRole("heading", { name: "Connections (Private Preview)", exact: true }),
-        });
-        const gettingStarted = (pane: typeof classic) =>
-            pane.getByRole("treeitem").filter({ hasText: "Getting Started" });
-        await expect(gettingStarted(preview)).toBeVisible();
-        for (const name of ["Team", "Nested"]) {
-            await expect(preview.getByRole("treeitem", { name, exact: true })).toHaveAttribute(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry). This predates the December test plan automation.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
+        "matches the classic toolbar, group expansion, and Getting Started actions",
+        async ({}, testInfo) => {
+            const { page } = getContext();
+            const classic = page.locator(".pane").filter({
+                has: page.getByRole("heading", { name: "Connections", exact: true }),
+            });
+            const preview = page.locator(".pane").filter({
+                has: page.getByRole("heading", {
+                    name: "Connections (Private Preview)",
+                    exact: true,
+                }),
+            });
+            const gettingStarted = (pane: typeof classic) =>
+                pane.getByRole("treeitem").filter({ hasText: "Getting Started" });
+            await expect(gettingStarted(preview)).toBeVisible();
+            for (const name of ["Team", "Nested"]) {
+                await expect(preview.getByRole("treeitem", { name, exact: true })).toHaveAttribute(
+                    "aria-expanded",
+                    "true",
+                );
+            }
+            await expect(preview.getByRole("treeitem", { name: /Parity server/ })).toHaveAttribute(
                 "aria-expanded",
-                "true",
+                "false",
             );
-        }
-        await expect(preview.getByRole("treeitem", { name: /Parity server/ })).toHaveAttribute(
-            "aria-expanded",
-            "false",
-        );
 
-        const toolbar = (pane: typeof classic) =>
-            pane.locator(".pane-header .actions .action-label");
-        const labels = (pane: typeof classic) =>
-            toolbar(pane).evaluateAll((items) =>
-                items.map((item) => item.getAttribute("aria-label")),
-            );
-        await classic.locator(".pane-header").hover();
-        const classicLabels = await labels(classic);
-        expect(classicLabels.length).toBeGreaterThanOrEqual(6);
-        await preview.locator(".pane-header").hover();
-        expect(await labels(preview)).toEqual(classicLabels);
-        const icons = (pane: typeof classic) =>
-            toolbar(pane).evaluateAll((items) =>
-                items.map((item) => ({
-                    image: getComputedStyle(item).backgroundImage,
-                    mask: getComputedStyle(item).maskImage,
-                    glyph: getComputedStyle(item, "::before").content,
-                })),
-            );
-        expect(await icons(preview)).toEqual(await icons(classic));
-        for (const pane of [classic, preview]) {
-            await pane.locator(".pane-header").hover();
-            await pane.getByRole("button", { name: "Enable Group By Schema", exact: true }).click();
+            const toolbar = (pane: typeof classic) =>
+                pane.locator(".pane-header .actions .action-label");
+            const labels = (pane: typeof classic) =>
+                toolbar(pane).evaluateAll((items) =>
+                    items.map((item) => item.getAttribute("aria-label")),
+                );
+            await classic.locator(".pane-header").hover();
+            const classicLabels = await labels(classic);
+            expect(classicLabels.length).toBeGreaterThanOrEqual(6);
+            await preview.locator(".pane-header").hover();
+            expect(await labels(preview)).toEqual(classicLabels);
+            const icons = (pane: typeof classic) =>
+                toolbar(pane).evaluateAll((items) =>
+                    items.map((item) => ({
+                        image: getComputedStyle(item).backgroundImage,
+                        mask: getComputedStyle(item).maskImage,
+                        glyph: getComputedStyle(item, "::before").content,
+                    })),
+                );
+            expect(await icons(preview)).toEqual(await icons(classic));
+            for (const pane of [classic, preview]) {
+                await pane.locator(".pane-header").hover();
+                await pane
+                    .getByRole("button", { name: "Enable Group By Schema", exact: true })
+                    .click();
+                await expect(
+                    pane.getByRole("button", { name: "Disable Group By Schema", exact: true }),
+                ).toBeVisible();
+            }
+            expect(await labels(preview)).toEqual(await labels(classic));
+            expect(await icons(preview)).toEqual(await icons(classic));
+            await page.screenshot({ path: testInfo.outputPath("object-explorer-parity.png") });
+
+            await gettingStarted(preview).click();
+            await expect(page.getByRole("tab", { name: /SQL Server \(mssql\)/ })).toBeVisible();
+            const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
             await expect(
-                pane.getByRole("button", { name: "Disable Group By Schema", exact: true }),
+                overview.getByRole("heading", { name: "SQL Server (mssql)", exact: true }),
             ).toBeVisible();
-        }
-        expect(await labels(preview)).toEqual(await labels(classic));
-        expect(await icons(preview)).toEqual(await icons(classic));
-        await page.screenshot({ path: testInfo.outputPath("object-explorer-parity.png") });
-
-        await gettingStarted(preview).click();
-        await expect(page.getByRole("tab", { name: /SQL Server \(mssql\)/ })).toBeVisible();
-        const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
-        await expect(
-            overview.getByRole("heading", { name: "SQL Server (mssql)", exact: true }),
-        ).toBeVisible();
-        await gettingStarted(preview).click({ button: "right" });
-        const hide = page.getByRole("menuitem", { name: "Hide", exact: true });
-        await hide.hover();
-        await hide.click();
-        await expect(gettingStarted(preview)).toHaveCount(0);
-        await expect(gettingStarted(classic)).toHaveCount(0);
-        await preview.locator(".pane-header").hover();
-        await preview
-            .locator(".pane-header")
-            .getByRole("button", { name: /More Actions/ })
-            .click();
-        await page.getByRole("menuitem", { name: "Show Getting Started", exact: true }).click();
-        await expect(gettingStarted(preview)).toBeVisible();
-        await expect(gettingStarted(classic)).toBeVisible();
-    });
+            await gettingStarted(preview).click({ button: "right" });
+            const hide = page.getByRole("menuitem", { name: "Hide", exact: true });
+            await hide.hover();
+            await hide.click();
+            await expect(gettingStarted(preview)).toHaveCount(0);
+            await expect(gettingStarted(classic)).toHaveCount(0);
+            await preview.locator(".pane-header").hover();
+            await preview
+                .locator(".pane-header")
+                .getByRole("button", { name: /More Actions/ })
+                .click();
+            await page.getByRole("menuitem", { name: "Show Getting Started", exact: true }).click();
+            await expect(gettingStarted(preview)).toBeVisible();
+            await expect(gettingStarted(classic)).toBeVisible();
+        },
+    );
 
     test("opens the shared deployment wizard from the v2 toolbar", async () => {
         const { page } = getContext();

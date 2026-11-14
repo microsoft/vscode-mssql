@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="2.2.0" />
+  <PropertyGroup>
+    <Name>PublishFixture</Name>
+    <ProjectGuid>{6A3E2B1C-5D4F-4E8A-9B7C-1F2E3D4C5B6A}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+  </PropertyGroup>
+  <ItemGroup>
+    <SqlCmdVariable Include="EnvName">
+      <Value>$(SqlCmdVar__1)</Value>
+      <DefaultValue>Dev</DefaultValue>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="OwnerName">
+      <Value>$(SqlCmdVar__2)</Value>
+      <DefaultValue>ContosoOwner</DefaultValue>
+    </SqlCmdVariable>
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Script.PostDeployment.sql" />
+  </ItemGroup>
+</Project>

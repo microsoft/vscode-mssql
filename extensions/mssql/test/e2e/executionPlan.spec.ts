@@ -16,8 +16,13 @@ import {
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
 import { QuickInput } from "./pageObjects/quickInput";
+import { testCases } from "./utils/testCases";
 
-test.describe("MSSQL Extension - Query Plan", async () => {
+/**
+ * Opens a saved .sqlplan file (5878879) and exercises the plan viewer toolbar that the estimated
+ * plan case (5878880) walks through; launching plans from a live query is in queryPlans.spec.ts.
+ */
+test.describe("MSSQL Extension - Query Plan", testCases(5878879, 5878880), async () => {
     let vsCodePage: Page;
     let iframe: FrameLocator;
     let queryPlanContainer: Locator;

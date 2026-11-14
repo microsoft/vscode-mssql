@@ -14,6 +14,7 @@ import { setQueryText, waitForResultGrid } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { clickCell, getCell, resetGrid, stageQuery } from "./gridActions";
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 test.describe("MSSQL Extension - Results Grid Export", () => {
     let grid: Locator;
@@ -68,22 +69,26 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         return filePath;
     }
 
-    test("Save as CSV writes the result to the chosen path", async () => {
-        const filePath = await saveFromToolbar("Save as CSV", "results.csv");
-        await expect
-            .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
-            .toContain("Eli");
-        const content = fs.readFileSync(filePath, "utf16le");
-        expect(content).toContain("Ada");
-        expect(content).toContain("Eli");
-        expect(content).toContain(";");
-        expect(content).not.toContain("id;name");
-        await expect(getCell(grid, 0, 4)).toHaveText(GUID_VALUE);
-        expect(content).toContain(GUID_VALUE);
-        expect(content).not.toContain(GUID_VALUE.toUpperCase());
-    });
+    test(
+        "Save as CSV writes the result to the chosen path",
+        testCases(5878841, 5878886),
+        async () => {
+            const filePath = await saveFromToolbar("Save as CSV", "results.csv");
+            await expect
+                .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
+                .toContain("Eli");
+            const content = fs.readFileSync(filePath, "utf16le");
+            expect(content).toContain("Ada");
+            expect(content).toContain("Eli");
+            expect(content).toContain(";");
+            expect(content).not.toContain("id;name");
+            await expect(getCell(grid, 0, 4)).toHaveText(GUID_VALUE);
+            expect(content).toContain(GUID_VALUE);
+            expect(content).not.toContain(GUID_VALUE.toUpperCase());
+        },
+    );
 
-    test("Save as JSON writes a parseable result file", async () => {
+    test("Save as JSON writes a parseable result file", testCases(5878840, 5878886), async () => {
         const filePath = await saveFromToolbar("Save as JSON", "results.json");
         await expect
             .poll(
@@ -102,7 +107,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content).toContain("Eli");
     });
 
-    test("Save as Excel writes an XLSX workbook", async () => {
+    test("Save as Excel writes an XLSX workbook", testCases(5878886), async () => {
         const filePath = await saveFromToolbar("Save as Excel", "results.xlsx");
         // The ZIP end-of-central-directory marker arrives after the workbook has been written.
         await expect
@@ -115,7 +120,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content.subarray(0, 2).toString("ascii")).toBe("PK");
     });
 
-    test("Save as INSERT INTO writes SQL statements", async () => {
+    test("Save as INSERT INTO writes SQL statements", testCases(5878886), async () => {
         const filePath = await saveFromToolbar("Save as INSERT INTO", "results.sql");
         await expect
             .poll(() => fs.readFileSync(filePath, "utf8"), { timeout: 15_000 })
@@ -125,7 +130,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content).toContain("Ada");
     });
 
-    test("exporting a selected range saves only that selection", async () => {
+    test("exporting a selected range saves only that selection", testCases(5878886), async () => {
         await clickCell(grid, 0, 1);
         await clickCell(grid, 1, 1, { modifiers: ["Shift"] });
         await expect(grid.locator(".slick-cell.selected")).toHaveCount(2);
@@ -207,15 +212,33 @@ test.describe("MSSQL Extension - Results Grid Open After Save", () => {
         fs.rmSync(exportDir, { recursive: true, force: true });
     });
 
-    test("openAfterSave opens the exported text document", async () => {
+    /** Saves through a toolbar button and waits for the saved file to open in an editor tab. */
+    async function saveAndExpectOpened(buttonName: string, fileName: string): Promise<void> {
         const { page } = getContext();
-        const filePath = path.join(exportDir, "opened-results.csv");
-        await grid.getByRole("button", { name: "Save as CSV" }).click();
+        const filePath = path.join(exportDir, fileName);
+        // A previous save leaves its exported document active, which hides the query's results.
+        await page
+            .getByRole("tab", { name: /Untitled-1/ })
+            .first()
+            .click();
+        await grid.getByRole("button", { name: buttonName }).click();
         const picker = new QuickInput(page);
         await expect(picker.widget).toBeVisible();
         await picker.input.fill(filePath);
         await picker.input.press("Enter");
         await expect.poll(() => fs.existsSync(filePath)).toBe(true);
-        await expect(page.locator(".tab").filter({ hasText: "opened-results.csv" })).toBeVisible();
+        await expect(page.locator(".tab").filter({ hasText: fileName })).toBeVisible();
+    }
+
+    test("openAfterSave opens the exported CSV document", testCases(5878841), async () => {
+        await saveAndExpectOpened("Save as CSV", "opened-results.csv");
+    });
+
+    test("openAfterSave opens the exported JSON document", testCases(5878840), async () => {
+        await saveAndExpectOpened("Save as JSON", "opened-results.json");
+        const { page } = getContext();
+        await expect(page.locator(".editor-group-container.active .view-lines")).toContainText(
+            "Ada",
+        );
     });
 });

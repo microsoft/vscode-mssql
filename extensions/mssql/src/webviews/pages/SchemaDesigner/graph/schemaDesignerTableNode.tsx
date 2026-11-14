@@ -316,6 +316,7 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
         <>
             <Button
                 appearance="subtle"
+                aria-label={locConstants.schemaDesigner.editTable}
                 icon={<FluentIcons.EditRegular />}
                 onClick={handleEditTable}
                 className={styles.actionButton}
@@ -556,6 +557,11 @@ const TableColumn = ({
                 showModifiedDiff && styles.columnDiffModified,
                 showModifiedOther && styles.columnDiffModifiedOther,
                 showDeletedDiff && styles.columnDiffDeleted,
+            )}
+            role="group"
+            aria-label={locConstants.schemaDesigner.columnNodeAriaLabel(
+                column.name,
+                column.dataType ?? "",
             )}
             key={column.name}
             onMouseEnter={() => setIsHovered(true)}
@@ -852,6 +858,10 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                 showAddedDiff && styles.tableNodeDiffAdded,
                 showModifiedDiff && styles.tableNodeDiffModified,
                 isDeletedTable && styles.tableNodeDeleted,
+            )}
+            role="group"
+            aria-label={locConstants.schemaDesigner.tableNodeAriaLabel(
+                `${table.schema}.${table.name}`,
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={(event) => {

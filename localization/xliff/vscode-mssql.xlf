@@ -433,6 +433,10 @@
       <source xml:lang="en">Actions for query {0}</source>
       <note>{0} is the Query Store query ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++726ca4b2dee4b8f257c19992d39b2b81bbbf90248093ae09adb5b4d50865dc6d">
+      <source xml:lang="en">Actions for {0}</source>
+      <note>{0} is the schema-qualified name of a database object</note>
+    </trans-unit>
     <trans-unit id="++CODE++dc26d400a6689ce50ac096b9fd35dc1c1c502e9bfcf03a4c568cbbb049a48be9">
       <source xml:lang="en">Actions for {0}</source>
       <note>{0} is the name of a query file</note>
@@ -650,6 +654,9 @@
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++9443ff69463ef46b44b157857314868717154d30db2cac7ba70fc75b0225785c">
+      <source xml:lang="en">Advanced options</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
     </trans-unit>
@@ -721,6 +728,13 @@
     </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++202396e4e01ead41a9cac98bde382da39ff1a3ff5ec75eef5b16b680a4d7094b">
+      <source xml:lang="en">Allow nulls for all columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b779d8e5ff6f085378afc3a2a9bfe2589186d3e364a350647e0d0ca2689bcfa">
+      <source xml:lang="en">Allow nulls for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
     </trans-unit>
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
@@ -2246,6 +2260,10 @@
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
+    <trans-unit id="++CODE++6f4b0783e2afe5149ce9b6131510721ed6d72b7be9108a55acbfb62faf471ebb">
+      <source xml:lang="en">Column name for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
+    </trans-unit>
     <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
       <source xml:lang="en">Column not found: {0}</source>
       <note>{0} is the column reference</note>
@@ -2260,9 +2278,17 @@
     <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
       <source xml:lang="en">Column resize by content</source>
     </trans-unit>
+    <trans-unit id="++CODE++c587a61615e76d89e95dd1bb37d93aeafcaca2f1ec65278e9e5264ce745505e6">
+      <source xml:lang="en">Column settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
       <source xml:lang="en">Column width must be at least {0} pixels.</source>
       <note>{0} is the minimum column width in pixels</note>
+    </trans-unit>
+    <trans-unit id="++CODE++365efc277a542f38d0b7178059138406a33a8aec5b38d372814edad997f0b5a8">
+      <source xml:lang="en">Column {0}, type {1}</source>
+      <note>{0} is the column name
+{1} is the column data type</note>
     </trans-unit>
     <trans-unit id="++CODE++b1a0de936573c226a131cb553ddc6023055f220482b818a5f74b7fc552568ae9">
       <source xml:lang="en">Column-name relevance {0}</source>
@@ -3583,6 +3609,9 @@
     <trans-unit id="++CODE++b5521e491246f30be2e361bccb99dc09eea4223717ce7a282e5f541ad69ed84e">
       <source xml:lang="en">Data flush interval</source>
     </trans-unit>
+    <trans-unit id="++CODE++e59690e64e977c284a51d151faa9260fdd7f8712a3ecf002fbada2882e0d8083">
+      <source xml:lang="en">Data preview</source>
+    </trans-unit>
     <trans-unit id="++CODE++548c5b4d99727c76519438c8f3ae4cdd9fce1c53f1e12fdc4705bfedc47a7a8b">
       <source xml:lang="en">Data source</source>
     </trans-unit>
@@ -3598,6 +3627,10 @@
     </trans-unit>
     <trans-unit id="++CODE++51fb172a8d569d8820009c7a05d941da1d7ecc21f5248c355fbd7b50899c4c7d">
       <source xml:lang="en">Data type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0bb6814fc68d4d50071e930a5239e914611b801d9f57137290b73851ce401862">
+      <source xml:lang="en">Data type for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
     </trans-unit>
     <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
       <source xml:lang="en">Data type mismatch: &apos;{0}&apos; in column &apos;{1}&apos; incompatible with &apos;{2}&apos; in &apos;{3}&apos;</source>
@@ -6138,6 +6171,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3c0d499ad57dfbf4d649d9b69968eb325bd3389658018c1bd887fb1c7a7c9aae">
       <source xml:lang="en">Foreign key column mappings must be the same length.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8f207b92a91acefd971e020525609fa61c3effcbd1c951b0ab8c1b56f46e4169">
+      <source xml:lang="en">Foreign key name</source>
     </trans-unit>
     <trans-unit id="++CODE++734fe7596bed714a9902c100524bdcd5e92d18970daa3d1f7776394185b7e211">
       <source xml:lang="en">Foreign keys</source>
@@ -9529,6 +9565,10 @@
     <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
       <source xml:lang="en">Primary key</source>
     </trans-unit>
+    <trans-unit id="++CODE++9260bf3a13c55679aa047d3f2862ff75da9d0eacff5194b9706ecaf7452a6bbe">
+      <source xml:lang="en">Primary key for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
+    </trans-unit>
     <trans-unit id="++CODE++7c037e427ea90ebb3839e6931da6298342dc1b71a1ad9fa62d233b8535cdeb22">
       <source xml:lang="en">Primary plan</source>
     </trans-unit>
@@ -9571,6 +9611,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fca3e2233a3752c368e25aa937528824dc23c5f9d90fa6bdc3cf55f347927c9d">
+      <source xml:lang="en">Profiler events</source>
     </trans-unit>
     <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
       <source xml:lang="en">Profiler events exported successfully to {0}</source>
@@ -10853,6 +10896,9 @@
     <trans-unit id="++CODE++095cedeb21477c41b2a8a4aebb8ada471ae5b60c59b00351c60dc6754a31f482">
       <source xml:lang="en">SQL Notebooks</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e102fec018a4571dcfde67747f66ed72beba29015f3824d3e01ecb24fbedd39">
+      <source xml:lang="en">SQL Pane Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
     </trans-unit>
@@ -11143,6 +11189,9 @@
     </trans-unit>
     <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
       <source xml:lang="en">Schema Compare Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b1b12a98614c516d60f72a84b08a5573d54086c138b7f09f1074362064bce1f">
+      <source xml:lang="en">Schema Compare actions</source>
     </trans-unit>
     <trans-unit id="++CODE++8bd05764f179b5c53231ee8df7d8f52d5906689eb660f1bd0ff33d1e0817290c">
       <source xml:lang="en">Schema Compare failed: &apos;{0}&apos;</source>
@@ -11858,6 +11907,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fab288881eb54dc21b74bf73d055bbdd8796429dc17d5ab97f21e6252b6ecec5">
       <source xml:lang="en">Set OpenAI API Key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++17c74474a6c9057231d2bf67a4a95af025a282ddd176e3a71bbc5bc870ee79f4">
+      <source xml:lang="en">Set all columns as primary key</source>
     </trans-unit>
     <trans-unit id="++CODE++0099e307c30bf6206a012fd8c962c7b7f6b10004d1ba789042ff0e5ff5841424">
       <source xml:lang="en">Set backup Compression</source>
@@ -12614,6 +12666,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
       <source xml:lang="en">Table updated in schema designer successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1b84dc2913b87bd65e9a3c947197eff337e80974a3413635796b130dc3a7759">
+      <source xml:lang="en">Table {0}</source>
+      <note>{0} is the schema-qualified table name</note>
     </trans-unit>
     <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
       <source xml:lang="en">Table-Valued Function</source>

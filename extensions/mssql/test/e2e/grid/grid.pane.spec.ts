@@ -22,6 +22,7 @@ import {
     MIXED_TYPES_ROW_COUNT,
     RUN_ID_QUERY,
 } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 /**
  * How long a one-row SELECT may take from the execute shortcut to a rendered, finished result.
@@ -92,22 +93,26 @@ test.describe("MSSQL Extension - Results Grid Pane", () => {
         await expect(getCell(grid, 0, 2)).not.toHaveCSS("justify-content", "flex-end");
     });
 
-    test("shows result count and switches between results and messages", async () => {
-        const tabs = resultsFrame.getByTestId("results-tab-list");
-        const resultsTab = tabs.getByRole("tab", { name: "Results (1)" });
-        const messagesTab = tabs.getByRole("tab", { name: "Messages" });
-        await expect(resultsTab).toHaveAttribute("aria-selected", "true");
-        await expect(grid).toHaveAttribute("data-row-count", String(MIXED_TYPES_ROW_COUNT));
-        await expect(
-            resultsFrame.getByTestId("summary-footer").locator('[data-metric="rows"]'),
-        ).toContainText(String(MIXED_TYPES_ROW_COUNT));
+    test(
+        "shows result count and switches between results and messages",
+        testCases(5878837),
+        async () => {
+            const tabs = resultsFrame.getByTestId("results-tab-list");
+            const resultsTab = tabs.getByRole("tab", { name: "Results (1)" });
+            const messagesTab = tabs.getByRole("tab", { name: "Messages" });
+            await expect(resultsTab).toHaveAttribute("aria-selected", "true");
+            await expect(grid).toHaveAttribute("data-row-count", String(MIXED_TYPES_ROW_COUNT));
+            await expect(
+                resultsFrame.getByTestId("summary-footer").locator('[data-metric="rows"]'),
+            ).toContainText(String(MIXED_TYPES_ROW_COUNT));
 
-        await messagesTab.click();
-        await expect(messagesTab).toHaveAttribute("aria-selected", "true");
-        await resultsTab.click();
-        await expect(resultsTab).toHaveAttribute("aria-selected", "true");
-        await expect(grid).toBeVisible();
-    });
+            await messagesTab.click();
+            await expect(messagesTab).toHaveAttribute("aria-selected", "true");
+            await resultsTab.click();
+            await expect(resultsTab).toHaveAttribute("aria-selected", "true");
+            await expect(grid).toBeVisible();
+        },
+    );
 
     test("the footer reports count, average and sum for a numeric selection", async () => {
         await clickCell(grid, 0, 3);
@@ -214,39 +219,74 @@ test.describe("MSSQL Extension - Results Grid Pane", () => {
         ).toBeVisible();
     });
 
-    test("renders PRINT output and a query error in the messages pane", async () => {
-        const { electronApp, page } = getContext();
-        await setQueryText(electronApp, page, MESSAGES_QUERY);
-        await executeQueryAndWait(page);
+    test(
+        "interleaves result sets with statements that return no rows",
+        testCases(5878890),
+        async () => {
+            const { electronApp, page } = getContext();
+            await setQueryText(
+                electronApp,
+                page,
+                "SELECT 'first' AS a; PRINT 'between sets'; SELECT 'second' AS b; PRINT 'after sets';",
+            );
+            await executeQueryAndWait(page);
 
-        await resultsFrame
-            .getByTestId("results-tab-list")
-            .getByRole("tab", { name: "Messages" })
-            .click();
-        const messagesPane = resultsFrame.locator(
-            '[data-vscode-context*="queryResultMessagesPane"]',
-        );
-        await expect(messagesPane).toContainText("indented   output");
-        await expect(messagesPane).toContainText("Started executing query");
-        await expect(messagesPane).toContainText("Divide by zero error encountered");
-        const errorCell = messagesPane.getByRole("gridcell").filter({
-            hasText: "Divide by zero error encountered",
-        });
-        await expect(errorCell.locator('div[style*="--vscode-errorForeground"]')).toBeVisible();
-        await expect(
-            messagesPane
+            const tabs = resultsFrame.getByTestId("results-tab-list");
+            await expect(tabs.getByRole("tab", { name: "Results (2)" })).toBeVisible();
+            await expect(getCell(await waitForResultGrid(resultsFrame, "0_0"), 0, 0)).toHaveText(
+                "first",
+            );
+            await expect(getCell(await waitForResultGrid(resultsFrame, "0_1"), 0, 0)).toHaveText(
+                "second",
+            );
+
+            await tabs.getByRole("tab", { name: "Messages" }).click();
+            const messagesPane = resultsFrame.locator(
+                '[data-vscode-context*="queryResultMessagesPane"]',
+            );
+            await expect(messagesPane).toContainText("between sets");
+            await expect(messagesPane).toContainText("after sets");
+            await tabs.getByRole("tab", { name: /^Results/ }).click();
+        },
+    );
+
+    test(
+        "renders PRINT output and a query error in the messages pane",
+        testCases(5878890),
+        async () => {
+            const { electronApp, page } = getContext();
+            await setQueryText(electronApp, page, MESSAGES_QUERY);
+            await executeQueryAndWait(page);
+
+            await resultsFrame
+                .getByTestId("results-tab-list")
+                .getByRole("tab", { name: "Messages" })
+                .click();
+            const messagesPane = resultsFrame.locator(
+                '[data-vscode-context*="queryResultMessagesPane"]',
+            );
+            await expect(messagesPane).toContainText("indented   output");
+            await expect(messagesPane).toContainText("Started executing query");
+            await expect(messagesPane).toContainText("Divide by zero error encountered");
+            const errorCell = messagesPane.getByRole("gridcell").filter({
+                hasText: "Divide by zero error encountered",
+            });
+            await expect(errorCell.locator('div[style*="--vscode-errorForeground"]')).toBeVisible();
+            await expect(
+                messagesPane
+                    .getByRole("gridcell", { name: /Msg 8134, Level 16, State 1, Line 3/ })
+                    .getByRole("button", { name: "Line 3" }),
+            ).toBeVisible();
+
+            await page.locator(".view-lines .view-line").first().click();
+            await expect(page.getByRole("button", { name: /Ln 1, Col/ })).toBeVisible();
+            await messagesPane
                 .getByRole("gridcell", { name: /Msg 8134, Level 16, State 1, Line 3/ })
-                .getByRole("button", { name: "Line 3" }),
-        ).toBeVisible();
-
-        await page.locator(".view-lines .view-line").first().click();
-        await expect(page.getByRole("button", { name: /Ln 1, Col/ })).toBeVisible();
-        await messagesPane
-            .getByRole("gridcell", { name: /Msg 8134, Level 16, State 1, Line 3/ })
-            .getByRole("button", { name: "Line 3" })
-            .click();
-        await expect(page.getByRole("button", { name: /Ln 3, Col/ })).toBeVisible();
-    });
+                .getByRole("button", { name: "Line 3" })
+                .click();
+            await expect(page.getByRole("button", { name: /Ln 3, Col/ })).toBeVisible();
+        },
+    );
 
     test("opens the result in a document tab", async () => {
         const { page } = getContext();
