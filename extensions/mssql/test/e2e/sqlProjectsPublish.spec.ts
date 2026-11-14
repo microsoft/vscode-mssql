@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { randomBytes } from "crypto";
 import * as fs from "fs";
 import { test, expect } from "./baseFixtures";
 import { testCases } from "./utils/testCases";
@@ -376,7 +377,8 @@ test.describe("SQL Database Projects publish to container", () => {
         "macOS privacy consent blocks the extension's Docker Desktop Rosetta check.",
     );
 
-    const password = `E2e#${Math.random().toString(36).slice(2, 10)}Aa1`;
+    // The fixed prefix and suffix cover SQL Server's upper, lower, digit and symbol classes.
+    const password = `E2e#${randomBytes(6).toString("hex")}Aa1`;
     const createdContainers: string[] = [];
     const { getContext } = useFixtureProjectLifecycle();
 

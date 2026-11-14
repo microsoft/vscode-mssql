@@ -67,7 +67,7 @@ function readVsixEntry(vsixPath: string, entryName: string): Promise<string> {
  * correct when it is the source version, optionally followed by pre-release or build metadata.
  */
 function expectSourceVersion(version: string | undefined): void {
-    const escaped = sourceManifest.version.replace(/[.+]/g, "\\$&");
+    const escaped = sourceManifest.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     expect(version).toMatch(new RegExp(`^${escaped}([-+].*)?$`));
 }
 
