@@ -3400,6 +3400,7 @@ export class LocConstants {
                 "Load source, target, and options saved in an .scmp file",
             ),
             saveScmpFile: l10n.t("Save .scmp file"),
+            schemaCompareActions: l10n.t("Schema Compare actions"),
             saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
                 "Save source and target, options, and excluded elements",
             ),
