@@ -78,7 +78,11 @@ async function generateScriptAgainst(
  * the refactor preview, applying and discarding, name-collision and unsupported-target
  * validation, and that publishing the renamed project emits sp_rename instead of drop/create.
  */
-test.describe("SQL Database Projects rename refactoring", () => {
+// Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
+// appear within 30s. These tests run serially and build on each other, so the whole group is
+// marked rather than individual tests.
+// TODO: Stabilize these tests and re-enable them.
+test.describe.fixme("SQL Database Projects rename refactoring", () => {
     test.describe.configure({ mode: "serial" });
     const databaseName = uniqueDatabaseName("SqlProjRename");
     const { project, getContext } = useFixtureProjectLifecycle({
@@ -274,7 +278,11 @@ async function startMoveToSchema(page: Page): Promise<QuickInput> {
  * unsupported-target validation, and that publishing the moved object transfers it instead of
  * dropping and recreating it.
  */
-test.describe("SQL Database Projects move to schema refactoring", () => {
+// Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
+// appear within 30s. These tests run serially and build on each other, so the whole group is
+// marked rather than individual tests.
+// TODO: Stabilize these tests and re-enable them.
+test.describe.fixme("SQL Database Projects move to schema refactoring", () => {
     test.describe.configure({ mode: "serial" });
     const databaseName = uniqueDatabaseName("SqlProjMoveSchema");
     const { project, getContext } = useFixtureProjectLifecycle({

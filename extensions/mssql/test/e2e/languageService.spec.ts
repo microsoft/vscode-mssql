@@ -263,7 +263,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script view as Alter", testCases(5878832), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script view as Alter", testCases(5878832), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Views"],
@@ -285,7 +287,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script stored procedure as Drop", testCases(5878833), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script stored procedure as Drop", testCases(5878833), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 procedurePath,
@@ -317,7 +321,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script user as Create", testCases(5878834), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script user as Create", testCases(5878834), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Security", "Users"],
@@ -359,7 +365,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script table as Create", testCases(5878836), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script table as Create", testCases(5878836), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Tables"],

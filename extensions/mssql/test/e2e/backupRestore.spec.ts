@@ -267,7 +267,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         await expectNewBackupOnServer(sourceDatabases.fullBackup, "D");
     });
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): the dialog's webview did not appear within 30s.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Differential backup to file from the database context menu",
         testCases(5878925),
         async () => {
@@ -341,33 +343,39 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         await closeRestoreDialog(dialog);
     });
 
-    test("Restore from a .bak file chosen in the file browser", testCases(5878923), async () => {
-        const sourceName = sourceDatabases.restoreFromFile;
-        const backupPath = seedBackupPaths.get(sourceName)!;
-        const backupFileName = backupPath.slice(backupFolder.length).replace(/^[\\/]/, "");
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): the dialog's webview did not appear within 30s.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
+        "Restore from a .bak file chosen in the file browser",
+        testCases(5878923),
+        async () => {
+            const sourceName = sourceDatabases.restoreFromFile;
+            const backupPath = seedBackupPaths.get(sourceName)!;
+            const backupFileName = backupPath.slice(backupFolder.length).replace(/^[\\/]/, "");
 
-        const dialog = await openRestoreDialog(vsCodePage, sourceName);
-        await dialog.getByRole("radio", { name: "Backup File" }).check();
-        await dialog.getByRole("button", { name: "Browse files" }).click();
+            const dialog = await openRestoreDialog(vsCodePage, sourceName);
+            await dialog.getByRole("radio", { name: "Backup File" }).check();
+            await dialog.getByRole("button", { name: "Browse files" }).click();
 
-        // The file browser lists the server's filesystem, opened at the default backup folder.
-        const fileBrowser = dialog.getByRole("dialog", { name: "Select a file" });
-        await expect(fileBrowser).toBeVisible();
-        await fileBrowser.getByRole("treeitem", { name: backupFileName, exact: true }).click();
-        await expect(fileBrowser.getByRole("textbox", { name: "Selected Path" })).toHaveValue(
-            backupPath,
-        );
-        await fileBrowser.getByRole("button", { name: "Select", exact: true }).click();
-        await expect(fileBrowser).toBeHidden();
+            // The file browser lists the server's filesystem, opened at the default backup folder.
+            const fileBrowser = dialog.getByRole("dialog", { name: "Select a file" });
+            await expect(fileBrowser).toBeVisible();
+            await fileBrowser.getByRole("treeitem", { name: backupFileName, exact: true }).click();
+            await expect(fileBrowser.getByRole("textbox", { name: "Selected Path" })).toHaveValue(
+                backupPath,
+            );
+            await fileBrowser.getByRole("button", { name: "Select", exact: true }).click();
+            await expect(fileBrowser).toBeHidden();
 
-        // Choosing the file loads its backup sets into the restore table.
-        const backupSets = dialog.getByRole("table", { name: "Backup sets to restore" });
-        await expect(backupSets).toContainText(sourceName, { timeout: 60 * 1000 });
-        await expect(backupSets).toContainText("Full");
+            // Choosing the file loads its backup sets into the restore table.
+            const backupSets = dialog.getByRole("table", { name: "Backup sets to restore" });
+            await expect(backupSets).toContainText(sourceName, { timeout: 60 * 1000 });
+            await expect(backupSets).toContainText("Full");
 
-        await restoreAsNewDatabase(dialog, restoredFromFile);
-        await waitForBackgroundTaskSucceeded(vsCodePage, "Restore Database", restoredFromFile);
-        await expectRestoredDatabase(restoredFromFile);
-        await closeRestoreDialog(dialog);
-    });
+            await restoreAsNewDatabase(dialog, restoredFromFile);
+            await waitForBackgroundTaskSucceeded(vsCodePage, "Restore Database", restoredFromFile);
+            await expectRestoredDatabase(restoredFromFile);
+            await closeRestoreDialog(dialog);
+        },
+    );
 });

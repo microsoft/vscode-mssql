@@ -165,7 +165,9 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
         },
     );
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Tab commits a valid edit, which stays highlighted until saved",
         testCases(5878911),
         async () => {
@@ -183,7 +185,9 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
             expect(await readNames()).toEqual(["Apple", "Blueberry", "Cherry"]);
         },
     );
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Add Row appends a row that saves with the entered values",
         testCases(5878912),
         async () => {
@@ -218,7 +222,9 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
         },
     );
 
-    test("deleting a row can be undone", testCases(5878913), async () => {
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("deleting a row can be undone", testCases(5878913), async () => {
         const { page } = getContext();
         const editor = await openEditData(page);
         const row = getRow(editor, "Banana");
@@ -251,7 +257,9 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
         expect(await readNames()).toEqual(["Apple", "Banana", "Cherry"]);
     });
 
-    test("the SQL pane scripts pending updates and deletes", testCases(5878914), async () => {
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("the SQL pane scripts pending updates and deletes", testCases(5878914), async () => {
         const { page } = getContext();
         const editor = await openEditData(page);
 

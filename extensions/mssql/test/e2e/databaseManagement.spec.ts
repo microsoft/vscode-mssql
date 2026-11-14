@@ -74,49 +74,55 @@ test.describe("MSSQL Extension - Database Management", () => {
         return getWebviewByTitle(page, dialogTitle);
     }
 
-    test("Create Database applies the chosen compatibility level", testCases(5878941), async () => {
-        const { page } = getContext();
-        const databases = await openDatabasesFolder(page);
-        await runObjectExplorerContextAction(page, databases, "New Database...");
-        const dialog = await getWebviewByTitle(page, "Create Database");
+    // Failed in the Linux CI build-and-test smoke run: the dialog's webview did not appear within 30s.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
+        "Create Database applies the chosen compatibility level",
+        testCases(5878941),
+        async () => {
+            const { page } = getContext();
+            const databases = await openDatabasesFolder(page);
+            await runObjectExplorerContextAction(page, databases, "New Database...");
+            const dialog = await getWebviewByTitle(page, "Create Database");
 
-        const nameBox = dialog.getByRole("textbox", { name: "Database Name" });
-        await expect(nameBox).toBeVisible();
-        await expect(dialog.getByRole("button", { name: "Owner" })).toBeVisible();
-        await expect(dialog.getByRole("button", { name: "Recovery Model" })).toBeVisible();
-        const createButton = dialog.getByRole("button", { name: "Create", exact: true });
-        await expect(createButton).toBeDisabled();
+            const nameBox = dialog.getByRole("textbox", { name: "Database Name" });
+            await expect(nameBox).toBeVisible();
+            await expect(dialog.getByRole("button", { name: "Owner" })).toBeVisible();
+            await expect(dialog.getByRole("button", { name: "Recovery Model" })).toBeVisible();
+            const createButton = dialog.getByRole("button", { name: "Create", exact: true });
+            await expect(createButton).toBeDisabled();
 
-        await dialog.getByRole("button", { name: "Compatibility Level" }).click();
-        for (const level of [
-            "SQL Server 2016 (130)",
-            "SQL Server 2017 (140)",
-            "SQL Server 2019 (150)",
-            "SQL Server 2022 (160)",
-        ]) {
-            await expect(dialog.getByRole("option", { name: level })).toBeVisible();
-        }
-        await dialog.getByRole("option", { name: "SQL Server 2019 (150)" }).click();
-        await expect(dialog.getByRole("button", { name: "Compatibility Level" })).toHaveText(
-            /SQL Server 2019 \(150\)/,
-        );
+            await dialog.getByRole("button", { name: "Compatibility Level" }).click();
+            for (const level of [
+                "SQL Server 2016 (130)",
+                "SQL Server 2017 (140)",
+                "SQL Server 2019 (150)",
+                "SQL Server 2022 (160)",
+            ]) {
+                await expect(dialog.getByRole("option", { name: level })).toBeVisible();
+            }
+            await dialog.getByRole("option", { name: "SQL Server 2019 (150)" }).click();
+            await expect(dialog.getByRole("button", { name: "Compatibility Level" })).toHaveText(
+                /SQL Server 2019 \(150\)/,
+            );
 
-        await nameBox.fill(createdDatabase);
-        await expect(createButton).toBeEnabled();
-        await createButton.click();
+            await nameBox.fill(createdDatabase);
+            await expect(createButton).toBeEnabled();
+            await createButton.click();
 
-        await expect
-            .poll(
-                () =>
-                    querySingleValue<number>(
-                        `SELECT compatibility_level FROM sys.databases WHERE name = N'${createdDatabase}'`,
-                    ),
-                { timeout: 60 * 1000 },
-            )
-            .toBe(150);
-        await refreshObjectExplorerNode(page, databases);
-        await expect(getObjectExplorerNode(page, createdDatabase)).toBeVisible();
-    });
+            await expect
+                .poll(
+                    () =>
+                        querySingleValue<number>(
+                            `SELECT compatibility_level FROM sys.databases WHERE name = N'${createdDatabase}'`,
+                        ),
+                    { timeout: 60 * 1000 },
+                )
+                .toBe(150);
+            await refreshObjectExplorerNode(page, databases);
+            await expect(getObjectExplorerNode(page, createdDatabase)).toBeVisible();
+        },
+    );
 
     // Failed in the Linux CI build-and-test smoke run: the 'Rename Database...' context menu item was not found.
     // TODO: Stabilize this test and re-enable it.

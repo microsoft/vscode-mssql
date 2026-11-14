@@ -277,7 +277,9 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
         await expect(getObjectExplorerNode(page, DELETE_PROFILE)).toHaveCount(0);
     });
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): an Object Explorer node stayed on "Loading...".
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "removing a recent connection does not ask for confirmation",
         testCases(5878875),
         async () => {

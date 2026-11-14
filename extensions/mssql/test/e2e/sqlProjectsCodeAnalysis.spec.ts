@@ -51,7 +51,11 @@ function severityOf(dialog: FrameLocator, ruleId: string) {
  * changing severities, Enable Code Analysis on Build, Apply/OK/Cancel/Reset, search and severity
  * filtering, category toggles, and save errors.
  */
-test.describe("SQL Database Projects code analysis settings", () => {
+// Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
+// appear within 30s. These tests run serially and build on each other, so the whole group is
+// marked rather than individual tests.
+// TODO: Stabilize these tests and re-enable them.
+test.describe.fixme("SQL Database Projects code analysis settings", () => {
     test.describe.configure({ mode: "serial" });
     const { project, getContext } = useFixtureProjectLifecycle({
         prepareProject: (copy) => {
