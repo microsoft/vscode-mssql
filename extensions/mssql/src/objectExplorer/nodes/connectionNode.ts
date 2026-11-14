@@ -90,6 +90,13 @@ export class ConnectionNode extends TreeNodeInfo {
         const connectionTooltip = this.getConnectionTooltip(connectionProfile);
         if (connectionTooltip) {
             this.tooltip = connectionTooltip;
+            // VS Code announces a tree item by its tooltip, which only starts with the label when
+            // the connection has a profile name. Lead with the label so the node keeps its name.
+            if (!connectionProfile.profileName) {
+                this.accessibilityInformation = {
+                    label: `${displayName}\n${connectionTooltip}`,
+                };
+            }
         }
     }
 

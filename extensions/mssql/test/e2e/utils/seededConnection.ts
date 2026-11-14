@@ -52,8 +52,9 @@ export function getSeededConnectionProfile(
  * Builds settings.json for a VS Code instance that already has the e2e server saved, so a suite
  * can skip the connection dialog unless the dialog is what it is testing.
  *
- * Context menus are drawn by the workbench ("window.menuStyle": "custom") rather than the OS, and
- * file dialogs use VS Code's simple dialog, so both can be driven on macOS and Windows alike.
+ * Context menus and modal message boxes are drawn by the workbench ("window.menuStyle" and
+ * "window.dialogStyle": "custom") rather than the OS, and file dialogs use VS Code's simple
+ * dialog, so all of them can be driven on macOS and Windows alike.
  */
 export function getSeededLaunchConfig(
     overrides: Record<string, unknown> = {},
@@ -63,6 +64,7 @@ export function getSeededLaunchConfig(
         "mssql.openQueryResultsInTabByDefault": false,
         "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": true,
         "window.menuStyle": "custom",
+        "window.dialogStyle": "custom",
         "files.simpleDialog.enable": true,
         "workbench.startupEditor": "none",
         "mssql.connections": [getSeededConnectionProfile()],
