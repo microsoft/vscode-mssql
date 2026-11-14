@@ -15,6 +15,7 @@ import {
     waitForResultGrid,
 } from "./utils/testHelpers";
 import { getCell } from "./grid/gridActions";
+import { QuickInput } from "./pageObjects";
 import { testCases } from "./utils/testCases";
 
 const OPEN_IN_TAB_SETTING = "mssql.openQueryResultsInTabByDefault";
@@ -29,6 +30,12 @@ const promptEnabledConfig = () =>
     });
 
 async function runMarkerQuery(page: Page, marker: string): Promise<void> {
+    // Results opened as a document leave their editor group active; open queries in the first
+    // group so they never share a group with result tabs.
+    await new QuickInput(page).runCommand(
+        "View: Focus First Editor Group",
+        "View: Focus First Editor Group",
+    );
     await openNewQueryEditor(page);
     await connectActiveEditor(page);
     // setQueryText inserts through the page; its Electron handle parameter is unused.

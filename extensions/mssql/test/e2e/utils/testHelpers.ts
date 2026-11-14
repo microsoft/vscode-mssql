@@ -94,8 +94,21 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
     await executeQueryButton.click();
 }
 
+/**
+ * The text area of the active editor group's editor.
+ *
+ * Other Monaco editors share the same classes (the Chat view's input box, for one), so an
+ * unscoped selector can type the query into the wrong editor.
+ */
+export function getActiveEditorTextArea(vsCodePage: Page): Locator {
+    return vsCodePage
+        .locator(".editor-group-container.active .editor-instance")
+        .locator("div.view-lines.monaco-mouse-cursor-text")
+        .first();
+}
+
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
-    await vsCodePage.click('div[class="view-lines monaco-mouse-cursor-text"]');
+    await getActiveEditorTextArea(vsCodePage).click();
     await vsCodePage.keyboard.type(text);
 }
 
@@ -318,7 +331,7 @@ export async function setQueryText(
     vsCodePage: Page,
     sql: string,
 ): Promise<void> {
-    await vsCodePage.click("div.view-lines.monaco-mouse-cursor-text");
+    await getActiveEditorTextArea(vsCodePage).click();
     await vsCodePage.keyboard.press(`${getModifierKey()}+A`);
     // Insert the whole SQL string as one textInput event. This avoids Monaco's per-keystroke
     // suggestion acceptance on newlines and keeps the OS clipboard available for concurrent
