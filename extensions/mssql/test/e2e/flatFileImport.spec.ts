@@ -35,6 +35,8 @@ import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 
 const PRODUCTS_CSV = path.join(FLAT_FILE_FIXTURES, "products.csv");
+/** A tab-delimited text file. */
+const EMPLOYEES_TXT = path.join(FLAT_FILE_FIXTURES, "employees.txt");
 /** contacts.csv leaves City empty for ContactId 2. */
 const CONTACTS_CSV = path.join(FLAT_FILE_FIXTURES, "contacts.csv");
 
@@ -248,5 +250,30 @@ test.describe("MSSQL Extension - Flat-file Import", () => {
 
         expect(await getPrimaryKeyColumns(databaseName, tableName)).toEqual(keyColumns);
         expect(await selectProducts(tableName)).toEqual(PRODUCT_ROWS);
+    });
+
+    test("imports a tab-delimited text file", testCases(5878919), async () => {
+        const wizard = await startImport(EMPLOYEES_TXT);
+        await expect(getTableNameInput(wizard)).toHaveValue("employees");
+
+        const preview = await goToPreviewData(wizard);
+        await expect(preview.getByRole("columnheader")).toHaveText([
+            "EmployeeId",
+            "FirstName",
+            "Department",
+        ]);
+        await expect(preview.getByRole("row")).toHaveCount(4);
+        await goToModifyColumns(wizard);
+        await importDataAndFinish(vsCodePage, wizard);
+
+        const [rows] = await runSql(
+            "SELECT EmployeeId, FirstName, Department FROM dbo.employees ORDER BY EmployeeId;",
+            databaseName,
+        );
+        expect(rows).toEqual([
+            { EmployeeId: 1, FirstName: "Ada", Department: "Engineering" },
+            { EmployeeId: 2, FirstName: "Grace", Department: "Research" },
+            { EmployeeId: 3, FirstName: "Linus", Department: "Operations" },
+        ]);
     });
 });
