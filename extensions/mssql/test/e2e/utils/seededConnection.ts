@@ -100,7 +100,10 @@ export function getObjectExplorerPane(page: Page): Locator {
  * anchored at the start rather than exact.
  */
 export function getObjectExplorerNode(page: Page, label: string | RegExp): Locator {
-    const name = typeof label === "string" ? new RegExp(`^${escapeRegExp(label)}\\b`) : label;
+    // Match the whole label, which may be followed by status text after a comma or newline. A
+    // word boundary would fail for labels that end in punctuation, such as "Tables (filtered)".
+    const name =
+        typeof label === "string" ? new RegExp(`^${escapeRegExp(label)}(?=$|[,\\s])`) : label;
     return getObjectExplorerPane(page).getByRole("treeitem", { name }).first();
 }
 

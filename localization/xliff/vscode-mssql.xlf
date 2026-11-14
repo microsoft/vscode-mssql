@@ -5939,6 +5939,9 @@
     <trans-unit id="++CODE++661462df1e90d01fd9e6f93c956f2b371aca8a59145257c92f69de3d93a72541">
       <source xml:lang="en">Filter comparison properties...</source>
     </trans-unit>
+    <trans-unit id="++CODE++955518e26f3e0a5681e29c8750be119efee89352556f91b2ae7ced2d2f2ce008">
+      <source xml:lang="en">Filter criteria</source>
+    </trans-unit>
     <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
       <source xml:lang="en">Filter entities</source>
     </trans-unit>

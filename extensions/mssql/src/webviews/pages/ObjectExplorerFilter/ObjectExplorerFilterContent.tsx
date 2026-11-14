@@ -286,6 +286,7 @@ export const ObjectExplorerFilterContent = ({
                 {...keyboardNavAttr}
                 className={classes.grid}
                 role="grid"
+                aria-label={locConstants.objectExplorerFiltering.filterCriteria}
                 aria-rowcount={uiFilters.length + 1}
                 aria-colcount={4}>
                 <div role="rowgroup">
