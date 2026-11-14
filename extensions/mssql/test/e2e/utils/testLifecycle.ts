@@ -102,6 +102,9 @@ export function useSharedVsCodeLifecycle(
         } else {
             await storeRecordedVideos(currentContext.videoDir, failedTests);
         }
+        // Each launch copies the extensions into its own profile, so leaving these behind costs
+        // well over 100 MB per file and fills the disk over a full run.
+        await cleanupDirectories(currentContext.userDataDir, currentContext.extensionsDir);
     });
 
     return getContext;
