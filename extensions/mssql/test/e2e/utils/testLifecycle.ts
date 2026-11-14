@@ -179,10 +179,18 @@ async function closeElectronApp(electronApp: VsCodeAppHandle): Promise<void> {
         `VS Code did not close within ${ELECTRON_CLOSE_TIMEOUT_MS / 1000} seconds; terminating it.`,
     );
     const electronProcess = electronApp.process();
+    const hasExited = () =>
+        electronProcess.exitCode !== null || electronProcess.signalCode !== null;
+    if (hasExited()) {
+        return;
+    }
     const processExit = new Promise<void>((resolve) => {
         electronProcess.once("close", () => resolve());
     });
     killProcessTree(electronProcess);
+    if (hasExited()) {
+        return;
+    }
 
     let killTimeoutHandle: NodeJS.Timeout;
     await Promise.race([
@@ -219,7 +227,14 @@ function killProcessTree(electronProcess: cp.ChildProcess): void {
         return;
     }
 
-    process.kill(-electronProcess.pid, "SIGKILL");
+    try {
+        process.kill(-electronProcess.pid, "SIGKILL");
+    } catch (error) {
+        // VS Code can finish exiting between the close timeout and the kill; that is a success.
+        if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
+            throw error;
+        }
+    }
 }
 
 async function storeRecordedVideos(
