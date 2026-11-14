@@ -105,6 +105,12 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
 }
 
 /**
+ * Minimum time to wait for a webview to appear. Webviews regularly take well over 30 seconds to
+ * load on the hosted Linux CI runners, so CI waits longer than a local run does.
+ */
+export const WEBVIEW_LOAD_TIMEOUT_MS = process.env.CI ? 90 * 1000 : 30 * 1000;
+
+/**
  * Resolves the webview frame whose inner iframe carries `title`.
  *
  * A plain `frameLocator(".webview")` resolves to exactly one frame under Playwright's strict
@@ -115,8 +121,9 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
 export async function getWebviewByTitle(
     vsCodePage: Page,
     title: string,
-    timeout = 30 * 1000,
+    timeout = WEBVIEW_LOAD_TIMEOUT_MS,
 ): Promise<FrameLocator> {
+    timeout = Math.max(timeout, WEBVIEW_LOAD_TIMEOUT_MS);
     // VS Code's webview host keeps both active-frame and pending-frame during a reload
     // (src/vs/workbench/contrib/webview/browser/pre/index.html). A title-only frame locator
     // becomes ambiguous during that reload.

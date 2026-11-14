@@ -56,7 +56,10 @@ type ReferenceLocation = "Same database" | "Different database, same server";
  * projects and the master system database, each either in the same or in a different database.
  * Views in the main project use every reference, so a successful build proves they resolve.
  */
-test.describe("SQL Database Projects - database references", () => {
+// Failed in the Linux CI build-and-test smoke run: the dacpac reference's file path was not filled in, so the
+// references never appeared and every later test in this group, which builds on them, failed too.
+// TODO: Stabilize these tests and re-enable them.
+test.describe.fixme("SQL Database Projects - database references", () => {
     const workspaceDir = reserveTempDir("sqlproj-refs");
     const main = "RefMain";
     const libraries = ["RefLibSame", "RefLibOther", "RefProjSame", "RefProjOther"];

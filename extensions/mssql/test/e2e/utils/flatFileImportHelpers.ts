@@ -12,7 +12,7 @@ import {
     SEEDED_PROFILE_NAME,
 } from "./seededConnection";
 import { runSql } from "./sqlClient";
-import { getWebviewByTitle } from "./testHelpers";
+import { getWebviewByTitle, WEBVIEW_LOAD_TIMEOUT_MS } from "./testHelpers";
 
 /** Folder holding the CSV fixtures imported by the flat-file import suite. */
 export const FLAT_FILE_FIXTURES = path.join(
@@ -25,7 +25,7 @@ export const FLAT_FILE_FIXTURES = path.join(
 );
 
 const WIZARD_TITLE = "Import Flat File";
-const WIZARD_LOAD_TIMEOUT_MS = 60 * 1000;
+const WIZARD_LOAD_TIMEOUT_MS = Math.max(60 * 1000, WEBVIEW_LOAD_TIMEOUT_MS);
 const IMPORT_TIMEOUT_MS = 2 * 60 * 1000;
 
 /** A column of an imported table, as reported by INFORMATION_SCHEMA.COLUMNS. */
