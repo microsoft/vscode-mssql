@@ -6685,6 +6685,10 @@
     },
     "Object Types": "Object Types",
     "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)": "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
+    "Actions for {0}/{0} is the schema-qualified name of a database object": {
+        "message": "Actions for {0}",
+        "comment": ["{0} is the schema-qualified name of a database object"]
+    },
     "No objects found": "No objects found",
     "Try adjusting your search or filters": "Try adjusting your search or filters",
     "Filter by name": "Filter by name",
@@ -6930,6 +6934,7 @@
     },
     "No results match the current filters": "No results match the current filters",
     "No data to display.": "No data to display.",
+    "Profiler events": "Profiler events",
     "Quick filter all columns...": "Quick filter all columns...",
     "Clear All Filters": "Clear All Filters",
     "Clear quick filter and all column filters": "Clear quick filter and all column filters",

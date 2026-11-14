@@ -433,6 +433,10 @@
       <source xml:lang="en">Actions for query {0}</source>
       <note>{0} is the Query Store query ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++726ca4b2dee4b8f257c19992d39b2b81bbbf90248093ae09adb5b4d50865dc6d">
+      <source xml:lang="en">Actions for {0}</source>
+      <note>{0} is the schema-qualified name of a database object</note>
+    </trans-unit>
     <trans-unit id="++CODE++dc26d400a6689ce50ac096b9fd35dc1c1c502e9bfcf03a4c568cbbb049a48be9">
       <source xml:lang="en">Actions for {0}</source>
       <note>{0} is the name of a query file</note>
@@ -9571,6 +9575,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fca3e2233a3752c368e25aa937528824dc23c5f9d90fa6bdc3cf55f347927c9d">
+      <source xml:lang="en">Profiler events</source>
     </trans-unit>
     <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
       <source xml:lang="en">Profiler events exported successfully to {0}</source>

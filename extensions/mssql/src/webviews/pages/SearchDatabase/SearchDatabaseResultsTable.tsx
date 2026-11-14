@@ -263,7 +263,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                     appearance="subtle"
                     icon={<MoreHorizontalRegular />}
                     size="small"
-                    aria-label={loc.searchDatabase.actions}
+                    aria-label={loc.searchDatabase.actionsFor(item.fullName)}
                 />
             </MenuTrigger>
             <MenuPopover>

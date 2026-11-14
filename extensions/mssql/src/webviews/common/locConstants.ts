@@ -5399,6 +5399,12 @@ export class LocConstants {
             schema: l10n.t("Schema"),
             type: l10n.t("Type"),
             actions: l10n.t("Actions"),
+            actionsFor: (objectName: string) =>
+                l10n.t({
+                    message: "Actions for {0}",
+                    args: [objectName],
+                    comment: ["{0} is the schema-qualified name of a database object"],
+                }),
 
             // Empty state
             noObjectsFound: l10n.t("No objects found"),
@@ -5833,6 +5839,7 @@ export class LocConstants {
                 }),
             noResultsMatchFilter: l10n.t("No results match the current filters"),
             noDataToDisplay: l10n.t("No data to display."),
+            eventsGridAriaLabel: l10n.t("Profiler events"),
 
             // Quick filter
             quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
