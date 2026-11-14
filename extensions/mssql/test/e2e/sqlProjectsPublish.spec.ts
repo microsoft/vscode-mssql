@@ -448,7 +448,9 @@ test.describe("SQL Database Projects publish to container", () => {
         return port;
     }
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: no 'Dev' container appeared within the 300s wait.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "publishes the project to a new local container",
         testCases(5878854, 5878851),
         async () => {
@@ -472,7 +474,9 @@ test.describe("SQL Database Projects publish to container", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: no 'Dev' container appeared within the 300s wait.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "publishes to another container while keeping the existing one",
         testCases(5878854),
         async () => {

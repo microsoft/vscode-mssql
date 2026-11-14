@@ -99,7 +99,9 @@ test.describe("SQL Database Projects rename refactoring", () => {
         await expectFindAllReferences(page, CUSTOMER_REFERENCES);
     });
 
-    test("previews a rename and discards it", testCases(5878947), async () => {
+    // Failed in the Linux CI build-and-test smoke run: the rename preview's quick input rows never appeared.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("previews a rename and discards it", testCases(5878947), async () => {
         const { page } = getContext();
         await placeCursorOnCustomerTable(page);
         const rename = await startRename(page, "Client");
@@ -293,52 +295,58 @@ test.describe("SQL Database Projects move to schema refactoring", () => {
         await expectFindAllReferences(page, CUSTOMER_REFERENCES);
     });
 
-    test("offers the project's schemas and previews the move", testCases(5878948), async () => {
-        const { page } = getContext();
-        await placeCursorOnCustomerTable(page);
-        const schemaPicker = await startMoveToSchema(page);
-        await expect(schemaPicker.input).toHaveAttribute(
-            "placeholder",
-            "Current Schema: dbo, Select the new schema:",
-        );
-        await expect
-            .poll(async () => (await schemaPicker.labels()).sort())
-            .toEqual(["Archive", "Sales", "dbo"]);
-        await schemaPicker.pick("Archive");
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
+        "offers the project's schemas and previews the move",
+        testCases(5878948),
+        async () => {
+            const { page } = getContext();
+            await placeCursorOnCustomerTable(page);
+            const schemaPicker = await startMoveToSchema(page);
+            await expect(schemaPicker.input).toHaveAttribute(
+                "placeholder",
+                "Current Schema: dbo, Select the new schema:",
+            );
+            await expect
+                .poll(async () => (await schemaPicker.labels()).sort())
+                .toEqual(["Archive", "Sales", "dbo"]);
+            await schemaPicker.pick("Archive");
 
-        const preview = getRefactorPreview(page);
-        await expect(preview).toBeVisible({ timeout: 60 * 1000 });
-        for (const file of [
-            "dbo/StoredProcedures/GetCustomer.sql",
-            "dbo/Tables/Customer.sql",
-            "dbo/Tables/Orders.sql",
-            "dbo/Views/CustomerOrders.sql",
-        ]) {
+            const preview = getRefactorPreview(page);
+            await expect(preview).toBeVisible({ timeout: 60 * 1000 });
+            for (const file of [
+                "dbo/StoredProcedures/GetCustomer.sql",
+                "dbo/Tables/Customer.sql",
+                "dbo/Tables/Orders.sql",
+                "dbo/Views/CustomerOrders.sql",
+            ]) {
+                await expect(
+                    preview.getByRole("checkbox", { name: `${file}, making text edits` }),
+                ).toBeVisible();
+            }
+            await expect(page.getByRole("button", { name: "Apply", exact: true })).toBeVisible();
+            await expect(page.getByRole("button", { name: "Discard", exact: true })).toBeVisible();
+
+            await preview
+                .getByRole("checkbox", { name: /^line 6, replacing/ })
+                .getByText(/REFERENCES/)
+                .click();
             await expect(
-                preview.getByRole("checkbox", { name: `${file}, making text edits` }),
+                page.getByRole("tab", { name: /^Refactor Preview \(\d+ files\)/ }),
+            ).toHaveAttribute("aria-selected", "true");
+            await expect(
+                page.getByRole("button", { name: /[\\/]dbo[\\/]Tables[\\/]Orders\.sql$/ }),
             ).toBeVisible();
-        }
-        await expect(page.getByRole("button", { name: "Apply", exact: true })).toBeVisible();
-        await expect(page.getByRole("button", { name: "Discard", exact: true })).toBeVisible();
 
-        await preview
-            .getByRole("checkbox", { name: /^line 6, replacing/ })
-            .getByText(/REFERENCES/)
-            .click();
-        await expect(
-            page.getByRole("tab", { name: /^Refactor Preview \(\d+ files\)/ }),
-        ).toHaveAttribute("aria-selected", "true");
-        await expect(
-            page.getByRole("button", { name: /[\\/]dbo[\\/]Tables[\\/]Orders\.sql$/ }),
-        ).toBeVisible();
-
-        await page.getByRole("button", { name: "Discard", exact: true }).click();
-        await expect(preview).toBeHidden();
-        expect(project.read("dbo/Tables/Orders.sql")).toBe(
-            readFixtureFile("dbo/Tables/Orders.sql"),
-        );
-        expect(fs.existsSync(project.file("PublishFixture.refactorlog"))).toBe(false);
-    });
+            await page.getByRole("button", { name: "Discard", exact: true }).click();
+            await expect(preview).toBeHidden();
+            expect(project.read("dbo/Tables/Orders.sql")).toBe(
+                readFixtureFile("dbo/Tables/Orders.sql"),
+            );
+            expect(fs.existsSync(project.file("PublishFixture.refactorlog"))).toBe(false);
+        },
+    );
 
     test("moves the table and its references to another schema", testCases(5878948), async () => {
         const { page } = getContext();

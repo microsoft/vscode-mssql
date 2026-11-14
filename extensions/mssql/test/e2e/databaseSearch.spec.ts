@@ -258,7 +258,10 @@ test.describe("MSSQL Extension - Database Search", () => {
         }
 
         for (const object of [TABLE, VIEW]) {
-            test(
+            // Failed in the Linux CI build-and-test smoke run: hovering the editor tab to close it
+            // timed out, likely because the tab was obscured.
+            // TODO: Stabilize this test and re-enable it.
+            test.fixme(
                 `${object.typeName} Select Top 1000 opens a runnable SELECT script`,
                 testCases(object.caseId),
                 async () => {

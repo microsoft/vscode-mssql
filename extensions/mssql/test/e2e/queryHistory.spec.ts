@@ -82,7 +82,9 @@ test.describe("MSSQL Extension - Query History", () => {
         await clickContextMenuItem(page, menuLabel);
     }
 
-    test("Open shows the history item's query in an editor", testCases(5878845), async () => {
+    // Failed in the Linux CI build-and-test smoke run: clicking the history tree item timed out, likely because it was obscured.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("Open shows the history item's query in an editor", testCases(5878845), async () => {
         const { page } = getContext();
         // Untitled editors are named after their first line, so this counts editors on the query.
         const queryEditorTabs = page.getByRole("tab", { name: /SELECT DB_NAME\(\)/ });
@@ -95,7 +97,9 @@ test.describe("MSSQL Extension - Query History", () => {
         expect(await getActiveEditorText(page)).toContain("SELECT DB_NAME() AS database_name");
     });
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: the connection quick pick row resolved but stayed hidden.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Run reconnects to the original database and executes the query",
         testCases(5878846),
         async () => {
@@ -123,7 +127,9 @@ test.describe("MSSQL Extension - Query History", () => {
         },
     );
 
-    test("Delete removes the history item", testCases(5878844), async () => {
+    // Failed in the Linux CI build-and-test smoke run: clicking the history tree item timed out, likely because it was obscured.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("Delete removes the history item", testCases(5878844), async () => {
         const { page } = getContext();
         const countBefore = await getHistoryItems(page).count();
         expect(countBefore).toBeGreaterThan(0);

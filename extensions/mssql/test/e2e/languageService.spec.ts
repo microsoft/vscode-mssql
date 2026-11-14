@@ -305,7 +305,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script stored procedure as Execute", testCases(5878833), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script stored procedure as Execute", testCases(5878833), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 procedurePath,
@@ -335,7 +337,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script schema as Create", testCases(5878835), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script schema as Create", testCases(5878835), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Security", "Schemas"],
@@ -365,7 +369,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script table as Drop", testCases(5878836), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script table as Drop", testCases(5878836), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Tables"],

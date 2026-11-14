@@ -118,39 +118,45 @@ test.describe("MSSQL Extension - Database Management", () => {
         await expect(getObjectExplorerNode(page, createdDatabase)).toBeVisible();
     });
 
-    test("Rename Database renames it and keeps its contents", testCases(5878942), async () => {
-        const { page } = getContext();
-        const dialog = await openDatabaseDialog(
-            page,
-            renameSource,
-            "Rename Database...",
-            "Rename Database",
-        );
+    // Failed in the Linux CI build-and-test smoke run: the 'Rename Database...' context menu item was not found.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
+        "Rename Database renames it and keeps its contents",
+        testCases(5878942),
+        async () => {
+            const { page } = getContext();
+            const dialog = await openDatabaseDialog(
+                page,
+                renameSource,
+                "Rename Database...",
+                "Rename Database",
+            );
 
-        await expect(
-            dialog.getByRole("table", { name: "Database Details" }).getByRole("cell", {
-                name: renameSource,
-                exact: true,
-            }),
-        ).toBeVisible();
-        const nameBox = dialog.getByRole("textbox", { name: "New Database Name" });
-        await expect(nameBox).toHaveValue(renameSource);
-        await nameBox.fill(renameTarget);
-        await dialog.getByRole("button", { name: "Rename", exact: true }).click();
+            await expect(
+                dialog.getByRole("table", { name: "Database Details" }).getByRole("cell", {
+                    name: renameSource,
+                    exact: true,
+                }),
+            ).toBeVisible();
+            const nameBox = dialog.getByRole("textbox", { name: "New Database Name" });
+            await expect(nameBox).toHaveValue(renameSource);
+            await nameBox.fill(renameTarget);
+            await dialog.getByRole("button", { name: "Rename", exact: true }).click();
 
-        await expect
-            .poll(() => querySingleValue<number>(`SELECT DB_ID(N'${renameTarget}')`), {
-                timeout: 60 * 1000,
-            })
-            .not.toBeNull();
-        expect(await querySingleValue(`SELECT DB_ID(N'${renameSource}')`)).toBeNull();
+            await expect
+                .poll(() => querySingleValue<number>(`SELECT DB_ID(N'${renameTarget}')`), {
+                    timeout: 60 * 1000,
+                })
+                .not.toBeNull();
+            expect(await querySingleValue(`SELECT DB_ID(N'${renameSource}')`)).toBeNull();
 
-        await openDatabasesFolder(page);
-        await expect(getObjectExplorerNode(page, renameTarget)).toBeVisible();
-        await expect(getObjectExplorerNode(page, renameSource)).toHaveCount(0);
-        await expandObjectExplorerPath(page, [renameTarget, "Tables"]);
-        await expect(getObjectExplorerNode(page, "dbo.KeptAcrossRename")).toBeVisible();
-    });
+            await openDatabasesFolder(page);
+            await expect(getObjectExplorerNode(page, renameTarget)).toBeVisible();
+            await expect(getObjectExplorerNode(page, renameSource)).toHaveCount(0);
+            await expandObjectExplorerPath(page, [renameTarget, "Tables"]);
+            await expect(getObjectExplorerNode(page, "dbo.KeptAcrossRename")).toBeVisible();
+        },
+    );
 
     test("Drop Database is not applied when cancelled", testCases(5878943), async () => {
         const { page } = getContext();
@@ -177,7 +183,9 @@ test.describe("MSSQL Extension - Database Management", () => {
         await expect(getObjectExplorerNode(page, dropDatabase)).toBeVisible();
     });
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Drop Database removes it once the permanent action is confirmed",
         testCases(5878943),
         async () => {

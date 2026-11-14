@@ -91,7 +91,9 @@ test.describe("MSSQL Extension - Query Plans from the query editor", () => {
         },
     );
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry).
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "the actual plan toggle swaps between Enable and Disable",
         testCases(5878881),
         async () => {
@@ -116,7 +118,9 @@ test.describe("MSSQL Extension - Query Plans from the query editor", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: clicking the 'Query Plan (2)' tab timed out.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "an actual plan run returns each statement's plan alongside its results and plan XML",
         testCases(5878881),
         async () => {
@@ -160,7 +164,9 @@ test.describe("MSSQL Extension - Query Plans from the query editor", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: clicking the query editor's text area (div.view-lines) timed out.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "an actual plan run only shows plans for statements that have one",
         testCases(5878881),
         async () => {

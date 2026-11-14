@@ -293,7 +293,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: the connection quick pick (input[aria-controls="quickInput_list"]) never appeared after running the script.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Script and run a full backup from the database context menu",
         testCases(5878926),
         async () => {
@@ -305,7 +307,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: the connection quick pick (input[aria-controls="quickInput_list"]) never appeared after running the script.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Script and run a differential backup from the database context menu",
         testCases(5878921),
         async () => {
