@@ -9,9 +9,11 @@ import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 import {
     clickContextMenuItem,
     connectActiveEditor,
+    getObjectExplorerNode,
     getActiveEditorText,
     getSeededConnectionProfile,
     getSeededLaunchConfig,
+    runObjectExplorerContextAction,
     SEEDED_PROFILE_NAME,
 } from "./utils/seededConnection";
 import { dropDatabaseIfExists, recreateDatabase, uniqueDatabaseName } from "./utils/sqlClient";
@@ -137,5 +139,153 @@ test.describe("MSSQL Extension - Query History", () => {
         await runHistoryItemAction(page, "Delete");
 
         await expect(getHistoryItems(page)).toHaveCount(countBefore - 1);
+    });
+});
+
+/**
+ * Pausing and resuming query history capture, and clearing the history, from the Query History
+ * view's title bar and from the command palette.
+ */
+test.describe("MSSQL Extension - Query History capture and clearing", () => {
+    const PAUSE = "Pause Query History Capture";
+    const START = "Start Query History Capture";
+    const CLEAR_ALL = "Clear All Query History";
+
+    const getContext = useSharedVsCodeLifecycle({
+        launchOptions: {
+            initialConfig: getSeededLaunchConfig({
+                "mssql.enableQueryHistoryFeature": true,
+                "mssql.enableQueryHistoryCapture": true,
+            }),
+        },
+    });
+
+    function getPane(page: Page): Locator {
+        return page.locator(".pane").filter({
+            has: page.getByRole("heading", { name: "Query History", exact: true }),
+        });
+    }
+
+    function getHistoryItems(page: Page, marker: string): Locator {
+        return getPane(page).getByRole("treeitem", { name: new RegExp(marker) });
+    }
+
+    /** A view title action; title actions are only rendered while the header is hovered. */
+    async function clickTitleAction(page: Page, name: string): Promise<void> {
+        const pane = getPane(page);
+        await pane.getByRole("heading", { name: "Query History", exact: true }).hover();
+        await pane.getByRole("button", { name, exact: true }).click();
+    }
+
+    async function runCommand(page: Page, title: string): Promise<void> {
+        await new QuickInput(page).runCommand(`MS SQL: ${title}`, `MS SQL: ${title}`);
+    }
+
+    async function expectCaptureState(page: Page, capturing: boolean): Promise<void> {
+        const pane = getPane(page);
+        await pane.getByRole("heading", { name: "Query History", exact: true }).hover();
+        await expect(
+            pane.getByRole("button", { name: capturing ? PAUSE : START, exact: true }),
+        ).toBeVisible();
+        await expect(
+            pane.getByRole("button", { name: capturing ? START : PAUSE, exact: true }),
+        ).toHaveCount(0);
+    }
+
+    /** Opens an editor already connected to the server through its New Query action. */
+    async function runMarkerQuery(page: Page, marker: string): Promise<void> {
+        await runObjectExplorerContextAction(
+            page,
+            getObjectExplorerNode(page, SEEDED_PROFILE_NAME),
+            "New Query",
+        );
+        await waitForConnected(page, getServerName());
+        await setQueryText(undefined as never, page, `SELECT '${marker}' AS marker;`);
+        await executeQueryAndWait(page);
+    }
+
+    function uniqueMarker(prefix: string): string {
+        return `${prefix}_${Date.now().toString(36)}${Math.floor(performance.now())}`;
+    }
+
+    /**
+     * Runs a query while capture is paused and another after resuming. The second query is
+     * captured, so by the time it shows up the first would have too, had it been captured.
+     */
+    async function expectPauseAndResume(
+        page: Page,
+        pause: () => Promise<void>,
+        resume: () => Promise<void>,
+    ): Promise<void> {
+        await expectCaptureState(page, true);
+        await pause();
+        await expectCaptureState(page, false);
+        const whilePaused = uniqueMarker("paused");
+        await runMarkerQuery(page, whilePaused);
+
+        await resume();
+        await expectCaptureState(page, true);
+        const afterResume = uniqueMarker("resumed");
+        await runMarkerQuery(page, afterResume);
+
+        await expect(getHistoryItems(page, afterResume)).toHaveCount(1, { timeout: 30 * 1000 });
+        await expect(getHistoryItems(page, whilePaused)).toHaveCount(0);
+    }
+
+    async function expectClearAll(page: Page, clearAll: () => Promise<void>): Promise<void> {
+        const marker = uniqueMarker("clear");
+        await runMarkerQuery(page, marker);
+        await expect(getHistoryItems(page, marker)).toHaveCount(1, { timeout: 30 * 1000 });
+
+        await clearAll();
+        await expect(getHistoryItems(page, marker)).toHaveCount(0);
+        await expect(
+            getPane(page).getByRole("treeitem", { name: "No Queries Available" }),
+        ).toBeVisible();
+    }
+
+    test(
+        "pausing and resuming from the view title stops and restarts capture",
+        testCases(5878842),
+        async () => {
+            const { page } = getContext();
+            await expectPauseAndResume(
+                page,
+                () => clickTitleAction(page, PAUSE),
+                () => clickTitleAction(page, START),
+            );
+        },
+    );
+
+    test(
+        "pausing and resuming from the command palette stops and restarts capture",
+        testCases(5878842),
+        async () => {
+            const { page } = getContext();
+            await expectPauseAndResume(
+                page,
+                () => runCommand(page, PAUSE),
+                () => runCommand(page, START),
+            );
+        },
+    );
+
+    test(
+        "Clear All from the view title's More Actions menu removes every item",
+        testCases(5878843),
+        async () => {
+            const { page } = getContext();
+            await expectClearAll(page, async () => {
+                const pane = getPane(page);
+                await pane.getByRole("heading", { name: "Query History", exact: true }).hover();
+                await pane.getByRole("button", { name: /^More Actions/ }).click();
+                await clickContextMenuItem(page, CLEAR_ALL);
+            });
+        },
+    );
+
+    test("Clear All from the command palette removes every item", testCases(5878843), async () => {
+        const { page } = getContext();
+        await expectClearAll(page, () => runCommand(page, CLEAR_ALL));
     });
 });
