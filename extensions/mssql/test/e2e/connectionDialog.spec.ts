@@ -143,7 +143,7 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
 
     test(
         "connecting with a profile name and a trusted certificate does not prompt",
-        testCases(5878869),
+        testCases(5878869, 5878823),
         async () => {
             const { page } = getContext();
             const dialog = await openConnectionDialog(page);
@@ -309,6 +309,88 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
             await expect(recent).toHaveCount(0);
             expect(await new QuickInput(page).isOpen()).toBe(false);
             await expect(savedConnectionCard(dialog, RECENT_PROFILE)).toBeVisible();
+        },
+    );
+});
+
+/**
+ * Connecting to a SQL Server with SQL authentication: the new connection is placed in the chosen
+ * group and listed under Saved and Recent connections in the dialog.
+ */
+test.describe("MSSQL Extension - Connection Dialog SQL Login connection", () => {
+    const GROUP_NAME = "E2E Group";
+    const PROFILE_NAME = "e2e-grouped";
+
+    const getContext = useSharedVsCodeLifecycle({
+        launchOptions: {
+            initialConfig: getSeededLaunchConfig({
+                "mssql.connectionGroups": [
+                    { id: "ROOT", name: "ROOT" },
+                    { id: "e2e-group", name: GROUP_NAME, parentId: "ROOT" },
+                ],
+                "mssql.connections": [],
+            }),
+        },
+    });
+
+    async function openDialog(page: Page): Promise<FrameLocator> {
+        const pane = getObjectExplorerPane(page);
+        await pane.getByRole("heading", { name: "Connections", exact: true }).hover();
+        await pane.getByRole("button", { name: "Add Connection...", exact: true }).click();
+        const dialog = await getWebviewByTitle(page, "Connection Dialog");
+        await expect(dialog.getByRole("textbox", { name: "Server name" })).toBeVisible();
+        return dialog;
+    }
+
+    test(
+        "a SQL Login connection joins its group and the Saved and Recent lists",
+        testCases(5878823),
+        async () => {
+            const { page } = getContext();
+            const dialog = await openDialog(page);
+            await dialog.getByRole("textbox", { name: "Profile Name" }).fill(PROFILE_NAME);
+            await dialog.getByRole("button", { name: "Connection Group" }).click();
+            await dialog.getByRole("option", { name: GROUP_NAME }).click();
+            await expect(dialog.getByRole("button", { name: "Connection Group" })).toHaveText(
+                new RegExp(GROUP_NAME),
+            );
+            await dialog.getByRole("textbox", { name: "Server name" }).fill(getServerName());
+            await expect(dialog.getByRole("combobox", { name: "Authentication type" })).toHaveText(
+                "SQL Login",
+            );
+            await dialog.getByRole("textbox", { name: "User name" }).fill(getUserName());
+            await dialog.getByRole("textbox", { name: "Password" }).fill(getPassword());
+            const trust = dialog.getByRole("checkbox", { name: "Trust server certificate" });
+            await trust.click();
+            await expect(trust).toBeChecked();
+            await dialog.getByRole("button", { name: "Connect", exact: true }).click();
+
+            // The connection is listed inside its group, one level below it.
+            const group = getObjectExplorerPane(page).getByRole("treeitem", {
+                name: new RegExp(`^${GROUP_NAME}`),
+                level: 1,
+            });
+            await expect(group).toBeVisible({ timeout: 60 * 1000 });
+            const connection = getObjectExplorerPane(page).getByRole("treeitem", {
+                name: new RegExp(`^${PROFILE_NAME}\\b`),
+                level: 2,
+            });
+            await expect(connection).toBeVisible({ timeout: 60 * 1000 });
+            await expect(connection).toHaveAttribute("aria-expanded", "true", {
+                timeout: 60 * 1000,
+            });
+
+            const reopened = await openDialog(page);
+            await expect(
+                reopened.getByRole("button", { name: `Edit ${PROFILE_NAME}`, exact: true }),
+            ).toBeVisible();
+            // Only this connection has been made, so it heads the Recent list.
+            await expect(
+                reopened.getByRole("button", {
+                    name: `Create new connection copied from ${PROFILE_NAME}`,
+                    exact: true,
+                }),
+            ).toBeVisible({ timeout: 30 * 1000 });
         },
     );
 });
