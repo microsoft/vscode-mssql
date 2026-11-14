@@ -250,3 +250,29 @@ export async function runCopyAsCommand(
 export async function openGridMenu(grid: Locator): Promise<void> {
     await grid.locator("button.slick-grid-menu-button").first().click();
 }
+
+/**
+ * Labels of every action a grid's toolbar offers.
+ *
+ * The toolbar folds actions that don't fit into a "More Query Actions" overflow menu, which is
+ * common for short result sets, so the menu is opened and its items are included too.
+ */
+export async function getGridToolbarActions(page: Page, grid: Locator): Promise<string[]> {
+    const buttons = await grid
+        .getByRole("button")
+        .evaluateAll((elements) =>
+            elements.map((element) => element.getAttribute("aria-label") ?? ""),
+        );
+    const overflow = grid.getByRole("button", { name: "More Query Actions" });
+    if ((await overflow.count()) === 0) {
+        return buttons;
+    }
+    await overflow.click();
+    const resultsFrame = await getResultsFrame(page);
+    const menuItems = resultsFrame.getByRole("menuitem");
+    await expect(menuItems.first()).toBeVisible();
+    const labels = (await menuItems.allInnerTexts()).map((text) => text.split("\n")[0].trim());
+    await page.keyboard.press("Escape");
+    await expect(menuItems).toHaveCount(0);
+    return [...buttons, ...labels];
+}

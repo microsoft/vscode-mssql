@@ -5,12 +5,12 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import * as yauzl from "yauzl";
 import { addConnectionButton } from "./utils/commonSelectors";
 import { test, expect } from "./baseFixtures";
 import { getWebviewByTitle } from "./utils/testHelpers";
 import { usePerTestVsCodeLifecycle } from "./utils/testLifecycle";
 import { testCases } from "./utils/testCases";
+import { readZipEntry } from "./utils/zipHelpers";
 
 const EXTENSION_ROOT = path.join(__dirname, "..", "..");
 const sourceManifest = JSON.parse(
@@ -26,40 +26,6 @@ const MAX_VSIX_SIZE_MB = 160;
 
 function getBuiltVsixPath(): string | undefined {
     return process.env["BUILT_VSIX_PATH"];
-}
-
-/** Reads one file out of a VSIX (a zip archive). */
-function readVsixEntry(vsixPath: string, entryName: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        yauzl.open(vsixPath, { lazyEntries: true }, (openError, zip) => {
-            if (openError || !zip) {
-                reject(openError ?? new Error(`Could not open ${vsixPath}`));
-                return;
-            }
-            zip.on("entry", (entry: yauzl.Entry) => {
-                if (entry.fileName !== entryName) {
-                    zip.readEntry();
-                    return;
-                }
-                zip.openReadStream(entry, (streamError, stream) => {
-                    if (streamError || !stream) {
-                        reject(streamError ?? new Error(`Could not read ${entryName}`));
-                        return;
-                    }
-                    const chunks: Buffer[] = [];
-                    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-                    stream.on("end", () => {
-                        zip.close();
-                        resolve(Buffer.concat(chunks).toString("utf8"));
-                    });
-                    stream.on("error", reject);
-                });
-            });
-            zip.on("end", () => reject(new Error(`${entryName} is not in ${vsixPath}`)));
-            zip.on("error", reject);
-            zip.readEntry();
-        });
-    });
 }
 
 /**
@@ -132,7 +98,7 @@ test.describe("MSSQL Extension - VSIX package contents", testCases(5878822), () 
 
     test("the packaged manifest has the source version", async () => {
         const packaged = JSON.parse(
-            await readVsixEntry(getBuiltVsixPath()!, "extension/package.json"),
+            await readZipEntry(getBuiltVsixPath()!, "extension/package.json"),
         ) as { name: string; publisher: string; version: string };
         expect(packaged.publisher).toBe(sourceManifest.publisher);
         expect(packaged.name).toBe(sourceManifest.name);
@@ -141,7 +107,7 @@ test.describe("MSSQL Extension - VSIX package contents", testCases(5878822), () 
 
     test("the packaged README matches the repository README", async () => {
         // vsce stores the README under a lower-cased name.
-        const packaged = await readVsixEntry(getBuiltVsixPath()!, "extension/readme.md");
+        const packaged = await readZipEntry(getBuiltVsixPath()!, "extension/readme.md");
         const source = fs.readFileSync(path.join(EXTENSION_ROOT, "README.md"), "utf8");
         // vsce rewrites relative links, so compare structure rather than the raw text.
         const headings = getMarkdownHeadings(source);

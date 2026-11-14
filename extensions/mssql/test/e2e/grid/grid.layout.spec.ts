@@ -19,6 +19,7 @@ import {
     getColumnHeader,
     openHeaderContextMenu,
     stageQuery,
+    getGridToolbarActions,
 } from "./gridActions";
 import {
     ABOVE_THRESHOLD_QUERY,
@@ -49,8 +50,30 @@ test.describe("MSSQL Extension - Results Grid Layout", () => {
     });
 
     test(
+        "every result set's toolbar offers Maximize and the save actions",
+        testCases(5878838),
+        async () => {
+            const { page } = getContext();
+            await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
+            for (const gridId of ["0_0", "0_1", "0_2"]) {
+                const grid = await waitForResultGrid(resultsFrame, gridId, 1);
+                const actions = await getGridToolbarActions(page, grid);
+                expect(actions.some((action) => action.startsWith("Maximize"))).toBe(true);
+                for (const action of [
+                    "Save as CSV",
+                    "Save as JSON",
+                    "Save as Excel",
+                    "Save as INSERT INTO",
+                ]) {
+                    expect(actions.some((label) => label.startsWith(action))).toBe(true);
+                }
+            }
+        },
+    );
+
+    test(
         "renders three result sets and restores them after maximizing one",
-        testCases(5878837),
+        testCases(5878837, 5878838),
         async () => {
             // The grid deliberately lazy-mounts offscreen result sets.
             await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();

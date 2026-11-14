@@ -12,9 +12,10 @@ import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
 import { QuickInput } from "../pageObjects";
 import { setQueryText, waitForResultGrid } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
-import { clickCell, getCell, resetGrid, stageQuery } from "./gridActions";
+import { clickCell, getCell, getGridToolbarActions, resetGrid, stageQuery } from "./gridActions";
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 import { testCases } from "../utils/testCases";
+import { readZipEntry } from "../utils/zipHelpers";
 
 test.describe("MSSQL Extension - Results Grid Export", () => {
     let grid: Locator;
@@ -71,7 +72,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
 
     test(
         "Save as CSV writes the result to the chosen path",
-        testCases(5878841, 5878886),
+        testCases(5878841, 5878886, 5878838),
         async () => {
             const filePath = await saveFromToolbar("Save as CSV", "results.csv");
             await expect
@@ -88,26 +89,30 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         },
     );
 
-    test("Save as JSON writes a parseable result file", testCases(5878840, 5878886), async () => {
-        const filePath = await saveFromToolbar("Save as JSON", "results.json");
-        await expect
-            .poll(
-                () => {
-                    try {
-                        return JSON.parse(fs.readFileSync(filePath, "utf8")) !== null;
-                    } catch {
-                        return false;
-                    }
-                },
-                { timeout: 15_000 },
-            )
-            .toBe(true);
-        const content = fs.readFileSync(filePath, "utf8");
-        expect(JSON.stringify(JSON.parse(content))).toContain("Ada");
-        expect(content).toContain("Eli");
-    });
+    test(
+        "Save as JSON writes a parseable result file",
+        testCases(5878840, 5878886, 5878838),
+        async () => {
+            const filePath = await saveFromToolbar("Save as JSON", "results.json");
+            await expect
+                .poll(
+                    () => {
+                        try {
+                            return JSON.parse(fs.readFileSync(filePath, "utf8")) !== null;
+                        } catch {
+                            return false;
+                        }
+                    },
+                    { timeout: 15_000 },
+                )
+                .toBe(true);
+            const content = fs.readFileSync(filePath, "utf8");
+            expect(JSON.stringify(JSON.parse(content))).toContain("Ada");
+            expect(content).toContain("Eli");
+        },
+    );
 
-    test("Save as Excel writes an XLSX workbook", testCases(5878886), async () => {
+    test("Save as Excel writes an XLSX workbook", testCases(5878886, 5878839), async () => {
         const filePath = await saveFromToolbar("Save as Excel", "results.xlsx");
         // The ZIP end-of-central-directory marker arrives after the workbook has been written.
         await expect
@@ -118,7 +123,48 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
             .toBeGreaterThan(0);
         const content = fs.readFileSync(filePath);
         expect(content.subarray(0, 2).toString("ascii")).toBe("PK");
+
+        // Every row is in the sheet (this describe turns headers off), and the decimal "amount"
+        // column (D) is stored as numeric cells rather than text: numeric cells carry no type
+        // attribute, or t="n".
+        const sheet = await readZipEntry(filePath, "xl/worksheets/sheet1.xml");
+        const cells = new Map(
+            [...sheet.matchAll(/<c r="([A-Z]+\d+)"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)].map(
+                ([, ref, attributes, body]) => [ref, { attributes, body: body ?? "" }],
+            ),
+        );
+        expect([...cells.keys()].filter((ref) => ref.startsWith("A"))).toHaveLength(
+            MIXED_TYPES_ROW_COUNT,
+        );
+        for (const [ref, expected] of [
+            ["D1", 12.5],
+            ["D2", 7.25],
+            ["D5", 99.99],
+        ] as const) {
+            const cell = cells.get(ref);
+            expect(cell, `cell ${ref}`).toBeDefined();
+            expect(cell!.attributes).not.toMatch(/\bt="(s|str|inlineStr)"/);
+            expect(Number(/<v>([^<]*)<\/v>/.exec(cell!.body)?.[1])).toBe(expected);
+        }
     });
+
+    test(
+        "a single result set's toolbar offers the save actions but not Maximize",
+        testCases(5878838),
+        async () => {
+            const { page } = getContext();
+            const actions = await getGridToolbarActions(page, grid);
+            for (const action of [
+                "Save as CSV",
+                "Save as JSON",
+                "Save as Excel",
+                "Save as INSERT INTO",
+            ]) {
+                expect(actions.some((label) => label.startsWith(action))).toBe(true);
+            }
+            expect(actions.some((label) => label.startsWith("Maximize"))).toBe(false);
+        },
+    );
 
     test("Save as INSERT INTO writes SQL statements", testCases(5878886), async () => {
         const filePath = await saveFromToolbar("Save as INSERT INTO", "results.sql");
