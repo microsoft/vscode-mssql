@@ -58,6 +58,7 @@ export const DesignerCheckbox = ({
                         : "400px",
             }}>
             <Checkbox
+                aria-label={showLabel ? undefined : component.componentProperties.title}
                 ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                 checked={value}
                 onChange={async (_event, data) => {
