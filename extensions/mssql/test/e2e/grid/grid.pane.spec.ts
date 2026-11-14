@@ -95,7 +95,7 @@ test.describe("MSSQL Extension - Results Grid Pane", () => {
 
     test(
         "shows result count and switches between results and messages",
-        testCases(5878837),
+        testCases(5878837, 5878882),
         async () => {
             const tabs = resultsFrame.getByTestId("results-tab-list");
             const resultsTab = tabs.getByRole("tab", { name: "Results (1)" });
@@ -221,7 +221,7 @@ test.describe("MSSQL Extension - Results Grid Pane", () => {
 
     test(
         "interleaves result sets with statements that return no rows",
-        testCases(5878890),
+        testCases(5878890, 5878889),
         async () => {
             const { electronApp, page } = getContext();
             await setQueryText(
@@ -288,7 +288,7 @@ test.describe("MSSQL Extension - Results Grid Pane", () => {
         },
     );
 
-    test("opens the result in a document tab", async () => {
+    test("opens the result in a document tab", testCases(5878883, 5878884), async () => {
         const { page } = getContext();
         await resultsFrame.getByRole("button", { name: "Open in New Tab" }).click();
 

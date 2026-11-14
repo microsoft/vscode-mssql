@@ -438,15 +438,19 @@ test.describe("MSSQL Extension - Results Grid Clipboard", testCases(5878885), ()
         expect(copied).toContain("Ada");
     });
 
-    test("copying a disjoint selection includes both selected values", async () => {
-        const { electronApp, page } = getContext();
-        await clearClipboard(electronApp);
-        await clickCell(grid, 0, 1);
-        await clickCell(grid, 4, 1, { modifiers: [getModifierKey()] });
-        await page.keyboard.press(`${getModifierKey()}+C`);
-        await expect.poll(() => readClipboard(electronApp)).toContain("Ada");
-        expect(await readClipboard(electronApp)).toContain("Eli");
-    });
+    test(
+        "copying a disjoint selection includes both selected values",
+        testCases(5878887),
+        async () => {
+            const { electronApp, page } = getContext();
+            await clearClipboard(electronApp);
+            await clickCell(grid, 0, 1);
+            await clickCell(grid, 4, 1, { modifiers: [getModifierKey()] });
+            await page.keyboard.press(`${getModifierKey()}+C`);
+            await expect.poll(() => readClipboard(electronApp)).toContain("Ada");
+            expect(await readClipboard(electronApp)).toContain("Eli");
+        },
+    );
 
     test("copying after sorting follows displayed order and source row values", async () => {
         const { electronApp, page } = getContext();

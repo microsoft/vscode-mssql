@@ -73,7 +73,7 @@ test.describe("MSSQL Extension - Results Grid Layout", () => {
 
     test(
         "renders three result sets and restores them after maximizing one",
-        testCases(5878837, 5878838),
+        testCases(5878837, 5878838, 5878888, 5878889),
         async () => {
             // The grid deliberately lazy-mounts offscreen result sets.
             await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
@@ -155,7 +155,7 @@ test.describe("MSSQL Extension - Results Grid Layout", () => {
 
     test(
         "renders results in batch order with heights based on row counts",
-        testCases(5878837),
+        testCases(5878837, 5878888, 5878889),
         async () => {
             const { electronApp, page } = getContext();
             await setQueryText(
