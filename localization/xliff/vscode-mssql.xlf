@@ -726,6 +726,13 @@
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
     </trans-unit>
+    <trans-unit id="++CODE++202396e4e01ead41a9cac98bde382da39ff1a3ff5ec75eef5b16b680a4d7094b">
+      <source xml:lang="en">Allow nulls for all columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b779d8e5ff6f085378afc3a2a9bfe2589186d3e364a350647e0d0ca2689bcfa">
+      <source xml:lang="en">Allow nulls for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
+    </trans-unit>
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
     </trans-unit>
@@ -2250,6 +2257,10 @@
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
+    <trans-unit id="++CODE++6f4b0783e2afe5149ce9b6131510721ed6d72b7be9108a55acbfb62faf471ebb">
+      <source xml:lang="en">Column name for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
+    </trans-unit>
     <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
       <source xml:lang="en">Column not found: {0}</source>
       <note>{0} is the column reference</note>
@@ -2263,6 +2274,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
       <source xml:lang="en">Column resize by content</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c587a61615e76d89e95dd1bb37d93aeafcaca2f1ec65278e9e5264ce745505e6">
+      <source xml:lang="en">Column settings</source>
     </trans-unit>
     <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
       <source xml:lang="en">Column width must be at least {0} pixels.</source>
@@ -3587,6 +3601,9 @@
     <trans-unit id="++CODE++b5521e491246f30be2e361bccb99dc09eea4223717ce7a282e5f541ad69ed84e">
       <source xml:lang="en">Data flush interval</source>
     </trans-unit>
+    <trans-unit id="++CODE++e59690e64e977c284a51d151faa9260fdd7f8712a3ecf002fbada2882e0d8083">
+      <source xml:lang="en">Data preview</source>
+    </trans-unit>
     <trans-unit id="++CODE++548c5b4d99727c76519438c8f3ae4cdd9fce1c53f1e12fdc4705bfedc47a7a8b">
       <source xml:lang="en">Data source</source>
     </trans-unit>
@@ -3602,6 +3619,10 @@
     </trans-unit>
     <trans-unit id="++CODE++51fb172a8d569d8820009c7a05d941da1d7ecc21f5248c355fbd7b50899c4c7d">
       <source xml:lang="en">Data type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0bb6814fc68d4d50071e930a5239e914611b801d9f57137290b73851ce401862">
+      <source xml:lang="en">Data type for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
     </trans-unit>
     <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
       <source xml:lang="en">Data type mismatch: &apos;{0}&apos; in column &apos;{1}&apos; incompatible with &apos;{2}&apos; in &apos;{3}&apos;</source>
@@ -9533,6 +9554,10 @@
     <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
       <source xml:lang="en">Primary key</source>
     </trans-unit>
+    <trans-unit id="++CODE++9260bf3a13c55679aa047d3f2862ff75da9d0eacff5194b9706ecaf7452a6bbe">
+      <source xml:lang="en">Primary key for {0}</source>
+      <note>{0} is the name of the column inferred from the imported file</note>
+    </trans-unit>
     <trans-unit id="++CODE++7c037e427ea90ebb3839e6931da6298342dc1b71a1ad9fa62d233b8535cdeb22">
       <source xml:lang="en">Primary plan</source>
     </trans-unit>
@@ -11868,6 +11893,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fab288881eb54dc21b74bf73d055bbdd8796429dc17d5ab97f21e6252b6ecec5">
       <source xml:lang="en">Set OpenAI API Key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++17c74474a6c9057231d2bf67a4a95af025a282ddd176e3a71bbc5bc870ee79f4">
+      <source xml:lang="en">Set all columns as primary key</source>
     </trans-unit>
     <trans-unit id="++CODE++0099e307c30bf6206a012fd8c962c7b7f6b10004d1ba789042ff0e5ff5841424">
       <source xml:lang="en">Set backup Compression</source>

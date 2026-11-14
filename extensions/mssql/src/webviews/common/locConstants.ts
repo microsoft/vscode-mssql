@@ -5954,6 +5954,34 @@ export class LocConstants {
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
             importNewFile: l10n.t("Import New File"),
+            dataPreviewTable: l10n.t("Data preview"),
+            columnSettingsTable: l10n.t("Column settings"),
+            columnNameFor: (columnName: string) =>
+                l10n.t({
+                    message: "Column name for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            dataTypeFor: (columnName: string) =>
+                l10n.t({
+                    message: "Data type for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            primaryKeyFor: (columnName: string) =>
+                l10n.t({
+                    message: "Primary key for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            allowNullsFor: (columnName: string) =>
+                l10n.t({
+                    message: "Allow nulls for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column inferred from the imported file"],
+                }),
+            selectAllPrimaryKey: l10n.t("Set all columns as primary key"),
+            selectAllAllowNulls: l10n.t("Allow nulls for all columns"),
         };
     }
 

@@ -6996,6 +6996,26 @@
     "Importing data...": "Importing data...",
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
+    "Data preview": "Data preview",
+    "Column settings": "Column settings",
+    "Column name for {0}/{0} is the name of the column inferred from the imported file": {
+        "message": "Column name for {0}",
+        "comment": ["{0} is the name of the column inferred from the imported file"]
+    },
+    "Data type for {0}/{0} is the name of the column inferred from the imported file": {
+        "message": "Data type for {0}",
+        "comment": ["{0} is the name of the column inferred from the imported file"]
+    },
+    "Primary key for {0}/{0} is the name of the column inferred from the imported file": {
+        "message": "Primary key for {0}",
+        "comment": ["{0} is the name of the column inferred from the imported file"]
+    },
+    "Allow nulls for {0}/{0} is the name of the column inferred from the imported file": {
+        "message": "Allow nulls for {0}",
+        "comment": ["{0} is the name of the column inferred from the imported file"]
+    },
+    "Set all columns as primary key": "Set all columns as primary key",
+    "Allow nulls for all columns": "Allow nulls for all columns",
     "Loading restore database...": "Loading restore database...",
     "Backup File": "Backup File",
     "URL": "URL",
