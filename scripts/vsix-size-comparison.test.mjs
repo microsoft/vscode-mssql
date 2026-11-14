@@ -131,19 +131,18 @@ test("rejects mismatched commits and invalid package sizes", () => {
     }
 });
 
-test("reports growth, reduction, and unchanged sizes using the existing integer percentages", () => {
+test("reports growth and reduction using the existing integer percentages", () => {
     const report = createSizeReport(
-        { ...sizes, mssql: 1060, sql_database_projects: 90 },
+        { ...sizes, mssql: 1060, keymap: 6 },
         baseline,
         baseSha,
     );
     assert.equal(report.available, true);
     assert.match(report.markdown, /Base commit: `a{40}`/);
     assert.match(report.markdown, /1000 KB \| 1060 KB \| 🔴 60 KB \( 6% \)/);
-    assert.match(report.markdown, /100 KB \| 90 KB \| 🟢 -10 KB \( -10% \)/);
-    assert.match(report.markdown, /10 KB \| 10 KB \| ⚪ 0 KB \( 0% \)/);
+    assert.match(report.markdown, /7 KB \| 6 KB \| 🟢 -1 KB \( -14% \)/);
     assert.match(report.environment, /mssql_vsix_percentage_change=6\n/);
-    assert.match(report.environment, /sqlproj_vsix_percentage_change=-10\n/);
+    assert.match(report.environment, /keymap_vsix_percentage_change=-14\n/);
 });
 
 test("unavailable baselines report PR sizes without a misleading percentage or size gate", () => {
@@ -159,7 +158,7 @@ test("unavailable baselines report PR sizes without a misleading percentage or s
         assert.doesNotMatch(report.markdown, /%/);
         assert.equal(
             report.environment,
-            "mssql_vsix_percentage_change=\nsqlproj_vsix_percentage_change=\ndataworkspace_vsix_percentage_change=\nkeymap_vsix_percentage_change=\n",
+            "mssql_vsix_percentage_change=\nkeymap_vsix_percentage_change=\n",
         );
     }
 });
