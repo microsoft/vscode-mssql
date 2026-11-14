@@ -18,6 +18,7 @@ import {
 import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { clickMenuItem, getCell, openHeaderContextMenu, stageQuery } from "./gridActions";
 import { SELECTION_QUERY, SELECTION_ROW_COUNT } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 test.describe("MSSQL Extension - Results Grid Settings", () => {
     let resultsFrame: FrameLocator;
@@ -89,16 +90,22 @@ test.describe("MSSQL Extension - Results Grid Settings", () => {
         await expect(grid).toHaveAttribute("data-frozen-index", "0");
     });
 
-    test("batch-message setting hides chatter while retaining PRINT output", async () => {
-        const { electronApp, page } = getContext();
-        await setQueryText(electronApp, page, "PRINT 'user message'; SELECT 1 AS id;");
-        await executeQueryAndWait(page);
-        await resultsFrame
-            .getByTestId("results-tab-list")
-            .getByRole("tab", { name: "Messages" })
-            .click();
-        const messages = resultsFrame.locator('[data-vscode-context*="queryResultMessagesPane"]');
-        await expect(messages).toContainText("user message");
-        await expect(messages).not.toContainText("Started executing query");
-    });
+    test(
+        "batch-message setting hides chatter while retaining PRINT output",
+        testCases(5878890),
+        async () => {
+            const { electronApp, page } = getContext();
+            await setQueryText(electronApp, page, "PRINT 'user message'; SELECT 1 AS id;");
+            await executeQueryAndWait(page);
+            await resultsFrame
+                .getByTestId("results-tab-list")
+                .getByRole("tab", { name: "Messages" })
+                .click();
+            const messages = resultsFrame.locator(
+                '[data-vscode-context*="queryResultMessagesPane"]',
+            );
+            await expect(messages).toContainText("user message");
+            await expect(messages).not.toContainText("Started executing query");
+        },
+    );
 });

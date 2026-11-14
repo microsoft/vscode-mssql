@@ -69,22 +69,26 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         return filePath;
     }
 
-    test("Save as CSV writes the result to the chosen path", testCases(5878841), async () => {
-        const filePath = await saveFromToolbar("Save as CSV", "results.csv");
-        await expect
-            .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
-            .toContain("Eli");
-        const content = fs.readFileSync(filePath, "utf16le");
-        expect(content).toContain("Ada");
-        expect(content).toContain("Eli");
-        expect(content).toContain(";");
-        expect(content).not.toContain("id;name");
-        await expect(getCell(grid, 0, 4)).toHaveText(GUID_VALUE);
-        expect(content).toContain(GUID_VALUE);
-        expect(content).not.toContain(GUID_VALUE.toUpperCase());
-    });
+    test(
+        "Save as CSV writes the result to the chosen path",
+        testCases(5878841, 5878886),
+        async () => {
+            const filePath = await saveFromToolbar("Save as CSV", "results.csv");
+            await expect
+                .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
+                .toContain("Eli");
+            const content = fs.readFileSync(filePath, "utf16le");
+            expect(content).toContain("Ada");
+            expect(content).toContain("Eli");
+            expect(content).toContain(";");
+            expect(content).not.toContain("id;name");
+            await expect(getCell(grid, 0, 4)).toHaveText(GUID_VALUE);
+            expect(content).toContain(GUID_VALUE);
+            expect(content).not.toContain(GUID_VALUE.toUpperCase());
+        },
+    );
 
-    test("Save as JSON writes a parseable result file", testCases(5878840), async () => {
+    test("Save as JSON writes a parseable result file", testCases(5878840, 5878886), async () => {
         const filePath = await saveFromToolbar("Save as JSON", "results.json");
         await expect
             .poll(
@@ -103,7 +107,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content).toContain("Eli");
     });
 
-    test("Save as Excel writes an XLSX workbook", async () => {
+    test("Save as Excel writes an XLSX workbook", testCases(5878886), async () => {
         const filePath = await saveFromToolbar("Save as Excel", "results.xlsx");
         // The ZIP end-of-central-directory marker arrives after the workbook has been written.
         await expect
@@ -116,7 +120,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content.subarray(0, 2).toString("ascii")).toBe("PK");
     });
 
-    test("Save as INSERT INTO writes SQL statements", async () => {
+    test("Save as INSERT INTO writes SQL statements", testCases(5878886), async () => {
         const filePath = await saveFromToolbar("Save as INSERT INTO", "results.sql");
         await expect
             .poll(() => fs.readFileSync(filePath, "utf8"), { timeout: 15_000 })
@@ -126,7 +130,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
         expect(content).toContain("Ada");
     });
 
-    test("exporting a selected range saves only that selection", async () => {
+    test("exporting a selected range saves only that selection", testCases(5878886), async () => {
         await clickCell(grid, 0, 1);
         await clickCell(grid, 1, 1, { modifiers: ["Shift"] });
         await expect(grid.locator(".slick-cell.selected")).toHaveCount(2);

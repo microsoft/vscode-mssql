@@ -30,6 +30,7 @@ import {
     stageQuery,
 } from "./gridActions";
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 /**
  * Clipboard and cell-formatting coverage for the results grid.
@@ -38,7 +39,7 @@ import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixt
  * on screen and hands it back in the state it found it. That is what keeps the suite inside its
  * time budget - re-running the query per test would cost seconds, relaunching VS Code a minute.
  */
-test.describe("MSSQL Extension - Results Grid Clipboard", () => {
+test.describe("MSSQL Extension - Results Grid Clipboard", testCases(5878885), () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 
