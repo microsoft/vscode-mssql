@@ -5,7 +5,7 @@
 
 import { FrameLocator, Locator, Page } from "@playwright/test";
 import { expect, test } from "./baseFixtures";
-import { QuickInput } from "./pageObjects/quickInput";
+import { QuickInput, VsCodeCommand } from "./pageObjects";
 import {
     BackupHistoryRow,
     BackupSetType,
@@ -22,13 +22,13 @@ import {
 } from "./utils/backupRestoreHelpers";
 import { getServerName } from "./utils/envConfigReader";
 import {
-    connectActiveEditor,
     getActiveEditorText,
     getSeededLaunchConfig,
+    SEEDED_PROFILE_NAME,
 } from "./utils/seededConnection";
 import { dropDatabaseIfExists, uniqueDatabaseName } from "./utils/sqlClient";
 import { testCases } from "./utils/testCases";
-import { executeQueryAndWait, getStatusBar } from "./utils/testHelpers";
+import { executeQueryAndWait, pickQuickInputItem, waitForConnected } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 
 type BackupTypeLabel = "Full" | "Differential" | "Transaction Log";
@@ -47,6 +47,7 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         logBackup: uniqueDatabaseName("BkLog"),
         scriptFullBackup: uniqueDatabaseName("BkScriptFull"),
         scriptDifferentialBackup: uniqueDatabaseName("BkScriptDiff"),
+        scriptLogBackup: uniqueDatabaseName("BkScriptLog"),
         restoreFromDatabase: uniqueDatabaseName("RsFromDbSrc"),
         restoreFromFile: uniqueDatabaseName("RsFromFileSrc"),
     };
@@ -162,19 +163,18 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
                 },
                 { timeout: 60 * 1000, message: "Expected the backup script to open." },
             )
-            .toContain(`BACKUP DATABASE [${databaseName}]`);
+            // Log backups are scripted as BACKUP LOG rather than BACKUP DATABASE.
+            .toMatch(new RegExp(`BACKUP (DATABASE|LOG) \\[${databaseName}\\]`));
         const backupPath = /DISK\s*=\s*N'([^']+)'/.exec(script)?.[1];
         expect(backupPath, "The script should name a backup file").toBeTruthy();
 
-        // The script opens connected to the last active connection; if it does not, connect it
-        // to the server named in the script, as the manual case does.
-        const isConnected = await expect(getStatusBar(vsCodePage))
-            .toContainText(getServerName(), { timeout: 15 * 1000 })
-            .then(() => true)
-            .catch(() => false);
-        if (!isConnected) {
-            await connectActiveEditor(vsCodePage);
-        }
+        // The script may or may not open already connected, and the status bar can't tell the two
+        // apart while it is still connecting. Change Connection always shows the profile picker,
+        // so choosing the server explicitly works either way, as the manual case allows.
+        await expect(vsCodePage.locator('[aria-label^="Execute Query"]').first()).toBeVisible();
+        await new QuickInput(vsCodePage).run(VsCodeCommand.mssqlChangeConnection);
+        await pickQuickInputItem(vsCodePage, SEEDED_PROFILE_NAME);
+        await waitForConnected(vsCodePage, getServerName());
         await executeQueryAndWait(vsCodePage);
         return { script, backupPath: backupPath! };
     }
@@ -319,6 +319,21 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
             const { script, backupPath } = await scriptAndRunBackup(databaseName, "Differential");
             expect(script).toMatch(/\bWITH\s+DIFFERENTIAL\b/);
             await expectNewBackupOnServer(databaseName, "I", backupPath);
+            await revertAndCloseActiveEditor();
+        },
+    );
+
+    test(
+        "Script and run a transaction log backup from the database context menu",
+        testCases(5878922),
+        async () => {
+            const databaseName = sourceDatabases.scriptLogBackup;
+            const { script, backupPath } = await scriptAndRunBackup(
+                databaseName,
+                "Transaction Log",
+            );
+            expect(script).toMatch(new RegExp(`BACKUP LOG \\[${databaseName}\\]`));
+            await expectNewBackupOnServer(databaseName, "L", backupPath);
             await revertAndCloseActiveEditor();
         },
     );
