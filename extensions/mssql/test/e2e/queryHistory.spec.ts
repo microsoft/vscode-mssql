@@ -244,7 +244,9 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         ).toBeVisible();
     }
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): the status bar did not show the expected connection text in time.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "pausing and resuming from the view title stops and restarts capture",
         testCases(5878842),
         async () => {

@@ -277,7 +277,9 @@ test.describe("MSSQL Extension - Language Service", () => {
 
         const procedurePath = ["Programmability", "Stored Procedures"];
 
-        test("Script stored procedure as Create", testCases(5878833), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script did not match the expected text.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script stored procedure as Create", testCases(5878833), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 procedurePath,
@@ -299,7 +301,9 @@ test.describe("MSSQL Extension - Language Service", () => {
             );
         });
 
-        test("Script stored procedure as Alter", testCases(5878833), async () => {
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script did not match the expected text.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme("Script stored procedure as Alter", testCases(5878833), async () => {
             await expectGeneratedScript(
                 getContext().page,
                 procedurePath,

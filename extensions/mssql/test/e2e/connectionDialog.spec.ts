@@ -118,7 +118,9 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run (and was flaky in an earlier run): a toBeVisible assertion timed out.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "connecting to an untrusted certificate offers to trust it and then connects",
         testCases(5878869),
         async () => {

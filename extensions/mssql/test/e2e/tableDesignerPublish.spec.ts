@@ -91,7 +91,9 @@ test.describe("Table Designer - create a table", () => {
         },
     );
 
-    test("Publish creates the table on the server", testCases(5878892), async () => {
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): a toBeVisible assertion timed out.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("Publish creates the table on the server", testCases(5878892), async () => {
         let frame = await openNewTableDesigner(page, databaseName);
         await setTableName(page, frame, "PublishedTable");
         await addColumn(page, frame, "Title", "nvarchar(50)");
@@ -198,7 +200,9 @@ test.describe("Table Designer - edit a table", () => {
         },
     );
 
-    test("Publish applies the edits to the table", testCases(5878893), async () => {
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): clicking the dbo.PublishCustomers Object Explorer node timed out.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("Publish applies the edits to the table", testCases(5878893), async () => {
         let frame = await openExistingTableDesigner(page, databaseName, "dbo.PublishCustomers");
         await editCustomersTable(frame);
 

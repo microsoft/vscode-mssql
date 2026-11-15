@@ -172,7 +172,9 @@ test.describe("SQL Database Projects publish dialog", () => {
         await expect(drawer).toBeHidden();
     });
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Publish Project webview did not appear in time.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "SQLCMD values and advanced options flow into the generated script",
         testCases(5878851),
         async () => {
