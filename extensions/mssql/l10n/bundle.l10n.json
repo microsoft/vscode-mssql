@@ -4766,6 +4766,10 @@
         "message": "Foreign Key {0}",
         "comment": ["{0} is the index of the foreign key"]
     },
+    "Delete foreign key {0}/{0} is the foreign key name": {
+        "message": "Delete foreign key {0}",
+        "comment": ["{0} is the foreign key name"]
+    },
     "Source Column": "Source Column",
     "Target Table": "Target Table",
     "Export": "Export",
@@ -4951,6 +4955,9 @@
     "Undo": "Undo",
     "Redo": "Redo",
     "Search tables...": "Search tables...",
+    "Search tables to filter": "Search tables to filter",
+    "Tables to show": "Tables to show",
+    "Find tables": "Find tables",
     "Show table relationships": "Show table relationships",
     "Build Data API": "Build Data API",
     "Show Changes": "Show Changes",

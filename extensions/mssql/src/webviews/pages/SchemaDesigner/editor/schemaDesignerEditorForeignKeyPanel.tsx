@@ -392,6 +392,7 @@ const ForeignKeyCard = ({
                     <Button
                         appearance="subtle"
                         icon={<DeleteRegular />}
+                        aria-label={locConstants.schemaDesigner.deleteForeignKey(foreignKey.name)}
                         onClick={() => onDelete(index)}
                     />
                 }

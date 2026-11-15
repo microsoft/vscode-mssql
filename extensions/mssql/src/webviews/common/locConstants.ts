@@ -2268,6 +2268,12 @@ export class LocConstants {
                     args: [index],
                     comment: ["{0} is the index of the foreign key"],
                 }),
+            deleteForeignKey: (foreignKeyName: string) =>
+                l10n.t({
+                    message: "Delete foreign key {0}",
+                    args: [foreignKeyName],
+                    comment: ["{0} is the foreign key name"],
+                }),
             sourceColumn: l10n.t("Source Column"),
             targetTable: l10n.t("Target Table"),
             foreignColumn: l10n.t("Foreign Column"),
@@ -2553,6 +2559,9 @@ export class LocConstants {
             undo: l10n.t("Undo"),
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
+            filterTablesSearchLabel: l10n.t("Search tables to filter"),
+            filterTablesTreeLabel: l10n.t("Tables to show"),
+            findTables: l10n.t("Find tables"),
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
             dabNavLabel: l10n.t("Build Data API"),

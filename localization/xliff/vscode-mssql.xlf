@@ -3847,6 +3847,10 @@
     <trans-unit id="++CODE++5fc8c270921fb866e4aa1b9356162c9f6d09f36b054ef907670ae5a323a5c194">
       <source xml:lang="en">Delete filter</source>
     </trans-unit>
+    <trans-unit id="++CODE++1bca2d5e2b50322e6123a38dad295ca35b3663f9c41727a7d7be5dc3deab7a04">
+      <source xml:lang="en">Delete foreign key {0}</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
     <trans-unit id="++CODE++ace55b7363965e6086d58602f0aeea9543bb3d510682a2165ccc655e904e0354">
       <source xml:lang="en">Delete perf run &apos;{0}&apos;? This removes the run directory and its artifacts from disk.</source>
       <note>{0} is the perf run id</note>
@@ -6023,6 +6027,9 @@
     </trans-unit>
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb3490495c1bf218e009bb2a5a965cfd120b1da39e9c7114b65eb183f36e493a">
+      <source xml:lang="en">Find tables</source>
     </trans-unit>
     <trans-unit id="++CODE++f8076828c20dacab21a5b00a767888abd491d890e7093d62d0c9a6bb43ec9e77">
       <source xml:lang="en">Finding a .NET runtime</source>
@@ -11387,6 +11394,9 @@
     <trans-unit id="++CODE++14b4e9b2b94c620edf0bfa25d44598818614a26a5343ecf963a54d6ff12bedb7">
       <source xml:lang="en">Search subscriptions...</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b14adfb819c95f0d965a0438405fb1ba470bfea1d412e4452246db79eca802b">
+      <source xml:lang="en">Search tables to filter</source>
+    </trans-unit>
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
     </trans-unit>
@@ -12682,6 +12692,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
       <source xml:lang="en">Tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9eae20361dd600ca2693624e4b059e9c0b4fbcd8e0997aea2147b56ddf36dc41">
+      <source xml:lang="en">Tables to show</source>
     </trans-unit>
     <trans-unit id="++CODE++ab25773875891beef60edb4b69226e94a44e347625f2188a767af0552f50f33f">
       <source xml:lang="en">Tag keys must be unique.</source>
