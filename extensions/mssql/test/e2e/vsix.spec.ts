@@ -75,18 +75,22 @@ test.describe("MSSQL Extension - VSIX Based tests", async () => {
         ).toBeVisible();
     });
 
-    test("the installed extension reports the source version", testCases(5878822), async () => {
-        const { extensionsDir } = getContext();
-        const installed = JSON.parse(
-            fs.readFileSync(path.join(extensionsDir, "extensions.json"), "utf8"),
-        ) as Array<{ identifier: { id: string }; version: string }>;
-        const mssql = installed.find(
-            (extension) =>
-                extension.identifier.id.toLowerCase() ===
-                `${sourceManifest.publisher}.${sourceManifest.name}`.toLowerCase(),
-        );
-        expectSourceVersion(mssql?.version);
-    });
+    test(
+        "the installed extension reports the source version",
+        testCases(5878822, 5878859),
+        async () => {
+            const { extensionsDir } = getContext();
+            const installed = JSON.parse(
+                fs.readFileSync(path.join(extensionsDir, "extensions.json"), "utf8"),
+            ) as Array<{ identifier: { id: string }; version: string }>;
+            const mssql = installed.find(
+                (extension) =>
+                    extension.identifier.id.toLowerCase() ===
+                    `${sourceManifest.publisher}.${sourceManifest.name}`.toLowerCase(),
+            );
+            expectSourceVersion(mssql?.version);
+        },
+    );
 });
 
 /** Checks the packaged VSIX itself: the version, README, and size a user downloads. */
