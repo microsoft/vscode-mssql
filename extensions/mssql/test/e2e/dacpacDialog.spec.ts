@@ -122,7 +122,12 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
         return { kind: "database", connection: SEEDED_PROFILE_NAME, database };
     }
 
-    test.describe("Extract and publish a DACPAC", () => {
+    // Failed in the Linux CI build-and-test smoke run: publishing the DACPAC flaked because the
+    // Data-tier Application webview did not appear in time, and the Schema Compare check that
+    // follows depends on the database that publish creates, so it then failed too. These tests
+    // run serially and build on each other, so the whole group is marked.
+    // TODO: Stabilize these tests and re-enable them.
+    test.describe.fixme("Extract and publish a DACPAC", () => {
         test.describe.configure({ mode: "serial" });
 
         test(
@@ -155,9 +160,7 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
             },
         );
 
-        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Data-tier Application webview did not appear in time.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme(
+        test(
             "Publish DACPAC: deploys the extracted package to a new database",
             testCases(5878945),
             async () => {
