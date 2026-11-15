@@ -100,6 +100,15 @@ async function countUserTables(database: string): Promise<number> {
 }
 
 /** Expects exactly the five SimpleGuitarShop tables, all with `action`. */
+/** All .sql source text of a project folder, concatenated. */
+function readProjectSources(projectDir: string): string {
+    return fs
+        .readdirSync(projectDir, { recursive: true, encoding: "utf8" })
+        .filter((file) => file.endsWith(".sql"))
+        .map((file) => fs.readFileSync(path.join(projectDir, file), "utf8"))
+        .join("\n");
+}
+
 async function expectGuitarShopTables(frame: FrameLocator, action: "Add" | "Delete") {
     await expect(getDifferenceRows(frame)).toHaveCount(GUITAR_SHOP_TABLES.length);
     const differences = await getDifferences(frame);
@@ -455,4 +464,60 @@ test.describe("Schema Compare", () => {
             frame.getByRole("option", { name: SEEDED_PROFILE_NAME, exact: true }),
         ).toBeVisible();
     });
+
+    test(
+        "Database to SQL project: filter object types, switch direction, and apply",
+        testCases(5878902),
+        async () => {
+            const { page } = getContext();
+            await ensureDatabase(guitarShopDb);
+            // Applying changes rewrites the project, so this test gets its own copy.
+            const targetDir = path.join(workDir, "projectTarget");
+            fs.mkdirSync(targetDir, { recursive: true });
+            const { projectFile } = buildFixtureProject("Wingtips", targetDir);
+
+            let frame = await openSchemaCompareFromPalette(page);
+            await selectEndpoint(page, frame, "source", {
+                kind: "database",
+                connection: SEEDED_PROFILE_NAME,
+                database: guitarShopDb,
+            });
+            await selectEndpoint(page, frame, "target", { kind: "sqlproj", file: projectFile });
+            await runComparison(frame);
+            await expect(getDifferenceRows(frame, "Table").first()).toBeVisible();
+
+            await setObjectTypesAndRecompare(page, frame, ["Tables"], false);
+            await expect(getDifferenceRows(frame, "Table")).toHaveCount(0);
+            const before = await getDifferences(frame);
+            expect(before.length).toBeGreaterThan(0);
+            // The project's own objects are missing from the database, so they are deleted.
+            expect(before.every((difference) => difference.action === "Delete")).toBe(true);
+
+            const flipped = (action: string) => (action === "Delete" ? "Add" : "Delete");
+            await getToolbarButton(frame, "Switch Direction").click();
+            await expect
+                .poll(async () => (await getDifferences(frame)).map((d) => d.action), {
+                    timeout: 2 * 60 * 1000,
+                })
+                .toEqual(before.map((difference) => flipped(difference.action)));
+
+            await getToolbarButton(frame, "Switch Direction").click();
+            await expect
+                .poll(async () => (await getDifferences(frame)).map((d) => d.action), {
+                    timeout: 2 * 60 * 1000,
+                })
+                .toEqual(before.map((difference) => difference.action));
+
+            frame = await getSchemaCompareFrame(page);
+            await setObjectTypesAndRecompare(page, frame, ["Tables"], true);
+            await expect(getDifferenceRows(frame, "Table").first()).toBeVisible();
+
+            await applyChanges(page, frame);
+            // Applying to a project writes each source table into the project's files.
+            const projectText = readProjectSources(path.dirname(projectFile));
+            for (const table of GUITAR_SHOP_TABLES) {
+                expect(projectText).toMatch(new RegExp(`CREATE TABLE \\[dbo\\]\\.\\[${table}\\]`));
+            }
+        },
+    );
 });
