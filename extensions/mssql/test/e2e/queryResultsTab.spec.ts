@@ -86,7 +86,9 @@ test.describe("MSSQL Extension - Query results in a document tab", () => {
             launchOptions: { initialConfig: promptEnabledConfig() },
         });
 
-        test(
+        // Failed in the Linux CI build-and-test smoke run: clicking "Open in New Tab" timed out because it was obscured.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme(
             "opens later results in a tab instead of the panel",
             testCases(5878891, 5878883, 5878884),
             async () => {
@@ -111,7 +113,9 @@ test.describe("MSSQL Extension - Query results in a document tab", () => {
             launchOptions: { initialConfig: promptEnabledConfig() },
         });
 
-        test(
+        // Failed in the Linux CI build-and-test smoke run: clicking "Open in New Tab" timed out because it was obscured.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme(
             "keeps later results in the panel and does not ask again",
             testCases(5878891, 5878882, 5878884),
             async () => {

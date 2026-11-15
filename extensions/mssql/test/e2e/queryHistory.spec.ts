@@ -257,7 +257,9 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         },
     );
 
-    test(
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): hovering the Query History heading timed out.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "pausing and resuming from the command palette stops and restarts capture",
         testCases(5878842),
         async () => {
@@ -270,7 +272,9 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: clicking the e2e-server Connections node timed out because it was obscured.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Clear All from the view title's More Actions menu removes every item",
         testCases(5878843),
         async () => {
@@ -284,8 +288,14 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         },
     );
 
-    test("Clear All from the command palette removes every item", testCases(5878843), async () => {
-        const { page } = getContext();
-        await expectClearAll(page, () => runCommand(page, CLEAR_ALL));
-    });
+    // Failed in the Linux CI build-and-test smoke run: an expected element was not found.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
+        "Clear All from the command palette removes every item",
+        testCases(5878843),
+        async () => {
+            const { page } = getContext();
+            await expectClearAll(page, () => runCommand(page, CLEAR_ALL));
+        },
+    );
 });

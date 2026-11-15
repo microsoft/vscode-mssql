@@ -155,7 +155,9 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
             },
         );
 
-        test(
+        // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Data-tier Application webview did not appear in time.
+        // TODO: Stabilize this test and re-enable it.
+        test.fixme(
             "Publish DACPAC: deploys the extracted package to a new database",
             testCases(5878945),
             async () => {

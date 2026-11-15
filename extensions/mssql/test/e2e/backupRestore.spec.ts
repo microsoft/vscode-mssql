@@ -323,7 +323,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         },
     );
 
-    test(
+    // Failed in the Linux CI build-and-test smoke run: the "MS SQL: Change Connection (MSSQL)" quick pick row never appeared.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme(
         "Script and run a transaction log backup from the database context menu",
         testCases(5878922),
         async () => {

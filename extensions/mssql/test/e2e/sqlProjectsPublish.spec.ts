@@ -216,7 +216,9 @@ test.describe("SQL Database Projects publish dialog", () => {
         },
     );
 
-    test("publishes the project to an existing server", testCases(5878851), async () => {
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Publish Project webview did not appear in time.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("publishes the project to an existing server", testCases(5878851), async () => {
         const { page } = getContext();
         const databaseName = uniqueDatabaseName("SqlProjPublish");
         createdDatabases.push(databaseName);
@@ -342,7 +344,9 @@ test.describe("SQL Database Projects publish dialog", () => {
         },
     );
 
-    test("saves a partially completed publish profile", testCases(5878858), async () => {
+    // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Publish Project webview did not appear in time.
+    // TODO: Stabilize this test and re-enable it.
+    test.fixme("saves a partially completed publish profile", testCases(5878858), async () => {
         const { page } = getContext();
         const databaseName = uniqueDatabaseName("SqlProjPartial");
         const dialog = await openPublishDialog(page);
