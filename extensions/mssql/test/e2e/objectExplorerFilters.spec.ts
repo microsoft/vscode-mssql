@@ -179,7 +179,7 @@ test.describe.fixme("MSSQL Extension - Object Explorer filters", () => {
         await expectVisibleNodes(page, TABLE_NODE, ALL_TABLES);
     });
 
-    test("Filter dialog is pre-populated with the applied filter", testCases(5878876), async () => {
+    test("Filter dialog is pre-populated with the applied filter", testCases(5878868), async () => {
         const { page } = getContext();
         await applyTablesFilter(page, { Name: "Customers", Schema: "sales" });
 
@@ -197,7 +197,7 @@ test.describe.fixme("MSSQL Extension - Object Explorer filters", () => {
 
     test(
         "Editing the value and operator of an applied filter updates the folder",
-        testCases(5878876),
+        testCases(5878868),
         async () => {
             const { page } = getContext();
             await applyTablesFilter(page, { Name: "Order" });
@@ -219,7 +219,7 @@ test.describe.fixme("MSSQL Extension - Object Explorer filters", () => {
         },
     );
 
-    test("Clear Filters inline action removes the filter", testCases(5878877), async () => {
+    test("Clear Filters inline action removes the filter", testCases(5878868), async () => {
         const { page } = getContext();
         await applyTablesFilter(page, { Schema: "sales" });
         await expectVisibleNodes(page, TABLE_NODE, ["sales.Customers", "sales.Invoices"]);
@@ -232,7 +232,7 @@ test.describe.fixme("MSSQL Extension - Object Explorer filters", () => {
         await expect(tables.getByRole("button", { name: "Clear Filters" })).toHaveCount(0);
     });
 
-    test("Clear Filters context menu item removes the filter", testCases(5878877), async () => {
+    test("Clear Filters context menu item removes the filter", testCases(5878868), async () => {
         const { page } = getContext();
         await applyTablesFilter(page, { Name: "Invoices" }, "context menu");
         await expectVisibleNodes(page, TABLE_NODE, ["sales.Invoices"]);
@@ -245,7 +245,7 @@ test.describe.fixme("MSSQL Extension - Object Explorer filters", () => {
 
     test(
         "Clearing every value in the filter dialog removes the filter",
-        testCases(5878877),
+        testCases(5878868),
         async () => {
             const { page } = getContext();
             await applyTablesFilter(page, { Name: "Customers", Schema: "dbo" });
