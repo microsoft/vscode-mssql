@@ -2,7 +2,7 @@ name: Build and Test (Unit + E2E)
 # Trigger the workflow on PRs to the main branch.
 # It performs the following checks:
 # 1. Calculate the size difference between the webview bundles of the main branch and the PR branch.
-# 2. Calculate the size difference between the VSIX files of the main branch and the PR branch.
+# 2. Calculate MSSQL and keymap VSIX size differences between the target branch and the PR branch.
 # 3. Does a check if the PR has properly localized strings.
 
 on:
@@ -135,7 +135,7 @@ jobs:
           name: keymap-vsix
           path: ./extensions/database-management-keymap/*.vsix
 
-      - name: Calculate VSIX size comparisons
+      - name: Calculate MSSQL and keymap VSIX size comparisons
         if: env.should_compare_baseline == 'true'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -397,15 +397,9 @@ jobs:
             PIPELINE_FAILED=true
           fi
 
-          # Check SqlProj VSIX percentage change (if variables exist)
-          if [ "${{ env.sqlproj_vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.sqlproj_vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
-            echo "  ❌ SqlProj VSIX size increased by more than 5% (${{ env.sqlproj_vsix_percentage_change }}%)"
-            PIPELINE_FAILED=true
-          fi
-
-          # Check DataWorkspace VSIX percentage change (if variables exist)
-          if [ "${{ env.dataworkspace_vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.dataworkspace_vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
-            echo "  ❌ DataWorkspace VSIX size increased by more than 5% (${{ env.dataworkspace_vsix_percentage_change }}%)"
+          # Check Keymap VSIX percentage change (if variables exist)
+          if [ "${{ env.keymap_vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.keymap_vsix_percentage_change }} > 10" | bc -l) -eq 1 ]; then
+            echo "  ❌ Keymap VSIX size increased by more than 10% (${{ env.keymap_vsix_percentage_change }}%)"
             PIPELINE_FAILED=true
           fi
 
