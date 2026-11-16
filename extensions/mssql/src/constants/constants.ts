@@ -11,7 +11,6 @@ export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
 export const configProfilerEventBufferSize = "profiler.eventBufferSize";
 export const mssqlProviderName = "MSSQL";
-export const azureSqlContainerEngineEdition = -978196525;
 export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
 export const objectExplorerId = "objectExplorer";
