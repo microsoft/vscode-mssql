@@ -2717,6 +2717,9 @@ export class Webview {
 export const designerPublishingDisabled = l10n.t(
     "Publishing is currently disabled and will be available in a future release",
 );
+export const designerPublishingEditionCheckFailed = l10n.t(
+    "Unable to determine the server edition. Changes have not been published. Reconnect and try again.",
+);
 
 export class TableDesigner {
     public static General = l10n.t("General");

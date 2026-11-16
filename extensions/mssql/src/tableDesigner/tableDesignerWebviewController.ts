@@ -20,7 +20,7 @@ import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
-import { azureSqlContainerEngineEdition } from "../constants/constants";
+import { ensureDesignerPublishingSupported } from "../services/schemaService";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
@@ -389,23 +389,6 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
-            if (
-                this.telemetryContext.serverInfo?.engineEditionId === azureSqlContainerEngineEdition
-            ) {
-                return {
-                    ...state,
-                    apiState: {
-                        ...state.apiState,
-                        publishState: designer.LoadState.Error,
-                    },
-                    publishingError: LocConstants.designerPublishingDisabled,
-                    publishProgressMessages: this.appendProgressMessage(
-                        [],
-                        LocConstants.designerPublishingDisabled,
-                        true,
-                    ),
-                };
-            }
             const publishProgressMessages: LoadingLogEntry[] = [];
             const endActivity = startActivity(
                 TelemetryViews.TableDesigner,
@@ -435,6 +418,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 publishProgressMessages,
             };
             try {
+                await this.ensurePublishingSupported();
                 const publishResponse = await this._tableDesignerService.publishChanges(
                     payload.table,
                 );
@@ -470,6 +454,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     ),
                 };
                 endActivity.endFailed(e, false);
+                return state;
             }
 
             let targetNode = this._targetNode;
@@ -530,30 +515,6 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("generatePreviewReport", async (state, payload) => {
-            if (
-                this.telemetryContext.serverInfo?.engineEditionId === azureSqlContainerEngineEdition
-            ) {
-                return {
-                    ...state,
-                    apiState: {
-                        ...state.apiState,
-                        previewState: designer.LoadState.Error,
-                        publishState: designer.LoadState.NotStarted,
-                        generateScriptState: designer.LoadState.NotStarted,
-                    },
-                    publishingError: undefined,
-                    generatePreviewReportResult: {
-                        schemaValidationError: LocConstants.designerPublishingDisabled,
-                        report: "",
-                        mimeType: "",
-                    },
-                    reportProgressMessages: this.appendProgressMessage(
-                        [],
-                        LocConstants.designerPublishingDisabled,
-                        true,
-                    ),
-                };
-            }
             const reportProgressMessages: LoadingLogEntry[] = [];
             this.state = {
                 ...this.state,
@@ -578,6 +539,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 reportProgressMessages,
             };
             try {
+                await this.ensurePublishingSupported();
                 const previewReport = await this._tableDesignerService.generatePreviewReport(
                     payload.table,
                 );
@@ -735,6 +697,13 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
     private appendLoadingMessage(message: string, isError = false): LoadingLogEntry[] {
         return this.appendProgressMessage(this.state.loadingMessages, message, isError);
+    }
+
+    private async ensurePublishingSupported(): Promise<void> {
+        await ensureDesignerPublishingSupported(
+            this._connectionManager,
+            this._targetNode?.sessionId ?? this._targetNode?.connectionProfile,
+        );
     }
 
     private appendProgressMessage(

@@ -13662,6 +13662,9 @@
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cadd9aae3a400c592512e09bf3f2ff59d8f2a5325907775b67a63ee661248f47">
+      <source xml:lang="en">Unable to determine the server edition. Changes have not been published. Reconnect and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1f35c8ba729687aca729291ff1d98b18e4c7b7b7857006e521e8b9420b774111">
       <source xml:lang="en">Unable to establish project context.  Command invoked from unexpected location: {0}</source>
     </trans-unit>

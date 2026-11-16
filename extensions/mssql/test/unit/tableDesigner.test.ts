@@ -44,6 +44,9 @@ suite("TableDesignerWebviewController tests", () => {
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+        mockConnectionManager.sendRequest.resolves({
+            rows: [[{ displayValue: "1804890536", isNull: false }]],
+        });
 
         const mockConnectionDetails = {
             server: "localhost",
@@ -334,9 +337,13 @@ suite("TableDesignerWebviewController tests", () => {
     });
 
     test("blocks publishing Azure SQL container changes without clearing edits", async () => {
+        const showErrorMessage = sandbox.stub(vscode.window, "showErrorMessage");
         mockConnectionManager.getServerInfo
             .withArgs(treeNode.connectionProfile, "master")
-            .returns({ engineEditionId: -978196525 } as IServerInfo);
+            .returns({ engineEditionId: 5 } as IServerInfo);
+        mockConnectionManager.sendRequest.resolves({
+            rows: [[{ displayValue: "-978196525", isNull: false }]],
+        });
         const state = { ...controller.state, hasUnpublishedChanges: true };
 
         const result = await controller["_reducerHandlers"].get("publishChanges")(state, {
@@ -344,19 +351,24 @@ suite("TableDesignerWebviewController tests", () => {
         });
 
         expect(result.apiState.publishState).to.equal(td.LoadState.Error);
-        expect(result.publishingError).to.equal(designerPublishingDisabled);
+        expect(result.publishingError).to.equal(`Error: ${designerPublishingDisabled}`);
         expect(result.publishProgressMessages).to.deep.include({
             message: designerPublishingDisabled,
             kind: "error",
         });
         expect(result.hasUnpublishedChanges).to.be.true;
         expect(mockTableDesignerService.publishChanges).not.to.have.been.called;
+        expect(showErrorMessage).not.to.have.been.called;
     });
 
     test("blocks preview reports for Azure SQL containers without clearing edits", async () => {
+        const showErrorMessage = sandbox.stub(vscode.window, "showErrorMessage");
         mockConnectionManager.getServerInfo
             .withArgs(treeNode.connectionProfile, "master")
-            .returns({ engineEditionId: -978196525 } as IServerInfo);
+            .returns({ engineEditionId: 5 } as IServerInfo);
+        mockConnectionManager.sendRequest.resolves({
+            rows: [[{ displayValue: "-978196525", isNull: false }]],
+        });
         const state = { ...controller.state, hasUnpublishedChanges: true };
 
         const result = await controller["_reducerHandlers"].get("generatePreviewReport")(state, {
@@ -374,7 +386,46 @@ suite("TableDesignerWebviewController tests", () => {
         });
         expect(result.hasUnpublishedChanges).to.be.true;
         expect(mockTableDesignerService.generatePreviewReport).not.to.have.been.called;
+        expect(showErrorMessage).not.to.have.been.called;
     });
+
+    test("blocks publishing when EditionID is unavailable", async () => {
+        mockConnectionManager.sendRequest.resolves({
+            rows: [[{ displayValue: "NULL", isNull: true }]],
+        });
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(
+            controller.state,
+            { table: mockResult.tableInfo },
+        );
+
+        expect(result.apiState.publishState).to.equal(td.LoadState.Error);
+        expect(mockTableDesignerService.publishChanges).not.to.have.been.called;
+    });
+
+    for (const operation of ["publishChanges", "generatePreviewReport"] as const) {
+        test(`blocks ${operation} if the EditionID query fails`, async () => {
+            mockConnectionManager.sendRequest.rejects(new Error("Edition query failed"));
+            const state = { ...controller.state, hasUnpublishedChanges: true };
+
+            const result = await controller["_reducerHandlers"].get(operation)(state, {
+                table: mockResult.tableInfo,
+            });
+
+            expect(result.hasUnpublishedChanges).to.be.true;
+            if (operation === "publishChanges") {
+                expect(result.apiState.publishState).to.equal(td.LoadState.Error);
+                expect(result.publishingError).to.contain("Edition query failed");
+            } else {
+                expect(result.apiState.previewState).to.equal(td.LoadState.Error);
+                expect(result.generatePreviewReportResult.schemaValidationError).to.equal(
+                    "Edition query failed",
+                );
+            }
+            expect(mockTableDesignerService.publishChanges).not.to.have.been.called;
+            expect(mockTableDesignerService.generatePreviewReport).not.to.have.been.called;
+        });
+    }
 
     test("should call generateScript in generateScript reducer", async () => {
         let scriptResponse = "CREATE TABLE Test (Id INT);";

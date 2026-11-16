@@ -1512,6 +1512,7 @@
     },
     "Webview was disposed before it became ready": "Webview was disposed before it became ready",
     "Publishing is currently disabled and will be available in a future release": "Publishing is currently disabled and will be available in a future release",
+    "Unable to determine the server edition. Changes have not been published. Reconnect and try again.": "Unable to determine the server edition. Changes have not been published. Reconnect and try again.",
     "General": "General",
     "Advanced Options": "Advanced Options",
     "Publish Project": "Publish Project",

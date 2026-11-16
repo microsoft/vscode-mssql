@@ -145,6 +145,9 @@ suite("SchemaDesignerWebviewController tests", () => {
 
         mockMainController.connectionManager = {
             getServerInfo: sandbox.stub(),
+            sendRequest: sandbox.stub().resolves({
+                rows: [[{ displayValue: "1804890536", isNull: false }]],
+            }),
             getConnectionInfo: sandbox.stub().returns({
                 credentials: {
                     server: "localhost",
@@ -540,16 +543,41 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
+    for (const method of [
+        SchemaDesigner.GetReportWebviewRequest.type.method,
+        SchemaDesigner.PublishSessionRequest.type.method,
+    ]) {
+        test(`blocks ${method} if the EditionID query fails`, async () => {
+            const manager = sandbox.createStubInstance(ConnectionManager);
+            mockMainController.connectionManager = manager;
+            manager.sendRequest.rejects(new Error("Edition query failed"));
+            createController();
+
+            const result = await requestHandlers.get(method)({
+                updatedSchema: mockSchema,
+                schema: mockSchema,
+            });
+
+            expect(result.error).to.equal("Edition query failed");
+            expect(mockSchemaDesignerService.getReport).not.to.have.been.called;
+            expect(mockSchemaDesignerService.publishSession).not.to.have.been.called;
+        });
+    }
+
     suite("GetReportWebviewRequest handler", () => {
         test("blocks preview reports for Azure SQL containers", async () => {
+            const showErrorMessage = sandbox.stub(vscode.window, "showErrorMessage");
             const manager = sandbox.createStubInstance(ConnectionManager);
             mockMainController.connectionManager = manager;
             manager.getConnectionInfo.withArgs(connectionUri).returns(
                 Object.assign(new ConnectionInfo(), {
                     credentials: { server: "localhost", database: databaseName },
-                    serverInfo: { engineEditionId: -978196525 },
+                    serverInfo: { engineEditionId: 5 },
                 }),
             );
+            manager.sendRequest.resolves({
+                rows: [[{ displayValue: "-978196525", isNull: false }]],
+            });
             createController();
 
             const handler = requestHandlers.get(SchemaDesigner.GetReportWebviewRequest.type.method);
@@ -558,6 +586,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(result.error).to.equal(designerPublishingDisabled);
             expect(result.report).to.be.undefined;
             expect(mockSchemaDesignerService.getReport).not.to.have.been.called;
+            expect(showErrorMessage).not.to.have.been.called;
+            expect(manager.sendRequest).to.have.been.calledWith(
+                sinon.match.has("method", "query/simpleexecute"),
+                {
+                    ownerUri: connectionUri,
+                    queryString: "SELECT CONVERT(int, SERVERPROPERTY('EditionID')) AS EditionID;",
+                },
+            );
         });
 
         test("should get report successfully", async () => {
@@ -626,14 +662,18 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     suite("PublishSessionRequest handler", () => {
         test("blocks publishing Azure SQL container changes without clearing edits", async () => {
+            const showErrorMessage = sandbox.stub(vscode.window, "showErrorMessage");
             const manager = sandbox.createStubInstance(ConnectionManager);
             mockMainController.connectionManager = manager;
             manager.getConnectionInfo.withArgs(connectionUri).returns(
                 Object.assign(new ConnectionInfo(), {
                     credentials: { server: "localhost", database: databaseName },
-                    serverInfo: { engineEditionId: -978196525 },
+                    serverInfo: { engineEditionId: 5 },
                 }),
             );
+            manager.sendRequest.resolves({
+                rows: [[{ displayValue: "-978196525", isNull: false }]],
+            });
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 baselineSchema: mockCreateSessionResponse.schema,
@@ -647,6 +687,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(result.success).to.be.false;
             expect(result.error).to.equal(designerPublishingDisabled);
             expect(mockSchemaDesignerService.publishSession).not.to.have.been.called;
+            expect(showErrorMessage).not.to.have.been.called;
             expect(schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.isDirty).to.be
                 .true;
             expect(
