@@ -5,7 +5,7 @@
 > [!NOTE]
 > All Data Workspaces functionality and contributions have moved into the main **SQL Server (mssql)** extension. The Data Workspaces extension may be uninstalled without impact. If you must have it installed, use this version, as it is now an empty shell for compatibility purposes.
 
-- Release date: November 16, 2026
+- Release date: November 17, 2026
 - Release status: Preview
 
 ### What's new in 0.8.1
