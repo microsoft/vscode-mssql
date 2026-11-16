@@ -34,6 +34,7 @@ export const DesignerChangesPreviewButton = () => {
     const designerContext = useContext(TableDesignerContext);
     const apiState = useTableDesignerSelector((s) => s?.apiState);
     const publishingError = useTableDesignerSelector((s) => s?.publishingError);
+    const publishingDisabled = useTableDesignerSelector((s) => s?.publishingDisabled);
     const reportProgressMessages = useTableDesignerSelector((s) => s?.reportProgressMessages);
     const publishProgressMessages = useTableDesignerSelector((s) => s?.publishProgressMessages);
     const generatePreviewReportResult = useTableDesignerSelector(
@@ -94,6 +95,7 @@ export const DesignerChangesPreviewButton = () => {
         <>
             <Button
                 appearance="primary"
+                disabled={publishingDisabled}
                 onClick={() => {
                     designerContext.publishChanges();
                 }}>
@@ -165,6 +167,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button>{locConstants.common.close}</Button>
             </DialogTrigger>
             <Button
+                disabled={publishingDisabled}
                 onClick={() => {
                     designerContext.generatePreviewReport();
                 }}>
