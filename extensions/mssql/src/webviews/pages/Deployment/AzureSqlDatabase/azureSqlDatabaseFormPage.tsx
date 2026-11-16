@@ -5,13 +5,14 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Button, Card, Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ErrorCircleRegular, LockClosedRegular } from "@fluentui/react-icons";
+import { ArrowRight12Regular, ErrorCircleRegular, LockClosedRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     AzureSqlDatabaseContextProps,
     AzureSqlDatabaseFormItemSpec,
     AzureSqlDatabaseFormState,
     AzureSqlDatabaseState,
+    AzureSqlDatabaseLinks,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
@@ -468,7 +469,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                 <div className={classes.bottomDiv} />
             </div>
             <div className={classes.sidebarDiv}>
-                <Card className={classes.sidebarCard}>
+                <Card className={classes.sidebarCard} style={{ padding: "16px 20px 20px" }}>
                     <span className={classes.sidebarCardHeader}>
                         {locConstants.azureSqlDatabase.freeTierApplied}
                     </span>
@@ -488,7 +489,22 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
                     </ul>
                     <div className={classes.sidebarDivider} style={{ marginTop: "8px" }} />
                     <Text size={200} style={{ color: "var(--colorNeutralForeground4)" }}>
-                        {locConstants.azureSqlDatabase.freeSettingsFixed}
+                        {locConstants.azureSqlDatabase.freeSettingsFixed}{" "}
+                        <Link
+                            href={AzureSqlDatabaseLinks.freeTier}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={locConstants.azureSqlDatabase.learnMoreAboutFreeTier}
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "inherit",
+                                whiteSpace: "nowrap",
+                            }}>
+                            {locConstants.azureSqlDatabase.learnMore}
+                            <ArrowRight12Regular aria-hidden="true" />
+                        </Link>
                     </Text>
                 </Card>
                 <Card className={classes.sidebarCard}>

@@ -662,6 +662,9 @@
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f545aa57f78a315212ce8d19669341213bb4d998c8b9648ae1c6044086d06e4">
+      <source xml:lang="en">After installing a container engine, select Retry. If it is still not detected, restart VS Code to pick up PATH changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7cb0154423f4e208531c0ab32537384bffd7b92ace440743085f715a3a9042b7">
       <source xml:lang="en">Agent mode</source>
     </trans-unit>
@@ -1177,8 +1180,8 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
-    <trans-unit id="++CODE++96654ef963adaf0e38bc588f6dc8622eba05f7b64ff2545b2f79d091c8b7477f">
-      <source xml:lang="en">Azure SQL Database · Free offer</source>
+    <trans-unit id="++CODE++76877a0b42006b7de3ef013e65ae9412823180bc2c7da5b5bc1fbbd4dfd162ba">
+      <source xml:lang="en">Azure SQL Database · Free tier</source>
     </trans-unit>
     <trans-unit id="++CODE++5f86b5c1fcc74565d367aa57714835e7aa082f59a4b063b1e24f441e6d5f247e">
       <source xml:lang="en">Azure SQL Dev Hub</source>
@@ -1878,8 +1881,8 @@
     <trans-unit id="++CODE++2e5f79bb94a8c40b3a103600323d7faee672abfb51f3c38679aab02fd4075a8d">
       <source xml:lang="en">Checking...</source>
     </trans-unit>
-    <trans-unit id="++CODE++c9a646880b6407fa3e553f23c34d213bc7e4bb166b322167dccd1c33617f47f0">
-      <source xml:lang="en">Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new, free Azure SQL Database.</source>
+    <trans-unit id="++CODE++a1fb02a00cfacc8f4e60be92e03ecba3eedba5a49fb2911abaf3e4e7dff72373">
+      <source xml:lang="en">Checks your local database for Azure compatibility, then deploys its schema, or schema and data, to a new free tier Azure SQL Database.</source>
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
@@ -3253,8 +3256,8 @@
     <trans-unit id="++CODE++477e49a037fdbc58507e0dd4b1d9b89896bbc8d8dfb513d120680ddd1c5c8d34">
       <source xml:lang="en">Create a database on your local SQL Server instance.</source>
     </trans-unit>
-    <trans-unit id="++CODE++fdb3df83b41286e717a4c9dd52bc833678247a3254aec052f3fcf484b9faa716">
-      <source xml:lang="en">Create a free Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.</source>
+    <trans-unit id="++CODE++77271edf16afc87caaf1595a456daa3bf1560bc1bf782d9aab48b5c5185924b2">
+      <source xml:lang="en">Create a free tier Azure SQL Database and deploy the schema from your local development database. Your local database and container will not be changed or removed.</source>
     </trans-unit>
     <trans-unit id="++CODE++4e18c3ff33b564efde61c0544543d5e2f16e08aa89314ff3f32da35532e0e859">
       <source xml:lang="en">Create a local SQL Server container for your app.</source>
@@ -3289,6 +3292,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
       <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6712c572e47e76d3cc1d7813f49813addea375a28013d4bfe3b6344650721ddc">
+      <source xml:lang="en">Create and manage local Azure SQL Database containers in just a few clicks, so you can develop and test locally using the Azure SQL Database engine—no credit card or Azure subscription required.</source>
     </trans-unit>
     <trans-unit id="++CODE++9fc87f0fbf5eabd421ad4e4774e1c249b6d1b299b30eee856842672298146168">
       <source xml:lang="en">Create and manage tables with a visual interface</source>
@@ -3864,8 +3870,14 @@
     <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
       <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa7246b0f888c02cb0019ee700f60b4eb5692d23b9f74520dd0dce2dec59e363">
+      <source xml:lang="en">Deploy database to Azure SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a1fec6bb23f4b53b3e6810ec85014caf866f6779f8c28a733fc034c63640a72">
       <source xml:lang="en">Deploy failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a363dd1d7b126252058e29f3e63b8befbce2a86982905a24c0b55e4addea2ca">
+      <source xml:lang="en">Deploy local database to Azure SQL (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++5fa5f06a3fb16046cc6023f3cc2a92d9a7024be5480836ad4d1ab5c884bada54">
       <source xml:lang="en">Deploy tables, views, and procedures without copying any rows. You can move data later.</source>
@@ -5135,6 +5147,9 @@
     <trans-unit id="++CODE++a88ccd187ea6fb8203734e55c16919d4ef81b89154ce353848ca96837f80c619">
       <source xml:lang="en">Explore in Object Explorer</source>
     </trans-unit>
+    <trans-unit id="++CODE++d347964e6bbf9016b1e136dd7087add6e60ad268e8e73080688fae8b75fcef68">
+      <source xml:lang="en">Explore performance insights, analyze trends, investigate execution plans, and optimize queries with GitHub Copilot using the new Query Performance Dashboard, powered by Query Store.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
       <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
     </trans-unit>
@@ -6150,9 +6165,6 @@
     </trans-unit>
     <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
       <source xml:lang="en">Free compute &amp; storage</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3ae46cf3de6a6415720c81f705c83ad66feef16b9f35cc169adb6230ded880c6">
-      <source xml:lang="en">Free limit</source>
     </trans-unit>
     <trans-unit id="++CODE++c12cf70d21352437b716a76c78594849271e7699d8f37a01b10a4a3c7621270f">
       <source xml:lang="en">Free tier applied</source>
@@ -7365,8 +7377,14 @@
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
     </trans-unit>
+    <trans-unit id="++CODE++4bbd034753059afe6cf796d443cf0c9de0670cb4fb3a03ac6ca92011d51487e8">
+      <source xml:lang="en">Local Azure SQL Database container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++3c8047e1144b0b498bd5fb4155a1f0e28ad14ed8f63892e2d20bf1fce56f921a">
       <source xml:lang="en">Local Azure SQL Database container, query performance dashboard, and more</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd1a4b39d22fb2c94b0be3d834cfb6a5b75e6f62853cd6b7db03c072c2f62a09">
+      <source xml:lang="en">Local Azure SQL Database containers</source>
     </trans-unit>
     <trans-unit id="++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd">
       <source xml:lang="en">Local Docker container</source>
@@ -7918,8 +7936,8 @@
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
     </trans-unit>
-    <trans-unit id="++CODE++a96f15cc041bdfe5cbfba9f4d9a9b71cff27877e63bfd9cc20880c0cca63ba60">
-      <source xml:lang="en">More deploy options</source>
+    <trans-unit id="++CODE++aaac48ec8dcc28bfee227e38f7c8504c4d93d985093b840cbdfeb450b0c49dd9">
+      <source xml:lang="en">More create options</source>
     </trans-unit>
     <trans-unit id="++CODE++f47427ecd8b23cb11fe1987fbde7a7baca1d256cc8e2b165a5ec5a3105f32ec4">
       <source xml:lang="en">More new options</source>
@@ -7944,6 +7962,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1359626e7b6964345896285446db7977e67469251bb0cc52808db2a85ed940c1">
       <source xml:lang="en">Move Up</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc4f5c83ec4a36251f41d7101d1a063af710ccb4578ef5444868408a3f1e3539">
+      <source xml:lang="en">Move a database from a local SQL container to Azure SQL Database with a guided wizard that validates compatibility, then deploys the schema, or schema and data.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d5283fdd2a43acc64170f29dc3d6892ffe9c36f84adf2a0fdcaf19c869f5e72">
       <source xml:lang="en">Move and expand the active grid selection</source>
@@ -9231,9 +9252,6 @@
     <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
       <source xml:lang="en">Pause event collection</source>
     </trans-unit>
-    <trans-unit id="++CODE++6a00791357b71e962480d12c7e1efe9ea1203ba0de4da5d72566b260807a6f12">
-      <source xml:lang="en">Pause until next month</source>
-    </trans-unit>
     <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
       <source xml:lang="en">Paused</source>
     </trans-unit>
@@ -9700,6 +9718,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec3b85930df91dcb8b0d0777639910471d02ae8119ea72ac4bc504a27520ec99">
+      <source xml:lang="en">Publishing changes to Azure SQL containers is not currently supported, and will be available in a future release.</source>
     </trans-unit>
     <trans-unit id="++CODE++d8227ef5295c8da8d07c83637604e607c9d6e6d824914c56a0f787e1af22ca60">
       <source xml:lang="en">Publishing the validated schema</source>
@@ -13640,6 +13661,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cadd9aae3a400c592512e09bf3f2ff59d8f2a5325907775b67a63ee661248f47">
+      <source xml:lang="en">Unable to determine the server edition. Changes have not been published. Reconnect and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++1f35c8ba729687aca729291ff1d98b18e4c7b7b7857006e521e8b9420b774111">
       <source xml:lang="en">Unable to establish project context.  Command invoked from unexpected location: {0}</source>

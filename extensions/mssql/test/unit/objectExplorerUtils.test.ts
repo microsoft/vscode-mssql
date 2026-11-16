@@ -16,6 +16,7 @@ import * as vscode from "vscode";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as sinon from "sinon";
 import { initializeIconUtils } from "./utils";
+import { IconUtils } from "../../src/utils/iconUtils";
 
 chai.use(sinonChai);
 
@@ -36,10 +37,22 @@ suite("Object Explorer Utils Tests", () => {
         const expectedPaths = ["Server.svg", "Table.svg", "StoredProcedure.svg"];
         for (let i = 0; i < testObjects.length; i++) {
             const iconPath = ObjectExplorerUtils.iconPath(testObjects[i]);
+            if (!(iconPath instanceof vscode.Uri)) {
+                throw new Error("Expected an unthemed icon URI");
+            }
             const fileName = path.basename(iconPath.fsPath);
             expect(fileName, "File name should be the same as expected file name").is.equal(
                 expectedPaths[i],
             );
+        }
+    });
+
+    test("container icons use connected and disconnected artwork for each theme", () => {
+        for (const iconName of ["Container_green", "Container_red"]) {
+            expect(ObjectExplorerUtils.iconPath(iconName)).to.deep.equal({
+                light: IconUtils.getIcon("objectTypes", `${iconName}.svg`),
+                dark: IconUtils.getIcon("objectTypes", `${iconName}_dark.svg`),
+            });
         }
     });
 

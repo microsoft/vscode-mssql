@@ -7,7 +7,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { IConnectionInfo } from "vscode-mssql";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
-import { getConnectionTelemetryInfo } from "../../src/utils/telemetryUtils";
+import { getConnectionTelemetryInfo, mergeTelemetryOptions } from "../../src/utils/telemetryUtils";
 
 suite("Connection telemetry context", () => {
     let sandbox: sinon.SinonSandbox;
@@ -174,6 +174,36 @@ suite("Connection telemetry context", () => {
         expect(getConnectionTelemetryInfo(undefined, "query://requested")).to.deep.equal({
             connectionInfo: undefined,
             serverInfo: undefined,
+        });
+    });
+});
+
+suite("Telemetry option merging", () => {
+    test("merges properties and measurements while later options win for other fields", () => {
+        const first = { server: "first" } as IConnectionInfo;
+        const second = { server: "second" } as IConnectionInfo;
+
+        expect(
+            mergeTelemetryOptions(
+                {
+                    connectionInfo: first,
+                    additionalProps: { kept: "a", replaced: "a" },
+                    additionalMeasurements: { durationInMs: 1 },
+                },
+                undefined,
+                { connectionInfo: second, additionalProps: { replaced: "b", added: "b" } },
+                { additionalMeasurements: { count: 2 } },
+            ),
+        ).to.deep.equal({
+            connectionInfo: second,
+            additionalProps: { kept: "a", replaced: "b", added: "b" },
+            additionalMeasurements: { durationInMs: 1, count: 2 },
+        });
+    });
+
+    test("does not add empty property or measurement sections", () => {
+        expect(mergeTelemetryOptions({ additionalProps: { kept: "a" } }, {})).to.deep.equal({
+            additionalProps: { kept: "a" },
         });
     });
 });

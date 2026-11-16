@@ -22,6 +22,7 @@ import {
 import * as containerEngine from "../../src/docker/containerEngine";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
+import { stubTelemetry } from "./utils";
 
 use(sinonChai);
 
@@ -30,6 +31,7 @@ suite("Container engine prerequisites", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        stubTelemetry(sandbox);
     });
 
     teardown(() => sandbox.restore());
@@ -48,6 +50,7 @@ suite("Container engine prerequisites", () => {
                     stderr: "",
                 }));
             const controller = sandbox.createStubInstance(DeploymentWebviewController);
+            sandbox.stub(controller, "workflowCorrelationId").get(() => "container-workflow");
             registerAzureSqlRpcHandlers(controller);
             const check = controller.onRequest.withArgs(
                 AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite,
@@ -137,5 +140,22 @@ suite("Container engine prerequisites", () => {
         expect(checkedEngines).to.have.members(Object.values(ContainerEngine));
         expect(results[detectedEngine].success).to.be.true;
         expect(results[ContainerEngine.Docker].success).to.be.false;
+    });
+
+    test("detects a newly installed engine on a subsequent scan instead of caching failures", async () => {
+        const execute = sandbox
+            .stub(containerEngine, "executeContainerEngineCommand")
+            .rejects(new Error("Engine not found"));
+
+        const firstScan = await detectContainerEngines();
+        expect(Object.values(firstScan).every((result) => !result.success)).to.be.true;
+
+        execute
+            .withArgs({ executable: "docker", args: ["--version"] }, 15_000)
+            .resolves({ stdout: "Docker version", stderr: "" });
+
+        const secondScan = await detectContainerEngines();
+        expect(secondScan[ContainerEngine.Docker]).to.deep.equal({ success: true });
+        expect(secondScan[ContainerEngine.Podman].success).to.be.false;
     });
 });

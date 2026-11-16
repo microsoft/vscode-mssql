@@ -2714,6 +2714,13 @@ export class Webview {
     );
 }
 
+export const designerPublishingDisabled = l10n.t(
+    "Publishing changes to Azure SQL containers is not currently supported, and will be available in a future release.",
+);
+export const designerPublishingEditionCheckFailed = l10n.t(
+    "Unable to determine the server edition. Changes have not been published. Reconnect and try again.",
+);
+
 export class TableDesigner {
     public static General = l10n.t("General");
     public static Columns = l10n.t("Columns");
@@ -4454,6 +4461,18 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
+    public static azureSqlContainerTitle = l10n.t("Local Azure SQL Database containers");
+    public static azureSqlContainerDescription = l10n.t(
+        "Create and manage local Azure SQL Database containers in just a few clicks, so you can develop and test locally using the Azure SQL Database engine—no credit card or Azure subscription required.",
+    );
+    public static localToCloudTitle = l10n.t("Deploy database to Azure SQL");
+    public static localToCloudDescription = l10n.t(
+        "Move a database from a local SQL container to Azure SQL Database with a guided wizard that validates compatibility, then deploys the schema, or schema and data.",
+    );
+    public static queryPerformanceDashboardTitle = l10n.t("Query Performance Dashboard");
+    public static queryPerformanceDashboardDescription = l10n.t(
+        "Explore performance insights, analyze trends, investigate execution plans, and optimize queries with GitHub Copilot using the new Query Performance Dashboard, powered by Query Store.",
+    );
     public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",

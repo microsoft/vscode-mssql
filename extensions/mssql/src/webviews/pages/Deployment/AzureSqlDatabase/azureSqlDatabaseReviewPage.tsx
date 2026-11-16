@@ -26,7 +26,6 @@ import {
     Info20Regular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { KnownFreeLimitExhaustionBehavior } from "@azure/arm-sql";
 import {
     AzureSqlDatabaseState,
     LocalDatabaseCompatibilityResult,
@@ -169,12 +168,6 @@ export const AzureSqlDatabaseReviewPage = ({
         result.deploymentContent === "schemaOnly" ? strings.schemaOnly : strings.schemaAndData;
     const objectCount = result.schemaObjects?.length ?? result.objectsValidated;
     const warningCount = result.diagnostics.filter(({ severity }) => severity === "warning").length;
-    const freeLimit =
-        form.freeLimitBehavior === KnownFreeLimitExhaustionBehavior.AutoPause
-            ? strings.reviewPauseUntilNextMonth
-            : form.freeLimitBehavior === KnownFreeLimitExhaustionBehavior.BillOverUsage
-              ? strings.continueChargesOption
-              : strings.sourceVersionUnavailable;
 
     return (
         <section className={classes.content} aria-label={strings.reviewAndDeploy}>
@@ -239,10 +232,6 @@ export const AzureSqlDatabaseReviewPage = ({
                             ? strings.reviewCompatibilityWarnings(warningCount)
                             : strings.reviewCompatibilityPassed}
                     </dd>
-                </div>
-                <div className={classes.row}>
-                    <dt className={classes.secondary}>{strings.reviewFreeLimit}</dt>
-                    <dd className={classes.value}>{freeLimit}</dd>
                 </div>
                 <div className={classes.row}>
                     <dt className={classes.secondary}>{strings.reviewAzureLocation}</dt>

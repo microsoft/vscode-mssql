@@ -48,7 +48,11 @@ export interface DeploymentCommonReducers {
      * Initializes the deployment context with specific deployment type details.
      * @param deploymentType The type of deployment to initialize.
      */
-    initializeDeploymentSpecifics: { deploymentType: DeploymentType };
+    initializeDeploymentSpecifics: {
+        deploymentType: DeploymentType;
+        /** Deployment experience to attribute telemetry to, when it differs from deploymentType. */
+        workflowDeploymentType?: DeploymentType;
+    };
 
     /**
      * Handles form-related actions and state updates.
@@ -95,7 +99,10 @@ export interface DeploymentCommonContextProps extends FormContextProps<Deploymen
      * Initializes the deployment context with specific deployment type details.
      * @param deploymentType The type of deployment to initialize.
      */
-    initializeDeploymentSpecifics(deploymentType: DeploymentType): void;
+    initializeDeploymentSpecifics(
+        deploymentType: DeploymentType,
+        workflowDeploymentType?: DeploymentType,
+    ): void;
 
     /**
      * Handles form-related actions and state updates.
@@ -140,6 +147,8 @@ export enum DeploymentType {
     FabricProvisioning = 1,
     AzureSqlDatabase = 2,
     DevContainer = 3,
+    AzureSqlContainer = 4,
+    LocalToCloud = 5,
 }
 
 /**

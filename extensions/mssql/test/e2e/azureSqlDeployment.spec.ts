@@ -6,6 +6,7 @@
 import { test, expect } from "./baseFixtures";
 import { getWebviewByTitle, runCommandFromPalette } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
 
 test.describe("Azure SQL deployment options", () => {
     const getContext = useSharedVsCodeLifecycle({
@@ -21,6 +22,57 @@ test.describe("Azure SQL deployment options", () => {
         const { page } = getContext();
         await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
         const deployment = await getWebviewByTitle(page, "New Deployment");
+        const body = await deployment.locator("body").elementHandle();
+        const frame = await body!.ownerFrame();
+        await frame!.evaluate((engines) => {
+            let attempt = 0;
+            const original = Object.getOwnPropertyDescriptor(MessageEvent.prototype, "data")!;
+            const responses = new WeakMap<MessageEvent, unknown>();
+            // Replace detection responses as the RPC reader reads them, before it resolves requests.
+            Object.defineProperty(MessageEvent.prototype, "data", {
+                ...original,
+                get(this: MessageEvent) {
+                    if (responses.has(this)) {
+                        return responses.get(this);
+                    }
+                    const message = original.get!.call(this) as {
+                        id?: number | string;
+                        result?: Record<string, { success?: boolean }>;
+                    };
+                    if (
+                        !message?.result ||
+                        !engines.every(
+                            (engine) => typeof message.result?.[engine]?.success === "boolean",
+                        )
+                    ) {
+                        return message;
+                    }
+                    attempt++;
+                    if (attempt > 2) {
+                        Object.defineProperty(MessageEvent.prototype, "data", original);
+                        return message;
+                    }
+                    const response =
+                        attempt === 1
+                            ? {
+                                  ...message,
+                                  result: Object.fromEntries(
+                                      engines.map((engine) => [engine, { success: false }]),
+                                  ),
+                              }
+                            : {
+                                  jsonrpc: "2.0",
+                                  id: message.id,
+                                  error: {
+                                      code: -32603,
+                                      message: "Temporary engine detection failure",
+                                  },
+                              };
+                    responses.set(this, response);
+                    return response;
+                },
+            });
+        }, Object.values(ContainerEngine));
         const localSection = deployment.getByRole("region", { name: "Run locally", exact: true });
         const cloudSection = deployment.getByRole("region", {
             name: "Run in the cloud",
@@ -64,6 +116,17 @@ test.describe("Azure SQL deployment options", () => {
         ).toBeVisible();
         const next = deployment.getByRole("button", { name: "Next", exact: true });
         await next.click();
+        await expect(
+            deployment.getByText("Install a container engine to continue", { exact: true }),
+        ).toBeVisible();
+        await expect(next).toBeDisabled();
+        const retryDetection = deployment.getByRole("button", { name: "Retry", exact: true });
+        await retryDetection.click();
+        await expect(
+            deployment.getByText("Container engine detection failed.", { exact: true }),
+        ).toBeVisible();
+        await expect(next).toBeDisabled();
+        await retryDetection.click();
         await expect(next).toBeEnabled({ timeout: 60_000 });
         await next.click();
         await deployment.getByRole("combobox", { name: "Authentication Type" }).click();
@@ -110,6 +173,18 @@ test.describe("Azure SQL deployment options", () => {
         await expect(
             deployment.getByText("Create an Azure SQL Database", { exact: true }),
         ).toBeVisible();
+        await next.click();
+        await expect(deployment.getByText("Free tier applied", { exact: true })).toBeVisible();
+        const freeTierSettings = deployment.getByText(/^Settings are fixed for free tier\./);
+        const freeTierLink = freeTierSettings.getByRole("link", {
+            name: "Learn more about Azure SQL Database free tier",
+            exact: true,
+        });
+        await expect(freeTierLink).toHaveText("Learn more");
+        await expect(freeTierLink).toHaveAttribute("href", "https://aka.ms/sqlfreeoffer");
+        await expect(freeTierLink).toHaveAttribute("target", "_blank");
+        await expect(freeTierLink.locator("svg")).toBeVisible();
+        await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await expect(azureContainer).toBeVisible();
 
@@ -126,5 +201,65 @@ test.describe("Azure SQL deployment options", () => {
         ).toBeVisible();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await expect(azureContainer).toBeVisible();
+        await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
+    });
+
+    test("opens each Create option from Getting Started in the requested order", async () => {
+        const { page } = getContext();
+        const options = [
+            {
+                name: "Local Azure SQL Database container (Preview)",
+                title: "Azure SQL Database developer container",
+            },
+            {
+                name: "Local SQL Server container",
+                title: "Create a Local Docker SQL Server",
+            },
+            { name: /Azure SQL Database\s*Free$/, title: "Create an Azure SQL Database" },
+            { name: "SQL database in Fabric", title: "Create a SQL database in Fabric" },
+            {
+                name: /Deploy local database to Azure SQL \(Preview\)$/,
+                title: "Deploy a database to Azure SQL (Preview)",
+            },
+        ];
+
+        for (const option of options) {
+            await runCommandFromPalette(
+                page,
+                "MS SQL: Open Getting Started",
+                "MS SQL: Open Getting Started",
+            );
+            const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+            await overview
+                .getByRole("button", { name: "More create options", exact: true })
+                .click();
+            await expect(overview.getByRole("menuitem")).toHaveText(
+                options.map(({ name }) => name),
+            );
+            await overview.getByRole("menuitem", { name: option.name, exact: true }).click();
+
+            const deployment = await getWebviewByTitle(page, "New Deployment");
+            await expect(deployment.getByText(option.title, { exact: true })).toBeVisible({
+                timeout: 30_000,
+            });
+            await deployment.getByRole("button", { name: "Previous", exact: true }).click();
+            await expect(
+                deployment.getByRole("heading", { name: "Run locally", level: 2 }),
+            ).toBeVisible();
+            await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
+        }
+
+        await runCommandFromPalette(
+            page,
+            "MS SQL: Open Getting Started",
+            "MS SQL: Open Getting Started",
+        );
+        const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+        await overview.getByRole("button", { name: "Create", exact: true }).click();
+        const deployment = await getWebviewByTitle(page, "New Deployment");
+        await expect(
+            deployment.getByRole("heading", { name: "Run locally", level: 2 }),
+        ).toBeVisible({ timeout: 30_000 });
+        await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
     });
 });

@@ -98,6 +98,7 @@ export interface DacpacDialogRpcMethods {
 
     // Cancel operation
     cancel: () => Promise<void>;
+    sendTelemetryEvent: (params: dacpacDialog.DacpacDialogTelemetryParams) => Promise<void>;
 }
 
 export interface DacpacDialogReactProvider extends DacpacDialogRpcMethods {
@@ -250,6 +251,17 @@ const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ childr
         );
     };
 
+    const sendTelemetryEvent = async (params: dacpacDialog.DacpacDialogTelemetryParams) => {
+        try {
+            await extensionRpc?.sendNotification(
+                dacpacDialog.DacpacDialogTelemetryNotification.type,
+                params,
+            );
+        } catch (error) {
+            extensionRpc?.log.error(`Failed to send DACPAC dialog telemetry: ${String(error)}`);
+        }
+    };
+
     const providerValue: DacpacDialogReactProvider = {
         extensionRpc,
         deployDacpac,
@@ -268,6 +280,7 @@ const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ childr
         getSuggestedDatabaseName,
         confirmDeployToExisting,
         cancel,
+        sendTelemetryEvent,
     };
 
     return (

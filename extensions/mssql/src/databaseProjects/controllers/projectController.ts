@@ -47,6 +47,10 @@ import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updat
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
 import { DeploymentScenario, ExtractTarget, ProjectType, TaskExecutionMode } from "../common/enums";
 import { SqlProjects } from "../../constants/locConstants";
+import {
+    recordSqlProjectWorkflowEvent,
+    SqlProjectWorkflowEventName,
+} from "../common/projectWorkflowTelemetry";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -179,6 +183,9 @@ export class ProjectsController {
             creationParams.configureDefaultBuild ?? false,
         );
 
+        recordSqlProjectWorkflowEvent(newProjFilePath, SqlProjectWorkflowEventName.ProjectCreated, {
+            outcome: "Succeeded",
+        });
         return newProjFilePath;
     }
 
@@ -469,6 +476,10 @@ export class ProjectsController {
         codeAnalysis: boolean = false,
     ): Promise<string> {
         const project: Project = await this.getProjectFromContext(context);
+        recordSqlProjectWorkflowEvent(
+            project.projectFilePath,
+            SqlProjectWorkflowEventName.BuildStarted,
+        );
 
         const startTime = new Date();
 
@@ -478,6 +489,11 @@ export class ProjectsController {
 
             if (!result) {
                 void vscode.window.showErrorMessage(SqlProjects.errorRetrievingBuildFiles);
+                recordSqlProjectWorkflowEvent(
+                    project.projectFilePath,
+                    SqlProjectWorkflowEventName.BuildCompleted,
+                    { outcome: "Failed" },
+                );
                 return "";
             }
         }
@@ -504,10 +520,20 @@ export class ProjectsController {
                 void vscode.window.showErrorMessage(
                     SqlProjects.projectNeedsUpdatingForCrossPlat(project.projectFileName),
                 );
+                recordSqlProjectWorkflowEvent(
+                    project.projectFilePath,
+                    SqlProjectWorkflowEventName.BuildCompleted,
+                    { outcome: "Cancelled" },
+                );
                 return "";
             }
         } catch (error) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(error));
+            recordSqlProjectWorkflowEvent(
+                project.projectFilePath,
+                SqlProjectWorkflowEventName.BuildCompleted,
+                { outcome: "Failed" },
+            );
             return "";
         }
 
@@ -532,6 +558,11 @@ export class ProjectsController {
                 })
                 .send();
 
+            recordSqlProjectWorkflowEvent(
+                project.projectFilePath,
+                SqlProjectWorkflowEventName.BuildCompleted,
+                { outcome: "Succeeded" },
+            );
             return project.dacpacOutputPath;
         } catch (err) {
             const timeToFailureBuild = new Date().getTime() - startTime.getTime();
@@ -554,6 +585,11 @@ export class ProjectsController {
             } else {
                 void vscode.window.showErrorMessage(SqlProjects.projBuildFailed(message));
             }
+            recordSqlProjectWorkflowEvent(
+                project.projectFilePath,
+                SqlProjectWorkflowEventName.BuildCompleted,
+                { outcome: "Failed" },
+            );
             return "";
         }
     }
