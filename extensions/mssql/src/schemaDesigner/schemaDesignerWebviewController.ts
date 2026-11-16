@@ -14,7 +14,10 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
+import {
+    azureSqlContainerEngineEdition,
+    configSchemaDesignerEnableExpandCollapseButtons,
+} from "../constants/constants";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
@@ -283,6 +286,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 },
             );
             try {
+                if (
+                    this.telemetryContext.serverInfo?.engineEditionId ===
+                    azureSqlContainerEngineEdition
+                ) {
+                    throw new Error(LocConstants.designerPublishingDisabled);
+                }
                 const report = await this.schemaDesignerService.getReport({
                     updatedSchema: payload.updatedSchema,
                     sessionId: this._sessionId,
@@ -321,6 +330,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 this.telemetryContext,
             );
             try {
+                if (
+                    this.telemetryContext.serverInfo?.engineEditionId ===
+                    azureSqlContainerEngineEdition
+                ) {
+                    throw new Error(LocConstants.designerPublishingDisabled);
+                }
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });

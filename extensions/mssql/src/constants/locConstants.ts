@@ -2714,6 +2714,10 @@ export class Webview {
     );
 }
 
+export const designerPublishingDisabled = l10n.t(
+    "Publishing is currently disabled and will be available in a future release",
+);
+
 export class TableDesigner {
     public static General = l10n.t("General");
     public static Columns = l10n.t("Columns");

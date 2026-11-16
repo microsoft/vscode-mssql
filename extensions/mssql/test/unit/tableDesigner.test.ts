@@ -18,6 +18,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import { stubExtensionContext, stubUserSurvey, stubTelemetry } from "./utils";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { IServerInfo } from "vscode-mssql";
+import { designerPublishingDisabled } from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -271,6 +272,7 @@ suite("TableDesignerWebviewController tests", () => {
     });
 
     test("should call publishTable in publishTable reducer", async () => {
+        mockConnectionManager.getServerInfo.returns({ engineEditionId: 5 } as IServerInfo);
         let publishResponse = {
             issues: [],
             view: { useAdvancedSaveMode: false },
@@ -331,6 +333,49 @@ suite("TableDesignerWebviewController tests", () => {
         );
     });
 
+    test("blocks publishing Azure SQL container changes without clearing edits", async () => {
+        mockConnectionManager.getServerInfo
+            .withArgs(treeNode.connectionProfile, "master")
+            .returns({ engineEditionId: -978196525 } as IServerInfo);
+        const state = { ...controller.state, hasUnpublishedChanges: true };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, {
+            table: mockResult.tableInfo,
+        });
+
+        expect(result.apiState.publishState).to.equal(td.LoadState.Error);
+        expect(result.publishingError).to.equal(designerPublishingDisabled);
+        expect(result.publishProgressMessages).to.deep.include({
+            message: designerPublishingDisabled,
+            kind: "error",
+        });
+        expect(result.hasUnpublishedChanges).to.be.true;
+        expect(mockTableDesignerService.publishChanges).not.to.have.been.called;
+    });
+
+    test("blocks preview reports for Azure SQL containers without clearing edits", async () => {
+        mockConnectionManager.getServerInfo
+            .withArgs(treeNode.connectionProfile, "master")
+            .returns({ engineEditionId: -978196525 } as IServerInfo);
+        const state = { ...controller.state, hasUnpublishedChanges: true };
+
+        const result = await controller["_reducerHandlers"].get("generatePreviewReport")(state, {
+            table: mockResult.tableInfo,
+        });
+
+        expect(result.apiState.previewState).to.equal(td.LoadState.Error);
+        expect(result.apiState.publishState).to.equal(td.LoadState.NotStarted);
+        expect(result.generatePreviewReportResult.schemaValidationError).to.equal(
+            designerPublishingDisabled,
+        );
+        expect(result.reportProgressMessages).to.deep.include({
+            message: designerPublishingDisabled,
+            kind: "error",
+        });
+        expect(result.hasUnpublishedChanges).to.be.true;
+        expect(mockTableDesignerService.generatePreviewReport).not.to.have.been.called;
+    });
+
     test("should call generateScript in generateScript reducer", async () => {
         let scriptResponse = "CREATE TABLE Test (Id INT);";
 
@@ -379,6 +424,7 @@ suite("TableDesignerWebviewController tests", () => {
     });
 
     test("should call generatePreviewReport in generatePreviewReport reducer", async () => {
+        mockConnectionManager.getServerInfo.returns({ engineEditionId: 5 } as IServerInfo);
         const previewResponse = {
             schemaValidationError: undefined,
             report: "Mock preview report content",

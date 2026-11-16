@@ -26,6 +26,7 @@ import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
 import { DefaultSqlPortNumber } from "../../src/constants/constants";
+import { designerPublishingDisabled } from "../../src/constants/locConstants";
 import {
     observeWebviewReady,
     stubExtensionContext,
@@ -540,6 +541,25 @@ suite("SchemaDesignerWebviewController tests", () => {
     });
 
     suite("GetReportWebviewRequest handler", () => {
+        test("blocks preview reports for Azure SQL containers", async () => {
+            const manager = sandbox.createStubInstance(ConnectionManager);
+            mockMainController.connectionManager = manager;
+            manager.getConnectionInfo.withArgs(connectionUri).returns(
+                Object.assign(new ConnectionInfo(), {
+                    credentials: { server: "localhost", database: databaseName },
+                    serverInfo: { engineEditionId: -978196525 },
+                }),
+            );
+            createController();
+
+            const handler = requestHandlers.get(SchemaDesigner.GetReportWebviewRequest.type.method);
+            const result = await handler({ updatedSchema: mockSchema });
+
+            expect(result.error).to.equal(designerPublishingDisabled);
+            expect(result.report).to.be.undefined;
+            expect(mockSchemaDesignerService.getReport).not.to.have.been.called;
+        });
+
         test("should get report successfully", async () => {
             const updatedSchema = mockSchema;
             const reportResponse: SchemaDesigner.GetReportResponse = {
@@ -605,6 +625,35 @@ suite("SchemaDesignerWebviewController tests", () => {
     });
 
     suite("PublishSessionRequest handler", () => {
+        test("blocks publishing Azure SQL container changes without clearing edits", async () => {
+            const manager = sandbox.createStubInstance(ConnectionManager);
+            mockMainController.connectionManager = manager;
+            manager.getConnectionInfo.withArgs(connectionUri).returns(
+                Object.assign(new ConnectionInfo(), {
+                    credentials: { server: "localhost", database: databaseName },
+                    serverInfo: { engineEditionId: -978196525 },
+                }),
+            );
+            schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
+                schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
+                isDirty: true,
+            });
+            createController();
+
+            const handler = requestHandlers.get(SchemaDesigner.PublishSessionRequest.type.method);
+            const result = await handler({ schema: mockSchema });
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.equal(designerPublishingDisabled);
+            expect(mockSchemaDesignerService.publishSession).not.to.have.been.called;
+            expect(schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.isDirty).to.be
+                .true;
+            expect(
+                schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.baselineSchema,
+            ).to.equal(mockCreateSessionResponse.schema);
+        });
+
         test("should publish session successfully", async () => {
             mockSchemaDesignerService.publishSession.resolves();
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {

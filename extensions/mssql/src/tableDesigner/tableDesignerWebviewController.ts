@@ -20,6 +20,7 @@ import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
+import { azureSqlContainerEngineEdition } from "../constants/constants";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
@@ -388,6 +389,23 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
+            if (
+                this.telemetryContext.serverInfo?.engineEditionId === azureSqlContainerEngineEdition
+            ) {
+                return {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        publishState: designer.LoadState.Error,
+                    },
+                    publishingError: LocConstants.designerPublishingDisabled,
+                    publishProgressMessages: this.appendProgressMessage(
+                        [],
+                        LocConstants.designerPublishingDisabled,
+                        true,
+                    ),
+                };
+            }
             const publishProgressMessages: LoadingLogEntry[] = [];
             const endActivity = startActivity(
                 TelemetryViews.TableDesigner,
@@ -512,6 +530,30 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         });
 
         this.registerReducer("generatePreviewReport", async (state, payload) => {
+            if (
+                this.telemetryContext.serverInfo?.engineEditionId === azureSqlContainerEngineEdition
+            ) {
+                return {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        previewState: designer.LoadState.Error,
+                        publishState: designer.LoadState.NotStarted,
+                        generateScriptState: designer.LoadState.NotStarted,
+                    },
+                    publishingError: undefined,
+                    generatePreviewReportResult: {
+                        schemaValidationError: LocConstants.designerPublishingDisabled,
+                        report: "",
+                        mimeType: "",
+                    },
+                    reportProgressMessages: this.appendProgressMessage(
+                        [],
+                        LocConstants.designerPublishingDisabled,
+                        true,
+                    ),
+                };
+            }
             const reportProgressMessages: LoadingLogEntry[] = [];
             this.state = {
                 ...this.state,
