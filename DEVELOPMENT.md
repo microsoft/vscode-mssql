@@ -76,6 +76,9 @@ same directory and configure a reachable SQL Server. Then run:
 npm run smoketest -- --target mssql
 ```
 
+Set `ENABLE_ELECTRON_VIDEO_RECORDING=true` to keep a video clip of each failed test attempt and
+`ENABLE_ELECTRON_TRACING=true` to keep its trace. Both are on in CI. Passing attempts keep neither.
+
 ## Localization
 
 When localization sources change, run the repository-wide extraction:

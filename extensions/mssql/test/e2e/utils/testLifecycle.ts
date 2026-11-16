@@ -5,8 +5,6 @@
 
 import { Page, TestInfo } from "@playwright/test";
 import * as cp from "child_process";
-import * as fs from "fs";
-import * as path from "path";
 import { test } from "../baseFixtures";
 import {
     cleanupDirectories,
@@ -14,7 +12,8 @@ import {
     mssqlExtensionLaunchConfig,
     VsCodeAppHandle,
 } from "./launchVscodeWithMsSqlExt";
-import { hasTestFailure, screenshotOnFailure } from "./screenshotUtils";
+import { FailureArtifactRecorder, startElectronTracing } from "./failureArtifacts";
+import { screenshotOnFailure } from "./screenshotUtils";
 
 /** Budget for launching VS Code and staging a query; see the beforeAll hook below. */
 const STAGING_TIMEOUT_MS = 5 * 60 * 1000;
@@ -24,7 +23,6 @@ export type VsCodeLaunchContext = {
     page: Page;
     userDataDir: string;
     extensionsDir: string;
-    videoDir: string;
 };
 
 type SharedLifecycleHooks = {
@@ -40,12 +38,6 @@ type PerTestLifecycleHooks = {
     beforeClose?: (context: VsCodeLaunchContext, testInfo: TestInfo) => Promise<void>;
 };
 
-type VideoArtifactDestination = {
-    label: string;
-    outputDir: string;
-    testInfo?: TestInfo;
-};
-
 const ELECTRON_CLOSE_TIMEOUT_MS = 30_000;
 const ELECTRON_KILL_TIMEOUT_MS = 10_000;
 
@@ -53,7 +45,7 @@ export function useSharedVsCodeLifecycle(
     hooks: SharedLifecycleHooks = {},
 ): () => VsCodeLaunchContext {
     let context: VsCodeLaunchContext | undefined;
-    const failedTests: VideoArtifactDestination[] = [];
+    let recorder: FailureArtifactRecorder | undefined;
 
     const getContext = (): VsCodeLaunchContext => {
         if (!context) {
@@ -71,7 +63,15 @@ export function useSharedVsCodeLifecycle(
         // every ordinary test from failing fast.
         test.setTimeout(STAGING_TIMEOUT_MS);
         context = await launchVsCodeWithMssqlExtension(hooks.launchOptions);
+        await startElectronTracing(context.electronApp);
         await hooks.afterLaunch?.(context);
+    });
+
+    test.beforeEach(async ({}, testInfo) => {
+        if (!context) {
+            return;
+        }
+        recorder = await FailureArtifactRecorder.start(context.electronApp, context.page, testInfo);
     });
 
     test.afterEach(async ({}, testInfo) => {
@@ -79,14 +79,9 @@ export function useSharedVsCodeLifecycle(
             return;
         }
         const currentContext = getContext();
-        if (hasTestFailure(testInfo)) {
-            failedTests.push({
-                label: testInfo.title,
-                outputDir: testInfo.outputDir,
-                testInfo,
-            });
-        }
         await screenshotOnFailure(currentContext.page, testInfo);
+        await recorder?.finish(testInfo);
+        recorder = undefined;
         await hooks.afterEach?.(currentContext, testInfo);
     });
 
@@ -97,11 +92,6 @@ export function useSharedVsCodeLifecycle(
         const currentContext = getContext();
         await hooks.beforeClose?.(currentContext);
         await closeElectronApp(currentContext.electronApp);
-        if (failedTests.length === 0) {
-            await cleanupDirectories(currentContext.videoDir);
-        } else {
-            await storeRecordedVideos(currentContext.videoDir, failedTests);
-        }
         // Each launch copies the extensions into its own profile, so leaving these behind costs
         // well over 100 MB per file and fills the disk over a full run.
         await cleanupDirectories(currentContext.userDataDir, currentContext.extensionsDir);
@@ -114,6 +104,7 @@ export function usePerTestVsCodeLifecycle(
     hooks: PerTestLifecycleHooks = {},
 ): () => VsCodeLaunchContext {
     let context: VsCodeLaunchContext | undefined;
+    let recorder: FailureArtifactRecorder | undefined;
 
     const getContext = (): VsCodeLaunchContext => {
         if (!context) {
@@ -122,8 +113,11 @@ export function usePerTestVsCodeLifecycle(
         return context;
     };
 
-    test.beforeEach(async () => {
+    test.beforeEach(async ({}, testInfo) => {
         context = await launchVsCodeWithMssqlExtension(hooks.launchOptions);
+        await startElectronTracing(context.electronApp);
+        // Started before afterLaunch so the clip and trace also cover any per-test setup.
+        recorder = await FailureArtifactRecorder.start(context.electronApp, context.page, testInfo);
         await hooks.afterLaunch?.(context);
     });
 
@@ -132,23 +126,12 @@ export function usePerTestVsCodeLifecycle(
             return;
         }
         const currentContext = getContext();
-        const shouldKeepVideo = hasTestFailure(testInfo);
 
         await screenshotOnFailure(currentContext.page, testInfo);
+        await recorder?.finish(testInfo);
+        recorder = undefined;
         await hooks.beforeClose?.(currentContext, testInfo);
         await closeElectronApp(currentContext.electronApp);
-
-        if (!shouldKeepVideo) {
-            await cleanupDirectories(currentContext.videoDir);
-        } else {
-            await storeRecordedVideos(currentContext.videoDir, [
-                {
-                    label: testInfo.title,
-                    outputDir: testInfo.outputDir,
-                    testInfo,
-                },
-            ]);
-        }
         await cleanupDirectories(currentContext.userDataDir, currentContext.extensionsDir);
     });
 
@@ -235,64 +218,4 @@ function killProcessTree(electronProcess: cp.ChildProcess): void {
             throw error;
         }
     }
-}
-
-async function storeRecordedVideos(
-    videoDir: string,
-    destinations: VideoArtifactDestination[],
-): Promise<void> {
-    if (!fs.existsSync(videoDir) || destinations.length === 0) {
-        return;
-    }
-
-    const webmFiles = await findWebmFiles(videoDir);
-    if (webmFiles.length === 0) {
-        return;
-    }
-
-    const timestamp = Date.now();
-    const sortedFiles = webmFiles.sort();
-
-    for (const destination of destinations) {
-        const safeLabel = sanitizeForFileName(destination.label);
-        await fs.promises.mkdir(destination.outputDir, { recursive: true });
-
-        for (const [index, sourcePath] of sortedFiles.entries()) {
-            const targetPath = path.join(
-                destination.outputDir,
-                `${safeLabel}-${timestamp}-${index + 1}.webm`,
-            );
-            await fs.promises.copyFile(sourcePath, targetPath);
-            destination.testInfo?.attachments.push({
-                name: path.basename(targetPath),
-                path: targetPath,
-                contentType: "video/webm",
-            });
-        }
-    }
-
-    await cleanupDirectories(videoDir);
-}
-
-async function findWebmFiles(directory: string): Promise<string[]> {
-    const output: string[] = [];
-    const entries = await fs.promises.readdir(directory, { withFileTypes: true });
-    for (const entry of entries) {
-        const entryPath = path.join(directory, entry.name);
-        if (entry.isDirectory()) {
-            output.push(...(await findWebmFiles(entryPath)));
-        } else if (entry.isFile() && entry.name.endsWith(".webm")) {
-            output.push(entryPath);
-        }
-    }
-    return output;
-}
-
-function sanitizeForFileName(value: string): string {
-    const collapsed = value
-        .trim()
-        .replace(/[^\w.-]+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-    return collapsed || "playwright-video";
 }

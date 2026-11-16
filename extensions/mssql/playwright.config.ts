@@ -33,13 +33,12 @@ export default defineConfig({
     ],
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
-        /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-        trace: "on-first-retry",
         /*
-         * Electron video recording is configured per launch in launchVscodeWithMsSqlExt.ts and is
-         * opt-in via ENABLE_ELECTRON_VIDEO_RECORDING. Nothing here uses a browser context, so there
-         * is no second recording path to leave enabled.
+         * Every test drives VS Code through a custom Electron launch, which these options do not
+         * reach. utils/failureArtifacts.ts records a trace (ENABLE_ELECTRON_TRACING) and a video
+         * clip (ENABLE_ELECTRON_VIDEO_RECORDING) per test attempt and keeps them only on failure.
          */
+        trace: "off",
         video: "off",
     },
     projects: [
