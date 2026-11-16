@@ -772,6 +772,7 @@ export interface TableDesignerWebviewState {
     tabStates?: DesignerTabStates;
     propertiesPaneData?: PropertiesPaneData;
     publishingError?: string;
+    publishingDisabled?: boolean;
     initializationError?: string;
     loadingMessages?: LoadingLogEntry[];
     reportProgressMessages?: LoadingLogEntry[];
