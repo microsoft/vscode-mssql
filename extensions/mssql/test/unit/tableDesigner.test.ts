@@ -352,6 +352,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         expect(result.apiState.publishState).to.equal(td.LoadState.Error);
         expect(result.publishingError).to.equal(`Error: ${designerPublishingDisabled}`);
+        expect(result.publishingDisabled).to.be.true;
         expect(result.publishProgressMessages).to.deep.include({
             message: designerPublishingDisabled,
             kind: "error",
@@ -376,6 +377,7 @@ suite("TableDesignerWebviewController tests", () => {
         });
 
         expect(result.apiState.previewState).to.equal(td.LoadState.Error);
+        expect(result.publishingDisabled).to.be.true;
         expect(result.apiState.publishState).to.equal(td.LoadState.NotStarted);
         expect(result.generatePreviewReportResult.schemaValidationError).to.equal(
             designerPublishingDisabled,
@@ -406,13 +408,18 @@ suite("TableDesignerWebviewController tests", () => {
     for (const operation of ["publishChanges", "generatePreviewReport"] as const) {
         test(`blocks ${operation} if the EditionID query fails`, async () => {
             mockConnectionManager.sendRequest.rejects(new Error("Edition query failed"));
-            const state = { ...controller.state, hasUnpublishedChanges: true };
+            const state = {
+                ...controller.state,
+                hasUnpublishedChanges: true,
+                publishingDisabled: true,
+            };
 
             const result = await controller["_reducerHandlers"].get(operation)(state, {
                 table: mockResult.tableInfo,
             });
 
             expect(result.hasUnpublishedChanges).to.be.true;
+            expect(result.publishingDisabled).to.be.false;
             if (operation === "publishChanges") {
                 expect(result.apiState.publishState).to.equal(td.LoadState.Error);
                 expect(result.publishingError).to.contain("Edition query failed");

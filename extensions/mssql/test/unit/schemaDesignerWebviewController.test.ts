@@ -559,6 +559,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
 
             expect(result.error).to.equal("Edition query failed");
+            expect(result.publishingDisabled).to.be.false;
             expect(mockSchemaDesignerService.getReport).not.to.have.been.called;
             expect(mockSchemaDesignerService.publishSession).not.to.have.been.called;
         });
@@ -584,6 +585,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const result = await handler({ updatedSchema: mockSchema });
 
             expect(result.error).to.equal(designerPublishingDisabled);
+            expect(result.publishingDisabled).to.be.true;
             expect(result.report).to.be.undefined;
             expect(mockSchemaDesignerService.getReport).not.to.have.been.called;
             expect(showErrorMessage).not.to.have.been.called;
@@ -657,6 +659,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const result = await handler({ updatedSchema });
 
             expect(result.error).to.equal(error.message);
+            expect(result.publishingDisabled).to.be.false;
         });
     });
 
@@ -686,6 +689,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             expect(result.success).to.be.false;
             expect(result.error).to.equal(designerPublishingDisabled);
+            expect(result.publishingDisabled).to.be.true;
             expect(mockSchemaDesignerService.publishSession).not.to.have.been.called;
             expect(showErrorMessage).not.to.have.been.called;
             expect(schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.isDirty).to.be

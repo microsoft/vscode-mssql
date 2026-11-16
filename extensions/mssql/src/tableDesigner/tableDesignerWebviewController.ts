@@ -20,7 +20,10 @@ import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
-import { ensureDesignerPublishingSupported } from "../services/schemaService";
+import {
+    DesignerPublishingDisabledError,
+    ensureDesignerPublishingSupported,
+} from "../services/schemaService";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
@@ -434,6 +437,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         previewState: designer.LoadState.NotStarted,
                     },
                     hasUnpublishedChanges: false,
+                    publishingDisabled: false,
                 };
                 this._sessionId = publishResponse.newTableInfo.id;
                 this.panel.title = state.tableInfo.title;
@@ -447,6 +451,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         publishState: designer.LoadState.Error,
                     },
                     publishingError: e.toString(),
+                    publishingDisabled: e instanceof DesignerPublishingDisabledError,
                     publishProgressMessages: this.appendProgressMessage(
                         state.publishProgressMessages,
                         getErrorMessage(e),
@@ -554,6 +559,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         generateScriptState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: previewReport,
+                    publishingDisabled: false,
                     reportProgressMessages: previewReport.schemaValidationError
                         ? this.appendProgressMessage(
                               state.reportProgressMessages,
@@ -576,6 +582,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                         report: "",
                         mimeType: "",
                     },
+                    publishingDisabled: e instanceof DesignerPublishingDisabledError,
                     reportProgressMessages: this.appendProgressMessage(
                         state.reportProgressMessages,
                         getErrorMessage(e),

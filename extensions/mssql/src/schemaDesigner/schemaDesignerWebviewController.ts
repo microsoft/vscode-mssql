@@ -15,7 +15,10 @@ import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
-import { ensureDesignerPublishingSupported } from "../services/schemaService";
+import {
+    DesignerPublishingDisabledError,
+    ensureDesignerPublishingSupported,
+} from "../services/schemaService";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
@@ -312,6 +315,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 reportActivity.endFailed(toError(error), false);
                 return {
                     error: getErrorMessage(error),
+                    publishingDisabled: error instanceof DesignerPublishingDisabledError,
                 };
             }
         });
@@ -359,6 +363,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return {
                     success: false,
                     error: getErrorMessage(error),
+                    publishingDisabled: error instanceof DesignerPublishingDisabledError,
                 };
             }
         });

@@ -42,6 +42,12 @@ export async function listSchemas(
         .filter((schemaName) => schemaName.length > 0);
 }
 
+export class DesignerPublishingDisabledError extends Error {
+    constructor() {
+        super(LocConstants.designerPublishingDisabled);
+    }
+}
+
 export async function ensureDesignerPublishingSupported(
     connectionManager: ConnectionManager,
     connection: string | IConnectionInfo | undefined,
@@ -65,6 +71,6 @@ export async function ensureDesignerPublishingSupported(
         throw new Error(LocConstants.designerPublishingEditionCheckFailed);
     }
     if (editionId === -978196525) {
-        throw new Error(LocConstants.designerPublishingDisabled);
+        throw new DesignerPublishingDisabledError();
     }
 }
