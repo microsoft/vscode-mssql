@@ -64,7 +64,23 @@ function parseRepositorySource(target: string): SkillsSource | undefined {
     return { owner, name };
 }
 
-const SKILLS_REF = "main";
+const DEFAULT_SKILLS_REF = "main";
+
+/**
+ * Hidden on purpose: it is not contributed in package.json, so it never appears in the Settings
+ * UI, but VS Code still returns it when set by hand in settings.json. It lets the skills be
+ * installed from a branch under review rather than `main`, e.g.
+ * `"mssql.agentSkills.branch": "feature/nov-refresh"`. It is read once per window, so a change
+ * takes effect after a reload.
+ */
+const SKILLS_BRANCH_SETTING = "mssql.agentSkills.branch";
+
+/**
+ * A branch name made of the characters GitHub refs use, split by single slashes, e.g.
+ * `feature/nov-refresh`. No component may start with a dot, which rules out `.` and `..`, so the
+ * name cannot reshape the URLs it is placed in.
+ */
+const BRANCH_NAME = /^[A-Za-z0-9_-][A-Za-z0-9._-]*(?:\/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$/;
 
 function repositoryUrl(source: SkillsSource): string {
     return `https://github.com/${source.owner}/${source.name}`;
@@ -80,6 +96,7 @@ const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 const STATE_INSTALLED_SHA = "overview/agentSkills.sha";
 const STATE_LAST_CHECK_MS = "overview/agentSkills.lastCheckMs";
+const STATE_INSTALLED_REF = "overview/agentSkills.ref";
 
 /**
  * Both plugins check at activation, and this keeps that to one call against GitHub's
@@ -135,8 +152,37 @@ export class AgentSkillsDownloads {
     private _source: Promise<SkillsSource> | undefined;
     private _latestSha: { promise: Promise<string | undefined>; expiresAt: number } | undefined;
     private readonly _archives = new Map<string, SharedArchive>();
+    private _ref: string | undefined;
 
     constructor(private readonly _context: vscode.ExtensionContext) {}
+
+    /**
+     * The branch the skills are read from: `main`, unless {@link SKILLS_BRANCH_SETTING} names
+     * another. Read once, so the archive, the revision check and the source links all describe
+     * the same branch for as long as the window lives.
+     */
+    public get ref(): string {
+        if (this._ref === undefined) {
+            this._ref = this.readBranchOverride() ?? DEFAULT_SKILLS_REF;
+        }
+        return this._ref;
+    }
+
+    private readBranchOverride(): string | undefined {
+        const value = vscode.workspace.getConfiguration().get<unknown>(SKILLS_BRANCH_SETTING);
+        if (typeof value !== "string" || value.trim() === "") {
+            return undefined;
+        }
+        const branch = value.trim();
+        if (!BRANCH_NAME.test(branch)) {
+            this._logger.warn(
+                `Ignoring ${SKILLS_BRANCH_SETTING} "${branch}": not a branch name; using ${DEFAULT_SKILLS_REF}.`,
+            );
+            return undefined;
+        }
+        this._logger.info(`Agent skills are being read from branch "${branch}".`);
+        return branch;
+    }
 
     /**
      * The redirect is read rather than followed, so the target is inspected before anything is
@@ -199,7 +245,7 @@ export class AgentSkillsDownloads {
     private async readLatestSha(): Promise<string | undefined> {
         try {
             const source = await this.resolveSource();
-            const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${SKILLS_REF}`;
+            const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${this.ref}`;
             // This media type answers with the bare commit SHA rather than the full commit.
             const response = await new VscodeHttpClient().get<string>(url, {
                 headers: { Accept: "application/vnd.github.sha" },
@@ -226,7 +272,7 @@ export class AgentSkillsDownloads {
         sha: string | undefined,
         use: (archivePath: string) => Promise<T>,
     ): Promise<T> {
-        const ref = sha ?? `refs/heads/${SKILLS_REF}`;
+        const ref = sha ?? `refs/heads/${this.ref}`;
         let archive = this._archives.get(ref);
         if (!archive) {
             archive = { path: this.downloadArchive(ref), users: 0 };
@@ -311,6 +357,20 @@ export class AgentPluginsInstaller {
         return `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
     }
 
+    private get installedRefKey(): string {
+        return `${STATE_INSTALLED_REF}/${this._pluginName}`;
+    }
+
+    /**
+     * Installs from before the branch was recorded came from `main`, so a missing value reads as
+     * that.
+     */
+    private get isOnOtherBranch(): boolean {
+        const installed =
+            this._context.globalState.get<string>(this.installedRefKey) ?? DEFAULT_SKILLS_REF;
+        return installed !== this._downloads.ref;
+    }
+
     public getSkillsCatalog(): Promise<AgentSkillGroup[]> {
         if (!this._catalog) {
             this._catalog = this.fetchSkillsCatalog().catch((error) => {
@@ -384,6 +444,7 @@ export class AgentPluginsInstaller {
             await this.downloadInto(this.pluginRoot, sha);
             await this.register();
             await this._context.globalState.update(this.installedShaKey, sha);
+            await this._context.globalState.update(this.installedRefKey, this._downloads.ref);
             await this._context.globalState.update(this.lastCheckKey, Date.now());
             this._logger.info(`Installed agent skills at ${sha ?? "an unknown revision"}.`);
             return true;
@@ -393,6 +454,10 @@ export class AgentPluginsInstaller {
     /**
      * Only runs for an install that is still intact, so a user who removed the skills is never
      * silently given them back.
+     *
+     * A copy taken from a different branch than the one now configured is replaced right away,
+     * so switching {@link SKILLS_BRANCH_SETTING} takes effect on the next activation rather than
+     * a day later.
      */
     public async checkForUpdates(force = false): Promise<boolean> {
         if (!(await this.isInstalled())) {
@@ -402,7 +467,7 @@ export class AgentPluginsInstaller {
         const lastCheck = this._context.globalState.get<number>(this.lastCheckKey) ?? 0;
         // A clock moved backwards would otherwise wedge this until the original due time.
         const elapsed = Date.now() - lastCheck;
-        if (!force && elapsed >= 0 && elapsed < UPDATE_CHECK_INTERVAL_MS) {
+        if (!force && !this.isOnOtherBranch && elapsed >= 0 && elapsed < UPDATE_CHECK_INTERVAL_MS) {
             return false;
         }
 
@@ -416,13 +481,14 @@ export class AgentPluginsInstaller {
             }
 
             const current = this._context.globalState.get<string>(this.installedShaKey);
-            if (current === latest) {
+            if (current === latest && !this.isOnOtherBranch) {
                 return false;
             }
 
             this._logger.info(`Agent skills moved from ${current ?? "unknown"} to ${latest}.`);
             await this.downloadInto(this.pluginRoot, latest);
             await this._context.globalState.update(this.installedShaKey, latest);
+            await this._context.globalState.update(this.installedRefKey, this._downloads.ref);
             await this.register();
             return true;
         });
@@ -531,6 +597,7 @@ export class AgentPluginsInstaller {
         // describe the same repository even if the short link were repointed mid-flight.
         const source = await this._downloads.resolveSource();
         const repository = repositoryUrl(source);
+        const ref = this._downloads.ref;
         const sha = await this._downloads.fetchLatestSha();
         const skillFiles = await this._downloads.withArchive(sha, (archivePath) =>
             readSkillFiles(archivePath, AGENT_SKILL_PLUGINS),
@@ -541,7 +608,7 @@ export class AgentPluginsInstaller {
                 .map(([skill, markdown]) => ({
                     id: skill,
                     description: toPlainText(parseSkillFrontMatter(markdown).description ?? ""),
-                    repositoryUrl: `${repository}/blob/${SKILLS_REF}/plugins/${id}/skills/${skill}/SKILL.md`,
+                    repositoryUrl: `${repository}/blob/${ref}/plugins/${id}/skills/${skill}/SKILL.md`,
                 }))
                 .filter((skill) => skill.description.length > 0)
                 .sort((a, b) => a.id.localeCompare(b.id));
@@ -551,7 +618,7 @@ export class AgentPluginsInstaller {
             return {
                 id,
                 skills,
-                repositoryUrl: `${repository}/tree/${SKILLS_REF}/plugins/${id}`,
+                repositoryUrl: `${repository}/tree/${ref}/plugins/${id}`,
             };
         });
     }
