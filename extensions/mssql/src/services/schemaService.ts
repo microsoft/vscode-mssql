@@ -13,7 +13,7 @@ import * as LocConstants from "../constants/locConstants";
 const LIST_SCHEMAS_QUERY =
     "SELECT name AS SchemaName FROM sys.schemas WHERE name NOT IN ('sys', 'information_schema') ORDER BY name";
 
-const simpleExecuteRequest = new RequestType<
+const ListSchemasRequest = new RequestType<
     { ownerUri: string; queryString: string },
     SimpleExecuteResult,
     void
@@ -26,7 +26,7 @@ export async function listSchemas(
     client: SqlToolsServiceClient,
     ownerUri: string,
 ): Promise<string[]> {
-    const result = await client.sendRequest(simpleExecuteRequest, {
+    const result = await client.sendRequest(ListSchemasRequest, {
         ownerUri,
         queryString: LIST_SCHEMAS_QUERY,
     });
@@ -54,7 +54,7 @@ export async function ensureDesignerPublishingSupported(
         throw new Error(LocConstants.designerPublishingEditionCheckFailed);
     }
 
-    const result = await connectionManager.sendRequest(simpleExecuteRequest, {
+    const result = await connectionManager.sendRequest(ListSchemasRequest, {
         ownerUri,
         queryString: "SELECT CONVERT(int, SERVERPROPERTY('EditionID')) AS EditionID;",
     });
