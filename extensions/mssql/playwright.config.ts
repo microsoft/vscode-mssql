@@ -5,9 +5,33 @@
 
 import * as dotenv from "dotenv";
 import * as path from "path";
-import { defineConfig } from "@playwright/test";
+import { defineConfig, ReporterDescription } from "@playwright/test";
 
 dotenv.config({ path: path.resolve(__dirname, "test/e2e/.env") });
+
+/**
+ * Tests tagged @quarantine failed or were flaky in CI. They are left out of the regular run and
+ * exercised by the e2e-quarantine workflow instead; a test is promoted by deleting its tag once
+ * it passes consistently there.
+ *
+ * E2E_QUARANTINE selects which tests run:
+ * - unset or "exclude": everything except quarantined tests (the build-and-test smoke run)
+ * - "only": just the quarantined tests, without retries so a flaky test reports as failed
+ * - "include": everything
+ */
+const QUARANTINE_TAG = /@quarantine/;
+const quarantineMode = process.env.E2E_QUARANTINE || "exclude";
+if (!["exclude", "only", "include"].includes(quarantineMode)) {
+    throw new Error(`Unsupported E2E_QUARANTINE value: ${quarantineMode}`);
+}
+const isQuarantineRun = quarantineMode === "only";
+
+const quarantineReporters: ReporterDescription[] = isQuarantineRun
+    ? [
+          ["html", { outputFolder: "./test-reports/quarantine-html", open: "never" }],
+          ["json", { outputFile: "./test-reports/quarantine-results.json" }],
+      ]
+    : [];
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -20,16 +44,21 @@ export default defineConfig({
     globalTeardown: require.resolve("./test/e2e/globalTeardown"),
     /* Smoke and grid projects share one CI run; cap total VS Code instances at two. */
     workers: 2,
+    grep: isQuarantineRun ? QUARANTINE_TAG : undefined,
+    grepInvert: quarantineMode === "exclude" ? QUARANTINE_TAG : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
         [
             "junit",
             {
-                outputFile: "./test-reports/smoke-results.xml",
+                outputFile: isQuarantineRun
+                    ? "./test-reports/quarantine-results.xml"
+                    : "./test-reports/smoke-results.xml",
             },
         ],
         /* Prints the flaky count, so a test that only passes on retry stays visible. */
         ["list"],
+        ...quarantineReporters,
     ],
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
@@ -51,7 +80,7 @@ export default defineConfig({
             workers: 1,
             /* Set timeout to 5 minutes */
             timeout: 5 * 60 * 1000,
-            retries: process.env.CI ? 2 : 0,
+            retries: isQuarantineRun ? 0 : process.env.CI ? 2 : 0,
         },
         {
             name: "grid-e2e",
@@ -81,7 +110,7 @@ export default defineConfig({
              * One retry, so a timing blip reports as flaky rather than as a red build and the
              * difference between flake and a real break stays visible in the report.
              */
-            retries: 1,
+            retries: isQuarantineRun ? 0 : 1,
         },
     ],
 });

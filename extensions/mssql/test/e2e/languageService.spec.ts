@@ -264,8 +264,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script view as Alter", testCases(5878832), async () => {
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test("Script view as Alter", { ...testCases(5878832), tag: "@quarantine" }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Views"],
@@ -278,56 +278,72 @@ test.describe("MSSQL Extension - Language Service", () => {
         const procedurePath = ["Programmability", "Stored Procedures"];
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script did not match the expected text.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script stored procedure as Create", testCases(5878833), async () => {
-            await expectGeneratedScript(
-                getContext().page,
-                procedurePath,
-                "dbo.LsProcedure",
-                ["Script as Create"],
-                /CREATE PROCEDURE \[dbo\]\.\[LsProcedure\]\s+@Id INT/,
-            );
-        });
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
+            "Script stored procedure as Create",
+            { ...testCases(5878833), tag: "@quarantine" },
+            async () => {
+                await expectGeneratedScript(
+                    getContext().page,
+                    procedurePath,
+                    "dbo.LsProcedure",
+                    ["Script as Create"],
+                    /CREATE PROCEDURE \[dbo\]\.\[LsProcedure\]\s+@Id INT/,
+                );
+            },
+        );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script stored procedure as Drop", testCases(5878833), async () => {
-            await expectGeneratedScript(
-                getContext().page,
-                procedurePath,
-                "dbo.LsProcedure",
-                ["Script as Drop"],
-                /DROP PROCEDURE \[dbo\]\.\[LsProcedure\]/,
-            );
-        });
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
+            "Script stored procedure as Drop",
+            { ...testCases(5878833), tag: "@quarantine" },
+            async () => {
+                await expectGeneratedScript(
+                    getContext().page,
+                    procedurePath,
+                    "dbo.LsProcedure",
+                    ["Script as Drop"],
+                    /DROP PROCEDURE \[dbo\]\.\[LsProcedure\]/,
+                );
+            },
+        );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script did not match the expected text.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script stored procedure as Alter", testCases(5878833), async () => {
-            await expectGeneratedScript(
-                getContext().page,
-                procedurePath,
-                "dbo.LsProcedure",
-                ["Script as Alter"],
-                /ALTER PROCEDURE \[dbo\]\.\[LsProcedure\]\s+@Id INT/,
-            );
-        });
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
+            "Script stored procedure as Alter",
+            { ...testCases(5878833), tag: "@quarantine" },
+            async () => {
+                await expectGeneratedScript(
+                    getContext().page,
+                    procedurePath,
+                    "dbo.LsProcedure",
+                    ["Script as Alter"],
+                    /ALTER PROCEDURE \[dbo\]\.\[LsProcedure\]\s+@Id INT/,
+                );
+            },
+        );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script stored procedure as Execute", testCases(5878833), async () => {
-            await expectGeneratedScript(
-                getContext().page,
-                procedurePath,
-                "dbo.LsProcedure",
-                ["Script as Execute"],
-                /EXECUTE @RC = \[dbo\]\.\[LsProcedure\]\s+@Id/,
-            );
-        });
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
+            "Script stored procedure as Execute",
+            { ...testCases(5878833), tag: "@quarantine" },
+            async () => {
+                await expectGeneratedScript(
+                    getContext().page,
+                    procedurePath,
+                    "dbo.LsProcedure",
+                    ["Script as Execute"],
+                    /EXECUTE @RC = \[dbo\]\.\[LsProcedure\]\s+@Id/,
+                );
+            },
+        );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script user as Create", testCases(5878834), async () => {
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test("Script user as Create", { ...testCases(5878834), tag: "@quarantine" }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Security", "Users"],
@@ -348,8 +364,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script schema as Create", testCases(5878835), async () => {
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test("Script schema as Create", { ...testCases(5878835), tag: "@quarantine" }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Security", "Schemas"],
@@ -370,8 +386,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script table as Create", testCases(5878836), async () => {
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test("Script table as Create", { ...testCases(5878836), tag: "@quarantine" }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Tables"],
@@ -382,8 +398,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Script table as Drop", testCases(5878836), async () => {
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test("Script table as Drop", { ...testCases(5878836), tag: "@quarantine" }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Tables"],

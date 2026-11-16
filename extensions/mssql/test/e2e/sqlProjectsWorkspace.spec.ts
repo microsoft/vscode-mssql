@@ -178,10 +178,10 @@ test.describe("SQL Database Projects - workspaces", () => {
         );
 
         // Failed in the Linux CI build-and-test smoke run: a context menu stayed open after its command ran.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme(
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
             "remove a project and add it back, updating the workspace file",
-            testCases(5878847),
+            { ...testCases(5878847), tag: "@quarantine" },
             async () => {
                 const { page } = getContext();
                 const relativeProject = path.join("main", "WsProj", "WsProj.sqlproj");
@@ -202,10 +202,10 @@ test.describe("SQL Database Projects - workspaces", () => {
         );
 
         // Failed in the Linux CI build-and-test smoke run: a context menu stayed open after its command ran.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme(
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
             "view toolbar and overflow menu commands launch the right flows",
-            testCases(5878847),
+            { ...testCases(5878847), tag: "@quarantine" },
             async () => {
                 const { page } = getContext();
                 const quickInput = new QuickInput(page);

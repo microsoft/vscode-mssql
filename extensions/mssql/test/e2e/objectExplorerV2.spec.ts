@@ -35,9 +35,10 @@ test.describe("Object Explorer v2 view parity", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry). This predates the December test plan automation.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "matches the classic toolbar, group expansion, and Getting Started actions",
+        { tag: "@quarantine" },
         async ({}, testInfo) => {
             const { page } = getContext();
             const classic = page.locator(".pane").filter({

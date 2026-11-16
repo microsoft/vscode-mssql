@@ -278,10 +278,14 @@ test.describe("MSSQL Extension - Results Grid Open After Save", () => {
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry). The test predates this
     // pull request, which only renamed it and made it refocus the query editor first.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme("openAfterSave opens the exported CSV document", testCases(5878841), async () => {
-        await saveAndExpectOpened("Save as CSV", "opened-results.csv");
-    });
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
+        "openAfterSave opens the exported CSV document",
+        { ...testCases(5878841), tag: "@quarantine" },
+        async () => {
+            await saveAndExpectOpened("Save as CSV", "opened-results.csv");
+        },
+    );
 
     test("openAfterSave opens the exported JSON document", testCases(5878840), async () => {
         await saveAndExpectOpened("Save as JSON", "opened-results.json");

@@ -80,9 +80,9 @@ async function generateScriptAgainst(
  */
 // Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
 // appear within 30s. These tests run serially and build on each other, so the whole group is
-// marked rather than individual tests.
-// TODO: Stabilize these tests and re-enable them.
-test.describe.fixme("SQL Database Projects rename refactoring", () => {
+// quarantined rather than individual tests.
+// TODO: Stabilize these tests, then remove the group's @quarantine tag.
+test.describe("SQL Database Projects rename refactoring", { tag: "@quarantine" }, () => {
     test.describe.configure({ mode: "serial" });
     const databaseName = uniqueDatabaseName("SqlProjRename");
     const { project, getContext } = useFixtureProjectLifecycle({
@@ -104,8 +104,8 @@ test.describe.fixme("SQL Database Projects rename refactoring", () => {
     });
 
     // Failed in the Linux CI build-and-test smoke run: the rename preview's quick input rows never appeared.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme("previews a rename and discards it", testCases(5878947), async () => {
+    // TODO: Stabilize this test. The group carries the @quarantine tag.
+    test("previews a rename and discards it", testCases(5878947), async () => {
         const { page } = getContext();
         await placeCursorOnCustomerTable(page);
         const rename = await startRename(page, "Client");
@@ -280,9 +280,9 @@ async function startMoveToSchema(page: Page): Promise<QuickInput> {
  */
 // Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
 // appear within 30s. These tests run serially and build on each other, so the whole group is
-// marked rather than individual tests.
-// TODO: Stabilize these tests and re-enable them.
-test.describe.fixme("SQL Database Projects move to schema refactoring", () => {
+// quarantined rather than individual tests.
+// TODO: Stabilize these tests, then remove the group's @quarantine tag.
+test.describe("SQL Database Projects move to schema refactoring", { tag: "@quarantine" }, () => {
     test.describe.configure({ mode: "serial" });
     const databaseName = uniqueDatabaseName("SqlProjMoveSchema");
     const { project, getContext } = useFixtureProjectLifecycle({
@@ -304,57 +304,53 @@ test.describe.fixme("SQL Database Projects move to schema refactoring", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
-        "offers the project's schemas and previews the move",
-        testCases(5878948),
-        async () => {
-            const { page } = getContext();
-            await placeCursorOnCustomerTable(page);
-            const schemaPicker = await startMoveToSchema(page);
-            await expect(schemaPicker.input).toHaveAttribute(
-                "placeholder",
-                "Current Schema: dbo, Select the new schema:",
-            );
-            await expect
-                .poll(async () => (await schemaPicker.labels()).sort())
-                .toEqual(["Archive", "Sales", "dbo"]);
-            await schemaPicker.pick("Archive");
+    // TODO: Stabilize this test. The group carries the @quarantine tag.
+    test("offers the project's schemas and previews the move", testCases(5878948), async () => {
+        const { page } = getContext();
+        await placeCursorOnCustomerTable(page);
+        const schemaPicker = await startMoveToSchema(page);
+        await expect(schemaPicker.input).toHaveAttribute(
+            "placeholder",
+            "Current Schema: dbo, Select the new schema:",
+        );
+        await expect
+            .poll(async () => (await schemaPicker.labels()).sort())
+            .toEqual(["Archive", "Sales", "dbo"]);
+        await schemaPicker.pick("Archive");
 
-            const preview = getRefactorPreview(page);
-            await expect(preview).toBeVisible({ timeout: 60 * 1000 });
-            for (const file of [
-                "dbo/StoredProcedures/GetCustomer.sql",
-                "dbo/Tables/Customer.sql",
-                "dbo/Tables/Orders.sql",
-                "dbo/Views/CustomerOrders.sql",
-            ]) {
-                await expect(
-                    preview.getByRole("checkbox", { name: `${file}, making text edits` }),
-                ).toBeVisible();
-            }
-            await expect(page.getByRole("button", { name: "Apply", exact: true })).toBeVisible();
-            await expect(page.getByRole("button", { name: "Discard", exact: true })).toBeVisible();
-
-            await preview
-                .getByRole("checkbox", { name: /^line 6, replacing/ })
-                .getByText(/REFERENCES/)
-                .click();
+        const preview = getRefactorPreview(page);
+        await expect(preview).toBeVisible({ timeout: 60 * 1000 });
+        for (const file of [
+            "dbo/StoredProcedures/GetCustomer.sql",
+            "dbo/Tables/Customer.sql",
+            "dbo/Tables/Orders.sql",
+            "dbo/Views/CustomerOrders.sql",
+        ]) {
             await expect(
-                page.getByRole("tab", { name: /^Refactor Preview \(\d+ files\)/ }),
-            ).toHaveAttribute("aria-selected", "true");
-            await expect(
-                page.getByRole("button", { name: /[\\/]dbo[\\/]Tables[\\/]Orders\.sql$/ }),
+                preview.getByRole("checkbox", { name: `${file}, making text edits` }),
             ).toBeVisible();
+        }
+        await expect(page.getByRole("button", { name: "Apply", exact: true })).toBeVisible();
+        await expect(page.getByRole("button", { name: "Discard", exact: true })).toBeVisible();
 
-            await page.getByRole("button", { name: "Discard", exact: true }).click();
-            await expect(preview).toBeHidden();
-            expect(project.read("dbo/Tables/Orders.sql")).toBe(
-                readFixtureFile("dbo/Tables/Orders.sql"),
-            );
-            expect(fs.existsSync(project.file("PublishFixture.refactorlog"))).toBe(false);
-        },
-    );
+        await preview
+            .getByRole("checkbox", { name: /^line 6, replacing/ })
+            .getByText(/REFERENCES/)
+            .click();
+        await expect(
+            page.getByRole("tab", { name: /^Refactor Preview \(\d+ files\)/ }),
+        ).toHaveAttribute("aria-selected", "true");
+        await expect(
+            page.getByRole("button", { name: /[\\/]dbo[\\/]Tables[\\/]Orders\.sql$/ }),
+        ).toBeVisible();
+
+        await page.getByRole("button", { name: "Discard", exact: true }).click();
+        await expect(preview).toBeHidden();
+        expect(project.read("dbo/Tables/Orders.sql")).toBe(
+            readFixtureFile("dbo/Tables/Orders.sql"),
+        );
+        expect(fs.existsSync(project.file("PublishFixture.refactorlog"))).toBe(false);
+    });
 
     test("moves the table and its references to another schema", testCases(5878948), async () => {
         const { page } = getContext();

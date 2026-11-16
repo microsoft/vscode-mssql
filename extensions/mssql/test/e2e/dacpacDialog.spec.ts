@@ -125,9 +125,9 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
     // Failed in the Linux CI build-and-test smoke run: publishing the DACPAC flaked because the
     // Data-tier Application webview did not appear in time, and the Schema Compare check that
     // follows depends on the database that publish creates, so it then failed too. These tests
-    // run serially and build on each other, so the whole group is marked.
-    // TODO: Stabilize these tests and re-enable them.
-    test.describe.fixme("Extract and publish a DACPAC", () => {
+    // run serially and build on each other, so the whole group is quarantined.
+    // TODO: Stabilize these tests, then remove the group's @quarantine tag.
+    test.describe("Extract and publish a DACPAC", { tag: "@quarantine" }, () => {
         test.describe.configure({ mode: "serial" });
 
         test(

@@ -207,6 +207,8 @@ jobs:
           export PASSWORD=${{ env.PASSWORD }}
           export SAVE_PASSWORD=No
           export PROFILE_NAME=test-server
+          # Quarantined tests run in the e2e-quarantine workflow instead.
+          export E2E_QUARANTINE=exclude
           # Keeps a video clip of each failed test attempt; passing attempts leave nothing behind.
           export ENABLE_ELECTRON_VIDEO_RECORDING=true
           export BUILT_VSIX_PATH=$(find ./extensions/mssql -name "*.vsix" -exec realpath {} \; | head -n 1)

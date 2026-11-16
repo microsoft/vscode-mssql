@@ -92,10 +92,10 @@ test.describe("MSSQL Extension - Query Plans from the query editor", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "the actual plan toggle swaps between Enable and Disable",
-        testCases(5878881),
+        { ...testCases(5878881), tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             await openConnectedEditor(page);
@@ -119,10 +119,10 @@ test.describe("MSSQL Extension - Query Plans from the query editor", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run: clicking the 'Query Plan (2)' tab timed out.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "an actual plan run returns each statement's plan alongside its results and plan XML",
-        testCases(5878881),
+        { ...testCases(5878881), tag: "@quarantine" },
         async () => {
             const { electronApp, page } = getContext();
             await openConnectedEditor(page);
@@ -165,10 +165,10 @@ test.describe("MSSQL Extension - Query Plans from the query editor", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run: clicking the query editor's text area (div.view-lines) timed out.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "an actual plan run only shows plans for statements that have one",
-        testCases(5878881),
+        { ...testCases(5878881), tag: "@quarantine" },
         async () => {
             const { electronApp, page } = getContext();
             await openConnectedEditor(page);

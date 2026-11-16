@@ -119,10 +119,10 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run (and was flaky in an earlier run): a toBeVisible assertion timed out.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "connecting to an untrusted certificate offers to trust it and then connects",
-        testCases(5878869),
+        { ...testCases(5878869), tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             const dialog = await openConnectionDialog(page);
@@ -280,10 +280,10 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): an Object Explorer node stayed on "Loading...".
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "removing a recent connection does not ask for confirmation",
-        testCases(5878875),
+        { ...testCases(5878875), tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             // Only connections made through the dialog are listed as recent.

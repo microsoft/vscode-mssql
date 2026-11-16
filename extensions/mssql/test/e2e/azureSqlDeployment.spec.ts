@@ -19,9 +19,10 @@ test.describe("Azure SQL deployment options", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry). This predates the December test plan automation.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "opens each deployment flow directly from the first page without preview flags",
+        { tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
@@ -213,63 +214,67 @@ test.describe("Azure SQL deployment options", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry). This predates the December test plan automation.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme("opens each Create option from Getting Started in the requested order", async () => {
-        const { page } = getContext();
-        const options = [
-            {
-                name: "Local Azure SQL Database container (Preview)",
-                title: "Azure SQL Database developer container",
-            },
-            {
-                name: "Local SQL Server container",
-                title: "Create a Local Docker SQL Server",
-            },
-            { name: /Azure SQL Database\s*Free$/, title: "Create an Azure SQL Database" },
-            { name: "SQL database in Fabric", title: "Create a SQL database in Fabric" },
-            {
-                name: /Deploy local database to Azure SQL \(Preview\)$/,
-                title: "Deploy a database to Azure SQL (Preview)",
-            },
-        ];
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
+        "opens each Create option from Getting Started in the requested order",
+        { tag: "@quarantine" },
+        async () => {
+            const { page } = getContext();
+            const options = [
+                {
+                    name: "Local Azure SQL Database container (Preview)",
+                    title: "Azure SQL Database developer container",
+                },
+                {
+                    name: "Local SQL Server container",
+                    title: "Create a Local Docker SQL Server",
+                },
+                { name: /Azure SQL Database\s*Free$/, title: "Create an Azure SQL Database" },
+                { name: "SQL database in Fabric", title: "Create a SQL database in Fabric" },
+                {
+                    name: /Deploy local database to Azure SQL \(Preview\)$/,
+                    title: "Deploy a database to Azure SQL (Preview)",
+                },
+            ];
 
-        for (const option of options) {
+            for (const option of options) {
+                await runCommandFromPalette(
+                    page,
+                    "MS SQL: Open Getting Started",
+                    "MS SQL: Open Getting Started",
+                );
+                const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+                await overview
+                    .getByRole("button", { name: "More create options", exact: true })
+                    .click();
+                await expect(overview.getByRole("menuitem")).toHaveText(
+                    options.map(({ name }) => name),
+                );
+                await overview.getByRole("menuitem", { name: option.name, exact: true }).click();
+
+                const deployment = await getWebviewByTitle(page, "New Deployment");
+                await expect(deployment.getByText(option.title, { exact: true })).toBeVisible({
+                    timeout: 30_000,
+                });
+                await deployment.getByRole("button", { name: "Previous", exact: true }).click();
+                await expect(
+                    deployment.getByRole("heading", { name: "Run locally", level: 2 }),
+                ).toBeVisible();
+                await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
+            }
+
             await runCommandFromPalette(
                 page,
                 "MS SQL: Open Getting Started",
                 "MS SQL: Open Getting Started",
             );
             const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
-            await overview
-                .getByRole("button", { name: "More create options", exact: true })
-                .click();
-            await expect(overview.getByRole("menuitem")).toHaveText(
-                options.map(({ name }) => name),
-            );
-            await overview.getByRole("menuitem", { name: option.name, exact: true }).click();
-
+            await overview.getByRole("button", { name: "Create", exact: true }).click();
             const deployment = await getWebviewByTitle(page, "New Deployment");
-            await expect(deployment.getByText(option.title, { exact: true })).toBeVisible({
-                timeout: 30_000,
-            });
-            await deployment.getByRole("button", { name: "Previous", exact: true }).click();
             await expect(
                 deployment.getByRole("heading", { name: "Run locally", level: 2 }),
-            ).toBeVisible();
+            ).toBeVisible({ timeout: 30_000 });
             await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
-        }
-
-        await runCommandFromPalette(
-            page,
-            "MS SQL: Open Getting Started",
-            "MS SQL: Open Getting Started",
-        );
-        const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
-        await overview.getByRole("button", { name: "Create", exact: true }).click();
-        const deployment = await getWebviewByTitle(page, "New Deployment");
-        await expect(
-            deployment.getByRole("heading", { name: "Run locally", level: 2 }),
-        ).toBeVisible({ timeout: 30_000 });
-        await deployment.getByRole("button", { name: "Cancel", exact: true }).click();
-    });
+        },
+    );
 });

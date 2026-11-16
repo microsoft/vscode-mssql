@@ -56,9 +56,9 @@ const ALL_TABLES = [
  * folder shows.
  */
 // Failed in the Linux CI build-and-test smoke run: 9 of these tests failed the same way, with a filtered folder's children
-// or filter state not updating (toHaveCount(0) still saw 1). The whole group is marked.
-// TODO: Stabilize these tests and re-enable them.
-test.describe.fixme("MSSQL Extension - Object Explorer filters", () => {
+// or filter state not updating (toHaveCount(0) still saw 1). The whole group is quarantined.
+// TODO: Stabilize these tests, then remove the group's @quarantine tag.
+test.describe("MSSQL Extension - Object Explorer filters", { tag: "@quarantine" }, () => {
     const databaseName = uniqueDatabaseName("E2E_OEFilter");
 
     const getContext = useSharedVsCodeLifecycle({

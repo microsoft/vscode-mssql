@@ -76,6 +76,10 @@ same directory and configure a reachable SQL Server. Then run:
 npm run smoketest -- --target mssql
 ```
 
+E2E tests that fail or are flaky in CI are tagged `@quarantine`. The smoke run skips them, and
+the `E2E Quarantine` workflow runs only them, without retries. Set `E2E_QUARANTINE=only` (or
+`include`) to run them locally. Remove a test's tag once it passes consistently in that workflow.
+
 Set `ENABLE_ELECTRON_VIDEO_RECORDING=true` to keep a video clip of each failed test attempt and
 `ENABLE_ELECTRON_TRACING=true` to keep its trace. Both are on in CI. Passing attempts keep neither.
 

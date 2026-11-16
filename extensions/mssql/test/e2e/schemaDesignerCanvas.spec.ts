@@ -305,48 +305,54 @@ test.describe("Schema Designer canvas", () => {
         });
 
         // Failed in the Linux CI build-and-test smoke run: a definition format radio button was not found.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Renders the whole schema in ORM formats", testCases(5878931), async () => {
-            const definitionType = await openDefinitionPanel(frame);
-            await expect(definitionType.getByRole("radio")).toHaveText([
-                "T-SQL",
-                "Prisma",
-                "Sequelize",
-                "TypeORM",
-                "Drizzle",
-                "SQLAlchemy",
-                "EF Core",
-            ]);
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
+            "Renders the whole schema in ORM formats",
+            { ...testCases(5878931), tag: "@quarantine" },
+            async () => {
+                const definitionType = await openDefinitionPanel(frame);
+                await expect(definitionType.getByRole("radio")).toHaveText([
+                    "T-SQL",
+                    "Prisma",
+                    "Sequelize",
+                    "TypeORM",
+                    "Drizzle",
+                    "SQLAlchemy",
+                    "EF Core",
+                ]);
 
-            await selectDefinitionType(definitionType, "Prisma");
-            await expect(getDefinitionEditor(frame)).toContainText('provider = "sqlserver"');
-            await expect(getDefinitionEditor(frame)).toContainText('schemas = ["dbo", "Sales"]');
-            const prisma = await copyDefinition(app, page, frame);
-            for (const model of [
-                "Customers",
-                "CustomerNotes",
-                "Products",
-                "Orders",
-                "OrderLines",
-            ]) {
-                expect(prisma).toContain(`model ${model} {`);
-            }
+                await selectDefinitionType(definitionType, "Prisma");
+                await expect(getDefinitionEditor(frame)).toContainText('provider = "sqlserver"');
+                await expect(getDefinitionEditor(frame)).toContainText(
+                    'schemas = ["dbo", "Sales"]',
+                );
+                const prisma = await copyDefinition(app, page, frame);
+                for (const model of [
+                    "Customers",
+                    "CustomerNotes",
+                    "Products",
+                    "Orders",
+                    "OrderLines",
+                ]) {
+                    expect(prisma).toContain(`model ${model} {`);
+                }
 
-            await selectDefinitionType(definitionType, "EF Core");
-            await expect(getDefinitionEditor(frame)).toContainText(
-                "using Microsoft.EntityFrameworkCore;",
-            );
-            const efCore = await copyDefinition(app, page, frame);
-            expect(efCore).toContain("public partial class CustomerNotes");
-            expect(efCore).toContain('entity.ToTable("Orders", "Sales");');
-            expect(efCore).toContain('entity.ToTable("Products", "dbo");');
-            expect(efCore).toMatch(
-                /entity\.HasOne\(d => d\.Product\)\s+\.WithMany\(p => p\.OrderLines\)\s+\.HasForeignKey\(d => d\.ProductId\);/,
-            );
+                await selectDefinitionType(definitionType, "EF Core");
+                await expect(getDefinitionEditor(frame)).toContainText(
+                    "using Microsoft.EntityFrameworkCore;",
+                );
+                const efCore = await copyDefinition(app, page, frame);
+                expect(efCore).toContain("public partial class CustomerNotes");
+                expect(efCore).toContain('entity.ToTable("Orders", "Sales");');
+                expect(efCore).toContain('entity.ToTable("Products", "dbo");');
+                expect(efCore).toMatch(
+                    /entity\.HasOne\(d => d\.Product\)\s+\.WithMany\(p => p\.OrderLines\)\s+\.HasForeignKey\(d => d\.ProductId\);/,
+                );
 
-            // Leave the default format selected for the next designer.
-            await selectDefinitionType(definitionType, "T-SQL");
-        });
+                // Leave the default format selected for the next designer.
+                await selectDefinitionType(definitionType, "T-SQL");
+            },
+        );
 
         test(
             "Updates when columns are added, renamed and retyped",
@@ -548,46 +554,54 @@ test.describe("Schema Designer canvas", () => {
 
     test.describe("Find Tables", () => {
         // Failed in the Linux CI build-and-test smoke run: Find Tables reported 4 matches instead of 5.
-        // TODO: Stabilize this test and re-enable it.
-        test.fixme("Matches full and partial table names", testCases(5878933), async () => {
-            const searchBox = await openFindTables(frame, page);
-            const findWidget = frame.getByRole("search", { name: "Find tables" });
-            const findNext = findWidget.getByRole("button", { name: "Find Next" });
+        // TODO: Stabilize this test, then remove its @quarantine tag.
+        test(
+            "Matches full and partial table names",
+            { ...testCases(5878933), tag: "@quarantine" },
+            async () => {
+                const searchBox = await openFindTables(frame, page);
+                const findWidget = frame.getByRole("search", { name: "Find tables" });
+                const findNext = findWidget.getByRole("button", { name: "Find Next" });
 
-            await searchBox.fill("Customers");
-            await expect(findWidget.getByText("1 of 1", { exact: true })).toBeVisible();
-            await expect(getSelectedTableNode(frame)).toHaveAccessibleName("Table dbo.Customers");
+                await searchBox.fill("Customers");
+                await expect(findWidget.getByText("1 of 1", { exact: true })).toBeVisible();
+                await expect(getSelectedTableNode(frame)).toHaveAccessibleName(
+                    "Table dbo.Customers",
+                );
 
-            // A partial name matches every table containing it and highlights the match.
-            await searchBox.fill("Cust");
-            await expect(findWidget.getByText("1 of 2", { exact: true })).toBeVisible();
-            for (const table of ["dbo.Customers", "dbo.CustomerNotes"]) {
+                // A partial name matches every table containing it and highlights the match.
+                await searchBox.fill("Cust");
+                await expect(findWidget.getByText("1 of 2", { exact: true })).toBeVisible();
+                for (const table of ["dbo.Customers", "dbo.CustomerNotes"]) {
+                    await expect(
+                        getTableNode(frame, table).getByText("Cust", { exact: true }),
+                    ).toBeVisible();
+                }
                 await expect(
-                    getTableNode(frame, table).getByText("Cust", { exact: true }),
+                    getTableNode(frame, "Sales.Orders").getByText("Cust", { exact: true }),
+                ).toHaveCount(0);
+
+                // Only table names are searched, so a column name finds nothing.
+                await searchBox.fill("Email");
+                // The visible count comes first; a screen reader status repeats it.
+                await expect(
+                    findWidget.getByText("No results", { exact: true }).first(),
                 ).toBeVisible();
-            }
-            await expect(
-                getTableNode(frame, "Sales.Orders").getByText("Cust", { exact: true }),
-            ).toHaveCount(0);
+                await expect(findNext).toBeDisabled();
 
-            // Only table names are searched, so a column name finds nothing.
-            await searchBox.fill("Email");
-            // The visible count comes first; a screen reader status repeats it.
-            await expect(findWidget.getByText("No results", { exact: true }).first()).toBeVisible();
-            await expect(findNext).toBeDisabled();
+                await searchBox.fill("Cust");
+                await expect(findWidget.getByText("1 of 2", { exact: true })).toBeVisible();
+                await findWidget.getByRole("button", { name: "clear" }).click();
+                await expect(searchBox).toHaveValue("");
+                await expect(findWidget.getByText("No results", { exact: true })).toBeVisible();
+                await expect(findNext).toBeDisabled();
+                await expect(getCanvas(frame).getByText("Cust", { exact: true })).toHaveCount(0);
+                await expectVisibleTables(frame, ALL_TABLES);
 
-            await searchBox.fill("Cust");
-            await expect(findWidget.getByText("1 of 2", { exact: true })).toBeVisible();
-            await findWidget.getByRole("button", { name: "clear" }).click();
-            await expect(searchBox).toHaveValue("");
-            await expect(findWidget.getByText("No results", { exact: true })).toBeVisible();
-            await expect(findNext).toBeDisabled();
-            await expect(getCanvas(frame).getByText("Cust", { exact: true })).toHaveCount(0);
-            await expectVisibleTables(frame, ALL_TABLES);
-
-            await findWidget.getByRole("button", { name: "Close Find" }).click();
-            await expect(findWidget).toBeHidden();
-        });
+                await findWidget.getByRole("button", { name: "Close Find" }).click();
+                await expect(findWidget).toBeHidden();
+            },
+        );
 
         test("Selecting a result selects and centers its table", testCases(5878933), async () => {
             const searchBox = await openFindTables(frame, page);

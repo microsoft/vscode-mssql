@@ -75,10 +75,10 @@ test.describe("MSSQL Extension - Database Management", () => {
     }
 
     // Failed in the Linux CI build-and-test smoke run: the dialog's webview did not appear within 30s.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "Create Database applies the chosen compatibility level",
-        testCases(5878941),
+        { ...testCases(5878941), tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             const databases = await openDatabasesFolder(page);
@@ -125,10 +125,10 @@ test.describe("MSSQL Extension - Database Management", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run: the 'Rename Database...' context menu item was not found.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "Rename Database renames it and keeps its contents",
-        testCases(5878942),
+        { ...testCases(5878942), tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             const dialog = await openDatabaseDialog(
@@ -190,10 +190,10 @@ test.describe("MSSQL Extension - Database Management", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "Drop Database removes it once the permanent action is confirmed",
-        testCases(5878943),
+        { ...testCases(5878943), tag: "@quarantine" },
         async () => {
             const { page } = getContext();
             const dialog = await openDatabaseDialog(

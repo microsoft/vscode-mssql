@@ -53,9 +53,9 @@ function severityOf(dialog: FrameLocator, ruleId: string) {
  */
 // Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
 // appear within 30s. These tests run serially and build on each other, so the whole group is
-// marked rather than individual tests.
-// TODO: Stabilize these tests and re-enable them.
-test.describe.fixme("SQL Database Projects code analysis settings", () => {
+// quarantined rather than individual tests.
+// TODO: Stabilize these tests, then remove the group's @quarantine tag.
+test.describe("SQL Database Projects code analysis settings", { tag: "@quarantine" }, () => {
     test.describe.configure({ mode: "serial" });
     const { project, getContext } = useFixtureProjectLifecycle({
         prepareProject: (copy) => {

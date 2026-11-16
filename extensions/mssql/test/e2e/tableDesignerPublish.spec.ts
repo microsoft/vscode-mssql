@@ -92,26 +92,30 @@ test.describe("Table Designer - create a table", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): a toBeVisible assertion timed out.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme("Publish creates the table on the server", testCases(5878892), async () => {
-        let frame = await openNewTableDesigner(page, databaseName);
-        await setTableName(page, frame, "PublishedTable");
-        await addColumn(page, frame, "Title", "nvarchar(50)");
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
+        "Publish creates the table on the server",
+        { ...testCases(5878892), tag: "@quarantine" },
+        async () => {
+            let frame = await openNewTableDesigner(page, databaseName);
+            await setTableName(page, frame, "PublishedTable");
+            await addColumn(page, frame, "Title", "nvarchar(50)");
 
-        const dialog = await openPreviewReport(frame);
-        frame = await publishFromPreview(page, dialog, "dbo.PublishedTable");
+            const dialog = await openPreviewReport(frame);
+            frame = await publishFromPreview(page, dialog, "dbo.PublishedTable");
 
-        expect(await getColumns(databaseName, "PublishedTable")).toEqual({
-            Id: "int NOT NULL",
-            Title: "nvarchar(50) NULL",
-        });
-        expect(await getPrimaryKeyColumns(databaseName, "PublishedTable")).toEqual(["Id"]);
-        // Publishing refreshes the Tables folder, so the new table appears in Object Explorer.
-        await scrollObjectExplorerNodeIntoView(page, "dbo.PublishedTable");
+            expect(await getColumns(databaseName, "PublishedTable")).toEqual({
+                Id: "int NOT NULL",
+                Title: "nvarchar(50) NULL",
+            });
+            expect(await getPrimaryKeyColumns(databaseName, "PublishedTable")).toEqual(["Id"]);
+            // Publishing refreshes the Tables folder, so the new table appears in Object Explorer.
+            await scrollObjectExplorerNodeIntoView(page, "dbo.PublishedTable");
 
-        await getApplyChangesDialog(frame).getByRole("button", { name: "Close" }).click();
-        await expect(page.getByRole("tab", { name: /^dbo\.PublishedTable/ })).toHaveCount(0);
-    });
+            await getApplyChangesDialog(frame).getByRole("button", { name: "Close" }).click();
+            await expect(page.getByRole("tab", { name: /^dbo\.PublishedTable/ })).toHaveCount(0);
+        },
+    );
 });
 
 /**
@@ -153,10 +157,10 @@ test.describe("Table Designer - edit a table", () => {
     }
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the "Notifications: Clear All Notifications" quick pick row never appeared.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme(
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
         "Open Publish Script shows the ALTER statements for the edits",
-        testCases(5878893),
+        { ...testCases(5878893), tag: "@quarantine" },
         async () => {
             const frame = await openExistingTableDesigner(
                 page,
@@ -201,38 +205,42 @@ test.describe("Table Designer - edit a table", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): clicking the dbo.PublishCustomers Object Explorer node timed out.
-    // TODO: Stabilize this test and re-enable it.
-    test.fixme("Publish applies the edits to the table", testCases(5878893), async () => {
-        let frame = await openExistingTableDesigner(page, databaseName, "dbo.PublishCustomers");
-        await editCustomersTable(frame);
+    // TODO: Stabilize this test, then remove its @quarantine tag.
+    test(
+        "Publish applies the edits to the table",
+        { ...testCases(5878893), tag: "@quarantine" },
+        async () => {
+            let frame = await openExistingTableDesigner(page, databaseName, "dbo.PublishCustomers");
+            await editCustomersTable(frame);
 
-        const dialog = await openPreviewReport(frame);
-        frame = await publishFromPreview(page, dialog, "dbo.PublishCustomers");
+            const dialog = await openPreviewReport(frame);
+            frame = await publishFromPreview(page, dialog, "dbo.PublishCustomers");
 
-        expect(await getColumns(databaseName, "PublishCustomers")).toEqual({
-            Id: "int NOT NULL",
-            Name: "nvarchar(50) NOT NULL",
-            CreatedOn: "date NULL",
-        });
-        expect(await getPrimaryKeyColumns(databaseName, "PublishCustomers")).toEqual(["Id"]);
-        expect(
-            await querySingleValue<number>(
-                "SELECT COUNT(*) FROM dbo.PublishCustomers",
-                databaseName,
-            ),
-        ).toBe(2);
+            expect(await getColumns(databaseName, "PublishCustomers")).toEqual({
+                Id: "int NOT NULL",
+                Name: "nvarchar(50) NOT NULL",
+                CreatedOn: "date NULL",
+            });
+            expect(await getPrimaryKeyColumns(databaseName, "PublishCustomers")).toEqual(["Id"]);
+            expect(
+                await querySingleValue<number>(
+                    "SELECT COUNT(*) FROM dbo.PublishCustomers",
+                    databaseName,
+                ),
+            ).toBe(2);
 
-        // The designer reloads from the published table and has nothing left to publish.
-        await continueEditing(frame);
-        await expect(getPublishButton(frame)).toBeDisabled();
-        await expect(getColumnRow(frame, "CreatedOn")).toBeVisible();
-        await expect(
-            getColumnRow(frame, "Name").getByRole("checkbox", { name: "Allow Nulls" }),
-        ).not.toBeChecked();
-        await expect(
-            getColumnRow(frame, "Id").getByRole("checkbox", { name: "Primary Key" }),
-        ).toBeChecked();
+            // The designer reloads from the published table and has nothing left to publish.
+            await continueEditing(frame);
+            await expect(getPublishButton(frame)).toBeDisabled();
+            await expect(getColumnRow(frame, "CreatedOn")).toBeVisible();
+            await expect(
+                getColumnRow(frame, "Name").getByRole("checkbox", { name: "Allow Nulls" }),
+            ).not.toBeChecked();
+            await expect(
+                getColumnRow(frame, "Id").getByRole("checkbox", { name: "Primary Key" }),
+            ).toBeChecked();
 
-        await closeDesigner(page, "dbo.PublishCustomers");
-    });
+            await closeDesigner(page, "dbo.PublishCustomers");
+        },
+    );
 });
