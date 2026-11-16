@@ -2715,7 +2715,7 @@ export class Webview {
 }
 
 export const designerPublishingDisabled = l10n.t(
-    "Publishing changes to Azure SQL containers is not supported in this release. No changes have been applied to the database.",
+    "Publishing changes to Azure SQL containers is not currently supported, and will be available in a future release.",
 );
 export const designerPublishingEditionCheckFailed = l10n.t(
     "Unable to determine the server edition. Changes have not been published. Reconnect and try again.",
