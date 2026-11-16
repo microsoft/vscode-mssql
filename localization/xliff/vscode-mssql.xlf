@@ -9719,6 +9719,9 @@
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec3b85930df91dcb8b0d0777639910471d02ae8119ea72ac4bc504a27520ec99">
+      <source xml:lang="en">Publishing changes to Azure SQL containers is not currently supported, and will be available in a future release.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d8227ef5295c8da8d07c83637604e607c9d6e6d824914c56a0f787e1af22ca60">
       <source xml:lang="en">Publishing the validated schema</source>
     </trans-unit>
@@ -13664,6 +13667,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cadd9aae3a400c592512e09bf3f2ff59d8f2a5325907775b67a63ee661248f47">
+      <source xml:lang="en">Unable to determine the server edition. Changes have not been published. Reconnect and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++1f35c8ba729687aca729291ff1d98b18e4c7b7b7857006e521e8b9420b774111">
       <source xml:lang="en">Unable to establish project context.  Command invoked from unexpected location: {0}</source>
