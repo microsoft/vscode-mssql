@@ -78,6 +78,7 @@ import type { DeploymentWebviewController } from "./deploymentWebviewController"
 
 //#region Local database sources
 
+const azureSqlContainerEngineEdition = -978196525;
 const simpleQuery = new RequestType<
     { ownerUri: string; queryString: string },
     SimpleExecuteResult,
@@ -86,7 +87,7 @@ const simpleQuery = new RequestType<
 
 export function isAzureSqlDatabaseSource(serverInfo?: IServerInfo): boolean {
     return (
-        serverInfo?.engineEditionId === Constants.azureSqlContainerEngineEdition ||
+        serverInfo?.engineEditionId === azureSqlContainerEngineEdition ||
         serverInfo?.engineEditionId === DatabaseEngineEdition.SqlDatabase
     );
 }
