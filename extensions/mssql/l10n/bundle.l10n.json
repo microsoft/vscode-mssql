@@ -1511,7 +1511,7 @@
         "comment": ["{0} is the webview name", "{1} is the timeout in milliseconds"]
     },
     "Webview was disposed before it became ready": "Webview was disposed before it became ready",
-    "Publishing is currently disabled and will be available in a future release": "Publishing is currently disabled and will be available in a future release",
+    "Publishing changes to Azure SQL containers is not supported in this release. No changes have been applied to the database.": "Publishing changes to Azure SQL containers is not supported in this release. No changes have been applied to the database.",
     "Unable to determine the server edition. Changes have not been published. Reconnect and try again.": "Unable to determine the server edition. Changes have not been published. Reconnect and try again.",
     "General": "General",
     "Advanced Options": "Advanced Options",
