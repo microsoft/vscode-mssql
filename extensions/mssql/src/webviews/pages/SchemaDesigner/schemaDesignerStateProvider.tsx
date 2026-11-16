@@ -59,10 +59,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
     revealTables: (tableIds: string[]) => Promise<void>;
     consumeSkipDeleteConfirmation: () => boolean;
-    publishSession: () => Promise<{
-        success: boolean;
-        error?: string;
-    }>;
+    publishSession: () => Promise<SchemaDesigner.PublishSessionResponse>;
     closeDesigner: () => void;
     resetUndoRedoState: () => void;
     resetView: () => void;
@@ -659,11 +656,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
-        let response: {
-            success: boolean;
-            error?: string;
-            updatedSchema?: SchemaDesigner.Schema;
-        };
+        let response: SchemaDesigner.PublishSessionResponse;
         try {
             response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type, {
                 schema: schema,
