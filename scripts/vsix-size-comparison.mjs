@@ -11,18 +11,6 @@ import { fileURLToPath } from "node:url";
 const extensions = [
     { key: "mssql", prefix: "mssql", directory: "mssql", label: "vscode-mssql VSIX" },
     {
-        key: "sql_database_projects",
-        prefix: "sqlproj",
-        directory: "sql-database-projects",
-        label: "sql-database-projects VSIX",
-    },
-    {
-        key: "data_workspace",
-        prefix: "dataworkspace",
-        directory: "data-workspace",
-        label: "data-workspace VSIX",
-    },
-    {
         key: "keymap",
         prefix: "keymap",
         directory: "database-management-keymap",

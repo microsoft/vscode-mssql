@@ -142,14 +142,14 @@ suite("Object Explorer v2 command registry (B25)", () => {
             stored: { server: "localhost,1450", containerName: "sqlbox" },
         };
         const connected = connectionNode(profile as never, { state: "connected" });
-        expect(connected.icon).to.equal("DockerContainer_green");
+        expect(connected.icon).to.equal("Container_green");
         expect(connected.containerName).to.equal("sqlbox");
         expect(nodeContextValue(connected)).to.include("oe2:cmd=stopContainer");
         expect(nodeContextValue(connected)).to.include("oe2:cmd=deleteContainer");
         expect(nodeContextValue(connected)).not.to.include("oe2:cmd=startContainer");
 
         const stopped = connectionNode(profile as never, { state: "disconnected" });
-        expect(stopped.icon).to.equal("DockerContainer_red");
+        expect(stopped.icon).to.equal("Container_red");
         expect(nodeContextValue(stopped)).to.include("oe2:cmd=startContainer");
         expect(nodeContextValue(stopped)).to.include("oe2:cmd=deleteContainer");
         expect(nodeContextValue(stopped)).not.to.include("oe2:cmd=stopContainer");

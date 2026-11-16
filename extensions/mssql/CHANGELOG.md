@@ -1,5 +1,21 @@
 # Change Log
 
+## Version 1.48.0
+
+- Release date: November 16, 2026
+- Release status: GA
+
+### What's new in 1.48.0
+
+- Released the Query Results Grid as generally available (GA), with filtering, column visibility, and frozen columns. The classic grid and the `mssql.preview.betaResultsGrid` opt-out setting have been removed
+- Introduced a multi-results layout (Preview) for viewing query results side by side, resizing panes, and following or pinning the active editor's results. Enable with `mssql.preview.multiResults`
+- Introduced the Query Performance Dashboard (Preview), enabled by default, for exploring Query Store queries, execution history, waits, and plans, with plan comparison, plan forcing, and GitHub Copilot integration
+- Added local Azure SQL Database containers (Preview), including Microsoft Entra authentication, and a Deploy database to Azure SQL (Preview) workflow for moving local databases to Azure SQL Database
+- Enabled Live Query Statistics by default, showing execution progress and row counts while queries run
+- Improved Query History by recording query text when executing the current statement and aligning the execution plan display
+- Unified Data API builder deployment management in the Deployments view
+- Fixed query editor toolbar actions for SQL files in remote windows
+
 ## Version 1.47.0
 
 - Release date: October 21, 2026
@@ -25,7 +41,7 @@ Thank you to @ckaczor for contributing the Excel export improvements!
 ### What's new in 1.46.0
 
 - Released the new SQL formatter as generally available (GA), giving users more formatting options and greater control over T-SQL style and layout
-- Added a new MSSQL Getting Started page (Preview) to make it easier to start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources
+- Added a new MSSQL Getting Started page (Preview) to make it easier to start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthroughs, and learning resources
 - Added the ability to save filters in the Object Explorer Filters dialog, and fixed an issue where Object Explorer entries could remain stuck on "Loading..." after a filter was applied
 - Added optional sound notifications when query execution completes, so long-running queries can notify you when they finish. Enable with `mssql.query.playCompletionSound` and choose a custom .wav file by setting `mssql.query.completionSoundFile`
 - Fixed issues in the Query Results where error numbers could not be clicked to jump to the problematic T-SQL, and where `PRINT` statements in result-less batches may not be visible

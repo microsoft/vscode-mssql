@@ -18,11 +18,29 @@ import { MatchScore } from "./models/utils";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { getErrorMessage } from "./utils/utils";
+import * as Constants from "./constants/constants";
+import { DeploymentType } from "./sharedInterfaces/deployment";
 
 enum Command {
     connect = "/connect",
     openConnectionDialog = "/openConnectionDialog",
+    deploy = "/deploy",
 }
+
+/**
+ * Values accepted by the `type` parameter of the `/deploy` URI, mapped to the wizard page they open.
+ * Matched case-insensitively. These names are a public contract (they appear in docs and links),
+ * so keep them stable even if the enum members are renamed.
+ *
+ * `DeploymentType.DevContainer` is intentionally absent: it has no deployment wizard.
+ */
+export const deploymentTypesByUriType: Readonly<Record<string, DeploymentType>> = {
+    azuresqldatabase: DeploymentType.AzureSqlDatabase,
+    sqlservercontainer: DeploymentType.LocalContainers,
+    azuresqlcontainer: DeploymentType.AzureSqlContainer,
+    fabricsqldatabase: DeploymentType.FabricProvisioning,
+    localtocloud: DeploymentType.LocalToCloud,
+};
 
 interface ConnectionOptionProperty {
     name: keyof IConnectionInfo;
@@ -45,6 +63,11 @@ export class MssqlProtocolHandler {
     /**
      * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
      * - vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&user=sa&authenticationType=SqlLogin
+     * - vscode://ms-mssql.mssql/deploy?type=azureSqlDatabase
+     * - vscode://ms-mssql.mssql/deploy?type=sqlServerContainer
+     * - vscode://ms-mssql.mssql/deploy?type=azureSqlContainer
+     * - vscode://ms-mssql.mssql/deploy?type=fabricSqlDatabase
+     * - vscode://ms-mssql.mssql/deploy?type=localToCloud
      *
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
@@ -64,6 +87,13 @@ export class MssqlProtocolHandler {
                 // Open the connection dialog, pre-filled with the provided parameters.
                 case Command.openConnectionDialog:
                     await this.handleOpenConnectionDialogCommand(uri);
+                    handled = true;
+                    break;
+
+                // Open the deployment wizard on the page for the requested type, or on the chooser
+                // if no recognized type is given.
+                case Command.deploy:
+                    await this.handleDeployCommand(uri);
                     handled = true;
                     break;
 
@@ -102,6 +132,22 @@ export class MssqlProtocolHandler {
                 },
             });
         }
+    }
+
+    private async handleDeployCommand(uri: vscode.Uri): Promise<void> {
+        const type = new URLSearchParams(uri.query).get("type");
+        const deploymentType = type ? deploymentTypesByUriType[type.toLowerCase()] : undefined;
+
+        if (type && deploymentType === undefined) {
+            this._logger.warn(`Unknown deployment type '${type}'; opening the deployment chooser`);
+        }
+
+        // Go through the command rather than the controller so a deep link behaves exactly like
+        // the Overview page's "New Azure SQL database" / "New local container" actions.
+        await vscode.commands.executeCommand(
+            Constants.cmdDeployNewDatabase,
+            ...(deploymentType === undefined ? [] : [{ deploymentType }]),
+        );
     }
 
     private async handleOpenConnectionDialogCommand(uri: vscode.Uri) {

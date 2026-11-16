@@ -36,9 +36,13 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
         () => ({
             ...getCoreRPCs(extensionRpc),
             //#region Common Reducers
-            initializeDeploymentSpecifics: function (deploymentType: DeploymentType): void {
+            initializeDeploymentSpecifics: function (
+                deploymentType: DeploymentType,
+                workflowDeploymentType?: DeploymentType,
+            ): void {
                 extensionRpc.action("initializeDeploymentSpecifics", {
                     deploymentType: deploymentType,
+                    workflowDeploymentType,
                 });
             },
             formAction: formAction as DeploymentContextProps["formAction"],

@@ -7,8 +7,15 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import * as sinon from "sinon";
-import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import * as vscode from "vscode";
+import {
+    ConnectionNode,
+    ICON_DATABASE_DISCONNECTED,
+    ICON_DOCKER_SERVER_DISCONNECTED,
+    ICON_SERVER_DISCONNECTED,
+} from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
 
 suite("ConnectionNode Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -16,7 +23,9 @@ suite("ConnectionNode Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         // Stub iconPath so tests don't depend on actual resources
-        sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake((_: string) => undefined);
+        sandbox
+            .stub(ObjectExplorerUtils, "iconPath")
+            .callsFake((iconName: string) => vscode.Uri.file(`${iconName}.svg`));
     });
 
     teardown(() => {
@@ -192,6 +201,28 @@ suite("ConnectionNode Tests", () => {
             for (const node of [neverConnected, disconnected]) {
                 expect(node.context.subType).to.equal("disconnectedDockerContainerDatabase");
                 expect(menuCommands(node)).to.have.members([dashboard, start, remove]);
+            }
+        });
+
+        test("preserves the connection type icon when disconnecting database and server connections", () => {
+            for (const database of ["myDb", ""]) {
+                for (const containerName of ["myContainer", ""]) {
+                    const profile = new ConnectionProfile();
+                    profile.id = "1";
+                    profile.server = "localhost";
+                    profile.database = database;
+                    profile.containerName = containerName;
+                    const node = connectedNode(profile);
+
+                    node.updateToDisconnectedState();
+
+                    const expectedIcon = containerName
+                        ? ICON_DOCKER_SERVER_DISCONNECTED
+                        : database
+                          ? ICON_DATABASE_DISCONNECTED
+                          : ICON_SERVER_DISCONNECTED;
+                    expect(node.iconPath).to.deep.equal(ObjectExplorerUtils.iconPath(expectedIcon));
+                }
             }
         });
 

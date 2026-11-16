@@ -44,3 +44,31 @@ export function getConnectionTelemetryInfo(
             : undefined,
     };
 }
+
+/**
+ * Combines telemetry options. Later options win for top-level fields; additional properties and
+ * measurements are merged, and omitted when no option supplies them.
+ */
+export function mergeTelemetryOptions<T extends TelemetryEventOptions>(
+    options: T,
+    ...extra: (TelemetryEventOptions | undefined)[]
+): T {
+    let merged: T = options;
+    for (const value of extra) {
+        if (!value) {
+            continue;
+        }
+        const { additionalProps, additionalMeasurements, ...rest } = value;
+        merged = { ...merged, ...rest };
+        if (additionalProps) {
+            merged.additionalProps = { ...merged.additionalProps, ...additionalProps };
+        }
+        if (additionalMeasurements) {
+            merged.additionalMeasurements = {
+                ...merged.additionalMeasurements,
+                ...additionalMeasurements,
+            };
+        }
+    }
+    return merged;
+}

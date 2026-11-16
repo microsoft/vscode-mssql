@@ -28,7 +28,7 @@ export interface UserSurveyState {
     questions: Question[];
 }
 
-export type Question = NpsQuestion | NsatQuestion | TextareaQuestion | Divider;
+export type Question = NpsQuestion | NsatQuestion | TextareaQuestion | JobRoleQuestion | Divider;
 
 export interface BaseQuestion {
     /**
@@ -66,6 +66,13 @@ export interface TextareaQuestion extends BaseQuestion {
      * The placeholder for the textarea.
      */
     placeholder?: string;
+}
+
+/** A built-in job role question with an optional free-text answer for Other. */
+export interface JobRoleQuestion extends Pick<BaseQuestion, "id" | "required"> {
+    type: "jobRole";
+    /** Answer key for the specification accompanying an Other selection. */
+    otherAnswerId: string;
 }
 
 export interface Divider {

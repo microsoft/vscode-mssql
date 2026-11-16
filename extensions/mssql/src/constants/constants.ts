@@ -11,6 +11,7 @@ export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
 export const configProfilerEventBufferSize = "profiler.eventBufferSize";
 export const mssqlProviderName = "MSSQL";
+export const azureSqlContainerEngineEdition = -978196525;
 export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
 export const objectExplorerId = "objectExplorer";
@@ -364,6 +365,7 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
+export const configDefaultSqlCmdMode = "query.defaultSqlCmdMode";
 export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
 export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
@@ -416,6 +418,17 @@ export enum NewEditorConnectionBehavior {
     TransferActive = "transferActive",
     /** Connect using the profile identified by mssql.defaultConnectionId. */
     DefaultConnection = "defaultConnection",
+}
+
+/**
+ * Values for the mssql.query.defaultSqlCmdMode setting, which controls the initial
+ * SQLCMD mode of newly opened SQL editors.
+ */
+export enum DefaultSqlCmdMode {
+    /** Editors open with SQLCMD mode disabled. */
+    Disabled = "disabled",
+    /** Editors open with SQLCMD mode enabled. */
+    Enabled = "enabled",
 }
 
 // Built into VS Code

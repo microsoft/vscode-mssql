@@ -548,8 +548,17 @@ export const DacpacDialogForm = () => {
         setIsOperationInProgress(true);
 
         try {
+            await context?.sendTelemetryEvent({
+                eventName: dacpacDialog.DacpacDialogTelemetryEventName.SubmitAttempted,
+                operationType,
+            });
+
             // Validate inputs before proceeding
             if (!(await validateOperationInputs(operationType))) {
+                await context?.sendTelemetryEvent({
+                    eventName: dacpacDialog.DacpacDialogTelemetryEventName.ValidationFailed,
+                    operationType,
+                });
                 setIsOperationInProgress(false);
                 return;
             }

@@ -7,3 +7,4 @@ export * from "./telemetry";
 export { default as TelemetryReporter } from "./telemetryReporter";
 export * from "./telemetryReporter";
 export * from "./timedAction";
+export * from "./workflowTelemetry";

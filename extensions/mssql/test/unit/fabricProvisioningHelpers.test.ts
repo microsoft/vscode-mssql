@@ -18,7 +18,8 @@ import { Fabric } from "../../src/constants/locConstants";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { FabricHelper } from "../../src/fabric/fabricHelper";
 import * as azureUtils from "../../src/azure/utils";
-import { WorkspaceRole } from "../../src/sharedInterfaces/fabric";
+import { IWorkspace, WorkspaceRole } from "../../src/sharedInterfaces/fabric";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import {
     BackgroundTaskHandle,
     BackgroundTaskState,
@@ -59,6 +60,9 @@ suite("Fabric Provisioning logic", () => {
 
         deploymentController = {
             isDisposed: false,
+            workflowCorrelationId: "workflow-id",
+            recordDeploymentStarted: sandbox.stub(),
+            recordDeploymentCompleted: sandbox.stub(),
             mainController: {
                 backgroundTasksService,
                 azureAccountService: {
@@ -442,6 +446,44 @@ suite("Fabric Provisioning logic", () => {
             expect(failure).to.equal(error);
         }
         expect(state.userGroupIds).to.deep.equal([]);
+    });
+
+    test("workspace selection correlates role and database lookups with the deployment workflow", async () => {
+        const workspace = { id: "workspace-id", displayName: "Workspace" } as IWorkspace;
+        const valid = () => ({ isValid: true, validationMessage: "" });
+        const state = new fp.FabricProvisioningState({
+            formState: {
+                accountId: "user-id.home-tenant",
+                tenantId: "tenant",
+                workspace: "",
+                databaseName: "Database",
+                profileName: "",
+                groupId: "default",
+            },
+            workspacesWithPermissions: { [workspace.id]: workspace },
+            userGroupIds: ["user-id"],
+            formComponents: {
+                workspace: { options: [], validate: valid },
+                databaseName: { validate: valid },
+            } as unknown as fp.FabricProvisioningState["formComponents"],
+        });
+        sandbox
+            .stub(FabricHelper, "getRolesForWorkspace")
+            .resolves([{ id: "user-id", role: WorkspaceRole.Contributor }] as never);
+        sandbox.stub(FabricHelper, "getFabricDatabases").resolves([]);
+
+        await fabricHelpers.handleWorkspaceFormAction(state, workspace.id, "workflow-id");
+
+        for (const action of [
+            TelemetryActions.GetWorkspaceRole,
+            TelemetryActions.GetFabricDatabases,
+        ]) {
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricProvisioning,
+                action,
+                sinon.match({ additionalProps: { workflowCorrelationId: "workflow-id" } }),
+            );
+        }
     });
 
     test("getWorkspaces updates state with workspace options", async () => {

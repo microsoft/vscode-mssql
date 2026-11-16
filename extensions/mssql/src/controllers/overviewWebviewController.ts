@@ -104,6 +104,11 @@ const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, Telemetry
     [OverviewTelemetryEvent.WalkthroughOpened]: TelemetryActions.WalkthroughOpened,
     [OverviewTelemetryEvent.DiscoverCardOpened]: TelemetryActions.DiscoverCardOpened,
     [OverviewTelemetryEvent.PrerequisitesRechecked]: TelemetryActions.RecheckPrerequisites,
+    [OverviewTelemetryEvent.EventBannerShown]: TelemetryActions.EventBannerShown,
+    [OverviewTelemetryEvent.EventBannerRegisterClicked]:
+        TelemetryActions.EventBannerRegisterClicked,
+    [OverviewTelemetryEvent.EventBannerCodeCopied]: TelemetryActions.EventBannerCodeCopied,
+    [OverviewTelemetryEvent.EventBannerDismissed]: TelemetryActions.EventBannerDismissed,
 };
 
 /**
@@ -176,6 +181,10 @@ const actionCommands: Record<OverviewActionId, { command: string; args?: unknown
         command: constants.cmdDeployNewDatabase,
         args: [{ deploymentType: DeploymentType.LocalContainers }],
     },
+    [OverviewActionId.NewAzureSqlContainer]: {
+        command: constants.cmdDeployNewDatabase,
+        args: [{ deploymentType: DeploymentType.AzureSqlContainer }],
+    },
     [OverviewActionId.NewFabricDatabase]: {
         command: constants.cmdDeployNewDatabase,
         args: [{ deploymentType: DeploymentType.FabricProvisioning }],
@@ -183,6 +192,10 @@ const actionCommands: Record<OverviewActionId, { command: string; args?: unknown
     [OverviewActionId.NewAzureSqlDatabase]: {
         command: constants.cmdDeployNewDatabase,
         args: [{ deploymentType: DeploymentType.AzureSqlDatabase }],
+    },
+    [OverviewActionId.DeployLocalDatabase]: {
+        command: constants.cmdDeployNewDatabase,
+        args: [{ deploymentType: DeploymentType.LocalToCloud }],
     },
     [OverviewActionId.NewNotebook]: { command: constants.cmdNotebooksCreate },
     [OverviewActionId.NewTable]: { command: constants.cmdNewTable },

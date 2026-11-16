@@ -17,8 +17,10 @@ export enum OverviewActionId {
     OpenSqlFile = "openSqlFile",
     NewDeployment = "newDeployment",
     NewLocalContainer = "newLocalContainer",
+    NewAzureSqlContainer = "newAzureSqlContainer",
     NewFabricDatabase = "newFabricDatabase",
     NewAzureSqlDatabase = "newAzureSqlDatabase",
+    DeployLocalDatabase = "deployLocalDatabase",
     NewNotebook = "newNotebook",
     NewTable = "newTable",
     ExecuteQuery = "executeQuery",
@@ -230,6 +232,10 @@ export enum OverviewTelemetryEvent {
     DiscoverCardOpened = "discoverCardOpened",
     DevContainerTemplateSelected = "devContainerTemplateSelected",
     PrerequisitesRechecked = "prerequisitesRechecked",
+    EventBannerShown = "eventBannerShown",
+    EventBannerRegisterClicked = "eventBannerRegisterClicked",
+    EventBannerCodeCopied = "eventBannerCodeCopied",
+    EventBannerDismissed = "eventBannerDismissed",
 }
 
 export interface SendOverviewTelemetryRequestParams {

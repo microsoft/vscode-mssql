@@ -2714,6 +2714,13 @@ export class Webview {
     );
 }
 
+export const designerPublishingDisabled = l10n.t(
+    "Publishing changes to Azure SQL containers is not currently supported, and will be available in a future release.",
+);
+export const designerPublishingEditionCheckFailed = l10n.t(
+    "Unable to determine the server edition. Changes have not been published. Reconnect and try again.",
+);
+
 export class TableDesigner {
     public static General = l10n.t("General");
     public static Columns = l10n.t("Columns");
@@ -2981,6 +2988,8 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static sqlCmdModeOnLabel = l10n.t("SQLCMD: On");
+    public static sqlCmdModeOffLabel = l10n.t("SQLCMD: Off");
     public static serverProcessIdLabel = (serverProcessId: string) => {
         return l10n.t({
             message: "SPID: {0}",
@@ -4457,6 +4466,18 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
+    public static azureSqlContainerTitle = l10n.t("Local Azure SQL Database containers");
+    public static azureSqlContainerDescription = l10n.t(
+        "Create and manage local Azure SQL Database containers in just a few clicks, so you can develop and test locally using the Azure SQL Database engine—no credit card or Azure subscription required.",
+    );
+    public static localToCloudTitle = l10n.t("Deploy database to Azure SQL");
+    public static localToCloudDescription = l10n.t(
+        "Move a database from a local SQL container to Azure SQL Database with a guided wizard that validates compatibility, then deploys the schema, or schema and data.",
+    );
+    public static queryPerformanceDashboardTitle = l10n.t("Query Performance Dashboard");
+    public static queryPerformanceDashboardDescription = l10n.t(
+        "Explore performance insights, analyze trends, investigate execution plans, and optimize queries with GitHub Copilot using the new Query Performance Dashboard, powered by Query Store.",
+    );
     public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
@@ -4538,13 +4559,23 @@ export class Changelog {
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 
     // Event banner
-    public static sqlconEuDescription1 = l10n.t(
+    public static sqlconSecondaryTitle = l10n.t({
+        message: "Microsoft SQL\nCOMMUNITY CONFERENCE",
+        comment: [
+            "Subtitle under the SQLCON event name. Keep the line break; Microsoft SQL is a product name",
+        ],
+    });
+    public static sqlconLocation = l10n.t({
+        message: "ATLANTA",
+        comment: ["City where the SQLCON conference takes place, shown in capital letters"],
+    });
+    public static sqlconDescription1 = l10n.t(
         "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
     );
-    public static sqlconEuDescription2 = l10n.t(
-        "Use discount code {0} to save €200 on registration.",
+    public static sqlconDescription2 = l10n.t(
+        "Use discount code {0} to save $200 on registration.",
     );
-    public static sqlconEuRegister = l10n.t("Register");
+    public static sqlconRegister = l10n.t("Register");
     public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
     public static gettingStartedPageDescription = l10n.t(
         "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",

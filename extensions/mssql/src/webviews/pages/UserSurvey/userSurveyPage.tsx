@@ -5,7 +5,7 @@
 
 import {
     Answers,
-    BaseQuestion,
+    JobRoleQuestion,
     NpsQuestion,
     NsatQuestion,
     TextareaQuestion,
@@ -14,9 +14,11 @@ import {
     Button,
     Divider,
     Field,
+    Input,
     Link,
     Radio,
     RadioGroup,
+    Select,
     Text,
     Textarea,
     makeStyles,
@@ -90,31 +92,25 @@ export const UserSurveyPage = () => {
     const subtitle = useUserSurveySelector((s) => s?.subtitle);
     const submitButtonText = useUserSurveySelector((s) => s?.submitButtonText);
     const cancelButtonText = useUserSurveySelector((s) => s?.cancelButtonText);
-    const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
     const [userAnswers, setUserAnswers] = useState<Answers>({});
 
-    const updateSubmitButtonState = () => {
-        for (let i = 0; i < questions!.length; i++) {
-            const question = questions![i];
-            // if question is not divider and not required, skip
-            if (question.type === "divider") {
-                continue;
-            }
-            if (!(question as BaseQuestion)?.required) {
-                continue;
-            }
-            if (userAnswers[question.id] === undefined) {
-                setIsSubmitDisabled(true);
-                return;
-            }
-        }
-        setIsSubmitDisabled(false);
-    };
+    const isSubmitDisabled = questions?.some(
+        (question) =>
+            question.type !== "divider" &&
+            question.required &&
+            userAnswers[question.id] === undefined,
+    );
 
-    const onAnswerChange = (id: string, answer: string | number) => {
-        userAnswers[id] = answer;
-        setUserAnswers(userAnswers);
-        updateSubmitButtonState();
+    const onAnswerChange = (id: string, answer: string | number | undefined) => {
+        setUserAnswers((previous) => {
+            const answers = { ...previous };
+            if (answer === undefined) {
+                delete answers[id];
+            } else {
+                answers[id] = answer;
+            }
+            return answers;
+        });
     };
 
     if (!context || !questions) {
@@ -169,6 +165,15 @@ export const UserSurveyPage = () => {
                             );
                         case "divider":
                             return <Divider key={index} />;
+                        case "jobRole":
+                            return (
+                                <JobRoleQuestionField
+                                    key={index}
+                                    question={question}
+                                    answers={userAnswers}
+                                    onChange={onAnswerChange}
+                                />
+                            );
                         default:
                             return undefined;
                     }
@@ -204,6 +209,53 @@ export interface QuestionProps<T> {
     question: T;
     onChange: (data: string | number) => void;
 }
+
+/** Renders the optional role selection and shows specification only for Other. */
+const JobRoleQuestionField = ({
+    question,
+    answers,
+    onChange,
+}: {
+    question: JobRoleQuestion;
+    answers: Answers;
+    onChange: (id: string, answer: string | undefined) => void;
+}) => {
+    const strings = locConstants.userFeedback;
+    const role = answers[question.id] ?? "";
+    return (
+        <>
+            <Field label={<Text weight="bold">{strings.primaryJobRole}</Text>}>
+                <Select
+                    value={role}
+                    onChange={(_event, data) => {
+                        onChange(question.id, data.value || undefined);
+                        onChange(question.otherAnswerId, undefined);
+                    }}>
+                    <option value="">{strings.selectJobRole}</option>
+                    <option value="applicationDeveloper">{strings.applicationDeveloper}</option>
+                    <option value="databaseDeveloper">{strings.databaseDeveloper}</option>
+                    <option value="databaseAdministrator">{strings.databaseAdministrator}</option>
+                    <option value="dataEngineer">{strings.dataEngineer}</option>
+                    <option value="dataAnalyst">{strings.dataAnalyst}</option>
+                    <option value="dataScientist">{strings.dataScientist}</option>
+                    <option value="dataArchitect">{strings.dataArchitect}</option>
+                    <option value="itDevOpsProfessional">{strings.itDevOpsProfessional}</option>
+                    <option value="other">{strings.otherJobRole}</option>
+                </Select>
+            </Field>
+            {role === "other" && (
+                <Field label={strings.specifyJobRole}>
+                    <Input
+                        value={String(answers[question.otherAnswerId] ?? "")}
+                        onChange={(_event, data) =>
+                            onChange(question.otherAnswerId, data.value || undefined)
+                        }
+                    />
+                </Field>
+            )}
+        </>
+    );
+};
 
 export const NSATQuestion = ({ question, onChange }: QuestionProps<NsatQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);

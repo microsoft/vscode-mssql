@@ -91,6 +91,7 @@ export function PublishChangesDialogButton() {
         useSchemaDesignerSelector((s) => s?.isCopilotChatInstalled) ?? false;
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
+    const [publishingDisabled, setPublishingDisabled] = useState(false);
     const hasSchemaChanges = changeContext.schemaChangesCount > 0;
     if (!context) {
         return undefined;
@@ -128,6 +129,7 @@ export function PublishChangesDialogButton() {
                         });
                         setPublishButtonDisabled(true);
                         const getReportResponse = await context.getReport();
+                        setPublishingDisabled(getReportResponse?.publishingDisabled ?? false);
                         const report = getReportResponse?.report;
                         if (getReportResponse?.error || !report) {
                             setState({
@@ -316,6 +318,7 @@ export function PublishChangesDialogButton() {
                                     publishError: undefined,
                                 });
                                 const reponse = await context.publishSession();
+                                setPublishingDisabled(reponse.publishingDisabled ?? false);
                                 if (reponse.error) {
                                     setState({
                                         ...state,
@@ -364,6 +367,7 @@ export function PublishChangesDialogButton() {
                         <Button
                             appearance="secondary"
                             icon={<GithubCopilot16Regular />}
+                            disabled={publishingDisabled}
                             title={locConstants.schemaDesigner.askGithubCopilotToFixTooltip}
                             onClick={async () => {
                                 await openGithubCopilotToFixError();

@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
 import { TreeNodeInfo } from "./treeNodeInfo";
-import { ObjectExplorerUtils } from "../objectExplorerUtils";
+import { IconUtils } from "../../utils/iconUtils";
 
 export class ExpandErrorNode extends vscode.TreeItem {
     constructor(
@@ -19,8 +19,8 @@ export class ExpandErrorNode extends vscode.TreeItem {
         );
         this.tooltip = errorMessage;
         this.iconPath = {
-            light: ObjectExplorerUtils.iconPath("Error_light"),
-            dark: ObjectExplorerUtils.iconPath("Error_dark"),
+            light: IconUtils.getIcon("objectTypes", "Error_light.svg"),
+            dark: IconUtils.getIcon("objectTypes", "Error_dark.svg"),
         };
     }
 

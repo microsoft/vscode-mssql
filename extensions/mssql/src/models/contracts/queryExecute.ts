@@ -124,6 +124,7 @@ export class QueryExecuteParams {
     ownerUri: string;
     executionPlanOptions?: ExecutionPlanOptions;
     querySelection: ISelectionData;
+    isSqlCmdMode?: boolean;
 }
 
 export class QueryExecuteStatementParams {
@@ -131,6 +132,7 @@ export class QueryExecuteStatementParams {
     line: number;
     column: number;
     executionPlanOptions?: ExecutionPlanOptions;
+    isSqlCmdMode?: boolean;
 }
 
 /**
@@ -185,23 +187,6 @@ export class ResultSetSubset {
 
 export class QueryExecuteSubsetResult {
     resultSubset: ResultSetSubset;
-}
-
-// ------------------------------- < Query Execution Options Request > ------------------------------------
-export namespace QueryExecuteOptionsRequest {
-    export const type = new RequestType<QueryExecutionOptionsParams, boolean, void>(
-        "query/setexecutionoptions",
-    );
-}
-
-export class QueryExecutionOptionsParams {
-    ownerUri: string;
-    options: QueryExecutionOptions;
-}
-
-// tslint:disable-next-line:interface-name
-export interface QueryExecutionOptions {
-    [option: string]: any;
 }
 
 // ------------------------------- < Query Connection URI Change Request > ------------------------------------
