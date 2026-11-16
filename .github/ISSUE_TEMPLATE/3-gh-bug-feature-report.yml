@@ -1,7 +1,7 @@
 name: Bug Report | Feature Request (GitHub Copilot Integration)
 description: File a bug report or a feature request to help us improve GitHub Copilot integration with the MSSQL extension.
 title: "[GitHub Copilot - Bug | Feature request]: "
-labels: ["Bug", "Enhancement", "Area - GitHub Copilot", "Triage: Needed"]
+labels: ["Area - GitHub Copilot", "Triage: Needed"]
 assignees: []
 
 body:
