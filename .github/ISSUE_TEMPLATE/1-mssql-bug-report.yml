@@ -1,7 +1,8 @@
 name: Bug Report
 description: File a bug report to help us improve the MSSQL extension.
 title: "[Bug]: "
-labels: ["Bug", "Triage: Needed", "User-filed"]
+type: Bug
+labels: ["Triage: Needed", "User-filed"]
 assignees: []
 
 body:
