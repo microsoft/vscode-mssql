@@ -13,6 +13,7 @@ import {
     runProjectContextAction,
     useFixtureProjectLifecycle,
 } from "./utils/sqlProjectPublishHelpers";
+import { Tag } from "./utils/tags";
 
 /** Opens Code Analysis Settings from the project node and waits for the rules table. */
 async function openCodeAnalysisDialog(page: Page): Promise<FrameLocator> {
@@ -53,9 +54,9 @@ function severityOf(dialog: FrameLocator, ruleId: string) {
  */
 // Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
 // appear within 30s. These tests run serially and build on each other, so the whole group is
-// quarantined rather than individual tests.
-// TODO: Stabilize these tests, then remove the group's @quarantine tag.
-test.describe("SQL Database Projects code analysis settings", { tag: "@quarantine" }, () => {
+// tagged flaky rather than individual tests.
+// TODO: Stabilize these tests, then remove the group's flaky tag.
+test.describe("SQL Database Projects code analysis settings", { tag: Tag.flaky }, () => {
     test.describe.configure({ mode: "serial" });
     const { project, getContext } = useFixtureProjectLifecycle({
         prepareProject: (copy) => {

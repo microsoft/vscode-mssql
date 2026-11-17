@@ -51,6 +51,7 @@ import {
 import { testCases } from "./utils/testCases";
 import { VsCodeAppHandle } from "./utils/launchVscodeWithMsSqlExt";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 /** The SimpleGuitarShop fixture's tables, in foreign key order for seeding. */
 const GUITAR_SHOP_TABLES = ["Categories", "Customers", "Products", "Orders", "OrderItems"];
@@ -203,7 +204,7 @@ test.describe("Schema Compare", () => {
 
     test(
         "Database to database: compare, generate script, filter object types, and apply",
-        testCases(5878896),
+        { ...testCases(5878896), tag: Tag.pullRequest },
         async () => {
             const { electronApp, page } = getContext();
             await ensureDatabase(guitarShopDb);

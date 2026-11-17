@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Turns the Playwright JSON report of a quarantine run into a Markdown table of per-test
- * results, so it is easy to see which quarantined tests are ready to promote.
+ * Turns the Playwright JSON report of an e2e run into a Markdown table of per-test results for
+ * the CI job summary. Failed, flaky, and skipped tests are listed first; passing tests are
+ * collapsed. For the flaky tier this shows which tests are ready to promote.
  *
- * Usage: node scripts/e2e-quarantine-summary.js <report.json> [<output.md>]
+ * Usage: node scripts/e2e-results-summary.js <report.json> <title> [<output.md>]
  * Without an output path, the Markdown is appended to $GITHUB_STEP_SUMMARY or printed.
  */
 
@@ -48,7 +49,24 @@ function firstErrorLine(test) {
     return firstLine.length > 160 ? `${firstLine.slice(0, 157)}...` : firstLine;
 }
 
-function buildSummary(report) {
+function tableLines(rows) {
+    const lines = [
+        "| Result | Test | File | Test cases | First error |",
+        "| --- | --- | --- | --- | --- |",
+    ];
+    for (const { file, titlePath, test } of rows) {
+        const testCases = (test.annotations ?? [])
+            .filter((annotation) => annotation.type === "testCase")
+            .map((annotation) => annotation.description)
+            .join(", ");
+        lines.push(
+            `| ${STATUS_LABELS[test.status] ?? test.status} | ${escapeCell(titlePath.join(" › "))} | ${escapeCell(path.basename(file))} | ${escapeCell(testCases)} | ${escapeCell(firstErrorLine(test))} |`,
+        );
+    }
+    return lines;
+}
+
+function buildSummary(report, title) {
     const rows = collectTests({ suites: report.suites ?? [] }, [], []);
     const counts = {};
     for (const { test } of rows) {
@@ -64,44 +82,43 @@ function buildSummary(report) {
     );
 
     const lines = [
-        "## E2E quarantine results",
-        "",
-        "Tests that pass here consistently across runs are ready to promote: delete their `@quarantine` tag.",
+        `## ${title}`,
         "",
         Object.entries(STATUS_LABELS)
             .filter(([status]) => counts[status])
             .map(([status, label]) => `${label}: ${counts[status]}`)
-            .join(" · ") || "No quarantined tests ran.",
+            .join(" · ") || "No tests ran.",
         "",
     ];
 
-    if (rows.length > 0) {
+    const problems = rows.filter(({ test }) => test.status !== "expected");
+    const passed = rows.filter(({ test }) => test.status === "expected");
+    if (problems.length > 0) {
+        lines.push(...tableLines(problems), "");
+    }
+    if (passed.length > 0) {
         lines.push(
-            "| Result | Test | File | Test cases | First error |",
-            "| --- | --- | --- | --- | --- |",
+            `<details><summary>Passed tests (${passed.length})</summary>`,
+            "",
+            ...tableLines(passed),
+            "",
+            "</details>",
         );
-        for (const { file, titlePath, test } of rows) {
-            const testCases = (test.annotations ?? [])
-                .filter((annotation) => annotation.type === "testCase")
-                .map((annotation) => annotation.description)
-                .join(", ");
-            lines.push(
-                `| ${STATUS_LABELS[test.status] ?? test.status} | ${escapeCell(titlePath.join(" › "))} | ${escapeCell(path.basename(file))} | ${escapeCell(testCases)} | ${escapeCell(firstErrorLine(test))} |`,
-            );
-        }
     }
     return `${lines.join("\n")}\n`;
 }
 
 function main() {
-    const [reportPath, outputPath] = process.argv.slice(2);
-    if (!reportPath) {
-        console.error("Usage: node scripts/e2e-quarantine-summary.js <report.json> [<output.md>]");
+    const [reportPath, title, outputPath] = process.argv.slice(2);
+    if (!reportPath || !title) {
+        console.error(
+            "Usage: node scripts/e2e-results-summary.js <report.json> <title> [<output.md>]",
+        );
         process.exit(2);
     }
     const summary = fs.existsSync(reportPath)
-        ? buildSummary(JSON.parse(fs.readFileSync(reportPath, "utf8")))
-        : `## E2E quarantine results\n\nNo report was found at \`${reportPath}\`; the run did not finish.\n`;
+        ? buildSummary(JSON.parse(fs.readFileSync(reportPath, "utf8")), title)
+        : `## ${title}\n\nNo report was found at \`${reportPath}\`; the run did not finish.\n`;
 
     const destination = outputPath ?? process.env.GITHUB_STEP_SUMMARY;
     if (destination) {

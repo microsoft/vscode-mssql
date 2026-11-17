@@ -30,6 +30,7 @@ import { dropDatabaseIfExists, uniqueDatabaseName } from "./utils/sqlClient";
 import { testCases } from "./utils/testCases";
 import { executeQueryAndWait, pickQuickInputItem, waitForConnected } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 type BackupTypeLabel = "Full" | "Differential" | "Transaction Log";
 
@@ -268,10 +269,10 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the dialog's webview did not appear within 30s.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Differential backup to file from the database context menu",
-        { ...testCases(5878925), tag: "@quarantine" },
+        { ...testCases(5878925), tag: Tag.flaky },
         async () => {
             await backupThroughDialog(
                 sourceDatabases.differentialBackup,
@@ -295,11 +296,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: the connection quick pick (input[aria-controls="quickInput_list"]) never appeared after running the script.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "Script and run a full backup from the database context menu",
-        { ...testCases(5878926), tag: "@quarantine" },
+        testCases(5878926),
         async () => {
             const databaseName = sourceDatabases.scriptFullBackup;
             const { script, backupPath } = await scriptAndRunBackup(databaseName, "Full");
@@ -309,11 +308,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: the connection quick pick (input[aria-controls="quickInput_list"]) never appeared after running the script.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "Script and run a differential backup from the database context menu",
-        { ...testCases(5878921), tag: "@quarantine" },
+        testCases(5878921),
         async () => {
             const databaseName = sourceDatabases.scriptDifferentialBackup;
             const { script, backupPath } = await scriptAndRunBackup(databaseName, "Differential");
@@ -323,11 +320,9 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: the "MS SQL: Change Connection (MSSQL)" quick pick row never appeared.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "Script and run a transaction log backup from the database context menu",
-        { ...testCases(5878922), tag: "@quarantine" },
+        testCases(5878922),
         async () => {
             const databaseName = sourceDatabases.scriptLogBackup;
             const { script, backupPath } = await scriptAndRunBackup(
@@ -361,10 +356,10 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the dialog's webview did not appear within 30s.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Restore from a .bak file chosen in the file browser",
-        { ...testCases(5878923), tag: "@quarantine" },
+        { ...testCases(5878923), tag: Tag.flaky },
         async () => {
             const sourceName = sourceDatabases.restoreFromFile;
             const backupPath = seedBackupPaths.get(sourceName)!;

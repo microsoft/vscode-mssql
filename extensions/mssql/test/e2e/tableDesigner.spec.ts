@@ -16,6 +16,7 @@ import { dropDatabaseIfExists, recreateDatabase, uniqueDatabaseName } from "./ut
 import { testCases } from "./utils/testCases";
 import { getWebviewByTitle } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 /** Title of the designer tab, and of its webview, for a table that has not been published. */
 const NEW_TABLE_TITLE = "New Table";
@@ -83,7 +84,7 @@ async function selectDataType(frame: FrameLocator, row: Locator, dataType: strin
  * Table Designer: a new table opened from the Tables folder in Object Explorer, with the
  * Definition panel's CREATE TABLE script following each column and primary key edit.
  */
-test.describe("Table Designer", () => {
+test.describe("Table Designer", { tag: Tag.pullRequest }, () => {
     test.describe.configure({ mode: "serial" });
 
     const databaseName = uniqueDatabaseName("TableDesigner");

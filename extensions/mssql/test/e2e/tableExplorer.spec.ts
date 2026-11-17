@@ -21,6 +21,7 @@ import {
 } from "./utils/sqlClient";
 import { getWebviewByTitle } from "./utils/testHelpers";
 import { testCases } from "./utils/testCases";
+import { Tag } from "./utils/tags";
 
 const TABLE = "dbo.Items";
 
@@ -166,10 +167,10 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Tab commits a valid edit, which stays highlighted until saved",
-        { ...testCases(5878911), tag: "@quarantine" },
+        { ...testCases(5878911), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const editor = await openEditData(page);
@@ -186,10 +187,10 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
         },
     );
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Add Row appends a row that saves with the entered values",
-        { ...testCases(5878912), tag: "@quarantine" },
+        { ...testCases(5878912), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const editor = await openEditData(page);
@@ -223,49 +224,45 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test, then remove its @quarantine tag.
-    test(
-        "deleting a row can be undone",
-        { ...testCases(5878913), tag: "@quarantine" },
-        async () => {
-            const { page } = getContext();
-            const editor = await openEditData(page);
-            const row = getRow(editor, "Banana");
-            const revertRow = row.getByRole("button", { name: "Revert Row" });
-            await expect(revertRow).toBeDisabled();
+    // TODO: Stabilize this test, then remove its flaky tag.
+    test("deleting a row can be undone", { ...testCases(5878913), tag: Tag.flaky }, async () => {
+        const { page } = getContext();
+        const editor = await openEditData(page);
+        const row = getRow(editor, "Banana");
+        const revertRow = row.getByRole("button", { name: "Revert Row" });
+        await expect(revertRow).toBeDisabled();
 
-            await getCell(editor, "Banana", "Banana").click({ button: "right" });
-            await editor.getByRole("menuitem", { name: "Delete Row" }).click();
+        await getCell(editor, "Banana", "Banana").click({ button: "right" });
+        await editor.getByRole("menuitem", { name: "Delete Row" }).click();
 
-            // A deleted row is struck through and stays in the grid until saved.
-            await expect(row).toHaveClass(/deleted-row/);
-            await expect(getCell(editor, "Banana", "Banana")).toHaveCSS(
-                "text-decoration-line",
-                "line-through",
-            );
-            await expect(revertRow).toBeEnabled();
-            // Deleting is no longer offered for the already-deleted row.
-            await getCell(editor, "Banana", "Banana").click({ button: "right" });
-            await expect(editor.getByRole("menuitem", { name: "Revert Row" })).toBeVisible();
-            await expect(editor.getByRole("menuitem", { name: "Delete Row" })).toHaveCount(0);
-            await page.keyboard.press("Escape");
-            await expect(editor.getByRole("menuitem", { name: "Revert Row" })).toHaveCount(0);
+        // A deleted row is struck through and stays in the grid until saved.
+        await expect(row).toHaveClass(/deleted-row/);
+        await expect(getCell(editor, "Banana", "Banana")).toHaveCSS(
+            "text-decoration-line",
+            "line-through",
+        );
+        await expect(revertRow).toBeEnabled();
+        // Deleting is no longer offered for the already-deleted row.
+        await getCell(editor, "Banana", "Banana").click({ button: "right" });
+        await expect(editor.getByRole("menuitem", { name: "Revert Row" })).toBeVisible();
+        await expect(editor.getByRole("menuitem", { name: "Delete Row" })).toHaveCount(0);
+        await page.keyboard.press("Escape");
+        await expect(editor.getByRole("menuitem", { name: "Revert Row" })).toHaveCount(0);
 
-            await revertRow.click();
-            await expect(row).not.toHaveClass(/deleted-row/);
-            await expect(revertRow).toBeDisabled();
-            await expect(
-                editor.getByRole("button", { name: "Save Changes", exact: true }),
-            ).toBeDisabled();
-            expect(await readNames()).toEqual(["Apple", "Banana", "Cherry"]);
-        },
-    );
+        await revertRow.click();
+        await expect(row).not.toHaveClass(/deleted-row/);
+        await expect(revertRow).toBeDisabled();
+        await expect(
+            editor.getByRole("button", { name: "Save Changes", exact: true }),
+        ).toBeDisabled();
+        expect(await readNames()).toEqual(["Apple", "Banana", "Cherry"]);
+    });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "the SQL pane scripts pending updates and deletes",
-        { ...testCases(5878914), tag: "@quarantine" },
+        { ...testCases(5878914), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const editor = await openEditData(page);

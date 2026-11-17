@@ -48,6 +48,7 @@ import {
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 import { getModifierKey } from "./utils/testHelpers";
+import { Tag } from "./utils/tags";
 
 const SDK_PATTERN = /Microsoft\.Build\.Sql/;
 
@@ -392,7 +393,7 @@ test.describe("SQL Database Projects", () => {
 
             test(
                 `${style.name}: add tables, views, procedures, scripts, folders and deployment scripts, then build`,
-                testCases(5878849),
+                { ...testCases(5878849), tag: Tag.pullRequest },
                 async () => {
                     const { page } = getContext();
                     await newProject(projectName, { sdkStyle: style.sdkStyle });

@@ -21,44 +21,49 @@ import {
 } from "./utils/testHelpers";
 import { test, expect } from "./baseFixtures";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 test.describe("MSSQL Extension - Database Connection", async () => {
     const getContext = useSharedVsCodeLifecycle();
 
-    test("Connect to local SQL Database, and disconnect", async ({}, testInfo) => {
-        const { page: vsCodePage } = getContext();
-        const serverName = getServerName();
-        const databaseName = getDatabaseName();
-        const authType = getAuthenticationType();
-        const userName = getUserName();
-        const password = getPassword();
-        const savePassword = getSavePassword();
-        const profileName = getProfileName();
-        await addDatabaseConnection(
-            vsCodePage,
-            serverName,
-            databaseName,
-            authType,
-            userName,
-            password,
-            savePassword,
-            profileName,
-        );
+    test(
+        "Connect to local SQL Database, and disconnect",
+        { tag: Tag.pullRequest },
+        async ({}, testInfo) => {
+            const { page: vsCodePage } = getContext();
+            const serverName = getServerName();
+            const databaseName = getDatabaseName();
+            const authType = getAuthenticationType();
+            const userName = getUserName();
+            const password = getPassword();
+            const savePassword = getSavePassword();
+            const profileName = getProfileName();
+            await addDatabaseConnection(
+                vsCodePage,
+                serverName,
+                databaseName,
+                authType,
+                userName,
+                password,
+                savePassword,
+                profileName,
+            );
 
-        await screenshot(vsCodePage, testInfo, "connected");
+            await screenshot(vsCodePage, testInfo, "connected");
 
-        await openNewQueryEditor(vsCodePage);
-        await screenshot(vsCodePage, testInfo, "new query editor opened");
+            await openNewQueryEditor(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "new query editor opened");
 
-        // New editor should be connected to the last added connection
-        await disconnect(vsCodePage);
-        await screenshot(vsCodePage, testInfo, "disconnected");
+            // New editor should be connected to the last added connection
+            await disconnect(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "disconnected");
 
-        // Verify that the Connect to MSSQL button is visible again after disconnecting
-        // The status item includes a tooltip in its accessible name on current VS Code.
-        const connectAgainButton = getStatusBar(vsCodePage).getByRole("button", {
-            name: /Connect to MSSQL/,
-        });
-        await expect(connectAgainButton).toBeVisible({ timeout: 10 * 1000 });
-    });
+            // Verify that the Connect to MSSQL button is visible again after disconnecting
+            // The status item includes a tooltip in its accessible name on current VS Code.
+            const connectAgainButton = getStatusBar(vsCodePage).getByRole("button", {
+                name: /Connect to MSSQL/,
+            });
+            await expect(connectAgainButton).toBeVisible({ timeout: 10 * 1000 });
+        },
+    );
 });

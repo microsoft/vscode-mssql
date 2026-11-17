@@ -26,6 +26,7 @@ import {
 } from "./utils/sqlProjectHelpers";
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 /** Creates a project from the Database Projects view's "New" action. */
 async function createProjectFromView(page: Page, name: string, location: string): Promise<void> {
@@ -178,10 +179,10 @@ test.describe("SQL Database Projects - workspaces", () => {
         );
 
         // Failed in the Linux CI build-and-test smoke run: a context menu stayed open after its command ran.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "remove a project and add it back, updating the workspace file",
-            { ...testCases(5878847), tag: "@quarantine" },
+            { ...testCases(5878847), tag: Tag.flaky },
             async () => {
                 const { page } = getContext();
                 const relativeProject = path.join("main", "WsProj", "WsProj.sqlproj");
@@ -202,10 +203,10 @@ test.describe("SQL Database Projects - workspaces", () => {
         );
 
         // Failed in the Linux CI build-and-test smoke run: a context menu stayed open after its command ran.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "view toolbar and overflow menu commands launch the right flows",
-            { ...testCases(5878847), tag: "@quarantine" },
+            { ...testCases(5878847), tag: Tag.flaky },
             async () => {
                 const { page } = getContext();
                 const quickInput = new QuickInput(page);

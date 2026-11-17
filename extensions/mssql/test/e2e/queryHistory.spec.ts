@@ -30,6 +30,7 @@ import { QuickInput, VsCodeCommand } from "./pageObjects";
 import { getServerName } from "./utils/envConfigReader";
 import { getCell } from "./grid/gridActions";
 import { testCases } from "./utils/testCases";
+import { Tag } from "./utils/tags";
 
 const HISTORY_PROFILE_NAME = "e2e-query-history";
 
@@ -84,30 +85,22 @@ test.describe("MSSQL Extension - Query History", () => {
         await clickContextMenuItem(page, menuLabel);
     }
 
-    // Failed in the Linux CI build-and-test smoke run: clicking the history tree item timed out, likely because it was obscured.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
-    test(
-        "Open shows the history item's query in an editor",
-        { ...testCases(5878845), tag: "@quarantine" },
-        async () => {
-            const { page } = getContext();
-            // Untitled editors are named after their first line, so this counts editors on the query.
-            const queryEditorTabs = page.getByRole("tab", { name: /SELECT DB_NAME\(\)/ });
-            const tabsBefore = await queryEditorTabs.count();
+    test("Open shows the history item's query in an editor", testCases(5878845), async () => {
+        const { page } = getContext();
+        // Untitled editors are named after their first line, so this counts editors on the query.
+        const queryEditorTabs = page.getByRole("tab", { name: /SELECT DB_NAME\(\)/ });
+        const tabsBefore = await queryEditorTabs.count();
 
-            await runHistoryItemAction(page, "Open Query");
+        await runHistoryItemAction(page, "Open Query");
 
-            await expect(queryEditorTabs).toHaveCount(tabsBefore + 1);
-            await expect.poll(() => getActiveEditorText(page)).toContain(marker);
-            expect(await getActiveEditorText(page)).toContain("SELECT DB_NAME() AS database_name");
-        },
-    );
+        await expect(queryEditorTabs).toHaveCount(tabsBefore + 1);
+        await expect.poll(() => getActiveEditorText(page)).toContain(marker);
+        expect(await getActiveEditorText(page)).toContain("SELECT DB_NAME() AS database_name");
+    });
 
-    // Failed in the Linux CI build-and-test smoke run: the connection quick pick row resolved but stayed hidden.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "Run reconnects to the original database and executes the query",
-        { ...testCases(5878846), tag: "@quarantine" },
+        testCases(5878846),
         async () => {
             const { page } = getContext();
             // Start from an editor on another database, so the result proves the reconnect.
@@ -133,21 +126,15 @@ test.describe("MSSQL Extension - Query History", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: clicking the history tree item timed out, likely because it was obscured.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
-    test(
-        "Delete removes the history item",
-        { ...testCases(5878844), tag: "@quarantine" },
-        async () => {
-            const { page } = getContext();
-            const countBefore = await getHistoryItems(page).count();
-            expect(countBefore).toBeGreaterThan(0);
+    test("Delete removes the history item", testCases(5878844), async () => {
+        const { page } = getContext();
+        const countBefore = await getHistoryItems(page).count();
+        expect(countBefore).toBeGreaterThan(0);
 
-            await runHistoryItemAction(page, "Delete");
+        await runHistoryItemAction(page, "Delete");
 
-            await expect(getHistoryItems(page)).toHaveCount(countBefore - 1);
-        },
-    );
+        await expect(getHistoryItems(page)).toHaveCount(countBefore - 1);
+    });
 });
 
 /**
@@ -253,10 +240,10 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
     }
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the status bar did not show the expected connection text in time.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "pausing and resuming from the view title stops and restarts capture",
-        { ...testCases(5878842), tag: "@quarantine" },
+        { ...testCases(5878842), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             await expectPauseAndResume(
@@ -267,11 +254,9 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         },
     );
 
-    // Flaky in the Linux CI build-and-test smoke run (passed on retry): hovering the Query History heading timed out.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "pausing and resuming from the command palette stops and restarts capture",
-        { ...testCases(5878842), tag: "@quarantine" },
+        testCases(5878842),
         async () => {
             const { page } = getContext();
             await expectPauseAndResume(
@@ -282,11 +267,9 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: clicking the e2e-server Connections node timed out because it was obscured.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "Clear All from the view title's More Actions menu removes every item",
-        { ...testCases(5878843), tag: "@quarantine" },
+        testCases(5878843),
         async () => {
             const { page } = getContext();
             await expectClearAll(page, async () => {
@@ -298,14 +281,8 @@ test.describe("MSSQL Extension - Query History capture and clearing", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: an expected element was not found.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
-    test(
-        "Clear All from the command palette removes every item",
-        { ...testCases(5878843), tag: "@quarantine" },
-        async () => {
-            const { page } = getContext();
-            await expectClearAll(page, () => runCommand(page, CLEAR_ALL));
-        },
-    );
+    test("Clear All from the command palette removes every item", testCases(5878843), async () => {
+        const { page } = getContext();
+        await expectClearAll(page, () => runCommand(page, CLEAR_ALL));
+    });
 });

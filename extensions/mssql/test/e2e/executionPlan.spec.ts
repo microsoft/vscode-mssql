@@ -17,6 +17,7 @@ import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
 import { QuickInput } from "./pageObjects/quickInput";
 import { testCases } from "./utils/testCases";
+import { Tag } from "./utils/tags";
 
 /**
  * Opens a saved .sqlplan file (5878879) and exercises the plan viewer toolbar that the estimated
@@ -77,7 +78,7 @@ test.describe("MSSQL Extension - Query Plan", testCases(5878879, 5878880), async
         currentZoom = await getZoom(iframe);
     });
 
-    test("Test Initial Query Plan Zoom and Accessibility", async () => {
+    test("Test Initial Query Plan Zoom and Accessibility", { tag: Tag.pullRequest }, async () => {
         await expect(Math.round(currentZoom)).toBe(100);
         await expect(iframe.locator(".execution-plan-flow-arrow").first()).toBeVisible();
 

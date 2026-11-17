@@ -18,6 +18,7 @@ import { getPassword, getServerName, getUserName } from "./utils/envConfigReader
 import { getWebviewByTitle } from "./utils/testHelpers";
 import { QuickInput } from "./pageObjects";
 import { testCases } from "./utils/testCases";
+import { Tag } from "./utils/tags";
 
 const EDIT_PROFILE = "e2e-edit-me";
 const EDITED_PROFILE = "e2e-edited";
@@ -119,10 +120,10 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run (and was flaky in an earlier run): a toBeVisible assertion timed out.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "connecting to an untrusted certificate offers to trust it and then connects",
-        { ...testCases(5878869), tag: "@quarantine" },
+        { ...testCases(5878869), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const dialog = await openConnectionDialog(page);
@@ -280,10 +281,10 @@ test.describe("MSSQL Extension - Connection Dialog", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): an Object Explorer node stayed on "Loading...".
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "removing a recent connection does not ask for confirmation",
-        { ...testCases(5878875), tag: "@quarantine" },
+        { ...testCases(5878875), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             // Only connections made through the dialog are listed as recent.
@@ -346,7 +347,7 @@ test.describe("MSSQL Extension - Connection Dialog SQL Login connection", () => 
 
     test(
         "a SQL Login connection joins its group and the Saved and Recent lists",
-        testCases(5878823),
+        { ...testCases(5878823), tag: Tag.pullRequest },
         async () => {
             const { page } = getContext();
             const dialog = await openDialog(page);

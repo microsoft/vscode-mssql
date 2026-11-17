@@ -5,33 +5,24 @@
 
 import * as dotenv from "dotenv";
 import * as path from "path";
-import { defineConfig, ReporterDescription } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
 
 dotenv.config({ path: path.resolve(__dirname, "test/e2e/.env") });
 
 /**
- * Tests tagged @quarantine failed or were flaky in CI. They are left out of the regular run and
- * exercised by the e2e-quarantine workflow instead; a test is promoted by deleting its tag once
- * it passes consistently there.
- *
- * E2E_QUARANTINE selects which tests run:
- * - unset or "exclude": everything except quarantined tests (the build-and-test smoke run)
- * - "only": just the quarantined tests, without retries so a flaky test reports as failed
- * - "include": everything
+ * E2E_TIER selects which tier of tests runs; see test/e2e/README.md.
+ * - "stable" (default): every test except those tagged @flaky
+ * - "pull-request": the stable tests tagged @pull-request, run as a check on every pull request
+ * - "flaky": only the tests tagged @flaky, without retries so a flaky test reports as failed
+ * - "all": every test
  */
-const QUARANTINE_TAG = /@quarantine/;
-const quarantineMode = process.env.E2E_QUARANTINE || "exclude";
-if (!["exclude", "only", "include"].includes(quarantineMode)) {
-    throw new Error(`Unsupported E2E_QUARANTINE value: ${quarantineMode}`);
+const PULL_REQUEST_TAG = /@pull-request/;
+const FLAKY_TAG = /@flaky/;
+const tier = process.env.E2E_TIER || "stable";
+if (!["stable", "pull-request", "flaky", "all"].includes(tier)) {
+    throw new Error(`Unsupported E2E_TIER value: ${tier}`);
 }
-const isQuarantineRun = quarantineMode === "only";
-
-const quarantineReporters: ReporterDescription[] = isQuarantineRun
-    ? [
-          ["html", { outputFolder: "./test-reports/quarantine-html", open: "never" }],
-          ["json", { outputFile: "./test-reports/quarantine-results.json" }],
-      ]
-    : [];
+const isFlakyTier = tier === "flaky";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -44,21 +35,16 @@ export default defineConfig({
     globalTeardown: require.resolve("./test/e2e/globalTeardown"),
     /* Smoke and grid projects share one CI run; cap total VS Code instances at two. */
     workers: 2,
-    grep: isQuarantineRun ? QUARANTINE_TAG : undefined,
-    grepInvert: quarantineMode === "exclude" ? QUARANTINE_TAG : undefined,
+    grep: tier === "pull-request" ? PULL_REQUEST_TAG : isFlakyTier ? FLAKY_TAG : undefined,
+    grepInvert: tier === "stable" || tier === "pull-request" ? FLAKY_TAG : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
-        [
-            "junit",
-            {
-                outputFile: isQuarantineRun
-                    ? "./test-reports/quarantine-results.xml"
-                    : "./test-reports/smoke-results.xml",
-            },
-        ],
+        ["junit", { outputFile: `./test-reports/e2e-${tier}-results.xml` }],
+        /* Read by scripts/e2e-results-summary.js for the CI job summary. */
+        ["json", { outputFile: `./test-reports/e2e-${tier}-results.json` }],
+        ["html", { outputFolder: `./test-reports/e2e-${tier}-html`, open: "never" }],
         /* Prints the flaky count, so a test that only passes on retry stays visible. */
         ["list"],
-        ...quarantineReporters,
     ],
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
@@ -80,7 +66,7 @@ export default defineConfig({
             workers: 1,
             /* Set timeout to 5 minutes */
             timeout: 5 * 60 * 1000,
-            retries: isQuarantineRun ? 0 : process.env.CI ? 2 : 0,
+            retries: isFlakyTier ? 0 : process.env.CI ? 2 : 0,
         },
         {
             name: "grid-e2e",
@@ -110,7 +96,7 @@ export default defineConfig({
              * One retry, so a timing blip reports as flaky rather than as a red build and the
              * difference between flake and a real break stays visible in the report.
              */
-            retries: isQuarantineRun ? 0 : 1,
+            retries: isFlakyTier ? 0 : 1,
         },
     ],
 });

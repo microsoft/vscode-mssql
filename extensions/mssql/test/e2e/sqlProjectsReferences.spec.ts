@@ -48,6 +48,7 @@ import {
 } from "./utils/sqlProjectHelpers";
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 type ReferenceLocation = "Same database" | "Different database, same server";
 
@@ -58,8 +59,8 @@ type ReferenceLocation = "Same database" | "Different database, same server";
  */
 // Failed in the Linux CI build-and-test smoke run: the dacpac reference's file path was not filled in, so the
 // references never appeared and every later test in this group, which builds on them, failed too.
-// TODO: Stabilize these tests, then remove the group's @quarantine tag.
-test.describe("SQL Database Projects - database references", { tag: "@quarantine" }, () => {
+// TODO: Stabilize these tests, then remove the group's flaky tag.
+test.describe("SQL Database Projects - database references", { tag: Tag.flaky }, () => {
     const workspaceDir = reserveTempDir("sqlproj-refs");
     const main = "RefMain";
     const libraries = ["RefLibSame", "RefLibOther", "RefProjSame", "RefProjOther"];

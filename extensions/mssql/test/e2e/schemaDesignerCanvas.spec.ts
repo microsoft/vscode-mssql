@@ -39,6 +39,7 @@ import {
 } from "./utils/sqlClient";
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 const ALL_TABLES = [
     "dbo.Customers",
@@ -305,10 +306,10 @@ test.describe("Schema Designer canvas", () => {
         });
 
         // Failed in the Linux CI build-and-test smoke run: a definition format radio button was not found.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "Renders the whole schema in ORM formats",
-            { ...testCases(5878931), tag: "@quarantine" },
+            { ...testCases(5878931), tag: Tag.flaky },
             async () => {
                 const definitionType = await openDefinitionPanel(frame);
                 await expect(definitionType.getByRole("radio")).toHaveText([
@@ -554,10 +555,10 @@ test.describe("Schema Designer canvas", () => {
 
     test.describe("Find Tables", () => {
         // Failed in the Linux CI build-and-test smoke run: Find Tables reported 4 matches instead of 5.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "Matches full and partial table names",
-            { ...testCases(5878933), tag: "@quarantine" },
+            { ...testCases(5878933), tag: Tag.flaky },
             async () => {
                 const searchBox = await openFindTables(frame, page);
                 const findWidget = frame.getByRole("search", { name: "Find tables" });

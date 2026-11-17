@@ -1,36 +1,55 @@
-# Runs the MSSQL end-to-end tests tagged @quarantine.
+# Runs every MSSQL end-to-end test nightly, and on demand. Tests are sorted into tiers by
+# Playwright tags; see extensions/mssql/test/e2e/README.md.
 #
-# Tests land in quarantine when they fail or are flaky in the build-and-test smoke run. That run
-# leaves them out (see E2E_QUARANTINE in extensions/mssql/playwright.config.ts), and this workflow
-# runs only them, without retries, so a flaky test reports as a failure here rather than passing
-# on a retry. Its result does not affect build-and-test.
+# - stable: every test not tagged @flaky. A failure fails the run.
+# - flaky: tests tagged @flaky, without retries. Failures are reported in the job summary but do
+#   not fail the run. Remove a test's tag once it passes here consistently.
 #
-# To promote a test, delete its `tag: "@quarantine"` once it passes consistently in this
-# workflow; the job summary lists every quarantined test's result. Failed attempts upload a
-# video clip, a trace with screenshots and DOM snapshots, and a screenshot.
-name: E2E Quarantine
+# Pull requests run only the @pull-request tier, in build-and-test.yml.
+name: E2E Nightly
 
 on:
+  schedule:
+    # 4 AM Pacific Standard Time (5 AM during daylight saving time).
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: Which tiers to run
+        type: choice
+        options:
+          - all
+          - stable
+          - flaky
+        default: all
+  # Validates changes to this pipeline itself.
   pull_request:
     branches:
       - main
       - "release/**"
     paths:
-      - ".github/workflows/e2e-quarantine.yml"
+      - ".github/workflows/e2e-nightly.yml"
+      - ".github/actions/setup-e2e/**"
       - "extensions/mssql/playwright.config.ts"
-      - "extensions/mssql/scripts/e2e-quarantine-summary.js"
-      - "extensions/mssql/test/e2e/**"
-  schedule:
-    - cron: "0 8 * * *"
-  workflow_dispatch:
+      - "extensions/mssql/scripts/e2e-results-summary.js"
 
 concurrency:
-  group: e2e-quarantine-${{ github.event.pull_request.number || github.ref }}
+  group: e2e-nightly-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  VS_CODE_VERSION: stable
+  SERVER_NAME: localhost
+  AUTHENTICATION_TYPE: SQL Login
+  USER_NAME: sa
+  SAVE_PASSWORD: "No"
+  PROFILE_NAME: test-server
+  ENABLE_ELECTRON_VIDEO_RECORDING: "true"
+
 jobs:
-  quarantined-e2e-tests:
-    name: Quarantined E2E tests
+  stable:
+    name: Stable E2E tests
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.tier != 'flaky' }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
@@ -42,84 +61,31 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Setup Node.js
-        uses: ./.github/actions/setup-node
+      - name: Set up E2E tests
+        uses: ./.github/actions/setup-e2e
 
-      # SQL Database Projects tests build projects with the .NET SDK.
-      - name: Setup .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          dotnet-version: 8.x
-          dotnet-quality: "ga"
+      # The VSIX tests install the packaged extension.
+      - name: MSSQL - Package VSIX
+        run: npm run package -- --target mssql --preview
 
-      - name: Install root dependencies
-        run: npm ci
-
-      # Also installs Playwright's ffmpeg, which records the failure videos.
-      - name: MSSQL - Install dependencies and build
-        uses: ./.github/actions/build-mssql
-
-      - name: MSSQL - Build webviews
+      - name: Run stable E2E tests
         working-directory: ./extensions/mssql
-        run: npm run build:webviews-bundle
-
-      - name: Start SQL Server
+        env:
+          E2E_TIER: stable
         run: |
-          PASS_LOWER="$(LC_ALL=C tr -dc 'a-z' < /dev/urandom | head -c 1)"
-          PASS_UPPER="$(LC_ALL=C tr -dc 'A-Z' < /dev/urandom | head -c 1)"
-          PASS_DIGIT="$(LC_ALL=C tr -dc '0-9' < /dev/urandom | head -c 1)"
-          PASS_SPECIAL="$(LC_ALL=C tr -dc '!@#^%' < /dev/urandom | head -c 1)"
-          PASS_REST="$(LC_ALL=C tr -dc 'A-Za-z0-9!@#^%' < /dev/urandom | head -c 12)"
-          PASSWORD="${PASS_LOWER}${PASS_UPPER}${PASS_DIGIT}${PASS_SPECIAL}${PASS_REST}"
-          echo "::add-mask::$PASSWORD"
-          echo "PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
-          docker rm -f mssql-server >/dev/null 2>&1 || true
-          docker pull mcr.microsoft.com/mssql/server:2025-latest
-          docker run -e "ACCEPT_EULA=Y" -e "MSSQL_PID=Developer" -e "MSSQL_SA_PASSWORD=$PASSWORD" \
-            -p 1433:1433 --name mssql-server -d mcr.microsoft.com/mssql/server:2025-latest
-          SERVER_READY=false
-          for i in {1..30}; do
-            if docker logs mssql-server 2>&1 | grep -q "SQL Server is now ready for client connections"; then
-              SERVER_READY=true
-              break
-            fi
-            sleep 2
-          done
-          docker logs mssql-server --tail 50
-          if [ "$SERVER_READY" != "true" ]; then
-            echo "SQL Server did not become ready in time."
-            exit 1
-          fi
-
-      - name: Prepare the E2E environment
-        working-directory: ./extensions/mssql
-        env:
-          VS_CODE_VERSION: stable
-        run: node scripts/prepare-e2e-env.js
-
-      - name: Run quarantined E2E tests
-        working-directory: ./extensions/mssql
-        env:
-          E2E_QUARANTINE: only
-          ENABLE_ELECTRON_VIDEO_RECORDING: "true"
-          VS_CODE_VERSION: stable
-          SERVER_NAME: localhost
-          AUTHENTICATION_TYPE: SQL Login
-          USER_NAME: sa
-          SAVE_PASSWORD: "No"
-          PROFILE_NAME: test-server
-        run: DISPLAY=:10 npx playwright test
+          export BUILT_VSIX_PATH="$(find "$PWD" -maxdepth 1 -name "*.vsix" | head -n 1)"
+          DISPLAY=:10 npx playwright test
 
       - name: Publish per-test results
         if: ${{ !cancelled() }}
         working-directory: ./extensions/mssql
-        run: node scripts/e2e-quarantine-summary.js ./test-reports/quarantine-results.json
+        run: node scripts/e2e-results-summary.js ./test-reports/e2e-stable-results.json "Stable E2E tests"
 
       - name: Upload failure videos, traces, and screenshots
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: e2e-quarantine-failure-artifacts
+          name: e2e-stable-failure-artifacts
           path: ./extensions/mssql/test-results/**/
           if-no-files-found: ignore
           retention-days: 7
@@ -128,10 +94,62 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: e2e-quarantine-reports
+          name: e2e-stable-reports
           path: |
-            ./extensions/mssql/test-reports/quarantine-results.xml
-            ./extensions/mssql/test-reports/quarantine-results.json
-            ./extensions/mssql/test-reports/quarantine-html/
+            ./extensions/mssql/test-reports/e2e-stable-results.xml
+            ./extensions/mssql/test-reports/e2e-stable-results.json
+            ./extensions/mssql/test-reports/e2e-stable-html/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  flaky:
+    name: Flaky E2E tests
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.tier != 'stable' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # Flaky tests are expected to fail sometimes. The job still shows its failures, but they do
+    # not fail the run.
+    continue-on-error: true
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up E2E tests
+        uses: ./.github/actions/setup-e2e
+
+      - name: Run flaky E2E tests
+        working-directory: ./extensions/mssql
+        env:
+          E2E_TIER: flaky
+        run: DISPLAY=:10 npx playwright test
+
+      - name: Publish per-test results
+        if: ${{ !cancelled() }}
+        working-directory: ./extensions/mssql
+        run: node scripts/e2e-results-summary.js ./test-reports/e2e-flaky-results.json "Flaky E2E tests"
+
+      - name: Upload failure videos, traces, and screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-flaky-failure-artifacts
+          path: ./extensions/mssql/test-results/**/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-flaky-reports
+          path: |
+            ./extensions/mssql/test-reports/e2e-flaky-results.xml
+            ./extensions/mssql/test-reports/e2e-flaky-results.json
+            ./extensions/mssql/test-reports/e2e-flaky-html/
           if-no-files-found: ignore
           retention-days: 14

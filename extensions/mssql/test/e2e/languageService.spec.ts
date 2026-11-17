@@ -33,6 +33,7 @@ import {
 import { testCases } from "./utils/testCases";
 import { openNewQueryEditor } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 /**
  * Language Service suite: IntelliSense (completions, snippets, diagnostics) in a connected query
@@ -67,7 +68,7 @@ test.describe("MSSQL Extension - Language Service", () => {
 
         test(
             "Accepting a keyword suggestion with Tab completes the word",
-            testCases(5878827),
+            { ...testCases(5878827), tag: Tag.pullRequest },
             async () => {
                 const { page } = getContext();
                 await typeAndSelectSuggestion(page, "SEL", "SELECT");
@@ -264,8 +265,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
-        test("Script view as Alter", { ...testCases(5878832), tag: "@quarantine" }, async () => {
+        // TODO: Stabilize this test, then remove its flaky tag.
+        test("Script view as Alter", { ...testCases(5878832), tag: Tag.flaky }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Views"],
@@ -278,10 +279,10 @@ test.describe("MSSQL Extension - Language Service", () => {
         const procedurePath = ["Programmability", "Stored Procedures"];
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script did not match the expected text.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "Script stored procedure as Create",
-            { ...testCases(5878833), tag: "@quarantine" },
+            { ...testCases(5878833), tag: Tag.flaky },
             async () => {
                 await expectGeneratedScript(
                     getContext().page,
@@ -294,10 +295,10 @@ test.describe("MSSQL Extension - Language Service", () => {
         );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "Script stored procedure as Drop",
-            { ...testCases(5878833), tag: "@quarantine" },
+            { ...testCases(5878833), tag: Tag.flaky },
             async () => {
                 await expectGeneratedScript(
                     getContext().page,
@@ -310,10 +311,10 @@ test.describe("MSSQL Extension - Language Service", () => {
         );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script did not match the expected text.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "Script stored procedure as Alter",
-            { ...testCases(5878833), tag: "@quarantine" },
+            { ...testCases(5878833), tag: Tag.flaky },
             async () => {
                 await expectGeneratedScript(
                     getContext().page,
@@ -326,10 +327,10 @@ test.describe("MSSQL Extension - Language Service", () => {
         );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-        // TODO: Stabilize this test, then remove its @quarantine tag.
+        // TODO: Stabilize this test, then remove its flaky tag.
         test(
             "Script stored procedure as Execute",
-            { ...testCases(5878833), tag: "@quarantine" },
+            { ...testCases(5878833), tag: Tag.flaky },
             async () => {
                 await expectGeneratedScript(
                     getContext().page,
@@ -342,8 +343,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         );
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
-        test("Script user as Create", { ...testCases(5878834), tag: "@quarantine" }, async () => {
+        // TODO: Stabilize this test, then remove its flaky tag.
+        test("Script user as Create", { ...testCases(5878834), tag: Tag.flaky }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Security", "Users"],
@@ -364,8 +365,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-        // TODO: Stabilize this test, then remove its @quarantine tag.
-        test("Script schema as Create", { ...testCases(5878835), tag: "@quarantine" }, async () => {
+        // TODO: Stabilize this test, then remove its flaky tag.
+        test("Script schema as Create", { ...testCases(5878835), tag: Tag.flaky }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Security", "Schemas"],
@@ -386,8 +387,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry): the generated script editor did not become active in time.
-        // TODO: Stabilize this test, then remove its @quarantine tag.
-        test("Script table as Create", { ...testCases(5878836), tag: "@quarantine" }, async () => {
+        // TODO: Stabilize this test, then remove its flaky tag.
+        test("Script table as Create", { ...testCases(5878836), tag: Tag.flaky }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Tables"],
@@ -398,8 +399,8 @@ test.describe("MSSQL Extension - Language Service", () => {
         });
 
         // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-        // TODO: Stabilize this test, then remove its @quarantine tag.
-        test("Script table as Drop", { ...testCases(5878836), tag: "@quarantine" }, async () => {
+        // TODO: Stabilize this test, then remove its flaky tag.
+        test("Script table as Drop", { ...testCases(5878836), tag: Tag.flaky }, async () => {
             await expectGeneratedScript(
                 getContext().page,
                 ["Tables"],

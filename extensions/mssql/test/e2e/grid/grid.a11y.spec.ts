@@ -9,8 +9,9 @@ import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { getCell, stageQuery } from "./gridActions";
 import { SELECTION_QUERY, SELECTION_ROW_COUNT } from "./gridFixtures";
+import { Tag } from "../utils/tags";
 
-test.describe("MSSQL Extension - Results Grid Accessibility", () => {
+test.describe("MSSQL Extension - Results Grid Accessibility", { tag: Tag.pullRequest }, () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 

@@ -22,6 +22,7 @@ import {
 import { test, expect } from "./baseFixtures";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 import { testCases } from "./utils/testCases";
+import { Tag } from "./utils/tags";
 
 test.describe("MSSQL Extension - Query Execution", async () => {
     const getContext = useSharedVsCodeLifecycle({
@@ -64,7 +65,7 @@ DROP DATABASE TestDB;`;
 
     test(
         "Create table, insert data, and execute query",
-        testCases(5878837),
+        { ...testCases(5878837), tag: Tag.pullRequest },
         async ({}, testInfo) => {
             const { page: vsCodePage } = getContext();
             await openNewQueryEditor(vsCodePage);

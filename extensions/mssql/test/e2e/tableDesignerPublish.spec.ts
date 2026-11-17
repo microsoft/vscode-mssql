@@ -36,6 +36,7 @@ import {
 } from "./utils/tableDesignerPublishHelpers";
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 async function tableExists(databaseName: string, tableName: string): Promise<boolean> {
     const count = await querySingleValue<number>(
@@ -92,10 +93,10 @@ test.describe("Table Designer - create a table", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): a toBeVisible assertion timed out.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Publish creates the table on the server",
-        { ...testCases(5878892), tag: "@quarantine" },
+        { ...testCases(5878892), tag: Tag.flaky },
         async () => {
             let frame = await openNewTableDesigner(page, databaseName);
             await setTableName(page, frame, "PublishedTable");
@@ -157,10 +158,10 @@ test.describe("Table Designer - edit a table", () => {
     }
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the "Notifications: Clear All Notifications" quick pick row never appeared.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Open Publish Script shows the ALTER statements for the edits",
-        { ...testCases(5878893), tag: "@quarantine" },
+        { ...testCases(5878893), tag: Tag.flaky },
         async () => {
             const frame = await openExistingTableDesigner(
                 page,
@@ -205,10 +206,10 @@ test.describe("Table Designer - edit a table", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): clicking the dbo.PublishCustomers Object Explorer node timed out.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Publish applies the edits to the table",
-        { ...testCases(5878893), tag: "@quarantine" },
+        { ...testCases(5878893), tag: Tag.flaky },
         async () => {
             let frame = await openExistingTableDesigner(page, databaseName, "dbo.PublishCustomers");
             await editCustomersTable(frame);

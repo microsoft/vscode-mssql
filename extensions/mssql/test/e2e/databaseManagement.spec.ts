@@ -23,6 +23,7 @@ import {
 } from "./utils/sqlClient";
 import { getWebviewByTitle } from "./utils/testHelpers";
 import { testCases } from "./utils/testCases";
+import { Tag } from "./utils/tags";
 
 /**
  * Create, rename, and drop databases through the Object Explorer database management dialogs.
@@ -75,10 +76,10 @@ test.describe("MSSQL Extension - Database Management", () => {
     }
 
     // Failed in the Linux CI build-and-test smoke run: the dialog's webview did not appear within 30s.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Create Database applies the chosen compatibility level",
-        { ...testCases(5878941), tag: "@quarantine" },
+        { ...testCases(5878941), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const databases = await openDatabasesFolder(page);
@@ -125,10 +126,10 @@ test.describe("MSSQL Extension - Database Management", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run: the 'Rename Database...' context menu item was not found.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Rename Database renames it and keeps its contents",
-        { ...testCases(5878942), tag: "@quarantine" },
+        { ...testCases(5878942), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const dialog = await openDatabaseDialog(
@@ -190,10 +191,10 @@ test.describe("MSSQL Extension - Database Management", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Drop Database removes it once the permanent action is confirmed",
-        { ...testCases(5878943), tag: "@quarantine" },
+        { ...testCases(5878943), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const dialog = await openDatabaseDialog(

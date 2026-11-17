@@ -38,6 +38,7 @@ import {
     selectFilterOperator,
     waitForFolderState,
 } from "./utils/objectExplorerFilterHelpers";
+import { Tag } from "./utils/tags";
 
 const TABLES = "Tables";
 const TABLE_NODE = /^(dbo|sales)\./;
@@ -55,10 +56,7 @@ const ALL_TABLES = [
  * it. Each test starts from an unfiltered, expanded Tables folder and checks which table nodes the
  * folder shows.
  */
-// Failed in the Linux CI build-and-test smoke run: 9 of these tests failed the same way, with a filtered folder's children
-// or filter state not updating (toHaveCount(0) still saw 1). The whole group is quarantined.
-// TODO: Stabilize these tests, then remove the group's @quarantine tag.
-test.describe("MSSQL Extension - Object Explorer filters", { tag: "@quarantine" }, () => {
+test.describe("MSSQL Extension - Object Explorer filters", () => {
     const databaseName = uniqueDatabaseName("E2E_OEFilter");
 
     const getContext = useSharedVsCodeLifecycle({
@@ -127,9 +125,12 @@ test.describe("MSSQL Extension - Object Explorer filters", { tag: "@quarantine" 
         await expectVisibleNodes(page, TABLE_NODE, ["dbo.OrderLines", "dbo.Orders"]);
     });
 
+    // Failed in the E2E nightly flaky run even with the keyring prompt fixed: a filtered folder's children
+    // or filter state did not update (toHaveCount(0) still saw 1).
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "Filter context menu item filters the Tables folder by schema",
-        testCases(5878868),
+        { ...testCases(5878868), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             await applyTablesFilter(page, { Schema: "sales" }, "context menu");
@@ -219,18 +220,25 @@ test.describe("MSSQL Extension - Object Explorer filters", { tag: "@quarantine" 
         },
     );
 
-    test("Clear Filters inline action removes the filter", testCases(5878868), async () => {
-        const { page } = getContext();
-        await applyTablesFilter(page, { Schema: "sales" });
-        await expectVisibleNodes(page, TABLE_NODE, ["sales.Customers", "sales.Invoices"]);
+    // Failed in the E2E nightly flaky run even with the keyring prompt fixed: a filtered folder's children
+    // or filter state did not update (toHaveCount(0) still saw 1).
+    // TODO: Stabilize this test, then remove its flaky tag.
+    test(
+        "Clear Filters inline action removes the filter",
+        { ...testCases(5878868), tag: Tag.flaky },
+        async () => {
+            const { page } = getContext();
+            await applyTablesFilter(page, { Schema: "sales" });
+            await expectVisibleNodes(page, TABLE_NODE, ["sales.Customers", "sales.Invoices"]);
 
-        await clickInlineAction(page, getFolderNode(page, TABLES), "Clear Filters");
+            await clickInlineAction(page, getFolderNode(page, TABLES), "Clear Filters");
 
-        const tables = await waitForFolderState(page, TABLES, false);
-        await expectVisibleNodes(page, TABLE_NODE, ALL_TABLES);
-        await tables.hover();
-        await expect(tables.getByRole("button", { name: "Clear Filters" })).toHaveCount(0);
-    });
+            const tables = await waitForFolderState(page, TABLES, false);
+            await expectVisibleNodes(page, TABLE_NODE, ALL_TABLES);
+            await tables.hover();
+            await expect(tables.getByRole("button", { name: "Clear Filters" })).toHaveCount(0);
+        },
+    );
 
     test("Clear Filters context menu item removes the filter", testCases(5878868), async () => {
         const { page } = getContext();

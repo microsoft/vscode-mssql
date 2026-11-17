@@ -28,6 +28,7 @@ import {
 } from "./utils/sqlProjectPublishHelpers";
 import { VsCodeAppHandle } from "./utils/launchVscodeWithMsSqlExt";
 import { QuickInput } from "./pageObjects";
+import { Tag } from "./utils/tags";
 
 /** Files that reference dbo.Customer in the fixture project, including its definition. */
 const CUSTOMER_REFERENCES = ["Customer.sql", "CustomerOrders.sql", "GetCustomer.sql", "Orders.sql"];
@@ -80,9 +81,9 @@ async function generateScriptAgainst(
  */
 // Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
 // appear within 30s. These tests run serially and build on each other, so the whole group is
-// quarantined rather than individual tests.
-// TODO: Stabilize these tests, then remove the group's @quarantine tag.
-test.describe("SQL Database Projects rename refactoring", { tag: "@quarantine" }, () => {
+// tagged flaky rather than individual tests.
+// TODO: Stabilize these tests, then remove the group's flaky tag.
+test.describe("SQL Database Projects rename refactoring", { tag: Tag.flaky }, () => {
     test.describe.configure({ mode: "serial" });
     const databaseName = uniqueDatabaseName("SqlProjRename");
     const { project, getContext } = useFixtureProjectLifecycle({
@@ -104,7 +105,7 @@ test.describe("SQL Database Projects rename refactoring", { tag: "@quarantine" }
     });
 
     // Failed in the Linux CI build-and-test smoke run: the rename preview's quick input rows never appeared.
-    // TODO: Stabilize this test. The group carries the @quarantine tag.
+    // TODO: Stabilize this test. The group carries the flaky tag.
     test("previews a rename and discards it", testCases(5878947), async () => {
         const { page } = getContext();
         await placeCursorOnCustomerTable(page);
@@ -280,9 +281,9 @@ async function startMoveToSchema(page: Page): Promise<QuickInput> {
  */
 // Failed or flaky in the Linux CI build-and-test smoke run: dialogs and quick picks did not
 // appear within 30s. These tests run serially and build on each other, so the whole group is
-// quarantined rather than individual tests.
-// TODO: Stabilize these tests, then remove the group's @quarantine tag.
-test.describe("SQL Database Projects move to schema refactoring", { tag: "@quarantine" }, () => {
+// tagged flaky rather than individual tests.
+// TODO: Stabilize these tests, then remove the group's flaky tag.
+test.describe("SQL Database Projects move to schema refactoring", { tag: Tag.flaky }, () => {
     test.describe.configure({ mode: "serial" });
     const databaseName = uniqueDatabaseName("SqlProjMoveSchema");
     const { project, getContext } = useFixtureProjectLifecycle({
@@ -304,7 +305,7 @@ test.describe("SQL Database Projects move to schema refactoring", { tag: "@quara
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test. The group carries the @quarantine tag.
+    // TODO: Stabilize this test. The group carries the flaky tag.
     test("offers the project's schemas and previews the move", testCases(5878948), async () => {
         const { page } = getContext();
         await placeCursorOnCustomerTable(page);

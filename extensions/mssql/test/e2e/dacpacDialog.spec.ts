@@ -39,6 +39,7 @@ import {
 } from "./utils/sqlClient";
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 /**
  * Dacpac Dialog suite: drives the Data-tier Application (DACPAC/BACPAC) dialog opened from the
@@ -125,9 +126,9 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
     // Failed in the Linux CI build-and-test smoke run: publishing the DACPAC flaked because the
     // Data-tier Application webview did not appear in time, and the Schema Compare check that
     // follows depends on the database that publish creates, so it then failed too. These tests
-    // run serially and build on each other, so the whole group is quarantined.
-    // TODO: Stabilize these tests, then remove the group's @quarantine tag.
-    test.describe("Extract and publish a DACPAC", { tag: "@quarantine" }, () => {
+    // run serially and build on each other, so the whole group is tagged flaky.
+    // TODO: Stabilize these tests, then remove the group's flaky tag.
+    test.describe("Extract and publish a DACPAC", { tag: Tag.flaky }, () => {
         test.describe.configure({ mode: "serial" });
 
         test(

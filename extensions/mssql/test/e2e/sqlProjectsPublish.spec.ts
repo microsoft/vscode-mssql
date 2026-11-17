@@ -37,6 +37,7 @@ import {
     queryContainer,
     removeContainers,
 } from "./utils/sqlProjectPublishHelpers";
+import { Tag } from "./utils/tags";
 
 function escapeRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -116,10 +117,10 @@ test.describe("SQL Database Projects publish dialog", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry).
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "generates the sqlpackage publish command",
-        { ...testCases(5878851), tag: "@quarantine" },
+        { ...testCases(5878851), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const databaseName = uniqueDatabaseName("SqlProjCmd");
@@ -179,10 +180,10 @@ test.describe("SQL Database Projects publish dialog", () => {
     });
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Publish Project webview did not appear in time.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "SQLCMD values and advanced options flow into the generated script",
-        { ...testCases(5878851), tag: "@quarantine" },
+        { ...testCases(5878851), tag: Tag.flaky },
         async () => {
             const { electronApp, page } = getContext();
             const databaseName = uniqueDatabaseName("SqlProjScript");
@@ -225,10 +226,10 @@ test.describe("SQL Database Projects publish dialog", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Publish Project webview did not appear in time.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "publishes the project to an existing server",
-        { ...testCases(5878851), tag: "@quarantine" },
+        { ...testCases(5878851), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const databaseName = uniqueDatabaseName("SqlProjPublish");
@@ -270,10 +271,10 @@ test.describe("SQL Database Projects publish dialog", () => {
     );
 
     // Failed in the Linux CI build-and-test smoke run: the Publish Project webview did not appear within 30s.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "saves a publish profile and loads it back after editing it",
-        { ...testCases(5878858, 5878851), tag: "@quarantine" },
+        { ...testCases(5878858, 5878851), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const savedDatabase = uniqueDatabaseName("SqlProjProfile");
@@ -357,10 +358,10 @@ test.describe("SQL Database Projects publish dialog", () => {
     );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the Publish Project webview did not appear in time.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "saves a partially completed publish profile",
-        { ...testCases(5878858), tag: "@quarantine" },
+        { ...testCases(5878858), tag: Tag.flaky },
         async () => {
             const { page } = getContext();
             const databaseName = uniqueDatabaseName("SqlProjPartial");
@@ -472,11 +473,9 @@ test.describe("SQL Database Projects publish to container", () => {
         return port;
     }
 
-    // Failed in the Linux CI build-and-test smoke run: no 'Dev' container appeared within the 300s wait.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "publishes the project to a new local container",
-        { ...testCases(5878854, 5878851), tag: "@quarantine" },
+        testCases(5878854, 5878851),
         async () => {
             test.setTimeout(10 * 60 * 1000);
             const databaseName = uniqueDatabaseName("SqlProjContainer");
@@ -498,11 +497,9 @@ test.describe("SQL Database Projects publish to container", () => {
         },
     );
 
-    // Failed in the Linux CI build-and-test smoke run: no 'Dev' container appeared within the 300s wait.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
     test(
         "publishes to another container while keeping the existing one",
-        { ...testCases(5878854), tag: "@quarantine" },
+        testCases(5878854),
         async () => {
             test.setTimeout(10 * 60 * 1000);
             if (createdContainers.length === 0) {

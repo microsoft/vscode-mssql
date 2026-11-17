@@ -11,6 +11,7 @@ import { getWebviewByTitle } from "./utils/testHelpers";
 import { usePerTestVsCodeLifecycle } from "./utils/testLifecycle";
 import { testCases } from "./utils/testCases";
 import { readZipEntry } from "./utils/zipHelpers";
+import { Tag } from "./utils/tags";
 
 const EXTENSION_ROOT = path.join(__dirname, "..", "..");
 const sourceManifest = JSON.parse(
@@ -49,7 +50,7 @@ function getMarkdownHeadings(markdown: string): string[] {
  * Running a few launch specific tests to ensure the VSIX package is working correctly.
  * Since code-coverage is not supported for VSIX based tests, we are converting all tests to use the VSIX package.
  */
-test.describe("MSSQL Extension - VSIX Based tests", async () => {
+test.describe("MSSQL Extension - VSIX Based tests", { tag: Tag.pullRequest }, async () => {
     test.skip(!getBuiltVsixPath(), "Skipping VSIX-based tests because BUILT_VSIX_PATH is not set.");
 
     const getContext = usePerTestVsCodeLifecycle({
@@ -94,34 +95,38 @@ test.describe("MSSQL Extension - VSIX Based tests", async () => {
 });
 
 /** Checks the packaged VSIX itself: the version, README, and size a user downloads. */
-test.describe("MSSQL Extension - VSIX package contents", testCases(5878822), () => {
-    test.skip(
-        !getBuiltVsixPath(),
-        "Skipping VSIX package checks because BUILT_VSIX_PATH is not set.",
-    );
+test.describe(
+    "MSSQL Extension - VSIX package contents",
+    { ...testCases(5878822), tag: Tag.pullRequest },
+    () => {
+        test.skip(
+            !getBuiltVsixPath(),
+            "Skipping VSIX package checks because BUILT_VSIX_PATH is not set.",
+        );
 
-    test("the packaged manifest has the source version", async () => {
-        const packaged = JSON.parse(
-            await readZipEntry(getBuiltVsixPath()!, "extension/package.json"),
-        ) as { name: string; publisher: string; version: string };
-        expect(packaged.publisher).toBe(sourceManifest.publisher);
-        expect(packaged.name).toBe(sourceManifest.name);
-        expectSourceVersion(packaged.version);
-    });
+        test("the packaged manifest has the source version", async () => {
+            const packaged = JSON.parse(
+                await readZipEntry(getBuiltVsixPath()!, "extension/package.json"),
+            ) as { name: string; publisher: string; version: string };
+            expect(packaged.publisher).toBe(sourceManifest.publisher);
+            expect(packaged.name).toBe(sourceManifest.name);
+            expectSourceVersion(packaged.version);
+        });
 
-    test("the packaged README matches the repository README", async () => {
-        // vsce stores the README under a lower-cased name.
-        const packaged = await readZipEntry(getBuiltVsixPath()!, "extension/readme.md");
-        const source = fs.readFileSync(path.join(EXTENSION_ROOT, "README.md"), "utf8");
-        // vsce rewrites relative links, so compare structure rather than the raw text.
-        const headings = getMarkdownHeadings(source);
-        expect(headings).toContain("# MSSQL extension for Visual Studio Code");
-        expect(getMarkdownHeadings(packaged)).toEqual(headings);
-    });
+        test("the packaged README matches the repository README", async () => {
+            // vsce stores the README under a lower-cased name.
+            const packaged = await readZipEntry(getBuiltVsixPath()!, "extension/readme.md");
+            const source = fs.readFileSync(path.join(EXTENSION_ROOT, "README.md"), "utf8");
+            // vsce rewrites relative links, so compare structure rather than the raw text.
+            const headings = getMarkdownHeadings(source);
+            expect(headings).toContain("# MSSQL extension for Visual Studio Code");
+            expect(getMarkdownHeadings(packaged)).toEqual(headings);
+        });
 
-    test(`the VSIX is smaller than ${MAX_VSIX_SIZE_MB} MB`, async () => {
-        const sizeInMb = fs.statSync(getBuiltVsixPath()!).size / (1024 * 1024);
-        expect(sizeInMb).toBeGreaterThan(1);
-        expect(sizeInMb).toBeLessThan(MAX_VSIX_SIZE_MB);
-    });
-});
+        test(`the VSIX is smaller than ${MAX_VSIX_SIZE_MB} MB`, async () => {
+            const sizeInMb = fs.statSync(getBuiltVsixPath()!).size / (1024 * 1024);
+            expect(sizeInMb).toBeGreaterThan(1);
+            expect(sizeInMb).toBeLessThan(MAX_VSIX_SIZE_MB);
+        });
+    },
+);

@@ -16,6 +16,7 @@ import { clickCell, getCell, getGridToolbarActions, resetGrid, stageQuery } from
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 import { testCases } from "../utils/testCases";
 import { readZipEntry } from "../utils/zipHelpers";
+import { Tag } from "../utils/tags";
 
 test.describe("MSSQL Extension - Results Grid Export", () => {
     let grid: Locator;
@@ -72,7 +73,7 @@ test.describe("MSSQL Extension - Results Grid Export", () => {
 
     test(
         "Save as CSV writes the result to the chosen path",
-        testCases(5878841, 5878886, 5878838),
+        { ...testCases(5878841, 5878886, 5878838), tag: Tag.pullRequest },
         async () => {
             const filePath = await saveFromToolbar("Save as CSV", "results.csv");
             await expect
@@ -278,10 +279,10 @@ test.describe("MSSQL Extension - Results Grid Open After Save", () => {
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry). The test predates this
     // pull request, which only renamed it and made it refocus the query editor first.
-    // TODO: Stabilize this test, then remove its @quarantine tag.
+    // TODO: Stabilize this test, then remove its flaky tag.
     test(
         "openAfterSave opens the exported CSV document",
-        { ...testCases(5878841), tag: "@quarantine" },
+        { ...testCases(5878841), tag: Tag.flaky },
         async () => {
             await saveAndExpectOpened("Save as CSV", "opened-results.csv");
         },
