@@ -95,8 +95,14 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
     /** Closes the dialog through its Cancel button. */
     async function closeDialog(dialog: FrameLocator): Promise<void> {
         const cancel = dialog.getByRole("button", { name: "Cancel", exact: true });
-        await cancel.click();
-        await expect(cancel).toBeHidden();
+        // Cancel closes the webview, which can detach the frame before the click resolves and
+        // leave it waiting out its timeout. Retry with short clicks until the dialog is gone.
+        await expect(async () => {
+            if (await cancel.isVisible()) {
+                await cancel.click({ timeout: 2000 }).catch(() => undefined);
+            }
+            await expect(cancel).toBeHidden({ timeout: 2000 });
+        }).toPass({ timeout: 30 * 1000 });
     }
 
     /** Compares two schemas in a new Schema Compare panel and expects no differences. */
