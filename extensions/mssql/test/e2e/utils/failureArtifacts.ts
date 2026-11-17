@@ -26,21 +26,13 @@ const shouldRecordTrace =
 const VIDEO_SIZE = { width: 1280, height: 720 };
 
 /**
- * Starts tracing the Electron context once per launch. Each test then records its own chunk, see
- * {@link FailureArtifactRecorder}.
- */
-export async function startElectronTracing(electronApp: VsCodeAppHandle): Promise<void> {
-    if (!shouldRecordTrace) {
-        return;
-    }
-    await runSafely("start Electron tracing", () =>
-        electronApp.context().tracing.start({ screenshots: true, snapshots: true, sources: true }),
-    );
-}
-
-/**
- * Records a video clip and a trace chunk for one test attempt and keeps them only when that
- * attempt fails. Passing attempts leave nothing behind.
+ * Records a video clip and a trace for one test attempt and keeps them only when that attempt
+ * fails. Passing attempts leave nothing behind.
+ *
+ * The video and the trace's screenshots share the page's single screencast, whose frame size is
+ * fixed by whichever starts it first. Electron has no context viewport, so a trace that started
+ * first would cap frames at 800x450 and the video would pad them with gray. Tracing therefore
+ * starts per attempt, after the video.
  */
 export class FailureArtifactRecorder {
     private constructor(
@@ -67,8 +59,13 @@ export class FailureArtifactRecorder {
 
         let isTracing = false;
         if (shouldRecordTrace) {
-            isTracing = await runSafely("start a trace chunk", () =>
-                electronApp.context().tracing.startChunk({ title: testInfo.titlePath.join(" › ") }),
+            isTracing = await runSafely("start tracing", () =>
+                electronApp.context().tracing.start({
+                    title: testInfo.titlePath.join(" › "),
+                    screenshots: true,
+                    snapshots: true,
+                    sources: true,
+                }),
             );
         }
 
@@ -96,8 +93,8 @@ export class FailureArtifactRecorder {
 
         if (this.isTracing) {
             const tracePath = failed ? testInfo.outputPath("trace.zip") : undefined;
-            const stopped = await runSafely("stop the trace chunk", () =>
-                this.electronApp.context().tracing.stopChunk({ path: tracePath }),
+            const stopped = await runSafely("stop tracing", () =>
+                this.electronApp.context().tracing.stop({ path: tracePath }),
             );
             if (stopped && tracePath && fs.existsSync(tracePath)) {
                 testInfo.attachments.push({

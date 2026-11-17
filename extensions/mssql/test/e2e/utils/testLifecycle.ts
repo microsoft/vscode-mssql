@@ -12,7 +12,7 @@ import {
     mssqlExtensionLaunchConfig,
     VsCodeAppHandle,
 } from "./launchVscodeWithMsSqlExt";
-import { FailureArtifactRecorder, startElectronTracing } from "./failureArtifacts";
+import { FailureArtifactRecorder } from "./failureArtifacts";
 import { screenshotOnFailure } from "./screenshotUtils";
 
 /** Budget for launching VS Code and staging a query; see the beforeAll hook below. */
@@ -63,7 +63,6 @@ export function useSharedVsCodeLifecycle(
         // every ordinary test from failing fast.
         test.setTimeout(STAGING_TIMEOUT_MS);
         context = await launchVsCodeWithMssqlExtension(hooks.launchOptions);
-        await startElectronTracing(context.electronApp);
         await hooks.afterLaunch?.(context);
     });
 
@@ -115,7 +114,6 @@ export function usePerTestVsCodeLifecycle(
 
     test.beforeEach(async ({}, testInfo) => {
         context = await launchVsCodeWithMssqlExtension(hooks.launchOptions);
-        await startElectronTracing(context.electronApp);
         // Started before afterLaunch so the clip and trace also cover any per-test setup.
         recorder = await FailureArtifactRecorder.start(context.electronApp, context.page, testInfo);
         await hooks.afterLaunch?.(context);
