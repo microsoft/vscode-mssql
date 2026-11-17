@@ -1833,9 +1833,6 @@
     <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
       <source xml:lang="en">Check output pane for more details</source>
     </trans-unit>
-    <trans-unit id="++CODE++42c00ace24bba24c2fab4f95ab7cdd01aef604f7c18bd12161a8d0c01f8498c0">
-      <source xml:lang="en">Check with Copilot</source>
-    </trans-unit>
     <trans-unit id="++CODE++49642942f7d4c80ba07961e658a4514aa19b474b6154b0716d674fa23dfcaf52">
       <source xml:lang="en">Checking Docker</source>
     </trans-unit>
@@ -1937,10 +1934,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++998d4980e252ef1a13ad4e253806864f5ab8cb4b866b1ddce469ba0ba8b86990">
-      <source xml:lang="en">Choose a rating of {0} or lower and describe what you need to check with Copilot</source>
-      <note>{0} is the highest rating that can be checked</note>
     </trans-unit>
     <trans-unit id="++CODE++0e5a270df8b544ad79ba4ec8c1900744376eccf4ac1a2d19a091dab2a4e09782">
       <source xml:lang="en">Choose an execution plan to compare.</source>
@@ -2955,12 +2948,6 @@
     </trans-unit>
     <trans-unit id="++CODE++dd0c54f16e3767e3bc75e40a3a0898d7fe0873ae7e29e82065c7ac830857d36f">
       <source xml:lang="en">Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++86d7c58c8c8dafa0796c6b3cee5e5aaddaeaa90d952d4a809ab47f71c5f18a7a">
-      <source xml:lang="en">Copilot couldn&apos;t check your feedback. You can still submit it.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f1fd3a47fa2c6cea8f4bd464c3d1c3549a597a1d5b8fe509e674f3991aabaa10">
-      <source xml:lang="en">Copilot didn&apos;t find an existing feature that matches your feedback.</source>
     </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
@@ -14012,9 +13999,6 @@
     </trans-unit>
     <trans-unit id="++CODE++655e7662b4eed2bd100c5c729d7f16166715ef315856643bbd03b9ec3b1c4249">
       <source xml:lang="en">Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++12acffb0f85eb79a6a9d0e61003e2f6d0f1f1294eebb11459e8cfe68af42cac3">
-      <source xml:lang="en">Use Copilot to check whether your feedback describes a feature that already exists</source>
     </trans-unit>
     <trans-unit id="++CODE++0c6ca6448ea705b7f78c38755ccb2a269fc8330838886aa3603085f462cb49b0">
       <source xml:lang="en">Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.</source>

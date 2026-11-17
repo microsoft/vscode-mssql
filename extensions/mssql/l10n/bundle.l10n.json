@@ -4606,15 +4606,6 @@
         "message": "Screenshot of {0}",
         "comment": ["{0} is the name of an existing feature"]
     },
-    "Check with Copilot": "Check with Copilot",
-    "Checking...": "Checking...",
-    "Use Copilot to check whether your feedback describes a feature that already exists": "Use Copilot to check whether your feedback describes a feature that already exists",
-    "Choose a rating of {0} or lower and describe what you need to check with Copilot/{0} is the highest rating that can be checked": {
-        "message": "Choose a rating of {0} or lower and describe what you need to check with Copilot",
-        "comment": ["{0} is the highest rating that can be checked"]
-    },
-    "Copilot didn't find an existing feature that matches your feedback.": "Copilot didn't find an existing feature that matches your feedback.",
-    "Copilot couldn't check your feedback. You can still submit it.": "Copilot couldn't check your feedback. You can still submit it.",
     "Results ({0})/{0} is the keyboard shortcut for the results tab": {
         "message": "Results ({0})",
         "comment": ["{0} is the keyboard shortcut for the results tab"]
@@ -7253,6 +7244,7 @@
     "Recheck": "Recheck",
     "Ready": "Ready",
     "Not found": "Not found",
+    "Checking...": "Checking...",
     "Learn more about this template": "Learn more about this template",
     "Videos": "Videos",
     "Explore what's new in the MSSQL extension (v1.48)": "Explore what's new in the MSSQL extension (v1.48)",

@@ -85,8 +85,7 @@ export interface UserSurveyContextProps extends CoreRPCs {
     cancel(): void;
     openPrivacyStatement(): void;
     /** Keyword hints always run; Copilot hints also run when the user is signed in to Copilot. */
-    getFeatureHints(answers: Answers, trigger: FeatureHintTrigger): Promise<FeatureHintResult>;
-    isCopilotFeatureHintAvailable(): Promise<boolean>;
+    getFeatureHints(answers: Answers): Promise<FeatureHintSuggestion[]>;
     openFeatureHintDocs(hintId: string): void;
     tryFeatureHint(hintId: string): void;
     closeFeatureHints(hintIds: string[], outcome: FeatureHintCloseOutcome): void;
@@ -122,9 +121,6 @@ export const MAX_FEATURE_HINTS = 2;
 
 export type FeatureHintCloseOutcome = "cancel" | "submitAnyway";
 
-/** What started the check: Submit, or the dedicated Copilot button. */
-export type FeatureHintTrigger = "submit" | "copilotButton";
-
 /**
  * Screenshots are bundled into the webview, so config entries refer to them by id. Each id maps
  * to an image in src/webviews/pages/UserSurvey/featureHintScreenshots.ts.
@@ -149,25 +145,9 @@ export interface FeatureHintSuggestion {
     screenshot?: FeatureHintScreenshotId;
 }
 
-/** "notRun" when no Copilot hint applies; "unavailable" when not signed in to Copilot. */
-export type CopilotFeatureHintStatus = "ok" | "notRun" | "unavailable" | "error";
-
-export interface FeatureHintResult {
-    suggestions: FeatureHintSuggestion[];
-    copilotStatus: CopilotFeatureHintStatus;
-}
-
 export namespace GetFeatureHintsRequest {
-    export const type = new RequestType<
-        { answers: Answers; trigger: FeatureHintTrigger },
-        FeatureHintResult,
-        void
-    >("userSurvey/getFeatureHints");
-}
-
-export namespace IsCopilotFeatureHintAvailableRequest {
-    export const type = new RequestType<void, boolean, void>(
-        "userSurvey/isCopilotFeatureHintAvailable",
+    export const type = new RequestType<{ answers: Answers }, FeatureHintSuggestion[], void>(
+        "userSurvey/getFeatureHints",
     );
 }
 

@@ -21,7 +21,7 @@ import {
 } from "../../src/nps/featureHints/copilotFeatureHints";
 import { FeatureHintService } from "../../src/nps/featureHints/featureHintService";
 import { getStandardNPSQuestions } from "../../src/nps/userSurvey";
-import { FeatureHintResult, getFeatureHintInput } from "../../src/sharedInterfaces/userSurvey";
+import { FeatureHintSuggestion, getFeatureHintInput } from "../../src/sharedInterfaces/userSurvey";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { stubTelemetry } from "./utils";
 
@@ -177,7 +177,7 @@ suite("Survey feature hints", () => {
 
     suite("FeatureHintService", () => {
         const eligible = { score: 5, feedback: "F5 should run, and I need to diff two databases" };
-        const ids = (result: FeatureHintResult) => result.suggestions.map((s) => s.id);
+        const ids = (suggestions: FeatureHintSuggestion[]) => suggestions.map((s) => s.id);
         const copilotResponse = (...matches: [string, number][]) =>
             JSON.stringify({ matches: matches.map(([id, confidence]) => ({ id, confidence })) });
         const editDataHint: FeatureHintDefinition = {
@@ -190,10 +190,7 @@ suite("Survey feature hints", () => {
             const selectModel = sandbox.stub().resolves(fakeModel("gpt-5.4-mini"));
             const service = new FeatureHintService([keywordHint, copilotHint], selectModel);
 
-            expect(await service.findHints({ ...eligible, score: 9 }, "submit")).to.deep.equal({
-                suggestions: [],
-                copilotStatus: "notRun",
-            });
+            expect(await service.findHints({ ...eligible, score: 9 })).to.deep.equal([]);
             expect(selectModel).to.not.have.been.called;
         });
 
@@ -201,29 +198,26 @@ suite("Survey feature hints", () => {
             const model = fakeModel("gpt-5.4-mini", copilotResponse(["editData", 0.9]));
             const service = new FeatureHintService([keywordHint, editDataHint], async () => model);
 
-            expect(await service.findHints(eligible, "submit")).to.deep.equal({
-                suggestions: [
-                    {
-                        id: "keymap",
-                        featureName: "Keymap",
-                        description: "Familiar shortcuts.",
-                        hasDocs: true,
-                        canTryNow: false,
-                        tryNowLabel: undefined,
-                        screenshot: undefined,
-                    },
-                    {
-                        id: "editData",
-                        featureName: "Schema Compare",
-                        description: "Compare schemas.",
-                        hasDocs: false,
-                        canTryNow: true,
-                        tryNowLabel: undefined,
-                        screenshot: "editData",
-                    },
-                ],
-                copilotStatus: "ok",
-            });
+            expect(await service.findHints(eligible)).to.deep.equal([
+                {
+                    id: "keymap",
+                    featureName: "Keymap",
+                    description: "Familiar shortcuts.",
+                    hasDocs: true,
+                    canTryNow: false,
+                    tryNowLabel: undefined,
+                    screenshot: undefined,
+                },
+                {
+                    id: "editData",
+                    featureName: "Schema Compare",
+                    description: "Compare schemas.",
+                    hasDocs: false,
+                    canTryNow: true,
+                    tryNowLabel: undefined,
+                    screenshot: "editData",
+                },
+            ]);
             const prompt = (
                 model.sendRequest.firstCall.args[0] as vscode.LanguageModelChatMessage[]
             )
@@ -244,16 +238,13 @@ suite("Survey feature hints", () => {
             );
 
             const ambiguous = { score: 4, feedback: "I want to edit my table in a UX" };
-            expect(ids(await service.findHints(ambiguous, "copilotButton"))).to.deep.equal([
+            expect(ids(await service.findHints(ambiguous))).to.deep.equal([
                 "editData",
                 "tableDesigner",
             ]);
             expect(
                 ids(
-                    await service.findHints(
-                        { ...ambiguous, feedback: "F5 " + ambiguous.feedback },
-                        "submit",
-                    ),
+                    await service.findHints({ ...ambiguous, feedback: "F5 " + ambiguous.feedback }),
                 ),
             ).to.deep.equal(["keymap", "editData"]);
         });
@@ -262,10 +253,8 @@ suite("Survey feature hints", () => {
             const model = fakeModel("gpt-5.4-mini", copilotResponse(["schemaCompare", 0.9]));
             const service = new FeatureHintService([copilotHint], async () => model);
 
-            await service.findHints(eligible, "copilotButton");
-            expect(ids(await service.findHints(eligible, "submit"))).to.deep.equal([
-                "schemaCompare",
-            ]);
+            await service.findHints(eligible);
+            expect(ids(await service.findHints(eligible))).to.deep.equal(["schemaCompare"]);
             expect(model.sendRequest).to.have.been.calledOnce;
         });
 
@@ -275,18 +264,14 @@ suite("Survey feature hints", () => {
                 async () => undefined,
             );
 
-            expect(await service.isCopilotAvailable()).to.be.false;
-            const result = await service.findHints(eligible, "submit");
-            expect(ids(result)).to.deep.equal(["keymap"]);
-            expect(result.copilotStatus).to.equal("unavailable");
+            expect(ids(await service.findHints(eligible))).to.deep.equal(["keymap"]);
         });
 
         test("does not look up a model when no hint uses Copilot", async () => {
             const selectModel = sandbox.stub().resolves(fakeModel("gpt-5.4-mini"));
             const service = new FeatureHintService([keywordHint], selectModel);
 
-            expect(await service.isCopilotAvailable()).to.be.false;
-            await service.findHints(eligible, "submit");
+            await service.findHints(eligible);
             expect(selectModel).to.not.have.been.called;
         });
 
@@ -295,9 +280,7 @@ suite("Survey feature hints", () => {
             model.sendRequest.rejects(new Error("quota"));
             const service = new FeatureHintService([keywordHint, copilotHint], async () => model);
 
-            const result = await service.findHints(eligible, "submit");
-            expect(ids(result)).to.deep.equal(["keymap"]);
-            expect(result.copilotStatus).to.equal("error");
+            expect(ids(await service.findHints(eligible))).to.deep.equal(["keymap"]);
         });
 
         test("attributes action telemetry to the hint's match mode", () => {
