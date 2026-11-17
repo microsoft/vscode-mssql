@@ -2695,6 +2695,23 @@ export class UserSurvey {
     public static writeReview = l10n.t("Write a review");
 }
 
+/** Display strings for the survey feature hints defined in src/nps/featureHints/featureHints.config.ts */
+export class FeatureHints {
+    public static copilotJustification = l10n.t(
+        "Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.",
+    );
+    public static keymapName = l10n.t("MSSQL Database Management Keymap");
+    public static keymapDescription = l10n.t(
+        "Use familiar SQL Server Management Studio keyboard shortcuts, such as F5 to run a query, in the MSSQL extension.",
+    );
+    public static viewExtension = l10n.t("View extension");
+    public static schemaCompareName = l10n.t("Schema Compare");
+    public static schemaCompareDescription = l10n.t(
+        "Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.",
+    );
+    public static openSchemaCompare = l10n.t("Open Schema Compare");
+}
+
 export class Webview {
     public static webviewRestorePrompt = (webviewName: string) =>
         l10n.t({

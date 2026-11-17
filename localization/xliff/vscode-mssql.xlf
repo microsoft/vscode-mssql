@@ -1311,6 +1311,12 @@
     <trans-unit id="++CODE++e3ea81f5c09231f1e54b897c6a7d4a742d37c4776769a19d4cc267a8b4632852">
       <source xml:lang="en">Balanced (default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++fb24cf0b9a0ecd153d738b4ce19f794cca2d78c63190b6ea2ea0ec7cced2115a">
+      <source xml:lang="en">Based on your feedback, these existing features might already do what you need.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++842d220bc98a96a750359098677bb4a22a12334a245a9b41bd8e7674b98a7226">
+      <source xml:lang="en">Based on your feedback, this existing feature might already do what you need.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6f43c38ec488f6281abbedabf16441abbf1de98c6e9b8580599fd57011c2054">
       <source xml:lang="en">Baseline</source>
       <note>The earlier period that a comparison compares with</note>
@@ -1827,6 +1833,9 @@
     <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
       <source xml:lang="en">Check output pane for more details</source>
     </trans-unit>
+    <trans-unit id="++CODE++42c00ace24bba24c2fab4f95ab7cdd01aef604f7c18bd12161a8d0c01f8498c0">
+      <source xml:lang="en">Check with Copilot</source>
+    </trans-unit>
     <trans-unit id="++CODE++49642942f7d4c80ba07961e658a4514aa19b474b6154b0716d674fa23dfcaf52">
       <source xml:lang="en">Checking Docker</source>
     </trans-unit>
@@ -1928,6 +1937,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++998d4980e252ef1a13ad4e253806864f5ab8cb4b866b1ddce469ba0ba8b86990">
+      <source xml:lang="en">Choose a rating of {0} or lower and describe what you need to check with Copilot</source>
+      <note>{0} is the highest rating that can be checked</note>
     </trans-unit>
     <trans-unit id="++CODE++0e5a270df8b544ad79ba4ec8c1900744376eccf4ac1a2d19a091dab2a4e09782">
       <source xml:lang="en">Choose an execution plan to compare.</source>
@@ -2312,6 +2325,9 @@
     </trans-unit>
     <trans-unit id="++CODE++30d9abfd7c7af513814bdfadcafe7ec4a90bc6bcee519086dc513f63f2cd7384">
       <source xml:lang="en">Compare plans</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f6f8de8b47d807e2cc42497c61fb59ef21adec7380464c6debfeba99169e6ef">
+      <source xml:lang="en">Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088">
       <source xml:lang="en">Comparing...</source>
@@ -2936,6 +2952,15 @@
     <trans-unit id="++CODE++623971e6013bb7ca0de198ee8a596add57884bbf22821d9574acab573cd8ca7a">
       <source xml:lang="en">Copilot Changes ({0})</source>
       <note>{0} is the number of copilot changes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dd0c54f16e3767e3bc75e40a3a0898d7fe0873ae7e29e82065c7ac830857d36f">
+      <source xml:lang="en">Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86d7c58c8c8dafa0796c6b3cee5e5aaddaeaa90d952d4a809ab47f71c5f18a7a">
+      <source xml:lang="en">Copilot couldn&apos;t check your feedback. You can still submit it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f1fd3a47fa2c6cea8f4bd464c3d1c3549a597a1d5b8fe509e674f3991aabaa10">
+      <source xml:lang="en">Copilot didn&apos;t find an existing feature that matches your feedback.</source>
     </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
@@ -7500,6 +7525,9 @@
     <trans-unit id="++CODE++d677d7b3ce2fbecfefeb30a60f0a459a8e880eb9d4c530cbe79d1858fac7dc92">
       <source xml:lang="en">MSSQL Connections (Private Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d504a1acea3a8c8fdb0e8510a88a68e5d8168a603a3ae2ad551ba41d539ff773">
+      <source xml:lang="en">MSSQL Database Management Keymap</source>
+    </trans-unit>
     <trans-unit id="++CODE++895f683141b67b4ff55760d7d677938918d00efa0293d62fceae133b953767e5">
       <source xml:lang="en">MSSQL Database Management Keymap extension.</source>
     </trans-unit>
@@ -8887,6 +8915,9 @@
     </trans-unit>
     <trans-unit id="++CODE++af132604ab4a7a82ec60043332beeddb75c741430c93270bb2fb3672acfef185">
       <source xml:lang="en">Open SQL file...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2d926771e98525e2d24d3d7c65d7aa69c135c1db09b4627d08c2dfb48def39d8">
+      <source xml:lang="en">Open Schema Compare</source>
     </trans-unit>
     <trans-unit id="++CODE++3f940108cb1ecd9c0090da0b51b45f9fe673f00b22c7ffe3d013319b97456674">
       <source xml:lang="en">Open Settings</source>
@@ -12399,6 +12430,9 @@
     <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
       <source xml:lang="en">Submit an issue</source>
     </trans-unit>
+    <trans-unit id="++CODE++092022e91d113ac75cab5098ccf696f289e2fa04f9d76cf99637c2ccda8f6dc8">
+      <source xml:lang="en">Submit anyway</source>
+    </trans-unit>
     <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
       <source xml:lang="en">Subscription</source>
     </trans-unit>
@@ -13588,6 +13622,9 @@
     <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
       <source xml:lang="en">Try it</source>
     </trans-unit>
+    <trans-unit id="++CODE++addb776b173a84f2377dd5956c8a30066cb05496a8a39db573ee32681f69d09e">
+      <source xml:lang="en">Try it now</source>
+    </trans-unit>
     <trans-unit id="++CODE++a3a3528ddf91f12579305467446f74ee44ef4c6016c889a73ee002be224a1b08">
       <source xml:lang="en">Try searching by command name, description, or keybinding.</source>
     </trans-unit>
@@ -13933,6 +13970,9 @@
     <trans-unit id="++CODE++655e7662b4eed2bd100c5c729d7f16166715ef315856643bbd03b9ec3b1c4249">
       <source xml:lang="en">Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
     </trans-unit>
+    <trans-unit id="++CODE++12acffb0f85eb79a6a9d0e61003e2f6d0f1f1294eebb11459e8cfe68af42cac3">
+      <source xml:lang="en">Use Copilot to check whether your feedback describes a feature that already exists</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c6ca6448ea705b7f78c38755ccb2a269fc8330838886aa3603085f462cb49b0">
       <source xml:lang="en">Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.</source>
     </trans-unit>
@@ -13965,6 +14005,9 @@
     </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c864fa79bb4b37128415522d40c9d25d21ffba04d00d9170bc53633b5666280d">
+      <source xml:lang="en">Use familiar SQL Server Management Studio keyboard shortcuts, such as F5 to run a query, in the MSSQL extension.</source>
     </trans-unit>
     <trans-unit id="++CODE++b2d79fbdb8737e1fa927a178beca0b91c1f29d09202fbd60f4b1f838ff549a1d">
       <source xml:lang="en">Use filter {0}</source>
@@ -14204,6 +14247,12 @@
     </trans-unit>
     <trans-unit id="++CODE++75eb42c8194b2b5b2a13e3514f1a20da13b21713180fab98b61e111b0d323e34">
       <source xml:lang="en">View deployment log</source>
+    </trans-unit>
+    <trans-unit id="++CODE++392e16f77e9f5d6dec99d216a10683f681a2cd0b2ad7b7662263309e511a3d5f">
+      <source xml:lang="en">View documentation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7efa93411cc7348bb238574e645f912fc0f4c58ec983f21bb4aa123287f6e716">
+      <source xml:lang="en">View extension</source>
     </trans-unit>
     <trans-unit id="++CODE++7cf4febf4bd4fde0ce1d1c48faa577c4aa71b23b775ef63b0b238f022a92d9b3">
       <source xml:lang="en">View full value of {0}</source>
@@ -14477,6 +14526,13 @@
     </trans-unit>
     <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
       <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++90384b85ebca41907b92bddb848bffa5f38c2906c0578095bf7fea3df42f7ad8">
+      <source xml:lang="en">You may be looking for one of these features</source>
+    </trans-unit>
+    <trans-unit id="++CODE++153c52123d150890f9b6cc33510e8a4be287a3b16104a90560916f05a25a8f5f">
+      <source xml:lang="en">You may be looking for {0}</source>
+      <note>{0} is the name of an existing feature</note>
     </trans-unit>
     <trans-unit id="++CODE++4dc8fab67d918ef72549261550d7aa876604e84b3c899cd54deb340c5af779bb">
       <source xml:lang="en">You must accept the container license terms to continue.</source>

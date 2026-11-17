@@ -34,6 +34,7 @@ import {
     stubVscodeEnv,
 } from "./utils";
 import * as constants from "../../src/constants/constants";
+import { FeatureHintService } from "../../src/nps/featureHints/featureHintService";
 
 chai.use(sinonChai);
 
@@ -313,6 +314,61 @@ suite("UserSurvey Tests", () => {
             expect(openExternalStub.calledOnce).to.be.true;
             expect(openExternalStub.firstCall.args[0].toString()).to.equal(
                 vscode.Uri.parse(expectedReviewUrl).toString(),
+            );
+        });
+
+        test("launches only configured feature hints and reports the action", async () => {
+            const hintController = new UserSurveyWebviewController(
+                context,
+                mockState,
+                new FeatureHintService(
+                    [
+                        {
+                            id: "keymap",
+                            featureName: "Keymap",
+                            description: "Familiar shortcuts.",
+                            docsUrl: "https://example.com/keymap",
+                            tryNow: {
+                                kind: "command",
+                                command: "extension.open",
+                                args: ["publisher.keymap"],
+                            },
+                            match: { mode: "keyword", keywords: ["F5"] },
+                        },
+                    ],
+                    async () => undefined,
+                ),
+            );
+            observeWebviewReady(hintController);
+            const executeCommand = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            const openExternal = stubVscodeEnv(sandbox).openExternal.resolves(true);
+            const reducers = hintController["_reducerHandlers"];
+
+            await reducers.get("tryFeatureHint")(mockState, {
+                hintId: "keymap",
+                source: "keyword",
+            });
+            await reducers.get("openFeatureHintDocs")(mockState, {
+                hintId: "keymap",
+                source: "keyword",
+            });
+            await reducers.get("tryFeatureHint")(mockState, {
+                hintId: "unknown",
+                source: "keyword",
+            });
+
+            expect(executeCommand).to.have.been.calledOnceWithExactly(
+                "extension.open",
+                "publisher.keymap",
+            );
+            expect(openExternal).to.have.been.calledOnce;
+            expect(openExternal.firstCall.args[0].toString()).to.equal(
+                "https://example.com/keymap",
+            );
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.UserSurvey,
+                TelemetryActions.SurveyFeatureHint,
+                { additionalProps: { step: "tryNow", source: "keyword", hintIds: "keymap" } },
             );
         });
     });

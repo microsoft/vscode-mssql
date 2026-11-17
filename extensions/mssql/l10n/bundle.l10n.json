@@ -1502,6 +1502,13 @@
     "Submit an issue": "Submit an issue",
     "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.": "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
     "Write a review": "Write a review",
+    "Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.": "Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.",
+    "MSSQL Database Management Keymap": "MSSQL Database Management Keymap",
+    "Use familiar SQL Server Management Studio keyboard shortcuts, such as F5 to run a query, in the MSSQL extension.": "Use familiar SQL Server Management Studio keyboard shortcuts, such as F5 to run a query, in the MSSQL extension.",
+    "View extension": "View extension",
+    "Schema Compare": "Schema Compare",
+    "Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.": "Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.",
+    "Open Schema Compare": "Open Schema Compare",
     "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
@@ -1569,7 +1576,6 @@
     "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
     "Failed to save code analysis rules": "Failed to save code analysis rules",
     "Code analysis rules saved successfully": "Code analysis rules saved successfully",
-    "Schema Compare": "Schema Compare",
     "Save": "Save",
     "default": "default",
     "Saved connection '{0}' not found./{0} is the saved connection ID": {
@@ -4570,6 +4576,25 @@
     "Privacy notice": "Privacy notice",
     "Privacy Statement": "Privacy Statement",
     "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
+    "You may be looking for {0}/{0} is the name of an existing feature": {
+        "message": "You may be looking for {0}",
+        "comment": ["{0} is the name of an existing feature"]
+    },
+    "You may be looking for one of these features": "You may be looking for one of these features",
+    "Based on your feedback, this existing feature might already do what you need.": "Based on your feedback, this existing feature might already do what you need.",
+    "Based on your feedback, these existing features might already do what you need.": "Based on your feedback, these existing features might already do what you need.",
+    "View documentation": "View documentation",
+    "Try it now": "Try it now",
+    "Submit anyway": "Submit anyway",
+    "Check with Copilot": "Check with Copilot",
+    "Checking...": "Checking...",
+    "Use Copilot to check whether your feedback describes a feature that already exists": "Use Copilot to check whether your feedback describes a feature that already exists",
+    "Choose a rating of {0} or lower and describe what you need to check with Copilot/{0} is the highest rating that can be checked": {
+        "message": "Choose a rating of {0} or lower and describe what you need to check with Copilot",
+        "comment": ["{0} is the highest rating that can be checked"]
+    },
+    "Copilot didn't find an existing feature that matches your feedback.": "Copilot didn't find an existing feature that matches your feedback.",
+    "Copilot couldn't check your feedback. You can still submit it.": "Copilot couldn't check your feedback. You can still submit it.",
     "Results ({0})/{0} is the keyboard shortcut for the results tab": {
         "message": "Results ({0})",
         "comment": ["{0} is the keyboard shortcut for the results tab"]
@@ -7209,7 +7234,6 @@
     "Recheck": "Recheck",
     "Ready": "Ready",
     "Not found": "Not found",
-    "Checking...": "Checking...",
     "Learn more about this template": "Learn more about this template",
     "Videos": "Videos",
     "Explore what's new in the MSSQL extension (v1.48)": "Explore what's new in the MSSQL extension (v1.48)",

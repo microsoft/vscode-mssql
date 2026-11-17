@@ -8,7 +8,15 @@ import * as Loc from "../constants/locConstants";
 import * as vscode from "vscode";
 import * as os from "os";
 
-import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterfaces/userSurvey";
+import {
+    Answers,
+    FeatureHintSource,
+    GetFeatureHintsRequest,
+    IsCopilotFeatureHintAvailableRequest,
+    UserSurveyReducers,
+    UserSurveyState,
+    getFeatureHintInput,
+} from "../sharedInterfaces/userSurvey";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { WebviewPanelController } from "../controllers/webviewPanelController";
@@ -16,6 +24,7 @@ import { sendActionEvent } from "extension-toolkit/vscode";
 import { previewService } from "../previews/previewService";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
+import { FeatureHintService } from "./featureHints/featureHintService";
 
 const logger = getLogger("UserSurvey");
 
@@ -313,7 +322,13 @@ export class UserSurveyWebviewController extends WebviewPanelController<
     private _onCancel: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
-    constructor(context: vscode.ExtensionContext, state?: UserSurveyState) {
+    private readonly _featureHintCancellation = new vscode.CancellationTokenSource();
+
+    constructor(
+        context: vscode.ExtensionContext,
+        state?: UserSurveyState,
+        private readonly _featureHints: FeatureHintService = new FeatureHintService(),
+    ) {
         super(context, "userSurvey", "userSurvey", state, {
             title: Loc.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
@@ -388,10 +403,68 @@ export class UserSurveyWebviewController extends WebviewPanelController<
             return state;
         });
 
+        this.onRequest(IsCopilotFeatureHintAvailableRequest.type, () =>
+            this._featureHints.isCopilotAvailable(),
+        );
+
+        this.onRequest(GetFeatureHintsRequest.type, ({ answers, source }) =>
+            this._featureHints.findHints(
+                getFeatureHintInput(this.state?.questions ?? [], answers),
+                source,
+                this._featureHintCancellation.token,
+            ),
+        );
+
+        this.registerReducer("openFeatureHintDocs", async (state, { hintId, source }) => {
+            const docsUrl = this._featureHints.getDefinition(hintId)?.docsUrl;
+            if (docsUrl) {
+                sendFeatureHintActionTelemetry("docs", source, hintId);
+                await vscode.env.openExternal(vscode.Uri.parse(docsUrl));
+            }
+            return state;
+        });
+
+        this.registerReducer("tryFeatureHint", async (state, { hintId, source }) => {
+            const tryNow = this._featureHints.getDefinition(hintId)?.tryNow;
+            if (!tryNow) {
+                return state;
+            }
+            sendFeatureHintActionTelemetry("tryNow", source, hintId);
+            try {
+                if (tryNow.kind === "command") {
+                    await vscode.commands.executeCommand(tryNow.command, ...(tryNow.args ?? []));
+                } else {
+                    await vscode.env.openExternal(vscode.Uri.parse(tryNow.url));
+                }
+            } catch (error) {
+                logger.error(
+                    `Failed to launch feature hint '${hintId}': ${getErrorMessage(error)}`,
+                );
+            }
+            return state;
+        });
+
+        this.registerReducer("closeFeatureHints", async (state, { hintIds, source, outcome }) => {
+            sendFeatureHintActionTelemetry(outcome, source, hintIds.join(","));
+            return state;
+        });
+
         this.panel.onDidDispose(() => {
+            this._featureHintCancellation.cancel();
+            this._featureHintCancellation.dispose();
             this._onCancel.fire();
         });
     }
+}
+
+function sendFeatureHintActionTelemetry(
+    step: "docs" | "tryNow" | "cancel" | "submitAnyway",
+    source: FeatureHintSource,
+    hintIds: string,
+): void {
+    sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
+        additionalProps: { step, source, hintIds },
+    });
 }
 
 export function getGithubIssueText(comments: string, extensionVersion: string): string {
