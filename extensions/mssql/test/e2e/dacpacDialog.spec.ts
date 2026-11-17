@@ -215,7 +215,7 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
 
         test(
             "Export BACPAC: exports the source database from the dialog launched in Object Explorer",
-            testCases(5878946),
+            { ...testCases(5878946), tag: Tag.pullRequest },
             async () => {
                 test.setTimeout(5 * 60 * 1000);
                 const dialog = await openDacpacDialogFromObjectExplorer(vsCodePage, sourceDatabase);
@@ -242,7 +242,7 @@ test.describe("MSSQL Extension - DACPAC/BACPAC dialog", () => {
 
         test(
             "Import BACPAC: imports the package to a new database with the same schema and data",
-            testCases(5878946),
+            { ...testCases(5878946), tag: Tag.pullRequest },
             async () => {
                 test.setTimeout(5 * 60 * 1000);
                 const dialog = await openDacpacDialogFromObjectExplorer(vsCodePage, sourceDatabase);

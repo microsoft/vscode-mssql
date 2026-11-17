@@ -106,24 +106,32 @@ test.describe("MSSQL Extension - Object Explorer filters", () => {
         await waitForFolderState(page, TABLES, true);
     }
 
-    test("Filter inline action filters the Tables folder by name", testCases(5878868), async () => {
-        const { page } = getContext();
-        const dialog = await openFilterDialog(page, getFolderNode(page, TABLES), "inline action");
+    test(
+        "Filter inline action filters the Tables folder by name",
+        { ...testCases(5878868), tag: Tag.pullRequest },
+        async () => {
+            const { page } = getContext();
+            const dialog = await openFilterDialog(
+                page,
+                getFolderNode(page, TABLES),
+                "inline action",
+            );
 
-        await expect(dialog.getByLabel(new RegExp(`/${databaseName}/Tables$`))).toBeVisible();
-        for (const property of ["Name", "Schema", "Owner"]) {
-            await expect(getFilterValueInput(dialog, property)).toHaveValue("");
-            await expect(getFilterOperator(dialog, property)).toHaveText("Contains");
-            await expect(getClearPropertyButton(dialog, property)).toBeDisabled();
-        }
+            await expect(dialog.getByLabel(new RegExp(`/${databaseName}/Tables$`))).toBeVisible();
+            for (const property of ["Name", "Schema", "Owner"]) {
+                await expect(getFilterValueInput(dialog, property)).toHaveValue("");
+                await expect(getFilterOperator(dialog, property)).toHaveText("Contains");
+                await expect(getClearPropertyButton(dialog, property)).toBeDisabled();
+            }
 
-        await fillFilterValues(dialog, { Name: "Order" });
-        await expect(getClearPropertyButton(dialog, "Name")).toBeEnabled();
-        await applyFilterDialog(page, dialog);
+            await fillFilterValues(dialog, { Name: "Order" });
+            await expect(getClearPropertyButton(dialog, "Name")).toBeEnabled();
+            await applyFilterDialog(page, dialog);
 
-        await waitForFolderState(page, TABLES, true);
-        await expectVisibleNodes(page, TABLE_NODE, ["dbo.OrderLines", "dbo.Orders"]);
-    });
+            await waitForFolderState(page, TABLES, true);
+            await expectVisibleNodes(page, TABLE_NODE, ["dbo.OrderLines", "dbo.Orders"]);
+        },
+    );
 
     // Failed in the E2E nightly flaky run even with the keyring prompt fixed: a filtered folder's children
     // or filter state did not update (toHaveCount(0) still saw 1).

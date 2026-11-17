@@ -25,6 +25,7 @@ import {
 import { testCases } from "./utils/testCases";
 import { getWebviewByTitle } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 const SEED_SCRIPT = `
 CREATE TABLE dbo.Customers (
@@ -154,26 +155,30 @@ test.describe("Schema Designer", () => {
         await dropDatabaseIfExists(databaseName);
     });
 
-    test("Opens with the database's existing tables", testCases(5878930), async () => {
-        ({ electronApp: app, page } = getContext());
-        await expandObjectExplorerPath(page, [SEEDED_PROFILE_NAME, "Databases"]);
-        await runObjectExplorerContextAction(
-            page,
-            getObjectExplorerNode(page, databaseName),
-            "Visualize and Design Schema...",
-        );
-        frame = await getWebviewByTitle(page, designerTitle, 60 * 1000);
+    test(
+        "Opens with the database's existing tables",
+        { ...testCases(5878930), tag: Tag.pullRequest },
+        async () => {
+            ({ electronApp: app, page } = getContext());
+            await expandObjectExplorerPath(page, [SEEDED_PROFILE_NAME, "Databases"]);
+            await runObjectExplorerContextAction(
+                page,
+                getObjectExplorerNode(page, databaseName),
+                "Visualize and Design Schema...",
+            );
+            frame = await getWebviewByTitle(page, designerTitle, 60 * 1000);
 
-        const customers = getTableNode(frame, "dbo.Customers");
-        await expect(customers).toBeVisible({ timeout: 2 * 60 * 1000 });
-        await expect(getColumnNode(customers, "Id", "int")).toBeVisible();
-        await expect(getColumnNode(customers, "Name", "nvarchar")).toBeVisible();
-        const orders = getTableNode(frame, "dbo.Orders");
-        await expect(getColumnNode(orders, "CustomerId", "int")).toBeVisible();
-        await expect(getColumnNode(orders, "Total", "decimal")).toBeVisible();
-        await expect(getRelationshipEdges(frame)).toHaveCount(0);
-        await expect(frame.getByRole("button", { name: "Apply Changes" })).toBeDisabled();
-    });
+            const customers = getTableNode(frame, "dbo.Customers");
+            await expect(customers).toBeVisible({ timeout: 2 * 60 * 1000 });
+            await expect(getColumnNode(customers, "Id", "int")).toBeVisible();
+            await expect(getColumnNode(customers, "Name", "nvarchar")).toBeVisible();
+            const orders = getTableNode(frame, "dbo.Orders");
+            await expect(getColumnNode(orders, "CustomerId", "int")).toBeVisible();
+            await expect(getColumnNode(orders, "Total", "decimal")).toBeVisible();
+            await expect(getRelationshipEdges(frame)).toHaveCount(0);
+            await expect(frame.getByRole("button", { name: "Apply Changes" })).toBeDisabled();
+        },
+    );
 
     test(
         "Add Table creates a table with new columns and constraints",

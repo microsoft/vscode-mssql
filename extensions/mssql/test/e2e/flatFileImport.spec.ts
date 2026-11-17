@@ -33,6 +33,7 @@ import {
 } from "./utils/sqlClient";
 import { testCases } from "./utils/testCases";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 const PRODUCTS_CSV = path.join(FLAT_FILE_FIXTURES, "products.csv");
 /** A tab-delimited text file. */
@@ -107,7 +108,7 @@ test.describe("MSSQL Extension - Flat-file Import", () => {
 
     test(
         "imports a CSV into a new table using the proposed schema",
-        testCases(5878915),
+        { ...testCases(5878915), tag: Tag.pullRequest },
         async () => {
             const wizard = await openImportWizard(vsCodePage, databaseName);
             await expect(

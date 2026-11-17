@@ -85,22 +85,26 @@ test.describe("MSSQL Extension - Query History", () => {
         await clickContextMenuItem(page, menuLabel);
     }
 
-    test("Open shows the history item's query in an editor", testCases(5878845), async () => {
-        const { page } = getContext();
-        // Untitled editors are named after their first line, so this counts editors on the query.
-        const queryEditorTabs = page.getByRole("tab", { name: /SELECT DB_NAME\(\)/ });
-        const tabsBefore = await queryEditorTabs.count();
+    test(
+        "Open shows the history item's query in an editor",
+        { ...testCases(5878845), tag: Tag.pullRequest },
+        async () => {
+            const { page } = getContext();
+            // Untitled editors are named after their first line, so this counts editors on the query.
+            const queryEditorTabs = page.getByRole("tab", { name: /SELECT DB_NAME\(\)/ });
+            const tabsBefore = await queryEditorTabs.count();
 
-        await runHistoryItemAction(page, "Open Query");
+            await runHistoryItemAction(page, "Open Query");
 
-        await expect(queryEditorTabs).toHaveCount(tabsBefore + 1);
-        await expect.poll(() => getActiveEditorText(page)).toContain(marker);
-        expect(await getActiveEditorText(page)).toContain("SELECT DB_NAME() AS database_name");
-    });
+            await expect(queryEditorTabs).toHaveCount(tabsBefore + 1);
+            await expect.poll(() => getActiveEditorText(page)).toContain(marker);
+            expect(await getActiveEditorText(page)).toContain("SELECT DB_NAME() AS database_name");
+        },
+    );
 
     test(
         "Run reconnects to the original database and executes the query",
-        testCases(5878846),
+        { ...testCases(5878846), tag: Tag.pullRequest },
         async () => {
             const { page } = getContext();
             // Start from an editor on another database, so the result proves the reconnect.

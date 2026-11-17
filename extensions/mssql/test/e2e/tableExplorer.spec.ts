@@ -147,7 +147,7 @@ test.describe("MSSQL Extension - Table Explorer / Edit Data", () => {
 
     test(
         "Enter commits a valid edit, which stays highlighted until saved",
-        testCases(5878910),
+        { ...testCases(5878910), tag: Tag.pullRequest },
         async () => {
             const { page } = getContext();
             const editor = await openEditData(page);

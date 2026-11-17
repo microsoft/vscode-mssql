@@ -259,14 +259,18 @@ test.describe("MSSQL Extension - Backup and Restore", () => {
         expect(await countSeededRows(databaseName)).toBe(SEEDED_ROW_COUNT);
     }
 
-    test("Full backup to file from the database context menu", testCases(5878927), async () => {
-        await backupThroughDialog(
-            sourceDatabases.fullBackup,
-            "Full",
-            "BACKUP DATABASE successfully processed",
-        );
-        await expectNewBackupOnServer(sourceDatabases.fullBackup, "D");
-    });
+    test(
+        "Full backup to file from the database context menu",
+        { ...testCases(5878927), tag: Tag.pullRequest },
+        async () => {
+            await backupThroughDialog(
+                sourceDatabases.fullBackup,
+                "Full",
+                "BACKUP DATABASE successfully processed",
+            );
+            await expectNewBackupOnServer(sourceDatabases.fullBackup, "D");
+        },
+    );
 
     // Flaky in the Linux CI build-and-test smoke run (passed on retry): the dialog's webview did not appear within 30s.
     // TODO: Stabilize this test, then remove its flaky tag.

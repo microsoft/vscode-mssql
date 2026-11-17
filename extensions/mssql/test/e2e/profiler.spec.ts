@@ -48,6 +48,7 @@ import {
     withClipboardLock,
 } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle, VsCodeLaunchContext } from "./utils/testLifecycle";
+import { Tag } from "./utils/tags";
 
 /**
  * Query Profiler suite: launches XEvent profiling sessions from the Object Explorer context menu
@@ -123,7 +124,7 @@ test.describe("MSSQL Extension - Query Profiler", () => {
 
     test(
         "Launch Query Profiler from the server context menu with a template and session name",
-        testCases(5878903),
+        { ...testCases(5878903), tag: Tag.pullRequest },
         async () => {
             const serverNode = await expandObjectExplorerNode(page, SEEDED_PROFILE_NAME);
             await runObjectExplorerContextAction(page, serverNode, LAUNCH_PROFILER_MENU_LABEL);
