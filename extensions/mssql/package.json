@@ -5840,7 +5840,7 @@
                     },
                     "sqlDatabaseProjects.microsoftBuildSqlVersion": {
                         "type": "string",
-                        "default": "2.2.0",
+                        "default": "2.3.0",
                         "description": "%sqlDatabaseProjects.microsoftBuildSqlVersion%"
                     },
                     "sqlDatabaseProjects.autoCreateFolders": {
