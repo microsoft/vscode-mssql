@@ -25,14 +25,17 @@ const shouldRecordTrace =
 /** Scaled down from the 1920x1080 viewport to keep encoding cost and artifact size down. */
 const VIDEO_SIZE = { width: 1280, height: 720 };
 
+/** Electron contexts whose trace has been started; each test attempt then records a chunk. */
+const tracedContexts = new WeakSet<object>();
+
 /**
- * Records a video clip and a trace for one test attempt and keeps them only when that attempt
- * fails. Passing attempts leave nothing behind.
+ * Records a video clip and a trace chunk for one test attempt and keeps them only when that
+ * attempt fails. Passing attempts leave nothing behind.
  *
  * The video and the trace's screenshots share the page's single screencast, whose frame size is
- * fixed by whichever starts it first. Electron has no context viewport, so a trace that started
- * first would cap frames at 800x450 and the video would pad them with gray. Tracing therefore
- * starts per attempt, after the video.
+ * fixed by whichever client starts it first. Electron has no context viewport, so a trace that
+ * started first would cap frames at 800x450 and the video would pad them with gray. The trace is
+ * therefore started once per launch, lazily, after the first attempt's video has started.
  */
 export class FailureArtifactRecorder {
     private constructor(
@@ -59,14 +62,18 @@ export class FailureArtifactRecorder {
 
         let isTracing = false;
         if (shouldRecordTrace) {
-            isTracing = await runSafely("start tracing", () =>
-                electronApp.context().tracing.start({
-                    title: testInfo.titlePath.join(" › "),
-                    screenshots: true,
-                    snapshots: true,
-                    sources: true,
-                }),
-            );
+            const context = electronApp.context();
+            isTracing = await runSafely("start a trace chunk", async () => {
+                if (!tracedContexts.has(context)) {
+                    await context.tracing.start({
+                        screenshots: true,
+                        snapshots: true,
+                        sources: true,
+                    });
+                    tracedContexts.add(context);
+                }
+                await context.tracing.startChunk({ title: testInfo.titlePath.join(" › ") });
+            });
         }
 
         return new FailureArtifactRecorder(electronApp, page, videoPath, isTracing);
@@ -93,8 +100,8 @@ export class FailureArtifactRecorder {
 
         if (this.isTracing) {
             const tracePath = failed ? testInfo.outputPath("trace.zip") : undefined;
-            const stopped = await runSafely("stop tracing", () =>
-                this.electronApp.context().tracing.stop({ path: tracePath }),
+            const stopped = await runSafely("stop the trace chunk", () =>
+                this.electronApp.context().tracing.stopChunk({ path: tracePath }),
             );
             if (stopped && tracePath && fs.existsSync(tracePath)) {
                 testInfo.attachments.push({
