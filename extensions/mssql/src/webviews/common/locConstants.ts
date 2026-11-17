@@ -1879,6 +1879,28 @@ export class LocConstants {
             feedbackStatementLong: l10n.t(
                 "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
             ),
+            youMayBeLookingFor: (featureName: string) =>
+                l10n.t({
+                    message: "You may be looking for {0}",
+                    args: [featureName],
+                    comment: ["{0} is the name of an existing feature"],
+                }),
+            youMayBeLookingForOneOfThese: l10n.t("You may be looking for one of these features"),
+            featureHintIntroSingle: l10n.t(
+                "Based on your feedback, this existing feature might already do what you need.",
+            ),
+            featureHintIntroMultiple: l10n.t(
+                "Based on your feedback, these existing features might already do what you need.",
+            ),
+            viewDocumentation: l10n.t("View documentation"),
+            tryItNow: l10n.t("Try it now"),
+            submitAnyway: l10n.t("Submit anyway"),
+            featureScreenshotAlt: (featureName: string) =>
+                l10n.t({
+                    message: "Screenshot of {0}",
+                    args: [featureName],
+                    comment: ["{0} is the name of an existing feature"],
+                }),
         };
     }
 

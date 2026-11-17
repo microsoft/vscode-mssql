@@ -5,10 +5,13 @@
 
 import {
     Answers,
+    FeatureHintSuggestion,
     JobRoleQuestion,
     NpsQuestion,
     NsatQuestion,
     TextareaQuestion,
+    getFeatureHintInput,
+    isFeatureHintEligible,
 } from "../../../sharedInterfaces/userSurvey";
 import {
     Button,
@@ -19,6 +22,7 @@ import {
     Radio,
     RadioGroup,
     Select,
+    Spinner,
     Text,
     Textarea,
     makeStyles,
@@ -31,6 +35,7 @@ import { useUserSurveySelector } from "./userSurveySelector";
 import { locConstants } from "../../common/locConstants";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import { FeedbackIcon } from "../../common/icons/feedback";
+import { FeatureHintDialog } from "./featureHintDialog";
 
 const useStyles = makeStyles({
     formContainer: {
@@ -93,13 +98,20 @@ export const UserSurveyPage = () => {
     const submitButtonText = useUserSurveySelector((s) => s?.submitButtonText);
     const cancelButtonText = useUserSurveySelector((s) => s?.cancelButtonText);
     const [userAnswers, setUserAnswers] = useState<Answers>({});
+    const [isCheckingHints, setIsCheckingHints] = useState(false);
+    const [hintDialog, setHintDialog] = useState<FeatureHintSuggestion[] | undefined>(undefined);
+    const [dismissedHintIds, setDismissedHintIds] = useState<ReadonlySet<string>>(new Set());
 
-    const isSubmitDisabled = questions?.some(
-        (question) =>
-            question.type !== "divider" &&
-            question.required &&
-            userAnswers[question.id] === undefined,
-    );
+    const isSubmitDisabled =
+        isCheckingHints ||
+        questions?.some(
+            (question) =>
+                question.type !== "divider" &&
+                question.required &&
+                userAnswers[question.id] === undefined,
+        );
+
+    const isHintEligible = isFeatureHintEligible(getFeatureHintInput(questions ?? [], userAnswers));
 
     const onAnswerChange = (id: string, answer: string | number | undefined) => {
         setUserAnswers((previous) => {
@@ -117,6 +129,40 @@ export const UserSurveyPage = () => {
         return undefined;
     }
 
+    // Hints the user already dismissed are not repeated.
+    const onSubmit = async () => {
+        if (isHintEligible) {
+            setIsCheckingHints(true);
+            try {
+                const suggestions = (await context.getFeatureHints(userAnswers)).filter(
+                    (suggestion) => !dismissedHintIds.has(suggestion.id),
+                );
+                if (suggestions.length > 0) {
+                    setHintDialog(suggestions);
+                    return;
+                }
+            } catch {
+                // Hints are optional; never block feedback on them.
+            } finally {
+                setIsCheckingHints(false);
+            }
+        }
+        context.submit(userAnswers);
+    };
+
+    const closeHintDialog = (outcome: "cancel" | "submitAnyway") => {
+        if (!hintDialog) {
+            return;
+        }
+        const hintIds = hintDialog.map((suggestion) => suggestion.id);
+        context.closeFeatureHints(hintIds, outcome);
+        setDismissedHintIds((previous) => new Set([...previous, ...hintIds]));
+        setHintDialog(undefined);
+        if (outcome === "submitAnyway") {
+            context.submit(userAnswers);
+        }
+    };
+
     return (
         <DialogPageShell
             icon={<FeedbackIcon />}
@@ -131,7 +177,8 @@ export const UserSurveyPage = () => {
                     <Button
                         appearance="primary"
                         disabled={isSubmitDisabled}
-                        onClick={() => context.submit(userAnswers)}>
+                        icon={isCheckingHints ? <Spinner size="tiny" /> : undefined}
+                        onClick={() => void onSubmit()}>
                         {submitButtonText ?? locConstants.userFeedback.submit}
                     </Button>
                 </div>
@@ -178,6 +225,15 @@ export const UserSurveyPage = () => {
                             return undefined;
                     }
                 })}
+                {hintDialog && (
+                    <FeatureHintDialog
+                        suggestions={hintDialog}
+                        onOpenDocs={(hintId) => context.openFeatureHintDocs(hintId)}
+                        onTryNow={(hintId) => context.tryFeatureHint(hintId)}
+                        onCancel={() => closeHintDialog("cancel")}
+                        onSubmitAnyway={() => closeHintDialog("submitAnyway")}
+                    />
+                )}
                 <div className={classes.privacyDisclaimer}>
                     <div className={classes.privacyNoticeCard}>
                         <div className={classes.privacyContent}>

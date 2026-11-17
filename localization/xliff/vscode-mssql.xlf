@@ -1311,6 +1311,12 @@
     <trans-unit id="++CODE++e3ea81f5c09231f1e54b897c6a7d4a742d37c4776769a19d4cc267a8b4632852">
       <source xml:lang="en">Balanced (default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++fb24cf0b9a0ecd153d738b4ce19f794cca2d78c63190b6ea2ea0ec7cced2115a">
+      <source xml:lang="en">Based on your feedback, these existing features might already do what you need.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++842d220bc98a96a750359098677bb4a22a12334a245a9b41bd8e7674b98a7226">
+      <source xml:lang="en">Based on your feedback, this existing feature might already do what you need.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6f43c38ec488f6281abbedabf16441abbf1de98c6e9b8580599fd57011c2054">
       <source xml:lang="en">Baseline</source>
       <note>The earlier period that a comparison compares with</note>
@@ -2313,6 +2319,9 @@
     <trans-unit id="++CODE++30d9abfd7c7af513814bdfadcafe7ec4a90bc6bcee519086dc513f63f2cd7384">
       <source xml:lang="en">Compare plans</source>
     </trans-unit>
+    <trans-unit id="++CODE++2f6f8de8b47d807e2cc42497c61fb59ef21adec7380464c6debfeba99169e6ef">
+      <source xml:lang="en">Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088">
       <source xml:lang="en">Comparing...</source>
     </trans-unit>
@@ -2937,6 +2946,9 @@
       <source xml:lang="en">Copilot Changes ({0})</source>
       <note>{0} is the number of copilot changes</note>
     </trans-unit>
+    <trans-unit id="++CODE++dd0c54f16e3767e3bc75e40a3a0898d7fe0873ae7e29e82065c7ac830857d36f">
+      <source xml:lang="en">Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
     </trans-unit>
@@ -3250,6 +3262,9 @@
     <trans-unit id="++CODE++0bbb6ccc91590ad3b5ccc58b5be349106a8c4fcfb135bc3be73f68efaf36fd97">
       <source xml:lang="en">Create a connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++db73958131927dd81bd194c8730cbaa999a126ad19a963f2b92d73ab0abfdeb4">
+      <source xml:lang="en">Create a container</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c4d32832f46802e297eafb102362f820aee2e6f0177fa9dc6d6ee757b9c0380">
       <source xml:lang="en">Create a database</source>
     </trans-unit>
@@ -3319,8 +3334,14 @@
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
     </trans-unit>
+    <trans-unit id="++CODE++7a596cfe3c51eaf3f1c9452b44fb3ca5ae20982f949fbe3a99a0888f7d378842">
+      <source xml:lang="en">Create or change tables, columns, keys, indexes, and constraints visually, and preview the generated script. Right-click Tables or a table in Object Explorer and select New Table or Modify Table Structure.</source>
+    </trans-unit>
     <trans-unit id="++CODE++df71f4b96b979f9c3e85500de3a22246aeeebfa03664d2f7ea8db2b79e01f222">
       <source xml:lang="en">Create project from database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++02c3098b460f701a72cf071f4c6e7eebcd1f7d8dcc0f90dc6c2ac00fa8e783d4">
+      <source xml:lang="en">Create, start, and connect to a SQL Server instance running in a local Docker container.</source>
     </trans-unit>
     <trans-unit id="++CODE++9f5536c554c4ef316c1eec300ef63cac4497346c928e31196a716ad418b9ac76">
       <source xml:lang="en">Create, start, stop, and remove your container from the MSSQL extension using Docker, Podman, containerd (nerdctl), or WSL containers on Windows.</source>
@@ -3618,6 +3639,9 @@
     <trans-unit id="++CODE++b75cbec4821e3ad5a44a3d6a0292a4022948acfa229d78824be15bf5e81aca87">
       <source xml:lang="en">Data-tier application (.dacpac)</source>
     </trans-unit>
+    <trans-unit id="++CODE++211912fe2c4291530cf197e2c96ca47aabd81ebe1dca7348d3ddc1839c882930">
+      <source xml:lang="en">Data-tier applications (.dacpac and .bacpac)</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
       <source xml:lang="en">Database</source>
     </trans-unit>
@@ -3702,6 +3726,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a9c7a27e0de810cf03eea625e62cb61968edb820607b3528342ef8fd4d7f904e">
+      <source xml:lang="en">Database object search</source>
     </trans-unit>
     <trans-unit id="++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1">
       <source xml:lang="en">Database pauses until the next billing cycle when free amount is renewed.</source>
@@ -3867,6 +3894,9 @@
     <trans-unit id="++CODE++d4c423ac306ab671b42953d5a861d029273ac1582f96fc6070a4ffdfb02999c8">
       <source xml:lang="en">Deploy a database to Azure SQL (Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++1570904afb31567d4f6966a0f1b4dad6a44b2da67f29c905e8b74847c72fad8e">
+      <source xml:lang="en">Deploy a local database to Azure SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
       <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
     </trans-unit>
@@ -3878,6 +3908,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a363dd1d7b126252058e29f3e63b8befbce2a86982905a24c0b55e4addea2ca">
       <source xml:lang="en">Deploy local database to Azure SQL (Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++012ac7a0e377da9fece10f7721a2129057dcdd27a5b5f46687b6b2da7d66fdca">
+      <source xml:lang="en">Deploy or extract a .dacpac file, and import or export a .bacpac file, without leaving VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++5fa5f06a3fb16046cc6023f3cc2a92d9a7024be5480836ad4d1ab5c884bada54">
       <source xml:lang="en">Deploy tables, views, and procedures without copying any rows. You can move data later.</source>
@@ -5988,6 +6021,9 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++a64491f3333782b2e214d0042487d0560d86a7a08cf9e67d90f0a119daac07a1">
+      <source xml:lang="en">Find tables, views, stored procedures, and functions by name across a server or database. Right-click a server or database in Object Explorer and select Search Database Objects.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f8076828c20dacab21a5b00a767888abd491d890e7093d62d0c9a6bb43ec9e77">
       <source xml:lang="en">Finding a .NET runtime</source>
     </trans-unit>
@@ -7392,6 +7428,9 @@
     <trans-unit id="++CODE++adca48abd543243b27df9da5f5c1306e70dd139e25532bc4ee569b2b41f893e3">
       <source xml:lang="en">Local SQL Server container</source>
     </trans-unit>
+    <trans-unit id="++CODE++203521c63ad072365b67a8c37610dd947f79df05e406559270f82caa80a63ea4">
+      <source xml:lang="en">Local SQL Server containers</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
     </trans-unit>
@@ -7499,6 +7538,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d677d7b3ce2fbecfefeb30a60f0a459a8e880eb9d4c530cbe79d1858fac7dc92">
       <source xml:lang="en">MSSQL Connections (Private Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d504a1acea3a8c8fdb0e8510a88a68e5d8168a603a3ae2ad551ba41d539ff773">
+      <source xml:lang="en">MSSQL Database Management Keymap</source>
     </trans-unit>
     <trans-unit id="++CODE++895f683141b67b4ff55760d7d677938918d00efa0293d62fceae133b953767e5">
       <source xml:lang="en">MSSQL Database Management Keymap extension.</source>
@@ -7962,6 +8004,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1359626e7b6964345896285446db7977e67469251bb0cc52808db2a85ed940c1">
       <source xml:lang="en">Move Up</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3da2029b751cdba728ce725af9e6a571901f4b3fddde8e6fb567838ad4fc98b6">
+      <source xml:lang="en">Move a database from a local SQL Server container to Azure SQL Database with a guided wizard that checks compatibility, then deploys the schema, or schema and data.</source>
     </trans-unit>
     <trans-unit id="++CODE++fc4f5c83ec4a36251f41d7101d1a063af710ccb4578ef5444868408a3f1e3539">
       <source xml:lang="en">Move a database from a local SQL container to Azure SQL Database with a guided wizard that validates compatibility, then deploys the schema, or schema and data.</source>
@@ -8870,6 +8915,9 @@
     <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
       <source xml:lang="en">Open Nitro</source>
     </trans-unit>
+    <trans-unit id="++CODE++f6f07389a795f809f0146356630af3d2cb9b7446e635f321848533342b4be9df">
+      <source xml:lang="en">Open Object Explorer</source>
+    </trans-unit>
     <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
       <source xml:lang="en">Open Publish Script</source>
     </trans-unit>
@@ -8887,6 +8935,9 @@
     </trans-unit>
     <trans-unit id="++CODE++af132604ab4a7a82ec60043332beeddb75c741430c93270bb2fb3672acfef185">
       <source xml:lang="en">Open SQL file...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2d926771e98525e2d24d3d7c65d7aa69c135c1db09b4627d08c2dfb48def39d8">
+      <source xml:lang="en">Open Schema Compare</source>
     </trans-unit>
     <trans-unit id="++CODE++3f940108cb1ecd9c0090da0b51b45f9fe673f00b22c7ffe3d013319b97456674">
       <source xml:lang="en">Open Settings</source>
@@ -8920,6 +8971,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6490544feaebc668b26597fde0c573e270552f8601d95573d0df0d8b11839cb">
+      <source xml:lang="en">Open data-tier application</source>
     </trans-unit>
     <trans-unit id="++CODE++03e86679339b745a9fb8ae3362715ded2a87ccc7dc78158b4f5cd4dea3cdbf3b">
       <source xml:lang="en">Open execution plan</source>
@@ -11250,6 +11304,10 @@
     <trans-unit id="++CODE++e1a5abf3d17607dc3e8e97210d60a1e1711209fb1b2846fab04ea3279666f804">
       <source xml:lang="en">Schemas · {0} selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++5b6ec616e972ac7090e4eb884255c69c243ea29ad6364e07b2aff0e56aeb8687">
+      <source xml:lang="en">Screenshot of {0}</source>
+      <note>{0} is the name of an existing feature</note>
+    </trans-unit>
     <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
       <source xml:lang="en">Script</source>
     </trans-unit>
@@ -12247,6 +12305,9 @@
     <trans-unit id="++CODE++081917aac8ef49fe296c61c39645bd49befe725bd8511f72c5e02ef75226117e">
       <source xml:lang="en">Start anyway · {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++92cd565d2904259fa50bb967dad124bcfbf92476ab7c94bdfbff8827b1ccde66">
+      <source xml:lang="en">Start deployment</source>
+    </trans-unit>
     <trans-unit id="++CODE++3009ce75e6d4c08a042ab2d77360f5334cd765390fc51f1c2740a66b12eaed46">
       <source xml:lang="en">Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.</source>
     </trans-unit>
@@ -12398,6 +12459,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
       <source xml:lang="en">Submit an issue</source>
+    </trans-unit>
+    <trans-unit id="++CODE++092022e91d113ac75cab5098ccf696f289e2fa04f9d76cf99637c2ccda8f6dc8">
+      <source xml:lang="en">Submit anyway</source>
     </trans-unit>
     <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
       <source xml:lang="en">Subscription</source>
@@ -13588,6 +13652,9 @@
     <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
       <source xml:lang="en">Try it</source>
     </trans-unit>
+    <trans-unit id="++CODE++addb776b173a84f2377dd5956c8a30066cb05496a8a39db573ee32681f69d09e">
+      <source xml:lang="en">Try it now</source>
+    </trans-unit>
     <trans-unit id="++CODE++a3a3528ddf91f12579305467446f74ee44ef4c6016c889a73ee002be224a1b08">
       <source xml:lang="en">Try searching by command name, description, or keybinding.</source>
     </trans-unit>
@@ -13966,6 +14033,9 @@
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
     </trans-unit>
+    <trans-unit id="++CODE++c864fa79bb4b37128415522d40c9d25d21ffba04d00d9170bc53633b5666280d">
+      <source xml:lang="en">Use familiar SQL Server Management Studio keyboard shortcuts, such as F5 to run a query, in the MSSQL extension.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b2d79fbdb8737e1fa927a178beca0b91c1f29d09202fbd60f4b1f838ff549a1d">
       <source xml:lang="en">Use filter {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
@@ -14193,6 +14263,9 @@
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
     </trans-unit>
+    <trans-unit id="++CODE++5f174363366ed259fc89798e3f2a0edd056dcd18d6888beac603e561ec09438a">
+      <source xml:lang="en">View and edit table rows in a grid, then review and save your changes. Right-click a table in Object Explorer and select Edit Table Data.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72057bd929c6fa80c5d08704eac7beeb1546ee9c89630aab286bbeb163fe7e08">
       <source xml:lang="en">View by</source>
     </trans-unit>
@@ -14204,6 +14277,12 @@
     </trans-unit>
     <trans-unit id="++CODE++75eb42c8194b2b5b2a13e3514f1a20da13b21713180fab98b61e111b0d323e34">
       <source xml:lang="en">View deployment log</source>
+    </trans-unit>
+    <trans-unit id="++CODE++392e16f77e9f5d6dec99d216a10683f681a2cd0b2ad7b7662263309e511a3d5f">
+      <source xml:lang="en">View documentation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7efa93411cc7348bb238574e645f912fc0f4c58ec983f21bb4aa123287f6e716">
+      <source xml:lang="en">View extension</source>
     </trans-unit>
     <trans-unit id="++CODE++7cf4febf4bd4fde0ce1d1c48faa577c4aa71b23b775ef63b0b238f022a92d9b3">
       <source xml:lang="en">View full value of {0}</source>
@@ -14238,6 +14317,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8cad0018e99544f1fcbd96cc22b54098666aa5c9527a92bcab5b282167466813">
       <source xml:lang="en">View the roadmap</source>
+    </trans-unit>
+    <trans-unit id="++CODE++050766bd54adc289b78f40964fd7ee321af813586c375cf84248b2536eda8c59">
+      <source xml:lang="en">View your database as an interactive entity relationship diagram, and design tables and relationships visually. Right-click a database in Object Explorer and select Visualize and Design Schema.</source>
     </trans-unit>
     <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
       <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
@@ -14477,6 +14559,13 @@
     </trans-unit>
     <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
       <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++90384b85ebca41907b92bddb848bffa5f38c2906c0578095bf7fea3df42f7ad8">
+      <source xml:lang="en">You may be looking for one of these features</source>
+    </trans-unit>
+    <trans-unit id="++CODE++153c52123d150890f9b6cc33510e8a4be287a3b16104a90560916f05a25a8f5f">
+      <source xml:lang="en">You may be looking for {0}</source>
+      <note>{0} is the name of an existing feature</note>
     </trans-unit>
     <trans-unit id="++CODE++4dc8fab67d918ef72549261550d7aa876604e84b3c899cd54deb340c5af779bb">
       <source xml:lang="en">You must accept the container license terms to continue.</source>

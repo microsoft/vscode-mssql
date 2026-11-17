@@ -231,6 +231,7 @@ export enum TelemetryActions {
     LoadAzureDatabases = "LoadAzureDatabases",
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
     SurveyFunnel = "SurveyFunnel",
+    SurveyFeatureHint = "SurveyFeatureHint",
     CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
     InlineCompletion = "InlineCompletion",
     InlineCompletionSchemaContext = "InlineCompletionSchemaContext",

@@ -6,6 +6,9 @@
 import React, { createContext, useMemo } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
+    Answers,
+    FeatureHintCloseOutcome,
+    GetFeatureHintsRequest,
     UserSurveyContextProps,
     UserSurveyState,
     UserSurveyReducers,
@@ -34,6 +37,17 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }
             },
             openPrivacyStatement: async () => {
                 await extensionRpc.action("openPrivacyStatement");
+            },
+            getFeatureHints: (answers: Answers) =>
+                extensionRpc.sendRequest(GetFeatureHintsRequest.type, { answers }),
+            openFeatureHintDocs: async (hintId: string) => {
+                await extensionRpc.action("openFeatureHintDocs", { hintId });
+            },
+            tryFeatureHint: async (hintId: string) => {
+                await extensionRpc.action("tryFeatureHint", { hintId });
+            },
+            closeFeatureHints: async (hintIds: string[], outcome: FeatureHintCloseOutcome) => {
+                await extensionRpc.action("closeFeatureHints", { hintIds, outcome });
             },
         }),
         [extensionRpc],

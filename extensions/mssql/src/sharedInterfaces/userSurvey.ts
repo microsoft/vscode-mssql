@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-jsonrpc";
 import { CoreRPCs } from "./webview";
 
 export interface UserSurveyState {
@@ -83,6 +84,11 @@ export interface UserSurveyContextProps extends CoreRPCs {
     submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;
+    /** Keyword hints always run; Copilot hints also run when the user is signed in to Copilot. */
+    getFeatureHints(answers: Answers): Promise<FeatureHintSuggestion[]>;
+    openFeatureHintDocs(hintId: string): void;
+    tryFeatureHint(hintId: string): void;
+    closeFeatureHints(hintIds: string[], outcome: FeatureHintCloseOutcome): void;
 }
 
 export interface UserSurveyReducers {
@@ -91,6 +97,83 @@ export interface UserSurveyReducers {
     };
     cancel: {};
     openPrivacyStatement: {};
+    openFeatureHintDocs: {
+        hintId: string;
+    };
+    tryFeatureHint: {
+        hintId: string;
+    };
+    closeFeatureHints: {
+        hintIds: string[];
+        outcome: FeatureHintCloseOutcome;
+    };
 }
 
 export type Answers = Record<string, string | number>;
+
+/**
+ * Feature hints are only offered when the recommendation score is at or below this value.
+ */
+export const FEATURE_HINT_MAX_SCORE = 8;
+
+/** No more than this many features are ever suggested at once. */
+export const MAX_FEATURE_HINTS = 2;
+
+export type FeatureHintCloseOutcome = "cancel" | "submitAnyway";
+
+/**
+ * Screenshots are bundled into the webview, so config entries refer to them by id. Each id maps
+ * to an image in src/webviews/pages/UserSurvey/featureHintScreenshots.ts.
+ */
+export type FeatureHintScreenshotId =
+    | "dataTierApplication"
+    | "editData"
+    | "localContainer"
+    | "schemaCompare"
+    | "schemaDesigner"
+    | "tableDesigner";
+
+/** Display-only view of a configured feature hint; links stay on the extension side. */
+export interface FeatureHintSuggestion {
+    id: string;
+    featureName: string;
+    description: string;
+    hasDocs: boolean;
+    canTryNow: boolean;
+    /** Overrides the default "Try it now" button text. */
+    tryNowLabel?: string;
+    screenshot?: FeatureHintScreenshotId;
+}
+
+export namespace GetFeatureHintsRequest {
+    export const type = new RequestType<{ answers: Answers }, FeatureHintSuggestion[], void>(
+        "userSurvey/getFeatureHints",
+    );
+}
+
+export interface FeatureHintInput {
+    score?: number;
+    feedback: string;
+}
+
+/** Reads the recommendation score and free-form feedback out of a survey's answers. */
+export function getFeatureHintInput(questions: Question[], answers: Answers): FeatureHintInput {
+    const npsQuestion = questions.find((question) => question.type === "nps") as
+        | NpsQuestion
+        | undefined;
+    const score = npsQuestion ? answers[npsQuestion.id] : undefined;
+    const feedback = questions
+        .filter((question): question is TextareaQuestion => question.type === "textarea")
+        .map((question) => answers[question.id])
+        .filter((answer): answer is string => typeof answer === "string")
+        .join("\n")
+        .trim();
+
+    return { score: typeof score === "number" ? score : undefined, feedback };
+}
+
+export function isFeatureHintEligible(input: FeatureHintInput): boolean {
+    return (
+        input.score !== undefined && input.score <= FEATURE_HINT_MAX_SCORE && input.feedback !== ""
+    );
+}

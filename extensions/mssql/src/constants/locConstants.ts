@@ -2695,6 +2695,55 @@ export class UserSurvey {
     public static writeReview = l10n.t("Write a review");
 }
 
+/** Display strings for the survey feature hints defined in src/nps/featureHints/featureHints.config.ts */
+export class FeatureHints {
+    public static copilotJustification = l10n.t(
+        "Copilot checks whether your survey feedback describes an MSSQL extension feature that already exists.",
+    );
+    public static keymapName = l10n.t("MSSQL Database Management Keymap");
+    public static keymapDescription = l10n.t(
+        "Use familiar SQL Server Management Studio keyboard shortcuts, such as F5 to run a query, in the MSSQL extension.",
+    );
+    public static viewExtension = l10n.t("View extension");
+    public static schemaCompareName = l10n.t("Schema Compare");
+    public static schemaCompareDescription = l10n.t(
+        "Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.",
+    );
+    public static openSchemaCompare = l10n.t("Open Schema Compare");
+    public static openObjectExplorer = l10n.t("Open Object Explorer");
+    public static editDataName = l10n.t("Edit Data");
+    public static editDataDescription = l10n.t(
+        "View and edit table rows in a grid, then review and save your changes. Right-click a table in Object Explorer and select Edit Table Data.",
+    );
+    public static tableDesignerName = l10n.t("Table Designer");
+    public static tableDesignerDescription = l10n.t(
+        "Create or change tables, columns, keys, indexes, and constraints visually, and preview the generated script. Right-click Tables or a table in Object Explorer and select New Table or Modify Table Structure.",
+    );
+    public static schemaDesignerName = l10n.t("Schema Designer");
+    public static schemaDesignerDescription = l10n.t(
+        "View your database as an interactive entity relationship diagram, and design tables and relationships visually. Right-click a database in Object Explorer and select Visualize and Design Schema.",
+    );
+    public static localContainerName = l10n.t("Local SQL Server containers");
+    public static localContainerDescription = l10n.t(
+        "Create, start, and connect to a SQL Server instance running in a local Docker container.",
+    );
+    public static createContainer = l10n.t("Create a container");
+    public static objectSearchName = l10n.t("Database object search");
+    public static objectSearchDescription = l10n.t(
+        "Find tables, views, stored procedures, and functions by name across a server or database. Right-click a server or database in Object Explorer and select Search Database Objects.",
+    );
+    public static dacpacName = l10n.t("Data-tier applications (.dacpac and .bacpac)");
+    public static dacpacDescription = l10n.t(
+        "Deploy or extract a .dacpac file, and import or export a .bacpac file, without leaving VS Code.",
+    );
+    public static openDataTierApplication = l10n.t("Open data-tier application");
+    public static localToCloudName = l10n.t("Deploy a local database to Azure SQL");
+    public static localToCloudDescription = l10n.t(
+        "Move a database from a local SQL Server container to Azure SQL Database with a guided wizard that checks compatibility, then deploys the schema, or schema and data.",
+    );
+    public static startDeployment = l10n.t("Start deployment");
+}
+
 export class Webview {
     public static webviewRestorePrompt = (webviewName: string) =>
         l10n.t({
