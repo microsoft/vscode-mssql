@@ -8,13 +8,20 @@ import { sendActionEvent } from "extension-toolkit/vscode";
 import { getLogger } from "../../models/logger";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import {
+    CopilotFeatureHintStatus,
     FeatureHintCloseOutcome,
     FeatureHintInput,
-    FeatureHintSuggestion,
+    FeatureHintResult,
+    FeatureHintTrigger,
+    MAX_FEATURE_HINTS,
     isFeatureHintEligible,
 } from "../../sharedInterfaces/userSurvey";
 import { getErrorMessage } from "../../utils/utils";
-import { findCopilotMatches, selectCheapCopilotModel } from "./copilotFeatureHints";
+import {
+    CopilotFeatureHintMatchResult,
+    findCopilotMatches,
+    selectCheapCopilotModel,
+} from "./copilotFeatureHints";
 import {
     FeatureHintDefinition,
     findKeywordMatches,
@@ -26,13 +33,20 @@ import { featureHintDefinitions } from "./featureHints.config";
 
 const logger = getLogger("UserSurvey");
 
-/** The Copilot check delays Submit, so give up on it quickly. */
+/** The Copilot check can delay Submit, so give up on it quickly. */
 const copilotTimeoutMs = 10_000;
 
 export type FeatureHintAction = "shown" | "docs" | "tryNow" | FeatureHintCloseOutcome;
 
+interface CopilotCheck {
+    status: CopilotFeatureHintStatus;
+    matches: CopilotFeatureHintMatchResult[];
+}
+
 export class FeatureHintService {
     private readonly _definitions: FeatureHintDefinition[];
+    /** Last successful Copilot answer, so the button and then Submit don't ask twice. */
+    private _lastCopilotCheck: { feedback: string; matches: CopilotFeatureHintMatchResult[] };
 
     constructor(
         definitions: readonly FeatureHintDefinition[] = featureHintDefinitions,
@@ -57,52 +71,85 @@ export class FeatureHintService {
         return this._definitions.find((definition) => definition.id === id);
     }
 
+    /** True when there is something for Copilot to check and the user is signed in to Copilot. */
+    public async isCopilotAvailable(): Promise<boolean> {
+        if (getCandidateHints(this._definitions, "copilot").length === 0) {
+            return false;
+        }
+        try {
+            return (await this._selectModel()) !== undefined;
+        } catch (error) {
+            logger.error(`Failed to look up Copilot models: ${getErrorMessage(error)}`);
+            return false;
+        }
+    }
+
     /**
-     * Keyword hints always run. Copilot hints also run when the user is signed in to Copilot;
-     * otherwise they are skipped silently.
+     * Keyword hints always run. Copilot hints also run when the user is signed in to Copilot.
+     * Keyword matches come first; at most MAX_FEATURE_HINTS are returned.
      */
     public async findHints(
         input: FeatureHintInput,
+        trigger: FeatureHintTrigger,
         token?: vscode.CancellationToken,
-    ): Promise<FeatureHintSuggestion[]> {
+    ): Promise<FeatureHintResult> {
         if (!isFeatureHintEligible(input)) {
-            return [];
+            return { suggestions: [], copilotStatus: "notRun" };
         }
 
+        const keywordMatches = findKeywordMatches(input.feedback, this._definitions);
+        const copilot = await this.checkWithCopilot(input.feedback, trigger, token);
         const matches = [
-            ...findKeywordMatches(input.feedback, this._definitions),
-            ...(await this.findCopilotMatches(input.feedback, token)),
-        ];
-        for (const match of matches) {
-            this.reportAction("shown", match.id);
+            ...keywordMatches.map((definition) => ({ definition, confidence: undefined })),
+            ...copilot.matches,
+        ].slice(0, MAX_FEATURE_HINTS);
+
+        for (const { definition, confidence } of matches) {
+            this.reportAction("shown", definition.id, { trigger }, { confidence });
         }
-        return matches.map(toFeatureHintSuggestion);
+        return {
+            suggestions: matches.map(({ definition }) => toFeatureHintSuggestion(definition)),
+            copilotStatus: copilot.status,
+        };
     }
 
     /** Sends telemetry for one hint, attributed to the match mode that found it. */
-    public reportAction(step: FeatureHintAction, hintId: string): void {
+    public reportAction(
+        step: FeatureHintAction,
+        hintId: string,
+        extraProps: Record<string, string> = {},
+        measurements: Record<string, number | undefined> = {},
+    ): void {
         const definition = this.getDefinition(hintId);
         if (!definition) {
             return;
         }
+        const additionalMeasurements = Object.fromEntries(
+            Object.entries(measurements).filter(([, value]) => value !== undefined),
+        ) as Record<string, number>;
         sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
-            additionalProps: { step, hintId, source: definition.match.mode },
+            additionalProps: { step, hintId, source: definition.match.mode, ...extraProps },
+            ...(Object.keys(additionalMeasurements).length ? { additionalMeasurements } : {}),
         });
     }
 
-    private async findCopilotMatches(
+    private async checkWithCopilot(
         feedback: string,
+        trigger: FeatureHintTrigger,
         token?: vscode.CancellationToken,
-    ): Promise<FeatureHintDefinition[]> {
+    ): Promise<CopilotCheck> {
         const candidates = getCandidateHints(this._definitions, "copilot");
         if (candidates.length === 0) {
-            return [];
+            return { status: "notRun", matches: [] };
+        }
+        if (this._lastCopilotCheck?.feedback === feedback) {
+            return { status: "ok", matches: this._lastCopilotCheck.matches };
         }
 
         const started = Date.now();
         const report = (outcome: string, matchCount: number, modelFamily?: string) =>
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
-                additionalProps: { step: "copilotCheck", outcome, modelFamily },
+                additionalProps: { step: "copilotCheck", outcome, trigger, modelFamily },
                 additionalMeasurements: { durationMs: Date.now() - started, matchCount },
             });
 
@@ -114,7 +161,7 @@ export class FeatureHintService {
         }
         if (!model) {
             report("notSignedIn", 0);
-            return [];
+            return { status: "unavailable", matches: [] };
         }
 
         const cancellation = new vscode.CancellationTokenSource();
@@ -127,8 +174,9 @@ export class FeatureHintService {
                 candidates,
                 cancellation.token,
             );
+            this._lastCopilotCheck = { feedback, matches };
             report("completed", matches.length, model.family);
-            return matches;
+            return { status: "ok", matches };
         } catch (error) {
             logger.error(`Copilot feature hint check failed: ${getErrorMessage(error)}`);
             const outcome = token?.isCancellationRequested
@@ -137,7 +185,7 @@ export class FeatureHintService {
                   ? "timedOut"
                   : "error";
             report(outcome, 0, model.family);
-            return [];
+            return { status: "error", matches: [] };
         } finally {
             clearTimeout(timeout);
             forwardCancellation?.dispose();

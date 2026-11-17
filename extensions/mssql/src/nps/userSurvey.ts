@@ -11,6 +11,7 @@ import * as os from "os";
 import {
     Answers,
     GetFeatureHintsRequest,
+    IsCopilotFeatureHintAvailableRequest,
     UserSurveyReducers,
     UserSurveyState,
     getFeatureHintInput,
@@ -401,9 +402,14 @@ export class UserSurveyWebviewController extends WebviewPanelController<
             return state;
         });
 
-        this.onRequest(GetFeatureHintsRequest.type, ({ answers }) =>
+        this.onRequest(IsCopilotFeatureHintAvailableRequest.type, () =>
+            this._featureHints.isCopilotAvailable(),
+        );
+
+        this.onRequest(GetFeatureHintsRequest.type, ({ answers, trigger }) =>
             this._featureHints.findHints(
                 getFeatureHintInput(this.state?.questions ?? [], answers),
+                trigger,
                 this._featureHintCancellation.token,
             ),
         );

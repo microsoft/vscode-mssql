@@ -1895,6 +1895,30 @@ export class LocConstants {
             viewDocumentation: l10n.t("View documentation"),
             tryItNow: l10n.t("Try it now"),
             submitAnyway: l10n.t("Submit anyway"),
+            featureScreenshotAlt: (featureName: string) =>
+                l10n.t({
+                    message: "Screenshot of {0}",
+                    args: [featureName],
+                    comment: ["{0} is the name of an existing feature"],
+                }),
+            checkWithCopilot: l10n.t("Check with Copilot"),
+            checkingWithCopilot: l10n.t("Checking..."),
+            checkWithCopilotTooltip: l10n.t(
+                "Use Copilot to check whether your feedback describes a feature that already exists",
+            ),
+            checkWithCopilotDisabledTooltip: (maxScore: number) =>
+                l10n.t({
+                    message:
+                        "Choose a rating of {0} or lower and describe what you need to check with Copilot",
+                    args: [maxScore],
+                    comment: ["{0} is the highest rating that can be checked"],
+                }),
+            noExistingFeaturesFound: l10n.t(
+                "Copilot didn't find an existing feature that matches your feedback.",
+            ),
+            copilotCheckFailed: l10n.t(
+                "Copilot couldn't check your feedback. You can still submit it.",
+            ),
         };
     }
 

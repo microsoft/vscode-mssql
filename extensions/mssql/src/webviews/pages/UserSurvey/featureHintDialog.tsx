@@ -17,6 +17,7 @@ import {
 import { Open16Regular, Play16Regular } from "@fluentui/react-icons";
 import { FeatureHintSuggestion } from "../../../sharedInterfaces/userSurvey";
 import { locConstants } from "../../common/locConstants";
+import { featureHintScreenshots } from "./featureHintScreenshots";
 
 const useStyles = makeStyles({
     content: {
@@ -31,6 +32,16 @@ const useStyles = makeStyles({
         padding: "12px",
         border: "1px solid var(--vscode-editorWidget-border, var(--vscode-editorGroup-border))",
         borderRadius: "6px",
+    },
+    screenshot: {
+        display: "block",
+        width: "100%",
+        maxHeight: "200px",
+        objectFit: "contain",
+        marginTop: "4px",
+        borderRadius: "4px",
+        border: "1px solid var(--vscode-editorWidget-border, var(--vscode-editorGroup-border))",
+        backgroundColor: "var(--vscode-editor-background)",
     },
     hintActions: {
         display: "flex",
@@ -81,6 +92,16 @@ export const FeatureHintDialog = ({
                                 data-testid={`feature-hint-${suggestion.id}`}>
                                 <Text weight="semibold">{suggestion.featureName}</Text>
                                 <Text>{suggestion.description}</Text>
+                                {suggestion.screenshot &&
+                                    featureHintScreenshots[suggestion.screenshot] && (
+                                        <img
+                                            className={classes.screenshot}
+                                            src={featureHintScreenshots[suggestion.screenshot]}
+                                            alt={strings.featureScreenshotAlt(
+                                                suggestion.featureName,
+                                            )}
+                                        />
+                                    )}
                                 <div className={classes.hintActions}>
                                     {suggestion.hasDocs && (
                                         <Button

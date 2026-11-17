@@ -2737,6 +2737,11 @@ export class FeatureHints {
         "Deploy or extract a .dacpac file, and import or export a .bacpac file, without leaving VS Code.",
     );
     public static openDataTierApplication = l10n.t("Open data-tier application");
+    public static localToCloudName = l10n.t("Deploy a local database to Azure SQL");
+    public static localToCloudDescription = l10n.t(
+        "Move a database from a local SQL Server container to Azure SQL Database with a guided wizard that checks compatibility, then deploys the schema, or schema and data.",
+    );
+    public static startDeployment = l10n.t("Start deployment");
 }
 
 export class Webview {

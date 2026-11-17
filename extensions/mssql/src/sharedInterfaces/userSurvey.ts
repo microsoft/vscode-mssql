@@ -85,7 +85,8 @@ export interface UserSurveyContextProps extends CoreRPCs {
     cancel(): void;
     openPrivacyStatement(): void;
     /** Keyword hints always run; Copilot hints also run when the user is signed in to Copilot. */
-    getFeatureHints(answers: Answers): Promise<FeatureHintSuggestion[]>;
+    getFeatureHints(answers: Answers, trigger: FeatureHintTrigger): Promise<FeatureHintResult>;
+    isCopilotFeatureHintAvailable(): Promise<boolean>;
     openFeatureHintDocs(hintId: string): void;
     tryFeatureHint(hintId: string): void;
     closeFeatureHints(hintIds: string[], outcome: FeatureHintCloseOutcome): void;
@@ -116,7 +117,25 @@ export type Answers = Record<string, string | number>;
  */
 export const FEATURE_HINT_MAX_SCORE = 8;
 
+/** No more than this many features are ever suggested at once. */
+export const MAX_FEATURE_HINTS = 2;
+
 export type FeatureHintCloseOutcome = "cancel" | "submitAnyway";
+
+/** What started the check: Submit, or the dedicated Copilot button. */
+export type FeatureHintTrigger = "submit" | "copilotButton";
+
+/**
+ * Screenshots are bundled into the webview, so config entries refer to them by id. Each id maps
+ * to an image in src/webviews/pages/UserSurvey/featureHintScreenshots.ts.
+ */
+export type FeatureHintScreenshotId =
+    | "dataTierApplication"
+    | "editData"
+    | "localContainer"
+    | "schemaCompare"
+    | "schemaDesigner"
+    | "tableDesigner";
 
 /** Display-only view of a configured feature hint; links stay on the extension side. */
 export interface FeatureHintSuggestion {
@@ -127,11 +146,28 @@ export interface FeatureHintSuggestion {
     canTryNow: boolean;
     /** Overrides the default "Try it now" button text. */
     tryNowLabel?: string;
+    screenshot?: FeatureHintScreenshotId;
+}
+
+/** "notRun" when no Copilot hint applies; "unavailable" when not signed in to Copilot. */
+export type CopilotFeatureHintStatus = "ok" | "notRun" | "unavailable" | "error";
+
+export interface FeatureHintResult {
+    suggestions: FeatureHintSuggestion[];
+    copilotStatus: CopilotFeatureHintStatus;
 }
 
 export namespace GetFeatureHintsRequest {
-    export const type = new RequestType<{ answers: Answers }, FeatureHintSuggestion[], void>(
-        "userSurvey/getFeatureHints",
+    export const type = new RequestType<
+        { answers: Answers; trigger: FeatureHintTrigger },
+        FeatureHintResult,
+        void
+    >("userSurvey/getFeatureHints");
+}
+
+export namespace IsCopilotFeatureHintAvailableRequest {
+    export const type = new RequestType<void, boolean, void>(
+        "userSurvey/isCopilotFeatureHintAvailable",
     );
 }
 

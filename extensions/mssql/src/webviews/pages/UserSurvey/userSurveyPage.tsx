@@ -5,7 +5,9 @@
 
 import {
     Answers,
+    FEATURE_HINT_MAX_SCORE,
     FeatureHintSuggestion,
+    FeatureHintTrigger,
     JobRoleQuestion,
     NpsQuestion,
     NsatQuestion,
@@ -19,16 +21,19 @@ import {
     Field,
     Input,
     Link,
+    MessageBar,
+    MessageBarBody,
     Radio,
     RadioGroup,
     Select,
     Spinner,
     Text,
     Textarea,
+    Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
-import { Shield20Regular } from "@fluentui/react-icons";
-import { useContext, useState } from "react";
+import { Shield20Regular, Sparkle16Regular } from "@fluentui/react-icons";
+import { useContext, useEffect, useState } from "react";
 
 import { UserSurveyContext } from "./userSurveryStateProvider";
 import { useUserSurveySelector } from "./userSurveySelector";
@@ -98,9 +103,27 @@ export const UserSurveyPage = () => {
     const submitButtonText = useUserSurveySelector((s) => s?.submitButtonText);
     const cancelButtonText = useUserSurveySelector((s) => s?.cancelButtonText);
     const [userAnswers, setUserAnswers] = useState<Answers>({});
-    const [isCheckingHints, setIsCheckingHints] = useState(false);
+    const [checkingHintsFor, setCheckingHintsFor] = useState<FeatureHintTrigger | undefined>(
+        undefined,
+    );
+    const isCheckingHints = checkingHintsFor !== undefined;
+    const [isCopilotAvailable, setIsCopilotAvailable] = useState(false);
+    const [copilotMessage, setCopilotMessage] = useState<"noMatches" | "error" | undefined>(
+        undefined,
+    );
     const [hintDialog, setHintDialog] = useState<FeatureHintSuggestion[] | undefined>(undefined);
     const [dismissedHintIds, setDismissedHintIds] = useState<ReadonlySet<string>>(new Set());
+
+    useEffect(() => {
+        let isCurrent = true;
+        context
+            ?.isCopilotFeatureHintAvailable()
+            .then((available) => isCurrent && setIsCopilotAvailable(available))
+            .catch(() => isCurrent && setIsCopilotAvailable(false));
+        return () => {
+            isCurrent = false;
+        };
+    }, [context]);
 
     const isSubmitDisabled =
         isCheckingHints ||
@@ -114,6 +137,7 @@ export const UserSurveyPage = () => {
     const isHintEligible = isFeatureHintEligible(getFeatureHintInput(questions ?? [], userAnswers));
 
     const onAnswerChange = (id: string, answer: string | number | undefined) => {
+        setCopilotMessage(undefined);
         setUserAnswers((previous) => {
             const answers = { ...previous };
             if (answer === undefined) {
@@ -132,9 +156,10 @@ export const UserSurveyPage = () => {
     // Hints the user already dismissed are not repeated.
     const onSubmit = async () => {
         if (isHintEligible) {
-            setIsCheckingHints(true);
+            setCheckingHintsFor("submit");
             try {
-                const suggestions = (await context.getFeatureHints(userAnswers)).filter(
+                const result = await context.getFeatureHints(userAnswers, "submit");
+                const suggestions = result.suggestions.filter(
                     (suggestion) => !dismissedHintIds.has(suggestion.id),
                 );
                 if (suggestions.length > 0) {
@@ -144,10 +169,33 @@ export const UserSurveyPage = () => {
             } catch {
                 // Hints are optional; never block feedback on them.
             } finally {
-                setIsCheckingHints(false);
+                setCheckingHintsFor(undefined);
             }
         }
         context.submit(userAnswers);
+    };
+
+    // Unlike Submit, an explicit check shows every match, including dismissed ones.
+    const onCheckWithCopilot = async () => {
+        setCopilotMessage(undefined);
+        setCheckingHintsFor("copilotButton");
+        try {
+            const result = await context.getFeatureHints(userAnswers, "copilotButton");
+            if (result.copilotStatus === "unavailable") {
+                setIsCopilotAvailable(false);
+            }
+            if (result.suggestions.length > 0) {
+                setHintDialog(result.suggestions);
+            } else if (result.copilotStatus === "ok") {
+                setCopilotMessage("noMatches");
+            } else if (result.copilotStatus === "error") {
+                setCopilotMessage("error");
+            }
+        } catch {
+            setCopilotMessage("error");
+        } finally {
+            setCheckingHintsFor(undefined);
+        }
     };
 
     const closeHintDialog = (outcome: "cancel" | "submitAnyway") => {
@@ -174,10 +222,37 @@ export const UserSurveyPage = () => {
                     <Button appearance="secondary" onClick={() => context.cancel()}>
                         {cancelButtonText ?? locConstants.common.cancel}
                     </Button>
+                    {isCopilotAvailable && (
+                        <Tooltip
+                            relationship="description"
+                            content={
+                                isHintEligible
+                                    ? locConstants.userFeedback.checkWithCopilotTooltip
+                                    : locConstants.userFeedback.checkWithCopilotDisabledTooltip(
+                                          FEATURE_HINT_MAX_SCORE,
+                                      )
+                            }>
+                            <Button
+                                appearance="secondary"
+                                icon={
+                                    checkingHintsFor === "copilotButton" ? (
+                                        <Spinner size="tiny" />
+                                    ) : (
+                                        <Sparkle16Regular />
+                                    )
+                                }
+                                disabledFocusable={!isHintEligible || isCheckingHints}
+                                onClick={() => void onCheckWithCopilot()}>
+                                {checkingHintsFor === "copilotButton"
+                                    ? locConstants.userFeedback.checkingWithCopilot
+                                    : locConstants.userFeedback.checkWithCopilot}
+                            </Button>
+                        </Tooltip>
+                    )}
                     <Button
                         appearance="primary"
                         disabled={isSubmitDisabled}
-                        icon={isCheckingHints ? <Spinner size="tiny" /> : undefined}
+                        icon={checkingHintsFor === "submit" ? <Spinner size="tiny" /> : undefined}
                         onClick={() => void onSubmit()}>
                         {submitButtonText ?? locConstants.userFeedback.submit}
                     </Button>
@@ -225,6 +300,15 @@ export const UserSurveyPage = () => {
                             return undefined;
                     }
                 })}
+                {copilotMessage && (
+                    <MessageBar intent={copilotMessage === "error" ? "warning" : "info"}>
+                        <MessageBarBody>
+                            {copilotMessage === "error"
+                                ? locConstants.userFeedback.copilotCheckFailed
+                                : locConstants.userFeedback.noExistingFeaturesFound}
+                        </MessageBarBody>
+                    </MessageBar>
+                )}
                 {hintDialog && (
                     <FeatureHintDialog
                         suggestions={hintDialog}

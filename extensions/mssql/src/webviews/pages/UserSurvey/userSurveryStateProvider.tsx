@@ -8,7 +8,9 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     Answers,
     FeatureHintCloseOutcome,
+    FeatureHintTrigger,
     GetFeatureHintsRequest,
+    IsCopilotFeatureHintAvailableRequest,
     UserSurveyContextProps,
     UserSurveyState,
     UserSurveyReducers,
@@ -38,8 +40,10 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }
             openPrivacyStatement: async () => {
                 await extensionRpc.action("openPrivacyStatement");
             },
-            getFeatureHints: (answers: Answers) =>
-                extensionRpc.sendRequest(GetFeatureHintsRequest.type, { answers }),
+            getFeatureHints: (answers: Answers, trigger: FeatureHintTrigger) =>
+                extensionRpc.sendRequest(GetFeatureHintsRequest.type, { answers, trigger }),
+            isCopilotFeatureHintAvailable: () =>
+                extensionRpc.sendRequest(IsCopilotFeatureHintAvailableRequest.type),
             openFeatureHintDocs: async (hintId: string) => {
                 await extensionRpc.action("openFeatureHintDocs", { hintId });
             },

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FeatureHintSuggestion } from "../../sharedInterfaces/userSurvey";
+import { FeatureHintScreenshotId, FeatureHintSuggestion } from "../../sharedInterfaces/userSurvey";
 
 /** Launches the feature: either a VS Code command or an external link. */
 export type FeatureHintTryNow =
@@ -38,6 +38,8 @@ interface FeatureHintCommon {
     /** Localized one-sentence description, from locConstants.FeatureHints. */
     description: string;
     match: KeywordFeatureHintMatch | CopilotFeatureHintMatch;
+    /** Optional screenshot; see FeatureHintScreenshotId. */
+    screenshot?: FeatureHintScreenshotId;
     /** Return true to skip the hint for users who already use the feature. */
     isAlreadyInUse?: () => boolean;
 }
@@ -142,6 +144,7 @@ export function toFeatureHintSuggestion(definition: FeatureHintDefinition): Feat
         hasDocs: !!definition.docsUrl,
         canTryNow: !!definition.tryNow,
         tryNowLabel: definition.tryNow?.label,
+        screenshot: definition.screenshot,
     };
 }
 

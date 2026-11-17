@@ -20,7 +20,13 @@
  *    - `copilot`: evaluated on Submit by a small Copilot model, only when the respondent is
  *      signed in to Copilot; skipped otherwise. Write `promptHint` in English for the model.
  *      Best for needs people describe in many different ways.
- * 4. Optionally add `isAlreadyInUse` to skip the hint for users who already have the feature.
+ * 4. Optionally add a `screenshot`: add its id to FeatureHintScreenshotId in
+ *    src/sharedInterfaces/userSurvey.ts and its image to
+ *    src/webviews/pages/UserSurvey/featureHintScreenshots.ts.
+ * 5. Optionally add `isAlreadyInUse` to skip the hint for users who already have the feature.
+ *
+ * At most MAX_FEATURE_HINTS are suggested at once: keyword matches first, then Copilot matches
+ * at or above COPILOT_MIN_CONFIDENCE, most confident first.
  *
  * The featureHints unit tests validate every entry here.
  */
@@ -76,6 +82,7 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
         id: "schemaCompare",
         featureName: Loc.schemaCompareName,
         description: Loc.schemaCompareDescription,
+        screenshot: "schemaCompare",
         docsUrl: "https://aka.ms/vscode-mssql-schema-compare-docs",
         tryNow: {
             kind: "command",
@@ -95,6 +102,7 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
         id: "dataTierApplication",
         featureName: Loc.dacpacName,
         description: Loc.dacpacDescription,
+        screenshot: "dataTierApplication",
         docsUrl: "https://aka.ms/vscode-mssql-dacpac",
         tryNow: {
             kind: "command",
@@ -119,6 +127,7 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
         id: "localContainer",
         featureName: Loc.localContainerName,
         description: Loc.localContainerDescription,
+        screenshot: "localContainer",
         docsUrl:
             "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container",
         tryNow: {
@@ -136,6 +145,7 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
         id: "schemaDesigner",
         featureName: Loc.schemaDesignerName,
         description: Loc.schemaDesignerDescription,
+        screenshot: "schemaDesigner",
         docsUrl: "https://aka.ms/vscode-mssql-schema-designer-docs",
         tryNow: openObjectExplorer,
         match: {
@@ -158,6 +168,7 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
         id: "editData",
         featureName: Loc.editDataName,
         description: Loc.editDataDescription,
+        screenshot: "editData",
         docsUrl:
             "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#view-and-edit-data",
         tryNow: openObjectExplorer,
@@ -174,6 +185,7 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
         id: "tableDesigner",
         featureName: Loc.tableDesignerName,
         description: Loc.tableDesignerDescription,
+        screenshot: "tableDesigner",
         docsUrl: "https://aka.ms/vscode-mssql-table-designer",
         tryNow: openObjectExplorer,
         match: {
@@ -199,6 +211,27 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
                 "functions by name, and opens or scripts the results. Users may ask to find an " +
                 "object quickly, filter a long list of tables, locate which database contains a " +
                 "procedure, or search like SSMS Object Explorer Details or Redgate SQL Search.",
+        },
+    },
+    {
+        id: "localToCloud",
+        featureName: Loc.localToCloudName,
+        description: Loc.localToCloudDescription,
+        docsUrl: "https://aka.ms/vscode-mssql-local-to-cloud-deployment",
+        tryNow: {
+            kind: "command",
+            command: Constants.cmdDeployNewDatabase,
+            args: [{ deploymentType: DeploymentType.LocalToCloud }],
+            label: Loc.startDeployment,
+        },
+        match: {
+            mode: "copilot",
+            promptHint:
+                "A guided wizard that moves a database from a local SQL Server container to " +
+                "Azure SQL Database: it checks compatibility, then deploys the schema, or schema " +
+                "and data, to a new or existing Azure SQL database. Users may ask to publish or " +
+                "migrate a local or dev database to Azure, push a database to the cloud, or go " +
+                "from local development to Azure SQL.",
         },
     },
 ];
