@@ -158,7 +158,8 @@ test.describe("MSSQL Extension - Query Profiler", () => {
 
     // Failed or flaky in the nightly stable E2E run: the profiler grid duplicated a marker batch's
     // starting event and never showed its completed event, or showed none of the batch's events
-    // while the session reported others. This looks like a product bug in event capture. These
+    // while the session reported others. This looks like a product bug in event capture, tracked
+    // in https://github.com/microsoft/vscode-mssql/issues/23315. These
     // tests run serially and build on each other, so the whole group is tagged flaky.
     // TODO: Stabilize these tests, then remove the group's flaky tag.
     test.describe("Captured events", { tag: Tag.flaky }, () => {
