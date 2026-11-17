@@ -2,7 +2,7 @@
 
 ## Version 1.48.0
 
-- Release date: November 16, 2026
+- Release date: November 17, 2026
 - Release status: GA
 
 ### What's new in 1.48.0
