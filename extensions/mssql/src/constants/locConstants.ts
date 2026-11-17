@@ -2710,6 +2710,33 @@ export class FeatureHints {
         "Compare the schemas of two databases, SQL projects, or .dacpac files, review the differences, and apply or script the changes.",
     );
     public static openSchemaCompare = l10n.t("Open Schema Compare");
+    public static openObjectExplorer = l10n.t("Open Object Explorer");
+    public static editDataName = l10n.t("Edit Data");
+    public static editDataDescription = l10n.t(
+        "View and edit table rows in a grid, then review and save your changes. Right-click a table in Object Explorer and select Edit Table Data.",
+    );
+    public static tableDesignerName = l10n.t("Table Designer");
+    public static tableDesignerDescription = l10n.t(
+        "Create or change tables, columns, keys, indexes, and constraints visually, and preview the generated script. Right-click Tables or a table in Object Explorer and select New Table or Modify Table Structure.",
+    );
+    public static schemaDesignerName = l10n.t("Schema Designer");
+    public static schemaDesignerDescription = l10n.t(
+        "View your database as an interactive entity relationship diagram, and design tables and relationships visually. Right-click a database in Object Explorer and select Visualize and Design Schema.",
+    );
+    public static localContainerName = l10n.t("Local SQL Server containers");
+    public static localContainerDescription = l10n.t(
+        "Create, start, and connect to a SQL Server instance running in a local Docker container.",
+    );
+    public static createContainer = l10n.t("Create a container");
+    public static objectSearchName = l10n.t("Database object search");
+    public static objectSearchDescription = l10n.t(
+        "Find tables, views, stored procedures, and functions by name across a server or database. Right-click a server or database in Object Explorer and select Search Database Objects.",
+    );
+    public static dacpacName = l10n.t("Data-tier applications (.dacpac and .bacpac)");
+    public static dacpacDescription = l10n.t(
+        "Deploy or extract a .dacpac file, and import or export a .bacpac file, without leaving VS Code.",
+    );
+    public static openDataTierApplication = l10n.t("Open data-tier application");
 }
 
 export class Webview {

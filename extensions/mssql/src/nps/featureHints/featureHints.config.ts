@@ -28,9 +28,17 @@
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
 import { FeatureHints as Loc } from "../../constants/locConstants";
-import { FeatureHintDefinition } from "./featureHints";
+import { DeploymentType } from "../../sharedInterfaces/deployment";
+import { FeatureHintDefinition, FeatureHintTryNow } from "./featureHints";
 
 const keymapExtensionId = "ms-mssql.mssql-database-management-keymap";
+
+/** For features launched from an Object Explorer node, which the survey can't supply. */
+const openObjectExplorer: FeatureHintTryNow = {
+    kind: "command",
+    command: "workbench.view.extension.objectExplorer",
+    label: Loc.openObjectExplorer,
+};
 
 export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
     {
@@ -81,6 +89,116 @@ export const featureHintDefinitions: readonly FeatureHintDefinition[] = [
                 "differences side by side, and applies them or generates a deployment script. " +
                 "Users may ask to diff databases, find schema drift, sync dev/test/prod, or " +
                 "migrate schema changes between environments.",
+        },
+    },
+    {
+        id: "dataTierApplication",
+        featureName: Loc.dacpacName,
+        description: Loc.dacpacDescription,
+        docsUrl: "https://aka.ms/vscode-mssql-dacpac",
+        tryNow: {
+            kind: "command",
+            command: Constants.cmdDacpacDialog,
+            label: Loc.openDataTierApplication,
+        },
+        match: {
+            mode: "keyword",
+            keywords: [
+                "dacpac",
+                "dacpacs",
+                "bacpac",
+                "bacpacs",
+                "data-tier application",
+                "data-tier applications",
+                "data tier application",
+                "data tier applications",
+            ],
+        },
+    },
+    {
+        id: "localContainer",
+        featureName: Loc.localContainerName,
+        description: Loc.localContainerDescription,
+        docsUrl:
+            "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-local-container",
+        tryNow: {
+            kind: "command",
+            command: Constants.cmdDeployNewDatabase,
+            args: [{ deploymentType: DeploymentType.LocalContainers }],
+            label: Loc.createContainer,
+        },
+        match: {
+            mode: "keyword",
+            keywords: ["docker", "container", "containers", "containerized"],
+        },
+    },
+    {
+        id: "schemaDesigner",
+        featureName: Loc.schemaDesignerName,
+        description: Loc.schemaDesignerDescription,
+        docsUrl: "https://aka.ms/vscode-mssql-schema-designer-docs",
+        tryNow: openObjectExplorer,
+        match: {
+            mode: "keyword",
+            keywords: [
+                "ER diagram",
+                "ER diagrams",
+                "ERD",
+                "ERDs",
+                "entity relationship",
+                "entity-relationship",
+                "database diagram",
+                "database diagrams",
+                "schema diagram",
+                "schema diagrams",
+            ],
+        },
+    },
+    {
+        id: "editData",
+        featureName: Loc.editDataName,
+        description: Loc.editDataDescription,
+        docsUrl:
+            "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#view-and-edit-data",
+        tryNow: openObjectExplorer,
+        match: {
+            mode: "copilot",
+            promptHint:
+                "Opens a table's rows in an editable grid where users can add, update, and " +
+                "delete rows, then review and save the changes, without writing INSERT, UPDATE, " +
+                "or DELETE statements. Users may ask to edit rows like in SSMS 'Edit Top 200 " +
+                "Rows', change cell values directly, or browse table contents in a spreadsheet view.",
+        },
+    },
+    {
+        id: "tableDesigner",
+        featureName: Loc.tableDesignerName,
+        description: Loc.tableDesignerDescription,
+        docsUrl: "https://aka.ms/vscode-mssql-table-designer",
+        tryNow: openObjectExplorer,
+        match: {
+            mode: "copilot",
+            promptHint:
+                "A visual designer for creating a new table or changing an existing one: " +
+                "columns, data types, primary and foreign keys, indexes, check constraints, and " +
+                "defaults, with a preview of the generated script. Users may ask for a GUI to " +
+                "create or alter tables, add columns without writing DDL, or a table designer " +
+                "like SSMS.",
+        },
+    },
+    {
+        id: "objectSearch",
+        featureName: Loc.objectSearchName,
+        description: Loc.objectSearchDescription,
+        docsUrl: "https://aka.ms/vscode-mssql-object-search",
+        tryNow: openObjectExplorer,
+        match: {
+            mode: "copilot",
+            promptHint:
+                "Searches a server or database for tables, views, stored procedures, and " +
+                "functions by name, and opens or scripts the results. Users may ask to find an " +
+                "object quickly, filter a long list of tables, locate which database contains a " +
+                "procedure, or search like SSMS Object Explorer Details or Redgate SQL Search.",
         },
     },
 ];

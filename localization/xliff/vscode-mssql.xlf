@@ -3275,6 +3275,9 @@
     <trans-unit id="++CODE++0bbb6ccc91590ad3b5ccc58b5be349106a8c4fcfb135bc3be73f68efaf36fd97">
       <source xml:lang="en">Create a connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++db73958131927dd81bd194c8730cbaa999a126ad19a963f2b92d73ab0abfdeb4">
+      <source xml:lang="en">Create a container</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c4d32832f46802e297eafb102362f820aee2e6f0177fa9dc6d6ee757b9c0380">
       <source xml:lang="en">Create a database</source>
     </trans-unit>
@@ -3344,8 +3347,14 @@
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
     </trans-unit>
+    <trans-unit id="++CODE++7a596cfe3c51eaf3f1c9452b44fb3ca5ae20982f949fbe3a99a0888f7d378842">
+      <source xml:lang="en">Create or change tables, columns, keys, indexes, and constraints visually, and preview the generated script. Right-click Tables or a table in Object Explorer and select New Table or Modify Table Structure.</source>
+    </trans-unit>
     <trans-unit id="++CODE++df71f4b96b979f9c3e85500de3a22246aeeebfa03664d2f7ea8db2b79e01f222">
       <source xml:lang="en">Create project from database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++02c3098b460f701a72cf071f4c6e7eebcd1f7d8dcc0f90dc6c2ac00fa8e783d4">
+      <source xml:lang="en">Create, start, and connect to a SQL Server instance running in a local Docker container.</source>
     </trans-unit>
     <trans-unit id="++CODE++9f5536c554c4ef316c1eec300ef63cac4497346c928e31196a716ad418b9ac76">
       <source xml:lang="en">Create, start, stop, and remove your container from the MSSQL extension using Docker, Podman, containerd (nerdctl), or WSL containers on Windows.</source>
@@ -3643,6 +3652,9 @@
     <trans-unit id="++CODE++b75cbec4821e3ad5a44a3d6a0292a4022948acfa229d78824be15bf5e81aca87">
       <source xml:lang="en">Data-tier application (.dacpac)</source>
     </trans-unit>
+    <trans-unit id="++CODE++211912fe2c4291530cf197e2c96ca47aabd81ebe1dca7348d3ddc1839c882930">
+      <source xml:lang="en">Data-tier applications (.dacpac and .bacpac)</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
       <source xml:lang="en">Database</source>
     </trans-unit>
@@ -3727,6 +3739,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a9c7a27e0de810cf03eea625e62cb61968edb820607b3528342ef8fd4d7f904e">
+      <source xml:lang="en">Database object search</source>
     </trans-unit>
     <trans-unit id="++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1">
       <source xml:lang="en">Database pauses until the next billing cycle when free amount is renewed.</source>
@@ -3903,6 +3918,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a363dd1d7b126252058e29f3e63b8befbce2a86982905a24c0b55e4addea2ca">
       <source xml:lang="en">Deploy local database to Azure SQL (Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++012ac7a0e377da9fece10f7721a2129057dcdd27a5b5f46687b6b2da7d66fdca">
+      <source xml:lang="en">Deploy or extract a .dacpac file, and import or export a .bacpac file, without leaving VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++5fa5f06a3fb16046cc6023f3cc2a92d9a7024be5480836ad4d1ab5c884bada54">
       <source xml:lang="en">Deploy tables, views, and procedures without copying any rows. You can move data later.</source>
@@ -6013,6 +6031,9 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++a64491f3333782b2e214d0042487d0560d86a7a08cf9e67d90f0a119daac07a1">
+      <source xml:lang="en">Find tables, views, stored procedures, and functions by name across a server or database. Right-click a server or database in Object Explorer and select Search Database Objects.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f8076828c20dacab21a5b00a767888abd491d890e7093d62d0c9a6bb43ec9e77">
       <source xml:lang="en">Finding a .NET runtime</source>
     </trans-unit>
@@ -7416,6 +7437,9 @@
     </trans-unit>
     <trans-unit id="++CODE++adca48abd543243b27df9da5f5c1306e70dd139e25532bc4ee569b2b41f893e3">
       <source xml:lang="en">Local SQL Server container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++203521c63ad072365b67a8c37610dd947f79df05e406559270f82caa80a63ea4">
+      <source xml:lang="en">Local SQL Server containers</source>
     </trans-unit>
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
@@ -8898,6 +8922,9 @@
     <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
       <source xml:lang="en">Open Nitro</source>
     </trans-unit>
+    <trans-unit id="++CODE++f6f07389a795f809f0146356630af3d2cb9b7446e635f321848533342b4be9df">
+      <source xml:lang="en">Open Object Explorer</source>
+    </trans-unit>
     <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
       <source xml:lang="en">Open Publish Script</source>
     </trans-unit>
@@ -8951,6 +8978,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6490544feaebc668b26597fde0c573e270552f8601d95573d0df0d8b11839cb">
+      <source xml:lang="en">Open data-tier application</source>
     </trans-unit>
     <trans-unit id="++CODE++03e86679339b745a9fb8ae3362715ded2a87ccc7dc78158b4f5cd4dea3cdbf3b">
       <source xml:lang="en">Open execution plan</source>
@@ -14236,6 +14266,9 @@
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
     </trans-unit>
+    <trans-unit id="++CODE++5f174363366ed259fc89798e3f2a0edd056dcd18d6888beac603e561ec09438a">
+      <source xml:lang="en">View and edit table rows in a grid, then review and save your changes. Right-click a table in Object Explorer and select Edit Table Data.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72057bd929c6fa80c5d08704eac7beeb1546ee9c89630aab286bbeb163fe7e08">
       <source xml:lang="en">View by</source>
     </trans-unit>
@@ -14287,6 +14320,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8cad0018e99544f1fcbd96cc22b54098666aa5c9527a92bcab5b282167466813">
       <source xml:lang="en">View the roadmap</source>
+    </trans-unit>
+    <trans-unit id="++CODE++050766bd54adc289b78f40964fd7ee321af813586c375cf84248b2536eda8c59">
+      <source xml:lang="en">View your database as an interactive entity relationship diagram, and design tables and relationships visually. Right-click a database in Object Explorer and select Visualize and Design Schema.</source>
     </trans-unit>
     <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
       <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>

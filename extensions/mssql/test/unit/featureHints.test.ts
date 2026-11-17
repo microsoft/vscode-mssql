@@ -104,6 +104,21 @@ suite("Survey feature hints", () => {
         });
     }
 
+    const shippedKeywordCases: [string, string[]][] = [
+        ["Please add a way to export a BACPAC", ["dataTierApplication"]],
+        ["I want to run SQL Server in Docker", ["localContainer"]],
+        ["Missing an ERD view of my tables", ["schemaDesigner"]],
+        ["Results grid could be faster", []],
+    ];
+    for (const [feedback, expectedIds] of shippedKeywordCases) {
+        test(`shipped keyword hints for ${JSON.stringify(feedback)}`, () => {
+            sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
+            expect(
+                findKeywordMatches(feedback, featureHintDefinitions).map((hint) => hint.id),
+            ).to.deep.equal(expectedIds);
+        });
+    }
+
     test("skips hints for features already in use", () => {
         expect(
             findKeywordMatches("F5", [{ ...keywordHint, isAlreadyInUse: () => true }]),
