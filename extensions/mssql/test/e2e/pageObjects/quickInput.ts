@@ -135,13 +135,12 @@ export class QuickInput {
             const row = this.rows.nth(index);
             const label = row.locator(QuickInput.ROW_LABEL).first();
             // A row can disappear between the count and the read when the list re-renders or
-            // closes; skip it rather than waiting out the action timeout.
+            // closes. Record it as empty rather than waiting out the action timeout, so indexes
+            // still line up with the rows.
             const text = await ((await label.count()) > 0 ? label : row)
                 .innerText({ timeout: ROW_READ_TIMEOUT_MS })
-                .catch(() => undefined);
-            if (text !== undefined) {
-                labels.push(text.replace(/\s+/g, " ").trim());
-            }
+                .catch(() => "");
+            labels.push(text.replace(/\s+/g, " ").trim());
         }
         return labels;
     }

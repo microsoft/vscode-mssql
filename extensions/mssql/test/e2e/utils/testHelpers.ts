@@ -68,6 +68,12 @@ export async function addDatabaseConnection(
 
     await iframe.getByRole("checkbox", { name: "Trust server certificate" }).click();
     await iframe.getByRole("button", { name: "Connect", exact: true }).click();
+
+    // A successful connect closes the dialog. Wait for that: the close moves focus, which would
+    // otherwise dismiss a command palette the caller opens while the connection is in progress.
+    await expect(vsCodePage.getByRole("tab", { name: /^Connection Dialog/ })).toHaveCount(0, {
+        timeout: 60 * 1000,
+    });
 }
 
 export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
