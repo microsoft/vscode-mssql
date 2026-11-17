@@ -23,6 +23,25 @@ export function getSuggestion(page: Page, label: string): Locator {
         .getByRole("option", { name: new RegExp(`^${escapeRegExp(label)}, `) });
 }
 
+/**
+ * Waits for the suggestion `label`, reopening the suggest widget with Ctrl+Space whenever it is
+ * not showing. Completions requested as the user types can race the language service, which
+ * leaves the widget closed with nothing to wait for.
+ */
+export async function expectSuggestionVisible(
+    page: Page,
+    label: string,
+    timeout = 30 * 1000,
+): Promise<void> {
+    const suggestWidget = page.getByRole("listbox", { name: "Suggest" });
+    await expect(async () => {
+        if (!(await suggestWidget.isVisible())) {
+            await page.keyboard.press("Control+Space");
+        }
+        await expect(getSuggestion(page, label)).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout });
+}
+
 /** Whether the suggest widget's keyboard focus is on the row labelled `label`. */
 export async function isSuggestionFocused(page: Page, label: string): Promise<boolean> {
     const focusedId = await page

@@ -11,6 +11,7 @@ import { QuickInput } from "./pageObjects/quickInput";
 import {
     clearActiveEditor,
     expandObjectExplorerLevels,
+    expectSuggestionVisible,
     getSuggestion,
     isSuggestionFocused,
     openFocusedNodeContextMenu,
@@ -107,7 +108,7 @@ test.describe("MSSQL Extension - Language Service", () => {
                 const { page } = getContext();
                 await page.keyboard.type("SELECT * FROM m");
                 for (const database of ["master", "model", "msdb"]) {
-                    await expect(getSuggestion(page, database)).toBeVisible({ timeout: 30 * 1000 });
+                    await expectSuggestionVisible(page, database);
                 }
                 await page.keyboard.type("as");
                 await expect(getSuggestion(page, "master")).toBeVisible();
@@ -115,7 +116,7 @@ test.describe("MSSQL Extension - Language Service", () => {
                 await expect(getSuggestion(page, "msdb")).toHaveCount(0);
 
                 await page.keyboard.type("ter.");
-                await expect(getSuggestion(page, "dbo")).toBeVisible({ timeout: 30 * 1000 });
+                await expectSuggestionVisible(page, "dbo");
                 await expect(getSuggestion(page, "guest")).toBeVisible();
                 await page.keyboard.type("sy");
                 await expect(getSuggestion(page, "sys")).toBeVisible();
