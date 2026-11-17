@@ -10,7 +10,7 @@ import {
     runObjectExplorerContextAction,
     waitForObjectExplorerToLoad,
 } from "./seededConnection";
-import { getWebviewByTitle } from "./testHelpers";
+import { getWebviewByTitle, WEBVIEW_LOAD_TIMEOUT_MS } from "./testHelpers";
 
 /** Title of the Object Explorer filter webview panel. */
 export const FILTER_DIALOG_TITLE = "Object Explorer Filter";
@@ -63,7 +63,8 @@ export async function openFilterDialog(
         await runObjectExplorerContextAction(page, node, "Filter");
     }
     const dialog = await getWebviewByTitle(page, FILTER_DIALOG_TITLE);
-    await expect(getFilterCriteria(dialog)).toBeVisible();
+    // The first dialog of a run renders while its webview is still loading.
+    await expect(getFilterCriteria(dialog)).toBeVisible({ timeout: WEBVIEW_LOAD_TIMEOUT_MS });
     return dialog;
 }
 
