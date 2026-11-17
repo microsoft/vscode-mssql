@@ -31,6 +31,8 @@ runs:
     - name: Start SQL Server
       shell: bash
       run: |
+        # `tr | head` ends with SIGPIPE on tr by design; composite steps run with pipefail.
+        set +o pipefail
         PASS_LOWER="$(LC_ALL=C tr -dc 'a-z' < /dev/urandom | head -c 1)"
         PASS_UPPER="$(LC_ALL=C tr -dc 'A-Z' < /dev/urandom | head -c 1)"
         PASS_DIGIT="$(LC_ALL=C tr -dc '0-9' < /dev/urandom | head -c 1)"
