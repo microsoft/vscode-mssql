@@ -142,6 +142,10 @@ export async function launchVsCodeWithMssqlExtension(
         // A trust prompt would otherwise intercept the first interaction in a workspace.
         "--disable-workspace-trust",
         "--disable-telemetry",
+        // Linux CI runners have no OS keyring, so the first saved secret (such as a connection
+        // password) raises a modal that covers the workbench. The throwaway test profile does
+        // not need keyring encryption. macOS and Windows ignore this flag.
+        "--password-store=basic",
         `--user-data-dir=${userDataDir}`,
         `--extensions-dir=${extensionsDir}`,
         ...(config.extraLaunchArgs ?? []),
