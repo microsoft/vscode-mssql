@@ -15,10 +15,6 @@ import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
-import {
-    DesignerPublishingDisabledError,
-    ensureDesignerPublishingSupported,
-} from "../services/schemaService";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
@@ -287,7 +283,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 },
             );
             try {
-                await this.ensurePublishingSupported();
                 const report = await this.schemaDesignerService.getReport({
                     updatedSchema: payload.updatedSchema,
                     sessionId: this._sessionId,
@@ -315,7 +310,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 reportActivity.endFailed(toError(error), false);
                 return {
                     error: getErrorMessage(error),
-                    publishingDisabled: error instanceof DesignerPublishingDisabledError,
                 };
             }
         });
@@ -327,7 +321,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 this.telemetryContext,
             );
             try {
-                await this.ensurePublishingSupported();
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
@@ -363,7 +356,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return {
                     success: false,
                     error: getErrorMessage(error),
-                    publishingDisabled: error instanceof DesignerPublishingDisabledError,
                 };
             }
         });
@@ -2363,13 +2355,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      */
     private resolveSqlServerContainerName(): string | undefined {
         return this.resolveConnectionInfo()?.containerName;
-    }
-
-    private async ensurePublishingSupported(): Promise<void> {
-        await ensureDesignerPublishingSupported(
-            this.mainController.connectionManager,
-            this.connectionUri ?? this.treeNode?.sessionId ?? this.resolveConnectionInfo(),
-        );
     }
 
     private resolveServerInfo(): IServerInfo | undefined {

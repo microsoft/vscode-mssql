@@ -498,7 +498,6 @@ export namespace SchemaDesigner {
     export interface PublishSessionResponse {
         success: boolean;
         error: string | undefined;
-        publishingDisabled?: boolean;
         updatedSchema?: Schema;
     }
     export namespace PublishSessionRequest {
@@ -533,7 +532,6 @@ export namespace SchemaDesigner {
     export interface GetReportWebviewResponse {
         report?: GetReportResponse;
         error?: string;
-        publishingDisabled?: boolean;
     }
     export namespace GetReportWebviewRequest {
         export const type = new RequestType<UpdatedSchemaParams, GetReportWebviewResponse, void>(
