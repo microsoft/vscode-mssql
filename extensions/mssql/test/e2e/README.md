@@ -36,6 +36,9 @@ test.describe("SQL Database Projects rename refactoring", { tag: Tag.flaky }, ()
 - **Tag a test `@pull-request`** only if it is stable, fast, and covers a core scenario. The
   pull request check should stay under about 15 minutes.
 
+`npm run lint` fails if a test is tagged both `@pull-request` and `@flaky`, or has a tag other
+than these two, including tags inherited from a `describe` block.
+
 `E2E_TIER` selects the tier to run: `stable` (the default), `pull-request`, `flaky`, or `all`.
 
 ```bash
