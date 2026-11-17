@@ -84,15 +84,11 @@ export interface UserSurveyContextProps extends CoreRPCs {
     submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;
-    getFeatureHints(answers: Answers, source: FeatureHintSource): Promise<FeatureHintResult>;
-    isCopilotFeatureHintAvailable(): Promise<boolean>;
-    openFeatureHintDocs(hintId: string, source: FeatureHintSource): void;
-    tryFeatureHint(hintId: string, source: FeatureHintSource): void;
-    closeFeatureHints(
-        hintIds: string[],
-        source: FeatureHintSource,
-        outcome: FeatureHintCloseOutcome,
-    ): void;
+    /** Keyword hints always run; Copilot hints also run when the user is signed in to Copilot. */
+    getFeatureHints(answers: Answers): Promise<FeatureHintSuggestion[]>;
+    openFeatureHintDocs(hintId: string): void;
+    tryFeatureHint(hintId: string): void;
+    closeFeatureHints(hintIds: string[], outcome: FeatureHintCloseOutcome): void;
 }
 
 export interface UserSurveyReducers {
@@ -103,15 +99,12 @@ export interface UserSurveyReducers {
     openPrivacyStatement: {};
     openFeatureHintDocs: {
         hintId: string;
-        source: FeatureHintSource;
     };
     tryFeatureHint: {
         hintId: string;
-        source: FeatureHintSource;
     };
     closeFeatureHints: {
         hintIds: string[];
-        source: FeatureHintSource;
         outcome: FeatureHintCloseOutcome;
     };
 }
@@ -122,9 +115,6 @@ export type Answers = Record<string, string | number>;
  * Feature hints are only offered when the recommendation score is at or below this value.
  */
 export const FEATURE_HINT_MAX_SCORE = 8;
-
-/** How a feature hint was found: local keyword matching, or Copilot. */
-export type FeatureHintSource = "keyword" | "copilot";
 
 export type FeatureHintCloseOutcome = "cancel" | "submitAnyway";
 
@@ -139,24 +129,9 @@ export interface FeatureHintSuggestion {
     tryNowLabel?: string;
 }
 
-export type FeatureHintStatus = "ok" | "notEligible" | "unavailable" | "error";
-
-export interface FeatureHintResult {
-    status: FeatureHintStatus;
-    suggestions: FeatureHintSuggestion[];
-}
-
 export namespace GetFeatureHintsRequest {
-    export const type = new RequestType<
-        { answers: Answers; source: FeatureHintSource },
-        FeatureHintResult,
-        void
-    >("userSurvey/getFeatureHints");
-}
-
-export namespace IsCopilotFeatureHintAvailableRequest {
-    export const type = new RequestType<void, boolean, void>(
-        "userSurvey/isCopilotFeatureHintAvailable",
+    export const type = new RequestType<{ answers: Answers }, FeatureHintSuggestion[], void>(
+        "userSurvey/getFeatureHints",
     );
 }
 

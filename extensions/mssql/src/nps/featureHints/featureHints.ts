@@ -20,7 +20,7 @@ export interface KeywordFeatureHintMatch {
     keywords: readonly (string | RegExp)[];
 }
 
-/** Matched by a small Copilot model, only on request and only when the user is signed in. */
+/** Matched by a small Copilot model on Submit, only when the user is signed in to Copilot. */
 export interface CopilotFeatureHintMatch {
     mode: "copilot";
     /**

@@ -10,9 +10,7 @@ import * as os from "os";
 
 import {
     Answers,
-    FeatureHintSource,
     GetFeatureHintsRequest,
-    IsCopilotFeatureHintAvailableRequest,
     UserSurveyReducers,
     UserSurveyState,
     getFeatureHintInput,
@@ -403,33 +401,28 @@ export class UserSurveyWebviewController extends WebviewPanelController<
             return state;
         });
 
-        this.onRequest(IsCopilotFeatureHintAvailableRequest.type, () =>
-            this._featureHints.isCopilotAvailable(),
-        );
-
-        this.onRequest(GetFeatureHintsRequest.type, ({ answers, source }) =>
+        this.onRequest(GetFeatureHintsRequest.type, ({ answers }) =>
             this._featureHints.findHints(
                 getFeatureHintInput(this.state?.questions ?? [], answers),
-                source,
                 this._featureHintCancellation.token,
             ),
         );
 
-        this.registerReducer("openFeatureHintDocs", async (state, { hintId, source }) => {
+        this.registerReducer("openFeatureHintDocs", async (state, { hintId }) => {
             const docsUrl = this._featureHints.getDefinition(hintId)?.docsUrl;
             if (docsUrl) {
-                sendFeatureHintActionTelemetry("docs", source, hintId);
+                this._featureHints.reportAction("docs", hintId);
                 await vscode.env.openExternal(vscode.Uri.parse(docsUrl));
             }
             return state;
         });
 
-        this.registerReducer("tryFeatureHint", async (state, { hintId, source }) => {
+        this.registerReducer("tryFeatureHint", async (state, { hintId }) => {
             const tryNow = this._featureHints.getDefinition(hintId)?.tryNow;
             if (!tryNow) {
                 return state;
             }
-            sendFeatureHintActionTelemetry("tryNow", source, hintId);
+            this._featureHints.reportAction("tryNow", hintId);
             try {
                 if (tryNow.kind === "command") {
                     await vscode.commands.executeCommand(tryNow.command, ...(tryNow.args ?? []));
@@ -444,8 +437,10 @@ export class UserSurveyWebviewController extends WebviewPanelController<
             return state;
         });
 
-        this.registerReducer("closeFeatureHints", async (state, { hintIds, source, outcome }) => {
-            sendFeatureHintActionTelemetry(outcome, source, hintIds.join(","));
+        this.registerReducer("closeFeatureHints", async (state, { hintIds, outcome }) => {
+            for (const hintId of hintIds) {
+                this._featureHints.reportAction(outcome, hintId);
+            }
             return state;
         });
 
@@ -455,16 +450,6 @@ export class UserSurveyWebviewController extends WebviewPanelController<
             this._onCancel.fire();
         });
     }
-}
-
-function sendFeatureHintActionTelemetry(
-    step: "docs" | "tryNow" | "cancel" | "submitAnyway",
-    source: FeatureHintSource,
-    hintIds: string,
-): void {
-    sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
-        additionalProps: { step, source, hintIds },
-    });
 }
 
 export function getGithubIssueText(comments: string, extensionVersion: string): string {

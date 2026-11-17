@@ -8,9 +8,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     Answers,
     FeatureHintCloseOutcome,
-    FeatureHintSource,
     GetFeatureHintsRequest,
-    IsCopilotFeatureHintAvailableRequest,
     UserSurveyContextProps,
     UserSurveyState,
     UserSurveyReducers,
@@ -40,22 +38,16 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }
             openPrivacyStatement: async () => {
                 await extensionRpc.action("openPrivacyStatement");
             },
-            getFeatureHints: (answers: Answers, source: FeatureHintSource) =>
-                extensionRpc.sendRequest(GetFeatureHintsRequest.type, { answers, source }),
-            isCopilotFeatureHintAvailable: () =>
-                extensionRpc.sendRequest(IsCopilotFeatureHintAvailableRequest.type),
-            openFeatureHintDocs: async (hintId: string, source: FeatureHintSource) => {
-                await extensionRpc.action("openFeatureHintDocs", { hintId, source });
+            getFeatureHints: (answers: Answers) =>
+                extensionRpc.sendRequest(GetFeatureHintsRequest.type, { answers }),
+            openFeatureHintDocs: async (hintId: string) => {
+                await extensionRpc.action("openFeatureHintDocs", { hintId });
             },
-            tryFeatureHint: async (hintId: string, source: FeatureHintSource) => {
-                await extensionRpc.action("tryFeatureHint", { hintId, source });
+            tryFeatureHint: async (hintId: string) => {
+                await extensionRpc.action("tryFeatureHint", { hintId });
             },
-            closeFeatureHints: async (
-                hintIds: string[],
-                source: FeatureHintSource,
-                outcome: FeatureHintCloseOutcome,
-            ) => {
-                await extensionRpc.action("closeFeatureHints", { hintIds, source, outcome });
+            closeFeatureHints: async (hintIds: string[], outcome: FeatureHintCloseOutcome) => {
+                await extensionRpc.action("closeFeatureHints", { hintIds, outcome });
             },
         }),
         [extensionRpc],

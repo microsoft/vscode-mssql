@@ -22,6 +22,7 @@ import {
 import { FeatureHintService } from "../../src/nps/featureHints/featureHintService";
 import { getStandardNPSQuestions } from "../../src/nps/userSurvey";
 import { getFeatureHintInput } from "../../src/sharedInterfaces/userSurvey";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { stubTelemetry } from "./utils";
 
 chai.use(sinonChai);
@@ -56,10 +57,11 @@ function fakeModel(family: string, response = '{"featureIds": []}') {
 
 suite("Survey feature hints", () => {
     let sandbox: sinon.SinonSandbox;
+    let telemetryStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        stubTelemetry(sandbox);
+        telemetryStub = stubTelemetry(sandbox).sendActionEvent;
     });
 
     teardown(() => {
@@ -158,52 +160,38 @@ suite("Survey feature hints", () => {
 
     suite("FeatureHintService", () => {
         const eligible = { score: 5, feedback: "F5 should run, and I need to diff two databases" };
+        const ids = (suggestions: { id: string }[]) => suggestions.map((s) => s.id);
 
-        test("does not suggest anything when the score is above the threshold", async () => {
-            const service = new FeatureHintService([keywordHint], async () => undefined);
-            expect(await service.findHints({ ...eligible, score: 9 }, "keyword")).to.deep.equal({
-                status: "notEligible",
-                suggestions: [],
-            });
-        });
-
-        test("keyword checks never call Copilot", async () => {
+        test("does not check anything when the score is above the threshold", async () => {
             const selectModel = sandbox.stub().resolves(fakeModel("gpt-5.4-mini"));
             const service = new FeatureHintService([keywordHint, copilotHint], selectModel);
 
-            const result = await service.findHints(eligible, "keyword");
-
-            expect(result.suggestions.map((suggestion) => suggestion.id)).to.deep.equal(["keymap"]);
+            expect(await service.findHints({ ...eligible, score: 9 })).to.deep.equal([]);
             expect(selectModel).to.not.have.been.called;
         });
 
-        test("Copilot checks add Copilot matches to keyword matches", async () => {
+        test("returns keyword and Copilot matches together when signed in", async () => {
             const model = fakeModel("gpt-5.4-mini", '{"featureIds": ["schemaCompare"]}');
             const service = new FeatureHintService([keywordHint, copilotHint], async () => model);
 
-            const result = await service.findHints(eligible, "copilot");
-
-            expect(result).to.deep.equal({
-                status: "ok",
-                suggestions: [
-                    {
-                        id: "keymap",
-                        featureName: "Keymap",
-                        description: "Familiar shortcuts.",
-                        hasDocs: true,
-                        canTryNow: false,
-                        tryNowLabel: undefined,
-                    },
-                    {
-                        id: "schemaCompare",
-                        featureName: "Schema Compare",
-                        description: "Compare schemas.",
-                        hasDocs: false,
-                        canTryNow: true,
-                        tryNowLabel: undefined,
-                    },
-                ],
-            });
+            expect(await service.findHints(eligible)).to.deep.equal([
+                {
+                    id: "keymap",
+                    featureName: "Keymap",
+                    description: "Familiar shortcuts.",
+                    hasDocs: true,
+                    canTryNow: false,
+                    tryNowLabel: undefined,
+                },
+                {
+                    id: "schemaCompare",
+                    featureName: "Schema Compare",
+                    description: "Compare schemas.",
+                    hasDocs: false,
+                    canTryNow: true,
+                    tryNowLabel: undefined,
+                },
+            ]);
             const prompt = (
                 model.sendRequest.firstCall.args[0] as vscode.LanguageModelChatMessage[]
             )
@@ -212,21 +200,20 @@ suite("Survey feature hints", () => {
             expect(prompt).to.include("schemaCompare").and.not.include('"keymap"');
         });
 
-        test("reports Copilot as unavailable when the user is not signed in", async () => {
+        test("returns only keyword matches when not signed in to Copilot", async () => {
             const service = new FeatureHintService(
                 [keywordHint, copilotHint],
                 async () => undefined,
             );
-
-            expect(await service.isCopilotAvailable()).to.be.false;
-            expect((await service.findHints(eligible, "copilot")).status).to.equal("unavailable");
+            expect(ids(await service.findHints(eligible))).to.deep.equal(["keymap"]);
         });
 
-        test("reports Copilot as unavailable when no hint uses Copilot", async () => {
-            const service = new FeatureHintService([keywordHint], async () =>
-                fakeModel("gpt-5.4-mini"),
-            );
-            expect(await service.isCopilotAvailable()).to.be.false;
+        test("does not look up a model when no hint uses Copilot", async () => {
+            const selectModel = sandbox.stub().resolves(fakeModel("gpt-5.4-mini"));
+            const service = new FeatureHintService([keywordHint], selectModel);
+
+            await service.findHints(eligible);
+            expect(selectModel).to.not.have.been.called;
         });
 
         test("keeps keyword matches when the Copilot request fails", async () => {
@@ -234,10 +221,30 @@ suite("Survey feature hints", () => {
             model.sendRequest.rejects(new Error("quota"));
             const service = new FeatureHintService([keywordHint, copilotHint], async () => model);
 
-            const result = await service.findHints(eligible, "copilot");
+            expect(ids(await service.findHints(eligible))).to.deep.equal(["keymap"]);
+        });
 
-            expect(result.status).to.equal("error");
-            expect(result.suggestions.map((suggestion) => suggestion.id)).to.deep.equal(["keymap"]);
+        test("attributes action telemetry to the hint's match mode", () => {
+            const sendActionEvent = telemetryStub;
+            const service = new FeatureHintService(
+                [keywordHint, copilotHint],
+                async () => undefined,
+            );
+
+            service.reportAction("tryNow", "schemaCompare");
+            service.reportAction("docs", "unknown");
+
+            expect(sendActionEvent).to.have.been.calledOnceWithExactly(
+                TelemetryViews.UserSurvey,
+                TelemetryActions.SurveyFeatureHint,
+                {
+                    additionalProps: {
+                        step: "tryNow",
+                        hintId: "schemaCompare",
+                        source: "copilot",
+                    },
+                },
+            );
         });
 
         test("ignores invalid definitions", () => {

@@ -17,9 +17,9 @@
  * 3. Choose a match mode:
  *    - `keyword`: strict, local matching on Submit. List whole words or phrases (case-insensitive)
  *      or RegExps. Best for distinctive terms such as "F5".
- *    - `copilot`: evaluated by a small Copilot model only when the respondent presses
- *      "Check with Copilot" and is signed in to Copilot. Write `promptHint` in English for the
- *      model. Best for needs people describe in many different ways.
+ *    - `copilot`: evaluated on Submit by a small Copilot model, only when the respondent is
+ *      signed in to Copilot; skipped otherwise. Write `promptHint` in English for the model.
+ *      Best for needs people describe in many different ways.
  * 4. Optionally add `isAlreadyInUse` to skip the hint for users who already have the feature.
  *
  * The featureHints unit tests validate every entry here.

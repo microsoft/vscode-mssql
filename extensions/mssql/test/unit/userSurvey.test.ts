@@ -346,15 +346,10 @@ suite("UserSurvey Tests", () => {
 
             await reducers.get("tryFeatureHint")(mockState, {
                 hintId: "keymap",
-                source: "keyword",
             });
-            await reducers.get("openFeatureHintDocs")(mockState, {
-                hintId: "keymap",
-                source: "keyword",
-            });
+            await reducers.get("openFeatureHintDocs")(mockState, { hintId: "keymap" });
             await reducers.get("tryFeatureHint")(mockState, {
                 hintId: "unknown",
-                source: "keyword",
             });
 
             expect(executeCommand).to.have.been.calledOnceWithExactly(
@@ -368,7 +363,7 @@ suite("UserSurvey Tests", () => {
             expect(sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.UserSurvey,
                 TelemetryActions.SurveyFeatureHint,
-                { additionalProps: { step: "tryNow", source: "keyword", hintIds: "keymap" } },
+                { additionalProps: { step: "tryNow", hintId: "keymap", source: "keyword" } },
             );
         });
     });

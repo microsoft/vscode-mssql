@@ -8,9 +8,9 @@ import { sendActionEvent } from "extension-toolkit/vscode";
 import { getLogger } from "../../models/logger";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import {
+    FeatureHintCloseOutcome,
     FeatureHintInput,
-    FeatureHintResult,
-    FeatureHintSource,
+    FeatureHintSuggestion,
     isFeatureHintEligible,
 } from "../../sharedInterfaces/userSurvey";
 import { getErrorMessage } from "../../utils/utils";
@@ -26,7 +26,10 @@ import { featureHintDefinitions } from "./featureHints.config";
 
 const logger = getLogger("UserSurvey");
 
-const copilotTimeoutMs = 30_000;
+/** The Copilot check delays Submit, so give up on it quickly. */
+const copilotTimeoutMs = 10_000;
+
+export type FeatureHintAction = "shown" | "docs" | "tryNow" | FeatureHintCloseOutcome;
 
 export class FeatureHintService {
     private readonly _definitions: FeatureHintDefinition[];
@@ -54,68 +57,54 @@ export class FeatureHintService {
         return this._definitions.find((definition) => definition.id === id);
     }
 
-    /** True when there is something for Copilot to check and the user is signed in to Copilot. */
-    public async isCopilotAvailable(): Promise<boolean> {
-        if (getCandidateHints(this._definitions, "copilot").length === 0) {
-            return false;
-        }
-        try {
-            return (await this._selectModel()) !== undefined;
-        } catch (error) {
-            logger.error(`Failed to look up Copilot models: ${getErrorMessage(error)}`);
-            return false;
-        }
-    }
-
     /**
-     * Keyword hints always run. Copilot hints run in addition when `source` is "copilot".
+     * Keyword hints always run. Copilot hints also run when the user is signed in to Copilot;
+     * otherwise they are skipped silently.
      */
     public async findHints(
         input: FeatureHintInput,
-        source: FeatureHintSource,
         token?: vscode.CancellationToken,
-    ): Promise<FeatureHintResult> {
+    ): Promise<FeatureHintSuggestion[]> {
         if (!isFeatureHintEligible(input)) {
-            return { status: "notEligible", suggestions: [] };
+            return [];
         }
 
-        const matches = findKeywordMatches(input.feedback, this._definitions);
-        let status: FeatureHintResult["status"] = "ok";
-        if (source === "copilot") {
-            const copilot = await this.findCopilotMatches(input.feedback, token);
-            status = copilot.status;
-            matches.push(...copilot.matches.filter((match) => !matches.includes(match)));
+        const matches = [
+            ...findKeywordMatches(input.feedback, this._definitions),
+            ...(await this.findCopilotMatches(input.feedback, token)),
+        ];
+        for (const match of matches) {
+            this.reportAction("shown", match.id);
         }
+        return matches.map(toFeatureHintSuggestion);
+    }
 
-        if (matches.length > 0) {
-            sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
-                additionalProps: {
-                    step: "shown",
-                    source,
-                    hintIds: matches.map((match) => match.id).join(","),
-                },
-            });
+    /** Sends telemetry for one hint, attributed to the match mode that found it. */
+    public reportAction(step: FeatureHintAction, hintId: string): void {
+        const definition = this.getDefinition(hintId);
+        if (!definition) {
+            return;
         }
-
-        return { status, suggestions: matches.map(toFeatureHintSuggestion) };
+        sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
+            additionalProps: { step, hintId, source: definition.match.mode },
+        });
     }
 
     private async findCopilotMatches(
         feedback: string,
         token?: vscode.CancellationToken,
-    ): Promise<{ status: FeatureHintResult["status"]; matches: FeatureHintDefinition[] }> {
+    ): Promise<FeatureHintDefinition[]> {
+        const candidates = getCandidateHints(this._definitions, "copilot");
+        if (candidates.length === 0) {
+            return [];
+        }
+
         const started = Date.now();
         const report = (outcome: string, matchCount: number, modelFamily?: string) =>
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFeatureHint, {
                 additionalProps: { step: "copilotCheck", outcome, modelFamily },
                 additionalMeasurements: { durationMs: Date.now() - started, matchCount },
             });
-
-        const candidates = getCandidateHints(this._definitions, "copilot");
-        if (candidates.length === 0) {
-            report("noCandidates", 0);
-            return { status: "ok", matches: [] };
-        }
 
         let model: vscode.LanguageModelChat | undefined;
         try {
@@ -124,8 +113,8 @@ export class FeatureHintService {
             logger.error(`Failed to look up Copilot models: ${getErrorMessage(error)}`);
         }
         if (!model) {
-            report("unavailable", 0);
-            return { status: "unavailable", matches: [] };
+            report("notSignedIn", 0);
+            return [];
         }
 
         const cancellation = new vscode.CancellationTokenSource();
@@ -139,15 +128,16 @@ export class FeatureHintService {
                 cancellation.token,
             );
             report("completed", matches.length, model.family);
-            return { status: "ok", matches };
+            return matches;
         } catch (error) {
             logger.error(`Copilot feature hint check failed: ${getErrorMessage(error)}`);
-            report(
-                cancellation.token.isCancellationRequested ? "cancelled" : "error",
-                0,
-                model.family,
-            );
-            return { status: "error", matches: [] };
+            const outcome = token?.isCancellationRequested
+                ? "cancelled"
+                : cancellation.token.isCancellationRequested
+                  ? "timedOut"
+                  : "error";
+            report(outcome, 0, model.family);
+            return [];
         } finally {
             clearTimeout(timeout);
             forwardCancellation?.dispose();
