@@ -38,7 +38,8 @@ function collectTests(suite, titlePath, output) {
 }
 
 function escapeCell(value) {
-    return String(value).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+    // Backslashes first, so the escapes added for pipes are not themselves escaped.
+    return String(value).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 }
 
 function firstErrorLine(test) {
