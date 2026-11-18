@@ -44,7 +44,6 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
-import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as notebookController from "../../src/notebooks/sqlNotebookController";
@@ -277,44 +276,54 @@ suite("MainController Tests", function () {
 
     suite("onToggleSqlCmd Tests", () => {
         const testUri = "file:///test/query.sql";
+        const document = { uri: vscode.Uri.parse(testUri) } as vscode.TextDocument;
         type ToggleSqlCmdAccess = {
             onToggleSqlCmd(): void;
             _outputContentProvider: { setSqlCmdMode: sinon.SinonStub };
             _statusview: { getSqlCmdMode: sinon.SinonStub; sqlCmdModeChanged: sinon.SinonStub };
+            _sqlCmdLanguageFlavorTracker: { update: sinon.SinonStub };
         };
         let controllerAccess: ToggleSqlCmdAccess;
-        let sendNotification: sinon.SinonStub;
 
         setup(() => {
             controllerAccess = mainController as unknown as ToggleSqlCmdAccess;
             controllerAccess._outputContentProvider = { setSqlCmdMode: sandbox.stub() };
             controllerAccess._statusview = {
-                getSqlCmdMode: sandbox.stub().returns(false),
+                getSqlCmdMode: sandbox.stub().returns(Constants.SqlCmdMode.Off),
                 sqlCmdModeChanged: sandbox.stub(),
             };
-            sendNotification = sandbox.stub();
-            sandbox.stub(SqlToolsServiceClient, "instance").value({ sendNotification });
+            controllerAccess._sqlCmdLanguageFlavorTracker = { update: sandbox.stub() };
             sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "getActiveTextEditor").returns({
+                document,
+            } as vscode.TextEditor);
         });
 
-        test("toggles the editor's SQLCMD mode and notifies the language service", () => {
-            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
+        const sqlCmdModeCycle: [Constants.SqlCmdMode, Constants.SqlCmdMode][] = [
+            [Constants.SqlCmdMode.Off, Constants.SqlCmdMode.On],
+            [Constants.SqlCmdMode.On, Constants.SqlCmdMode.Auto],
+            [Constants.SqlCmdMode.Auto, Constants.SqlCmdMode.Off],
+        ];
 
-            controllerAccess.onToggleSqlCmd();
+        for (const [currentMode, nextMode] of sqlCmdModeCycle) {
+            test(`toggles SQLCMD mode from ${currentMode} to ${nextMode}`, () => {
+                sandbox.stub(Utils, "isEditingSqlFile").returns(true);
+                controllerAccess._statusview.getSqlCmdMode.returns(currentMode);
 
-            expect(controllerAccess._outputContentProvider.setSqlCmdMode).to.have.been.calledWith(
-                testUri,
-                true,
-            );
-            expect(controllerAccess._statusview.sqlCmdModeChanged).to.have.been.calledWith(
-                testUri,
-                true,
-            );
-            expect(sendNotification).to.have.been.calledWith(
-                LanguageFlavorChangedNotification.type,
-                sinon.match({ uri: testUri, language: "sqlcmd" }),
-            );
-        });
+                controllerAccess.onToggleSqlCmd();
+
+                expect(
+                    controllerAccess._outputContentProvider.setSqlCmdMode,
+                ).to.have.been.calledWith(testUri, nextMode);
+                expect(controllerAccess._statusview.sqlCmdModeChanged).to.have.been.calledWith(
+                    testUri,
+                    nextMode,
+                );
+                expect(
+                    controllerAccess._sqlCmdLanguageFlavorTracker.update,
+                ).to.have.been.calledWith(document, nextMode);
+            });
+        }
 
         test("warns and does nothing when the active editor is not a SQL file", () => {
             sandbox.stub(Utils, "isEditingSqlFile").returns(false);
@@ -325,7 +334,7 @@ suite("MainController Tests", function () {
                 LocalizedConstants.msgOpenSqlFile,
             );
             expect(controllerAccess._outputContentProvider.setSqlCmdMode).to.not.have.been.called;
-            expect(sendNotification).to.not.have.been.called;
+            expect(controllerAccess._sqlCmdLanguageFlavorTracker.update).to.not.have.been.called;
         });
     });
 

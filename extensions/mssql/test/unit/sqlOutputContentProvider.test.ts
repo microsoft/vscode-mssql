@@ -596,32 +596,47 @@ suite("SqlOutputProvider Tests using mocks", () => {
     });
 
     test("setSqlCmdMode should do nothing if no queryRunner exists", () => {
-        expect(() => contentProvider.setSqlCmdMode("test_uri", true)).to.not.throw();
+        expect(() =>
+            contentProvider.setSqlCmdMode("test_uri", Constants.SqlCmdMode.On),
+        ).to.not.throw();
         expect(contentProvider.getQueryRunner("test_uri")).to.be.undefined;
     });
 
-    test("setSqlCmdMode should update the existing queryRunner", () => {
-        const queryRunner = { isSqlCmd: false } as QueryRunner;
-        contentProvider.setResultsMap = new Map([
-            ["test_uri", { queryRunner } as QueryRunnerState],
-        ]);
+    const sqlCmdModeRunnerFlags: [Constants.SqlCmdMode, boolean, boolean][] = [
+        [Constants.SqlCmdMode.Off, false, false],
+        [Constants.SqlCmdMode.On, true, false],
+        [Constants.SqlCmdMode.Auto, false, true],
+    ];
 
-        contentProvider.setSqlCmdMode("test_uri", true);
+    for (const [sqlCmdMode, isSqlCmd, autoDetectSqlCmd] of sqlCmdModeRunnerFlags) {
+        test(`setSqlCmdMode ${sqlCmdMode} should update the existing queryRunner`, () => {
+            const queryRunner = {
+                isSqlCmd: !isSqlCmd,
+                autoDetectSqlCmd: !autoDetectSqlCmd,
+            } as QueryRunner;
+            contentProvider.setResultsMap = new Map([
+                ["test_uri", { queryRunner } as QueryRunnerState],
+            ]);
 
-        expect(queryRunner.isSqlCmd).to.be.true;
-    });
+            contentProvider.setSqlCmdMode("test_uri", sqlCmdMode);
 
-    test("createQueryRunner should initialize SQLCMD mode from the status view", async () => {
-        statusView.getSqlCmdMode.withArgs(testUri).returns(true);
+            expect(queryRunner.isSqlCmd).to.equal(isSqlCmd);
+            expect(queryRunner.autoDetectSqlCmd).to.equal(autoDetectSqlCmd);
+        });
 
-        const queryRunner = await contentProvider.createQueryRunner(
-            statusViewInstance,
-            testUri,
-            testUri,
-        );
+        test(`createQueryRunner should initialize SQLCMD mode ${sqlCmdMode} from the status view`, async () => {
+            statusView.getSqlCmdMode.withArgs(testUri).returns(sqlCmdMode);
 
-        expect(queryRunner?.isSqlCmd).to.be.true;
-    });
+            const queryRunner = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                testUri,
+                testUri,
+            );
+
+            expect(queryRunner?.isSqlCmd).to.equal(isSqlCmd);
+            expect(queryRunner?.autoDetectSqlCmd).to.equal(autoDetectSqlCmd);
+        });
+    }
 
     test("Test queryResultsMap getters and setters", () => {
         let queryResultsMap = contentProvider.getResultsMap;

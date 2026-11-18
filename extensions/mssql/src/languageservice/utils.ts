@@ -30,7 +30,7 @@ export function changeLanguageServiceForFile(
  * T-SQL diagnostics for SQLCMD commands and variables.
  * @param client SQL Tools Service client
  * @param uri URI of the file
- * @param isSqlCmd whether the file is in SQLCMD mode
+ * @param isSqlCmd whether the file should be treated as a SQLCMD script
  */
 export function changeSqlCmdModeForFile(
     client: SqlToolsServiceClient,

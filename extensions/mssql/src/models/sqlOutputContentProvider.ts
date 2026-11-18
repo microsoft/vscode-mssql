@@ -756,7 +756,7 @@ export class SqlOutputContentProvider {
                 undefined,
                 this._getConnectionTelemetryInfo,
             );
-            queryRunner.isSqlCmd = statusView.getSqlCmdMode(uri);
+            SqlOutputContentProvider.applySqlCmdMode(queryRunner, statusView.getSqlCmdMode(uri));
             let isLiveRun = false;
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
@@ -1645,16 +1645,27 @@ export class SqlOutputContentProvider {
      * Sets SQLCMD mode on the editor's query runner, if one exists. Editors without a query runner
      * pick up their SQLCMD mode from the status view when their runner is created.
      * @param uri URI of the editor
-     * @param isSqlCmd whether SQLCMD mode should be enabled
+     * @param sqlCmdMode the editor's new SQLCMD mode
      */
-    public setSqlCmdMode(uri: string, isSqlCmd: boolean): void {
+    public setSqlCmdMode(uri: string, sqlCmdMode: Constants.SqlCmdMode): void {
         const queryRunner = this.getQueryRunner(uri);
         if (queryRunner) {
-            queryRunner.isSqlCmd = isSqlCmd;
+            SqlOutputContentProvider.applySqlCmdMode(queryRunner, sqlCmdMode);
         }
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
+
+    /**
+     * Sets the query runner's SQLCMD execution flags to match the editor's SQLCMD mode.
+     */
+    private static applySqlCmdMode(
+        queryRunner: QueryRunner,
+        sqlCmdMode: Constants.SqlCmdMode,
+    ): void {
+        queryRunner.isSqlCmd = sqlCmdMode === Constants.SqlCmdMode.On;
+        queryRunner.autoDetectSqlCmd = sqlCmdMode === Constants.SqlCmdMode.Auto;
+    }
 
     /**
      * Returns which column should be used for a new result pane

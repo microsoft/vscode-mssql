@@ -34,8 +34,8 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
-    // Whether SQLCMD mode is enabled for the editor
-    public isSqlCmd: boolean;
+    // SQLCMD mode of the editor
+    public currentSqlCmdMode: Constants.SqlCmdMode;
 
     public currentLanguageServiceStatus: string;
     public queryTimer: NodeJS.Timeout;
@@ -164,19 +164,26 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
-        bar.isSqlCmd = this.getDefaultSqlCmdMode();
+        bar.currentSqlCmdMode = this.getDefaultSqlCmdMode();
         this._statusBars[fileUri] = bar;
     }
 
     /**
      * Gets the initial SQLCMD mode from the `mssql.query.defaultSqlCmdMode`
-     * setting. Only `enabled` turns SQLCMD mode on; any other value leaves it off.
+     * setting. Unrecognized values leave SQLCMD mode off.
      */
-    private getDefaultSqlCmdMode(): boolean {
+    private getDefaultSqlCmdMode(): Constants.SqlCmdMode {
         const defaultMode = vscode.workspace
             .getConfiguration(Constants.extensionConfigSectionName)
             .get<string>(Constants.configDefaultSqlCmdMode, Constants.DefaultSqlCmdMode.Disabled);
-        return defaultMode === Constants.DefaultSqlCmdMode.Enabled;
+        switch (defaultMode) {
+            case Constants.DefaultSqlCmdMode.Enabled:
+                return Constants.SqlCmdMode.On;
+            case Constants.DefaultSqlCmdMode.Auto:
+                return Constants.SqlCmdMode.Auto;
+            default:
+                return Constants.SqlCmdMode.Off;
+        }
     }
 
     private destroyStatusBar(fileUri: string): void {
@@ -462,25 +469,36 @@ export default class StatusView implements vscode.Disposable {
     }
 
     /**
-     * Gets whether SQLCMD mode is enabled for the editor. Editors start with the
-     * mode from the `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
+     * Gets the SQLCMD mode of the editor. Editors start with the mode from the
+     * `mssql.query.defaultSqlCmdMode` setting until SQLCMD mode is toggled.
      * @param fileUri URI of the editor
      */
-    public getSqlCmdMode(fileUri: string): boolean {
-        return this.getStatusBar(fileUri).isSqlCmd;
+    public getSqlCmdMode(fileUri: string): Constants.SqlCmdMode {
+        return this.getStatusBar(fileUri).currentSqlCmdMode;
     }
 
     /**
      * Updates the SQLCMD mode status bar item for the editor.
      * @param fileUri URI of the editor
-     * @param isSqlCmd new SQLCMD mode, or undefined to refresh the item with the current mode
+     * @param sqlCmdMode new SQLCMD mode, or undefined to refresh the item with the current mode
      */
-    public sqlCmdModeChanged(fileUri: string, isSqlCmd?: boolean): void {
+    public sqlCmdModeChanged(fileUri: string, sqlCmdMode?: Constants.SqlCmdMode): void {
         let bar = this.getStatusBar(fileUri);
-        bar.isSqlCmd = isSqlCmd ?? bar.isSqlCmd;
-        bar.sqlCmdMode.text = bar.isSqlCmd
-            ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
-            : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
+        bar.currentSqlCmdMode = sqlCmdMode ?? bar.currentSqlCmdMode;
+        switch (bar.currentSqlCmdMode) {
+            case Constants.SqlCmdMode.On:
+                bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeOnLabel;
+                bar.sqlCmdMode.tooltip = undefined;
+                break;
+            case Constants.SqlCmdMode.Auto:
+                bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeAutoLabel;
+                bar.sqlCmdMode.tooltip = LocalizedConstants.StatusBar.sqlCmdModeAutoTooltip;
+                break;
+            default:
+                bar.sqlCmdMode.text = LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
+                bar.sqlCmdMode.tooltip = undefined;
+                break;
+        }
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }

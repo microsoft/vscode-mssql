@@ -123,6 +123,7 @@ export default class QueryRunner {
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
+    private _autoDetectSqlCmd: boolean = false;
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private _queryDocumentText: string | undefined;
@@ -286,6 +287,18 @@ export default class QueryRunner {
         this._isSqlCmd = value;
     }
 
+    /**
+     * Whether the service should enable SQLCMD mode for an execution if the executed text
+     * contains SQLCMD syntax. Ignored by the service when isSqlCmd is true.
+     */
+    get autoDetectSqlCmd(): boolean {
+        return this._autoDetectSqlCmd;
+    }
+
+    set autoDetectSqlCmd(value: boolean) {
+        this._autoDetectSqlCmd = value;
+    }
+
     get hasCompleted(): boolean {
         return this._hasCompleted;
     }
@@ -423,6 +436,7 @@ export default class QueryRunner {
             column: column,
             executionPlanOptions: executionPlanOptions,
             isSqlCmdMode: this._isSqlCmd,
+            autoDetectSqlCmdMode: this._autoDetectSqlCmd,
         };
 
         const runStatementActivity = startActivity(
@@ -525,6 +539,7 @@ export default class QueryRunner {
                 executionPlanOptions: executionPlanOptions,
                 querySelection: selection,
                 isSqlCmdMode: this._isSqlCmd,
+                autoDetectSqlCmdMode: this._autoDetectSqlCmd,
             };
 
             // Getting query text
