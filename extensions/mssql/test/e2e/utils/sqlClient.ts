@@ -5,6 +5,7 @@
 
 import { Connection, ConnectionConfiguration, Request } from "tedious";
 import { getAuthenticationType, getPassword, getServerName, getUserName } from "./envConfigReader";
+import { splitBatches as splitSqlBatches } from "../../../src/sql/batchSplitter";
 
 /** One result set: each row maps column name to value. */
 export type SqlRow = Record<string, unknown>;
@@ -83,12 +84,12 @@ function execBatch(connection: Connection, sql: string): Promise<SqlRow[][]> {
     });
 }
 
-/** Splits a script on `GO` separator lines, the way SSMS and sqlcmd do. */
+/**
+ * Splits a script on `GO` separator lines, the way SSMS and sqlcmd do. Uses the extension's own
+ * splitter, so a `GO` inside a comment, string, or bracketed identifier does not split.
+ */
 export function splitBatches(script: string): string[] {
-    return script
-        .split(/^\s*GO\s*;?\s*$/gim)
-        .map((batch) => batch.trim())
-        .filter((batch) => batch.length > 0);
+    return splitSqlBatches(script).map((batch) => batch.text);
 }
 
 /**

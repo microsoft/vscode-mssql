@@ -40,6 +40,8 @@ type PerTestLifecycleHooks = {
 
 const ELECTRON_CLOSE_TIMEOUT_MS = 30_000;
 const ELECTRON_KILL_TIMEOUT_MS = 10_000;
+/** taskkill's exit code when the process it was asked to end no longer exists. */
+const WINDOWS_PROCESS_NOT_FOUND = 128;
 
 export function useSharedVsCodeLifecycle(
     hooks: SharedLifecycleHooks = {},
@@ -202,7 +204,10 @@ function killProcessTree(electronProcess: cp.ChildProcess): void {
         if (result.error) {
             throw result.error;
         }
-        if (result.status !== 0) {
+        // As on other platforms, VS Code can finish exiting before taskkill runs. taskkill then
+        // fails with 128 (process not found), which is a success.
+        const hasExited = electronProcess.exitCode !== null || electronProcess.signalCode !== null;
+        if (result.status !== 0 && result.status !== WINDOWS_PROCESS_NOT_FOUND && !hasExited) {
             throw new Error(`Failed to terminate the VS Code process tree: ${result.stderr}`);
         }
         return;
