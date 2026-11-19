@@ -72,7 +72,6 @@ suite("Object Explorer v2 command registry (B25)", () => {
             "oe2:cmd=restoreDb",
             "oe2:cmd=importData",
             "oe2:cmd=dropDatabase",
-            "oe2:cmd=copilotChat",
             "oe2:cmd=copilotAgent",
             "oe2:cmd=schemaCompare",
             "oe2:cmd=dacpac",
@@ -86,7 +85,6 @@ suite("Object Explorer v2 command registry (B25)", () => {
             "oe2:cmd=restore",
             "oe2:cmd=importDataSrv",
             "oe2:cmd=copyConnectionString",
-            "oe2:cmd=copilotChat",
             "oe2:cmd=copilotAgent",
             "oe2:cmd=schemaCompare",
             "oe2:cmd=dacpac",
@@ -104,7 +102,6 @@ suite("Object Explorer v2 command registry (B25)", () => {
             "oe2:cmd=restoreDb",
             "oe2:cmd=importData",
             "oe2:cmd=copyConnectionString",
-            "oe2:cmd=copilotChat",
             "oe2:cmd=copilotAgent",
             "oe2:cmd=schemaCompare",
             "oe2:cmd=dacpac",
@@ -116,7 +113,6 @@ suite("Object Explorer v2 command registry (B25)", () => {
             "oe2:cmd=newQuery",
             "oe2:cmd=editTableData",
             "oe2:cmd=editTable",
-            "oe2:cmd=copilotChat",
             "oe2:cmd=copilotAgent",
         ]);
         expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
@@ -125,7 +121,6 @@ suite("Object Explorer v2 command registry (B25)", () => {
             "oe2:cmd=newQuery",
             "oe2:cmd=profiler",
             "oe2:cmd=copyConnectionString",
-            "oe2:cmd=copilotChat",
             "oe2:cmd=copilotAgent",
             "oe2:cmd=schemaCompare",
             "oe2:cmd=dacpac",
@@ -319,7 +314,6 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
             "schemaCompare",
             "dacpacDialog",
             "createNotebook",
-            "chatWithDatabase",
             "chatWithDatabaseAgent",
         ]) {
             const deps = fakeDeps();

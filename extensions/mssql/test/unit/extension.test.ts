@@ -77,10 +77,6 @@ suite("Extension API Tests", () => {
             has: sandbox.stub().returns(false),
             inspect: sandbox.stub().returns(undefined),
         } as unknown as vscode.WorkspaceConfiguration;
-        const chatParticipant = {
-            dispose: sandbox.stub(),
-            onDidReceiveFeedback: sandbox.stub().returns(disposable),
-        } as unknown as vscode.ChatParticipant;
 
         sandbox.stub(vscode.window, "createOutputChannel").returns(outputChannel);
         sandbox.stub(vscode.workspace, "getConfiguration").returns(configuration);
@@ -88,7 +84,6 @@ suite("Extension API Tests", () => {
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
         sandbox.stub(vscode.window, "registerCustomEditorProvider").returns(disposable);
         sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
-        sandbox.stub(vscode.chat, "createChatParticipant").returns(chatParticipant);
         sandbox.stub(OverviewWebviewController, "showWelcomeOnExtensionUpdate").resolves();
         sandbox.stub(LocalizationCache, "initializeWebviewLocalizationCache").returns();
         sandbox.stub(IconUtils, "initialize").returns();

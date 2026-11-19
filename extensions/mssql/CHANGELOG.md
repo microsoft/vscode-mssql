@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+- Removed the `@mssql` chat participant for Copilot Ask mode and its query quick actions and Object Explorer chat entry. Copilot Agent mode tools and "Open in GitHub Copilot Agent" remain available.
+
 ## Version 1.48.0
 
 - Release date: November 17, 2026

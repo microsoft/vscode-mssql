@@ -25,7 +25,6 @@ export type QueryResultLeaseOwnerKind =
     | "liveRun"
     | "pinnedDocument"
     | "aiTool"
-    | "chatParticipant"
     | "export"
     | "command"
     | "debug"

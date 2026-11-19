@@ -290,88 +290,6 @@
                 }
             ]
         },
-        "chatParticipants": [
-            {
-                "id": "mssql.agent",
-                "name": "mssql",
-                "description": "MSSQL extension GitHub Copilot agent",
-                "isSticky": true,
-                "commands": [
-                    {
-                        "name": "help",
-                        "description": "Provide a list of available commands and their descriptions."
-                    },
-                    {
-                        "name": "runQuery",
-                        "description": "Execute a SQL query in the currently connected database and return results."
-                    },
-                    {
-                        "name": "explain",
-                        "description": "Provide natural language explanations for SQL/ORM code, queries, functions, or stored procedures."
-                    },
-                    {
-                        "name": "fix",
-                        "description": "Detect and correct syntax issues or missing constraints in SQL/ORM code.."
-                    },
-                    {
-                        "name": "optimize",
-                        "description": "Analyze query performance and suggest improvements (e.g., indexing, restructuring)."
-                    },
-                    {
-                        "name": "getConnectionDetails",
-                        "description": "Show a complete breakdown of the active connection: server name, database, version, authentication type."
-                    },
-                    {
-                        "name": "changeDatabase",
-                        "description": "Switch to a different database within the current server."
-                    },
-                    {
-                        "name": "disconnect",
-                        "description": "Disconnect from the currently connected database."
-                    },
-                    {
-                        "name": "connect",
-                        "description": "Connect to a database."
-                    },
-                    {
-                        "name": "showSchema",
-                        "description": "Visualize the structure of the current database schema, including tables, relationships, and keys."
-                    },
-                    {
-                        "name": "showDefinition",
-                        "description": "Display structure of a specific table, view, function, or stored procedure."
-                    },
-                    {
-                        "name": "listServers",
-                        "description": "List all available database servers in OE."
-                    },
-                    {
-                        "name": "listDatabases",
-                        "description": "List all databases on the current server."
-                    },
-                    {
-                        "name": "listSchemas",
-                        "description": "List all schemas in the current database."
-                    },
-                    {
-                        "name": "listTables",
-                        "description": "List all tables in the current database."
-                    },
-                    {
-                        "name": "listViews",
-                        "description": "List all views in the current database."
-                    },
-                    {
-                        "name": "listFunctions",
-                        "description": "List all functions in the current database."
-                    },
-                    {
-                        "name": "listProcedures",
-                        "description": "List all procedures in the current database."
-                    }
-                ]
-            }
-        ],
         "customEditors": [
             {
                 "viewType": "mssql.executionPlanView",
@@ -449,11 +367,6 @@
             }
         },
         "submenus": [
-            {
-                "id": "mssql.copilot.editorSubmenu",
-                "title": "%mssql.copilot.editorSubmenu%",
-                "label": "%mssql.copilot.editorSubmenu%"
-            },
             {
                 "id": "mssql.sqlScriptsSubmenu",
                 "title": "%mssql.sqlScriptsSubmenu%",
@@ -557,31 +470,6 @@
                     "command": "mssql.changeConnection",
                     "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries && !mssql.hideUIElements",
                     "group": "0_mssql"
-                },
-                {
-                    "submenu": "mssql.copilot.editorSubmenu",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled && !mssql.hideUIElements",
-                    "group": "0_mssql"
-                }
-            ],
-            "mssql.copilot.editorSubmenu": [
-                {
-                    "command": "mssql.copilot.explainQuery",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-                    "title": "%mssql.copilot.explainQuery%",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "mssql.copilot.rewriteQuery",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-                    "title": "%mssql.copilot.rewriteQuery%",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "mssql.copilot.analyzeQueryPerformance",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-                    "title": "%mssql.copilot.analyzeQueryPerformance%",
-                    "group": "navigation@3"
                 }
             ],
             "mssql.sqlScriptsSubmenu": [
@@ -899,11 +787,6 @@
                     "group": "2_MSSQL_connection@4"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.chatWithDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotChat\\b/ && mssql.copilot.isGHCInstalled",
-                    "group": "6_MSSQL_copilot@1"
-                },
-                {
                     "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotAgent\\b/ && mssql.copilot.isGHCInstalled",
                     "group": "6_MSSQL_copilot@2"
@@ -1183,11 +1066,6 @@
                     "command": "mssql.refreshObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "1_MSSQL_primary@90"
-                },
-                {
-                    "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
-                    "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
@@ -1653,10 +1531,6 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.copyConnectionString",
-                    "when": "false"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.chatWithDatabase",
                     "when": "false"
                 },
                 {
@@ -2494,12 +2368,6 @@
                 "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
             },
             {
-                "command": "mssql.objectExplorerV2.chatWithDatabase",
-                "title": "%mssql.objectExplorerV2.chatWithDatabase%",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
-            },
-            {
                 "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
                 "title": "%mssql.objectExplorerV2.chatWithDatabaseAgent%",
                 "category": "MS SQL",
@@ -2876,11 +2744,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.objectExplorerChatWithDatabase",
-                "title": "%mssql.objectExplorerChatWithDatabase%",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
                 "title": "%mssql.objectExplorerChatWithDatabaseInAgentMode%",
                 "category": "MS SQL"
@@ -3192,26 +3055,6 @@
                 "category": "MS SQL",
                 "enablement": "mssql.preview.liveQueryStatisticsEnabled",
                 "icon": "$(stop-circle)"
-            },
-            {
-                "command": "mssql.copilot.explainQuery",
-                "title": "%mssql.copilot.explainQuery%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.copilot.analyzeQueryPerformance",
-                "title": "%mssql.copilot.analyzeQueryPerformance%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.copilot.rewriteQuery",
-                "title": "%mssql.copilot.rewriteQuery%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.copilot.newQueryWithConnection",
-                "title": "%mssql.copilot.newQueryWithConnection%",
-                "category": "MS SQL"
             },
             {
                 "command": "mssql.connectionSharing.editConnectionSharingPermissions",

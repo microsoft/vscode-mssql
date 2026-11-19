@@ -1741,59 +1741,6 @@
         "comment": ["{0} is the account ID", "{1} is the tenant ID"]
     },
     "Connection string redacted due to containing authentication secrets": "Connection string redacted due to containing authentication secrets",
-    "No model found.": "No model found.",
-    "No tools to process.": "No tools to process.",
-    "You are not connected to any database.": "You are not connected to any database.",
-    "Connected to:": "Connected to:",
-    "Server - {0}/{0} is the server name": {
-        "message": "Server - {0}",
-        "comment": ["{0} is the server name"]
-    },
-    "Database - {0}/{0} is the database name": {
-        "message": "Database - {0}",
-        "comment": ["{0} is the database name"]
-    },
-    "Using {0} ({1}).../{0} is the model name{1} is whether the model can send requests": {
-        "message": "Using {0} ({1})...",
-        "comment": ["{0} is the model name", "{1} is whether the model can send requests"]
-    },
-    "Tool lookup for: {0} - {1}./{0} is the part name{1} is the part input": {
-        "message": "Tool lookup for: {0} - {1}.",
-        "comment": ["{0} is the part name", "{1} is the part input"]
-    },
-    "Got invalid tool use parameters: \"{0}\". ({1})/{0} is the part input{1} is the error message": {
-        "message": "Got invalid tool use parameters: \"{0}\". ({1})",
-        "comment": ["{0} is the part input", "{1} is the error message"]
-    },
-    "Calling tool: {0} with {1}./{0} is the tool function name{1} is the SQL tool parameters": {
-        "message": "Calling tool: {0} with {1}.",
-        "comment": ["{0} is the tool function name", "{1} is the SQL tool parameters"]
-    },
-    "The requested model could not be found. Please check model availability or try a different model.": "The requested model could not be found. Please check model availability or try a different model.",
-    "Access denied. Please ensure you have the necessary permissions to use this tool or model.": "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
-    "Usage limits exceeded. Try again later, or consider optimizing your requests.": "Usage limits exceeded. Try again later, or consider optimizing your requests.",
-    "I'm sorry, I can only assist with SQL-related questions.": "I'm sorry, I can only assist with SQL-related questions.",
-    "An unexpected error occurred with the language model. Please try again.": "An unexpected error occurred with the language model. Please try again.",
-    "Using {0} to process your request.../{0} is the model name that will be processing the request": {
-        "message": "Using {0} to process your request...",
-        "comment": ["{0} is the model name that will be processing the request"]
-    },
-    "The language model did not return any output.": "The language model did not return any output.",
-    "An error occurred while processing your request.": "An error occurred while processing your request.",
-    "An error occurred: {0}/{0} is the error message": {
-        "message": "An error occurred: {0}",
-        "comment": ["{0} is the error message"]
-    },
-    "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
-    "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.": "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.",
-    "Open SQL editor and connect": "Open SQL editor and connect",
-    "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection./{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')": {
-        "message": "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection.",
-        "comment": ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"]
-    },
-    "Connect to a database": "Connect to a database",
-    "Show a random table definition": "Show a random table definition",
-    "How many tables are in this database?": "How many tables are in this database?",
     "List Connections": "List Connections",
     "List all connections registered with the mssql extension?": "List all connections registered with the mssql extension?",
     "Listing server connections": "Listing server connections",
@@ -2007,52 +1954,7 @@
         "message": "Running query on connection '{0}' (ID: {1})",
         "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Connected successfully": "Connected successfully",
-    "Failed to connect": "Failed to connect",
-    "Disconnected successfully": "Disconnected successfully",
-    "Database changed successfully": "Database changed successfully",
-    "Failed to change database": "Failed to change database",
-    "No active connection for database change": "No active connection for database change",
-    "Connection Details": "Connection Details",
-    "Authentication": "Authentication",
-    "Server Edition": "Server Edition",
-    "Cloud": "Cloud",
-    "User": "User",
-    "No connection information found": "No connection information found",
-    "Opening schema designer...": "Opening schema designer...",
-    "No connection credentials found": "No connection credentials found",
-    "No active connection for schema view": "No active connection for schema view",
-    "Available Servers": "Available Servers",
-    "No saved connection profiles found.": "No saved connection profiles found.",
-    "Use {0} to create a new connection./{0} is the connect command": {
-        "message": "Use {0} to create a new connection.",
-        "comment": ["{0} is the connect command"]
-    },
-    "Unnamed Profile": "Unnamed Profile",
-    "Default": "Default",
-    "Found {0} saved connection profile(s)./{0} is the number of connection profiles": {
-        "message": "Found {0} saved connection profile(s).",
-        "comment": ["{0} is the number of connection profiles"]
-    },
-    "Error retrieving server list: {0}/{0} is the error message": {
-        "message": "Error retrieving server list: {0}",
-        "comment": ["{0} is the error message"]
-    },
-    "Unknown error": "Unknown error",
-    "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
     "Chat command not available in this VS Code version": "Chat command not available in this VS Code version",
-    "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.": "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
-    "What I can do for you:": "What I can do for you:",
-    "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance": "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance",
-    "Apply contextual suggestions for SQL syntax, relationships, and constraints": "Apply contextual suggestions for SQL syntax, relationships, and constraints",
-    "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements": "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements",
-    "Generate mock data and seed scripts to support testing and development environments": "Generate mock data and seed scripts to support testing and development environments",
-    "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts": "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts",
-    "Understand and document business logic embedded in stored procedures, views, and functions": "Understand and document business logic embedded in stored procedures, views, and functions",
-    "Get security-related recommendations, such as avoiding SQL injection or excessive permissions": "Get security-related recommendations, such as avoiding SQL injection or excessive permissions",
-    "Receive natural language explanations to help developers unfamiliar with T-SQL understand code": "Receive natural language explanations to help developers unfamiliar with T-SQL understand code",
-    "Reverse-engineer existing databases by explaining SQL schemas and relationships": "Reverse-engineer existing databases by explaining SQL schemas and relationships",
-    "Scaffold backend components (e.g., data-access layers) based on your current database context": "Scaffold backend components (e.g., data-access layers) based on your current database context",
     "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
     "Cancel failed: {0}/{0} is the error message": {
         "message": "Cancel failed: {0}",
@@ -2729,6 +2631,7 @@
     "Windows Authentication": "Windows Authentication",
     "Enabled": "Enabled",
     "Disabled": "Disabled",
+    "User": "User",
     "SQL Container Name": "SQL Container Name",
     "SQL Container Version": "SQL Container Version",
     "Application Intent": "Application Intent",
@@ -2841,6 +2744,7 @@
     "SDK-style project": "SDK-style project",
     "Yes (Recommended)": "Yes (Recommended)",
     "Click \"Learn More\" button for more information about SDK-style projects": "Click \"Learn More\" button for more information about SDK-style projects",
+    "Default": "Default",
     "Select Target Platform": "Select Target Platform",
     "Click \"Learn more\" button for more information about local development experience to {0}": "Click \"Learn more\" button for more information about local development experience to {0}",
     "Undefined name": "Undefined name",
@@ -6786,6 +6690,7 @@
     "Expand connections": "Expand connections",
     "This connection does not have a display name in Azure Data Studio.": "This connection does not have a display name in Azure Data Studio.",
     "This value was not provided in the Azure Data Studio settings file.": "This value was not provided in the Azure Data Studio settings file.",
+    "Authentication": "Authentication",
     "Import selected": "Import selected",
     "Connection Import Warning": "Connection Import Warning",
     "Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.": "Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.",

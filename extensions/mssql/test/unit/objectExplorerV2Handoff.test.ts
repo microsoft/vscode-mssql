@@ -88,14 +88,12 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             "dropDatabase",
             "flatFileImport",
             "dacpacDialog",
-            "chatWithDatabase",
             "chatWithDatabaseAgent",
             "createNotebook",
         ]);
         expect(policiesForNode("object", undefined, "table").map((p) => p.feature)).to.deep.equal([
             "editTable",
             "tableExplorer",
-            "chatWithDatabase",
             "chatWithDatabaseAgent",
         ]);
         expect(policiesForNode("object", undefined, "view")).to.deep.equal([]);
@@ -105,7 +103,6 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             "schemaCompare",
             "dacpacDialog",
             "copyConnectionString",
-            "chatWithDatabase",
             "chatWithDatabaseAgent",
             "createNotebook",
         ]);
@@ -114,7 +111,6 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             "schemaCompare",
             "dacpacDialog",
             "copyConnectionString",
-            "chatWithDatabase",
             "chatWithDatabaseAgent",
             "createNotebook",
         ]);

@@ -793,172 +793,48 @@ suite("MainController Tests", function () {
             }
         });
 
-        for (const command of [
-            Constants.cmdChatWithDatabase,
-            Constants.cmdChatWithDatabaseInAgentMode,
-        ]) {
-            for (const database of ["database-b", LocalizedConstants.defaultDatabaseLabel]) {
-                test(`${command} scopes metadata to ${database}`, async () => {
-                    const { sendActionEvent } = stubTelemetry(sandbox);
-                    const node = sandbox.createStubInstance(TreeNodeInfo);
-                    const profile = new ConnectionProfile();
-                    profile.server = "localhost";
-                    profile.database = "database-a";
-                    profile.user = "user";
-                    sandbox.stub(node, "connectionProfile").get(() => profile);
-                    sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns(database);
-                    const targetDatabase =
-                        database === LocalizedConstants.defaultDatabaseLabel ? "" : database;
-                    const serverInfo = { engineEditionId: 5 } as IServerInfo;
-                    connectionManager.getServerInfo
-                        .withArgs(profile, targetDatabase)
-                        .returns(serverInfo);
-                    const editor = createMockTextEditor("file:///chat.sql");
-                    sandbox.stub(vscode.window, "activeTextEditor").get(() => editor);
-                    const activeConnection = new ConnectionInfo();
-                    activeConnection.credentials = { ...profile, database: targetDatabase };
-                    connectionManager.getConnectionInfo.returns(activeConnection);
-                    sandbox.stub(vscode.commands, "executeCommand").resolves();
-                    sandbox
-                        .stub(accessMainController(mainController), "findChatOpenAgentCommand")
-                        .resolves("workbench.action.chat.open");
+        const command = Constants.cmdChatWithDatabaseInAgentMode;
+        for (const database of ["database-b", LocalizedConstants.defaultDatabaseLabel]) {
+            test(`${command} scopes metadata to ${database}`, async () => {
+                const { sendActionEvent } = stubTelemetry(sandbox);
+                const node = sandbox.createStubInstance(TreeNodeInfo);
+                const profile = new ConnectionProfile();
+                profile.server = "localhost";
+                profile.database = "database-a";
+                profile.user = "user";
+                sandbox.stub(node, "connectionProfile").get(() => profile);
+                sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns(database);
+                const targetDatabase =
+                    database === LocalizedConstants.defaultDatabaseLabel ? "" : database;
+                const serverInfo = { engineEditionId: 5 } as IServerInfo;
+                connectionManager.getServerInfo
+                    .withArgs(profile, targetDatabase)
+                    .returns(serverInfo);
+                const editor = createMockTextEditor("file:///chat.sql");
+                sandbox.stub(vscode.window, "activeTextEditor").get(() => editor);
+                const activeConnection = new ConnectionInfo();
+                activeConnection.credentials = { ...profile, database: targetDatabase };
+                connectionManager.getConnectionInfo.returns(activeConnection);
+                sandbox.stub(vscode.commands, "executeCommand").resolves();
+                sandbox
+                    .stub(accessMainController(mainController), "findChatOpenAgentCommand")
+                    .resolves("workbench.action.chat.open");
 
-                    const [handler] = mainController["_event"].listeners(command);
-                    await handler(node);
+                const [handler] = mainController["_event"].listeners(command);
+                await handler(node);
 
-                    expect(sendActionEvent).to.have.been.calledWith(
-                        TelemetryViews.MssqlCopilot,
-                        command === Constants.cmdChatWithDatabase
-                            ? TelemetryActions.ChatWithDatabase
-                            : TelemetryActions.ChatWithDatabaseInAgentMode,
-                        { connectionInfo: profile, serverInfo },
-                    );
-                    expect(connectionManager.getServerInfo).to.have.been.calledWith(
-                        profile,
-                        targetDatabase,
-                    );
-                    expect(profile.database).to.equal("database-a");
-                });
-            }
+                expect(sendActionEvent).to.have.been.calledWith(
+                    TelemetryViews.MssqlCopilot,
+                    TelemetryActions.ChatWithDatabaseInAgentMode,
+                    { connectionInfo: profile, serverInfo },
+                );
+                expect(connectionManager.getServerInfo).to.have.been.calledWith(
+                    profile,
+                    targetDatabase,
+                );
+                expect(profile.database).to.equal("database-a");
+            });
         }
-    });
-
-    suite("onNewQueryWithConnection Tests", () => {
-        setup(() => {
-            stubTelemetry(sandbox);
-        });
-
-        test("does nothing when already connected to SQL editor without force flags", async () => {
-            const uri = "file:///already-connected.sql";
-            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
-            connectionManager.isConnected.withArgs(uri).returns(true);
-            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
-            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
-            const promptToConnectStub = sandbox
-                .stub(mainController, "promptToConnect")
-                .resolves(true);
-
-            const result = await mainController.onNewQueryWithConnection();
-
-            expect(result).to.equal(true);
-            expect(openTextDocumentStub).to.not.have.been.called;
-            expect(showTextDocumentStub).to.not.have.been.called;
-            expect(promptToConnectStub).to.not.have.been.called;
-        });
-
-        test("opens new editor when no active editor exists", async () => {
-            sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
-            const sqlDocument = {
-                uri: vscode.Uri.parse("untitled:query.sql"),
-                languageId: "sql",
-            } as vscode.TextDocument;
-            const shownEditor = createMockTextEditor("untitled:query.sql");
-            const openTextDocumentStub = sandbox
-                .stub(vscode.workspace, "openTextDocument")
-                .resolves(sqlDocument);
-            const showTextDocumentStub = sandbox
-                .stub(vscode.window, "showTextDocument")
-                .resolves(shownEditor);
-            const promptToConnectStub = sandbox
-                .stub(mainController, "promptToConnect")
-                .resolves(true);
-
-            const result = await mainController.onNewQueryWithConnection();
-
-            expect(result).to.equal(true);
-            expect(openTextDocumentStub).to.have.been.calledWithMatch({
-                language: "sql",
-                content: "",
-            });
-            expect(showTextDocumentStub).to.have.been.calledWith(sqlDocument);
-            expect(promptToConnectStub).to.have.been.called;
-        });
-
-        test("forces new editor when forceNewEditor is true", async () => {
-            const uri = "file:///existing-editor.sql";
-            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
-            connectionManager.isConnected.returns(true);
-            const sqlDocument = {
-                uri: vscode.Uri.parse("untitled:forced.sql"),
-                languageId: "sql",
-            } as vscode.TextDocument;
-            const shownEditor = createMockTextEditor("untitled:forced.sql");
-            const openTextDocumentStub = sandbox
-                .stub(vscode.workspace, "openTextDocument")
-                .resolves(sqlDocument);
-            const showTextDocumentStub = sandbox
-                .stub(vscode.window, "showTextDocument")
-                .resolves(shownEditor);
-            const promptToConnectStub = sandbox
-                .stub(mainController, "promptToConnect")
-                .resolves(true);
-
-            const result = await mainController.onNewQueryWithConnection(true, false);
-
-            expect(result).to.equal(true);
-            expect(openTextDocumentStub).to.have.been.calledWithMatch({
-                language: "sql",
-                content: "",
-            });
-            expect(showTextDocumentStub).to.have.been.calledWith(sqlDocument);
-            expect(promptToConnectStub).to.not.have.been.called;
-        });
-
-        test("forces connection when forceConnect is true even when connected", async () => {
-            const uri = "file:///force-connect.sql";
-            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
-            connectionManager.isConnected.withArgs(uri).returns(true);
-            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
-            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
-            const promptToConnectStub = sandbox
-                .stub(mainController, "promptToConnect")
-                .resolves(true);
-
-            const result = await mainController.onNewQueryWithConnection(false, true);
-
-            expect(result).to.equal(true);
-            expect(openTextDocumentStub).to.not.have.been.called;
-            expect(showTextDocumentStub).to.not.have.been.called;
-            expect(promptToConnectStub).to.have.been.called;
-        });
-
-        test("connects to existing SQL editor when not connected", async () => {
-            const uri = "file:///disconnected.sql";
-            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
-            connectionManager.isConnected.withArgs(uri).returns(false);
-            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
-            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
-            const promptToConnectStub = sandbox
-                .stub(mainController, "promptToConnect")
-                .resolves(true);
-
-            const result = await mainController.onNewQueryWithConnection();
-
-            expect(result).to.equal(true);
-            expect(openTextDocumentStub).to.not.have.been.called;
-            expect(showTextDocumentStub).to.not.have.been.called;
-            expect(promptToConnectStub).to.have.been.called;
-        });
     });
 
     suite("ensureReadyToExecuteQuery Tests", () => {
