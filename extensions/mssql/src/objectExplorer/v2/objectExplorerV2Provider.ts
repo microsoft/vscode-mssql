@@ -11,11 +11,16 @@
 
 import * as vscode from "vscode";
 import {
-    cmdObjectExplorerCollapseOrExpandByDefault,
     cmdOpenOverview,
+    configObjectExplorerDefaultGroupExpansion,
+    DefaultGroupExpansion,
 } from "../../constants/constants";
 import { Overview } from "../../constants/locConstants";
 import { OverviewOpenSource } from "../../sharedInterfaces/overview";
+import {
+    ConnectionGroupExpansionStateStore,
+    getInitialGroupCollapsibleState,
+} from "../connectionGroupExpansionStateStore";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import { NOT_APPLICABLE, OeV2Node } from "./tree/oeV2Node";
 import { nodeContextValue } from "./tree/oeV2NodeFactory";
@@ -33,11 +38,9 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
     readonly onDidChangeTreeData = this.changeEmitter.event;
     private controllerSubscription: { dispose(): void };
     private overviewSubscription: vscode.Disposable | undefined;
-    private readonly initialGroupState = vscode.workspace
-        .getConfiguration("mssql")
-        .get<boolean>(cmdObjectExplorerCollapseOrExpandByDefault, false)
-        ? vscode.TreeItemCollapsibleState.Collapsed
-        : vscode.TreeItemCollapsibleState.Expanded;
+    private readonly defaultGroupExpansion = vscode.workspace
+        .getConfiguration()
+        .get<DefaultGroupExpansion>(configObjectExplorerDefaultGroupExpansion);
     private readonly overviewNode: OeV2Node = {
         id: encodePath({ kind: "overview" }),
         path: { kind: "overview" },
@@ -53,6 +56,7 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
     constructor(
         readonly controller: OeV2TreeController,
         private readonly overviewVisibility?: OverviewVisibility,
+        private readonly groupExpansionState?: ConnectionGroupExpansionStateStore,
     ) {
         this.controllerSubscription = controller.onDidChange((node) =>
             this.changeEmitter.fire(node),
@@ -66,8 +70,12 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
         const item = new vscode.TreeItem(
             node.label,
             node.collapsible
-                ? node.kind === "connectionGroup"
-                    ? this.initialGroupState
+                ? node.path.kind === "connectionGroup"
+                    ? getInitialGroupCollapsibleState(
+                          node.path.groupId,
+                          this.defaultGroupExpansion,
+                          this.groupExpansionState,
+                      )
                     : vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
         );

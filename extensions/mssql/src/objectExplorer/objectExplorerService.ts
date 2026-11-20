@@ -66,6 +66,10 @@ import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/a
 import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 import { OverviewTreeNode } from "./nodes/overviewTreeNode";
+import {
+    ConnectionGroupExpansionStateStore,
+    getInitialGroupCollapsibleState,
+} from "./connectionGroupExpansionStateStore";
 
 export class CancelableLoadingNode extends vscode.TreeItem {
     public constructor(
@@ -144,6 +148,7 @@ export class ObjectExplorerService {
     constructor(
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
+        private _groupExpansionStateStore?: ConnectionGroupExpansionStateStore,
     ) {
         this._client = this._connectionManager.client;
 
@@ -548,19 +553,22 @@ export class ObjectExplorerService {
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
         // Add all group nodes from settings first
-        // Read the user setting for collapsed/expanded state
-        const config = vscode.workspace.getConfiguration(Constants.extensionName);
-        const collapseGroups = config.get<boolean>(
-            Constants.cmdObjectExplorerCollapseOrExpandByDefault,
-            false,
-        );
+        const defaultGroupExpansion = vscode.workspace
+            .getConfiguration()
+            .get<Constants.DefaultGroupExpansion>(
+                Constants.configObjectExplorerDefaultGroupExpansion,
+                Constants.DefaultGroupExpansion.Preserved,
+            );
 
         for (const group of serverGroups) {
-            // Pass the desired collapsible state to the ConnectionGroupNode constructor
-            const initialState = collapseGroups
-                ? vscode.TreeItemCollapsibleState.Collapsed
-                : vscode.TreeItemCollapsibleState.Expanded;
-            const groupNode = new ConnectionGroupNode(group, initialState);
+            const groupNode = new ConnectionGroupNode(
+                group,
+                getInitialGroupCollapsibleState(
+                    group.id,
+                    defaultGroupExpansion,
+                    this._groupExpansionStateStore,
+                ),
+            );
 
             if (this._connectionGroupNodes.has(group.id)) {
                 groupNode.id = this._connectionGroupNodes.get(group.id).id;

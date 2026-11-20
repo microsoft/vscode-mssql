@@ -12,15 +12,21 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as vscode from "vscode";
+import { IInstantiationService } from "extension-toolkit/base";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import * as LocalizedConstants from "../../src/constants/locConstants";
+import { ConnectionGroupExpansionStateStore } from "../../src/objectExplorer/connectionGroupExpansionStateStore";
 import {
     connectionIdsInGroupSubtree,
     OeV2DragAndDropController,
+    registerOeV2GroupCommands,
     wouldCreateCycle,
 } from "../../src/objectExplorer/v2/commands/oeV2GroupCommands";
 import { NOT_APPLICABLE, OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import { stableProfileId } from "../../src/services/metadata/profileAuthAdapter";
+import { createInMemoryMemento } from "./utils";
 
 interface FakeGroup {
     id: string;
@@ -47,6 +53,7 @@ function fakeConfig(groups: FakeGroup[], connections: FakeProfile[]) {
         },
         removeGroup: async (id: string, mode: string) => {
             updates.push({ kind: "remove", value: { id, mode } });
+            return true;
         },
     };
     return { config: config as unknown as ConnectionConfig, updates };
@@ -189,5 +196,69 @@ suite("Object Explorer v2 groups (B26)", () => {
             await dnd.handleDrop(groupNode("g1"), malformed);
         }
         expect(updates).to.deep.equal([]);
+    });
+
+    suite("delete clears saved expansion state", () => {
+        const sandbox = sinon.createSandbox();
+        let deleteGroup: (node: OeV2Node) => Promise<void>;
+        let updates: { kind: string; value: unknown }[];
+        let groupExpansionState: ConnectionGroupExpansionStateStore;
+        let commands: vscode.Disposable;
+
+        setup(async () => {
+            const handlers = new Map<string, (node: OeV2Node) => Promise<void>>();
+            sandbox
+                .stub(vscode.commands, "registerCommand")
+                .callsFake((command: string, handler: (node: OeV2Node) => Promise<void>) => {
+                    handlers.set(command, handler);
+                    return new vscode.Disposable(() => undefined);
+                });
+            const fake = fakeConfig(GROUPS, []);
+            updates = fake.updates;
+
+            groupExpansionState = new ConnectionGroupExpansionStateStore(createInMemoryMemento());
+            for (const groupId of ["g1", "g2", "g3"]) {
+                await groupExpansionState.setExpanded(groupId, false);
+            }
+
+            commands = registerOeV2GroupCommands({
+                instantiationService: {} as IInstantiationService,
+                groupConfig: () => fake.config,
+                groupExpansionState,
+            });
+            deleteGroup = handlers.get("mssql.objectExplorerV2.connectionGroups.delete");
+        });
+
+        teardown(() => {
+            commands.dispose();
+            sandbox.restore();
+        });
+
+        test("deleting contents clears the group and its subgroups", async () => {
+            sandbox
+                .stub(vscode.window, "showInformationMessage")
+                .resolves(LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents as never);
+
+            await deleteGroup(groupNode("g1"));
+
+            expect(updates).to.deep.equal([
+                { kind: "remove", value: { id: "g1", mode: "delete" } },
+            ]);
+            expect(groupExpansionState.isExpanded("g1")).to.be.undefined;
+            expect(groupExpansionState.isExpanded("g2")).to.be.undefined;
+            expect(groupExpansionState.isExpanded("g3")).to.equal(false);
+        });
+
+        test("moving contents keeps state for the moved subgroups", async () => {
+            sandbox
+                .stub(vscode.window, "showInformationMessage")
+                .resolves(LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents as never);
+
+            await deleteGroup(groupNode("g1"));
+
+            expect(updates).to.deep.equal([{ kind: "remove", value: { id: "g1", mode: "move" } }]);
+            expect(groupExpansionState.isExpanded("g1")).to.be.undefined;
+            expect(groupExpansionState.isExpanded("g2")).to.equal(false);
+        });
     });
 });

@@ -46,6 +46,7 @@ import {
     OeV2ClassicHandoffService,
 } from "./legacy/oeV2ClassicHandoffService";
 import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
+import { ConnectionGroupExpansionStateStore } from "../connectionGroupExpansionStateStore";
 import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
@@ -81,6 +82,8 @@ export interface OeV2ActivationDeps {
     /** Live private-preview gate: umbrella + SQL Data Plane + OE v2. */
     readonly isEnabled: () => boolean;
     readonly overviewVisibility?: OverviewVisibility;
+    /** Saved connection group expansion state, shared with classic Object Explorer. */
+    readonly groupExpansionState?: ConnectionGroupExpansionStateStore;
 }
 
 export function activateObjectExplorerV2(
@@ -226,7 +229,11 @@ export function activateObjectExplorerV2(
                 };
             },
         });
-        const provider = new ObjectExplorerV2Provider(controller, deps.overviewVisibility);
+        const provider = new ObjectExplorerV2Provider(
+            controller,
+            deps.overviewVisibility,
+            deps.groupExpansionState,
+        );
         const view = vscode.window.createTreeView("mssql.objectExplorerV2", {
             treeDataProvider: provider,
             showCollapseAll: true,
@@ -250,8 +257,12 @@ export function activateObjectExplorerV2(
         const localController = controller;
         const localHandoff = handoff;
         activeView = view;
+        const groupExpansionTracking = deps.groupExpansionState?.trackTreeView(view, (node) =>
+            node.path.kind === "connectionGroup" ? node.path.groupId : undefined,
+        );
         registration = vscode.Disposable.from(view, provider, {
             dispose: () => {
+                groupExpansionTracking?.dispose();
                 localController.dispose();
                 localRegistry.dispose();
                 localHandoff?.dispose();
@@ -456,6 +467,7 @@ export function activateObjectExplorerV2(
             instantiationService: deps.instantiationService,
             groupConfig: deps.groupConfig ?? (() => undefined),
             isEnabled: deps.isEnabled,
+            groupExpansionState: deps.groupExpansionState,
             beforeDeleteConnection: async (connectionId) => {
                 await handoff?.close(connectionId);
                 await controller?.disconnectProfile(connectionId);

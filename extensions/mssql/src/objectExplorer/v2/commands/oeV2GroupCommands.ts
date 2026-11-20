@@ -21,6 +21,7 @@ import * as LocalizedConstants from "../../../constants/locConstants";
 import { IConnectionGroup, IConnectionProfile } from "../../../models/interfaces";
 import { diag } from "../../../diagnostics/diagnosticsCore";
 import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
+import { ConnectionGroupExpansionStateStore } from "../../connectionGroupExpansionStateStore";
 import { OeV2Node } from "../tree/oeV2Node";
 
 export interface OeV2GroupCommandDeps {
@@ -30,6 +31,8 @@ export interface OeV2GroupCommandDeps {
     readonly isEnabled?: () => boolean;
     /** Tear down v2/handoff state before a profile is deleted with its group. */
     readonly beforeDeleteConnection?: (connectionId: string) => Promise<void>;
+    /** Saved connection group expansion state to clear when groups are deleted. */
+    readonly groupExpansionState?: ConnectionGroupExpansionStateStore;
 }
 
 function emitGroupMutation(op: string, result: "ok" | "canceled" | "failed"): void {
@@ -76,12 +79,11 @@ export function wouldCreateCycle(
     return false;
 }
 
-/** Stable profile ids contained by a group and all of its descendants. */
-export function connectionIdsInGroupSubtree(
+/** IDs of a group and all of its descendant groups. */
+export function groupIdsInSubtree(
     groups: readonly { id: string; parentId?: string }[],
-    connections: readonly { id?: string; groupId?: string }[],
     groupId: string,
-): string[] {
+): Set<string> {
     const subtree = new Set([groupId]);
     let changed = true;
     while (changed) {
@@ -93,6 +95,16 @@ export function connectionIdsInGroupSubtree(
             }
         }
     }
+    return subtree;
+}
+
+/** Stable profile ids contained by a group and all of its descendants. */
+export function connectionIdsInGroupSubtree(
+    groups: readonly { id: string; parentId?: string }[],
+    connections: readonly { id?: string; groupId?: string }[],
+    groupId: string,
+): string[] {
+    const subtree = groupIdsInSubtree(groups, groupId);
     return connections
         .filter((profile) => profile.groupId !== undefined && subtree.has(profile.groupId))
         .map((profile) => stableProfileId(profile));
@@ -203,7 +215,12 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
                     connectionIds.map((connectionId) => deps.beforeDeleteConnection!(connectionId)),
                 );
             }
-            await config.removeGroup(groupId, mode);
+            const removed = await config.removeGroup(groupId, mode);
+            if (removed) {
+                await deps.groupExpansionState?.remove(
+                    mode === "delete" ? [...groupIdsInSubtree(groups, groupId)] : [groupId],
+                );
+            }
             emitGroupMutation("delete", "ok");
         },
     );

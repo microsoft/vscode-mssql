@@ -26,6 +26,7 @@ import {
     stubExtensionContext,
     stubMessageBoxes,
     stubInstantiationService,
+    createInMemoryMemento,
 } from "./utils";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -42,6 +43,8 @@ import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { Deferred } from "../../src/protocol";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
+import { ConnectionGroupExpansionStateStore } from "../../src/objectExplorer/connectionGroupExpansionStateStore";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
@@ -65,6 +68,12 @@ type MainControllerTestAccess = {
     findChatOpenAgentCommand(): Promise<string | undefined>;
     registerLanguageModelTools(): void;
     migrateTransferActiveEditorConnectionsSetting(): Promise<void>;
+    migrateCollapseConnectionGroupsOnStartupSetting(): Promise<void>;
+    removeConnectionGroup(
+        node: ConnectionGroupNode,
+        contentAction: "delete" | "move",
+    ): Promise<void>;
+    _groupExpansionStateStore: ConnectionGroupExpansionStateStore | undefined;
     deleteContainerForNode(node: ConnectionNode): Promise<void>;
     isContainerReadyForCommands(node: ConnectionNode): Promise<boolean>;
     initialize(): Promise<boolean>;
@@ -1473,6 +1482,142 @@ suite("MainController Tests", function () {
             expect(configStub).to.have.been.calledWithExactly();
         });
         /* eslint-enable @typescript-eslint/no-deprecated */
+    });
+
+    suite("migrateCollapseConnectionGroupsOnStartupSetting", () => {
+        let controllerAccess: MainControllerTestAccess;
+        let inspectStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
+        let sendActionEvent: sinon.SinonStub;
+
+        setup(() => {
+            controllerAccess = accessMainController(
+                new MainController(context, instantiationService, connectionManager),
+            );
+            ({ sendActionEvent } = stubTelemetry(sandbox));
+
+            inspectStub = sandbox.stub();
+            updateStub = sandbox.stub().resolves();
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                inspect: inspectStub,
+                update: updateStub,
+            } as unknown as vscode.WorkspaceConfiguration);
+        });
+        /* eslint-disable @typescript-eslint/no-deprecated */
+        test("migrates true → collapsed and clears the old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configObjectExplorerCollapseConnectionGroupsOnStartup)
+                .returns({ globalValue: true, workspaceValue: undefined });
+
+            await controllerAccess.migrateCollapseConnectionGroupsOnStartupSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configObjectExplorerDefaultGroupExpansion,
+                Constants.DefaultGroupExpansion.Collapsed,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configObjectExplorerCollapseConnectionGroupsOnStartup,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateObjectExplorerDefaultGroupExpansion,
+                {
+                    additionalProps: {
+                        migratedValue: Constants.DefaultGroupExpansion.Collapsed,
+                        scope: "global",
+                    },
+                },
+            );
+        });
+
+        test("migrates false → expanded and clears the old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configObjectExplorerCollapseConnectionGroupsOnStartup)
+                .returns({ globalValue: undefined, workspaceValue: false });
+
+            await controllerAccess.migrateCollapseConnectionGroupsOnStartupSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configObjectExplorerDefaultGroupExpansion,
+                Constants.DefaultGroupExpansion.Expanded,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configObjectExplorerCollapseConnectionGroupsOnStartup,
+                undefined,
+                vscode.ConfigurationTarget.Workspace,
+            );
+        });
+
+        test("leaves the preserved default in effect when the old setting was never set", async () => {
+            inspectStub
+                .withArgs(Constants.configObjectExplorerCollapseConnectionGroupsOnStartup)
+                .returns({ globalValue: undefined, workspaceValue: undefined });
+
+            await controllerAccess.migrateCollapseConnectionGroupsOnStartupSetting();
+
+            expect(updateStub).to.not.have.been.called;
+            expect(sendActionEvent).to.not.have.been.called;
+        });
+        /* eslint-enable @typescript-eslint/no-deprecated */
+    });
+
+    suite("removeConnectionGroup", () => {
+        let controllerAccess: MainControllerTestAccess;
+        let connectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
+        let groupExpansionStateStore: ConnectionGroupExpansionStateStore;
+        let parentGroup: ConnectionGroupNode;
+
+        setup(async () => {
+            controllerAccess = accessMainController(mainController);
+            const connectionStore = sandbox.createStubInstance(ConnectionStore);
+            connectionConfig = sandbox.createStubInstance(ConnectionConfig);
+            connectionConfig.removeGroup.resolves(true);
+            sandbox.stub(connectionStore, "connectionConfig").get(() => connectionConfig);
+            sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
+
+            groupExpansionStateStore = new ConnectionGroupExpansionStateStore(
+                createInMemoryMemento(),
+            );
+            controllerAccess._groupExpansionStateStore = groupExpansionStateStore;
+
+            parentGroup = new ConnectionGroupNode({
+                id: "parent",
+                name: "Parent",
+                configSource: vscode.ConfigurationTarget.Global,
+            });
+            parentGroup.addChild(
+                new ConnectionGroupNode({
+                    id: "child",
+                    name: "Child",
+                    configSource: vscode.ConfigurationTarget.Global,
+                }),
+            );
+
+            for (const groupId of ["parent", "child", "unrelated"]) {
+                await groupExpansionStateStore.setExpanded(groupId, false);
+            }
+        });
+
+        test("clears saved expansion state for the deleted group and its subgroups", async () => {
+            await controllerAccess.removeConnectionGroup(parentGroup, "delete");
+
+            expect(connectionConfig.removeGroup).to.have.been.calledWith("parent", "delete");
+            expect(groupExpansionStateStore.isExpanded("parent")).to.be.undefined;
+            expect(groupExpansionStateStore.isExpanded("child")).to.be.undefined;
+            expect(groupExpansionStateStore.isExpanded("unrelated")).to.equal(false);
+        });
+
+        test("keeps saved expansion state for subgroups that are moved", async () => {
+            await controllerAccess.removeConnectionGroup(parentGroup, "move");
+
+            expect(connectionConfig.removeGroup).to.have.been.calledWith("parent", "move");
+            expect(groupExpansionStateStore.isExpanded("parent")).to.be.undefined;
+            expect(groupExpansionStateStore.isExpanded("child")).to.equal(false);
+        });
     });
 
     suite("Search Database connection resolution", () => {
