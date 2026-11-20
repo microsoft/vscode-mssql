@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.48.1
+
+- Release date: November 20, 2026
+- Release status: GA
+
+### What's new in 1.48.1
+
+- Fixed an issue where the extension is automatically activated when the GitHub Copilot window is opened
+
 ## Version 1.48.0
 
 - Release date: November 17, 2026
