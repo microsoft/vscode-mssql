@@ -19,6 +19,9 @@ jobs:
     name: Package MSSQL VSIX files
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      # Valid channels: CHANNELS in extensions/mssql/scripts/build-channels.js.
+      MSSQL_BUILD_CHANNEL: development
     permissions:
       contents: read
 
