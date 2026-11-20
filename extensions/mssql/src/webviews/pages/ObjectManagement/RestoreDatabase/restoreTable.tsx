@@ -300,6 +300,7 @@ export const RestorePlanTable = () => {
                 className={classes.table}
                 size="small"
                 ref={tableFeatures.tableRef}
+                aria-label={locConstants.restoreDatabase.backupSetsToRestore}
                 {...tableFeatures.columnSizing_unstable.getTableProps()}>
                 <TableHeader className={classes.tableHeader}>
                     <TableRow>

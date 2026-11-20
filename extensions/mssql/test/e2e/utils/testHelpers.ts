@@ -68,6 +68,12 @@ export async function addDatabaseConnection(
 
     await iframe.getByRole("checkbox", { name: "Trust server certificate" }).click();
     await iframe.getByRole("button", { name: "Connect", exact: true }).click();
+
+    // A successful connect closes the dialog. Wait for that: the close moves focus, which would
+    // otherwise dismiss a command palette the caller opens while the connection is in progress.
+    await expect(vsCodePage.getByRole("tab", { name: /^Connection Dialog/ })).toHaveCount(0, {
+        timeout: 60 * 1000,
+    });
 }
 
 export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
@@ -94,8 +100,21 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
     await executeQueryButton.click();
 }
 
+/**
+ * The text area of the active editor group's editor.
+ *
+ * Other Monaco editors share the same classes (the Chat view's input box, for one), so an
+ * unscoped selector can type the query into the wrong editor.
+ */
+export function getActiveEditorTextArea(vsCodePage: Page): Locator {
+    return vsCodePage
+        .locator(".editor-group-container.active .editor-instance")
+        .locator("div.view-lines.monaco-mouse-cursor-text")
+        .first();
+}
+
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
-    await vsCodePage.click('div[class="view-lines monaco-mouse-cursor-text"]');
+    await getActiveEditorTextArea(vsCodePage).click();
     await vsCodePage.keyboard.type(text);
 }
 
@@ -103,6 +122,12 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
     const commandPaletteInput = vsCodePage.locator('input[aria-controls="quickInput_list"]');
     await expect(commandPaletteInput).toBeVisible();
 }
+
+/**
+ * Minimum time to wait for a webview to appear. Webviews regularly take well over 30 seconds to
+ * load on the hosted Linux CI runners, so CI waits longer than a local run does.
+ */
+export const WEBVIEW_LOAD_TIMEOUT_MS = process.env.CI ? 90 * 1000 : 30 * 1000;
 
 /**
  * Resolves the webview frame whose inner iframe carries `title`.
@@ -115,8 +140,9 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
 export async function getWebviewByTitle(
     vsCodePage: Page,
     title: string,
-    timeout = 30 * 1000,
+    timeout = WEBVIEW_LOAD_TIMEOUT_MS,
 ): Promise<FrameLocator> {
+    timeout = Math.max(timeout, WEBVIEW_LOAD_TIMEOUT_MS);
     // VS Code's webview host keeps both active-frame and pending-frame during a reload
     // (src/vs/workbench/contrib/webview/browser/pre/index.html). A title-only frame locator
     // becomes ambiguous during that reload.
@@ -311,7 +337,7 @@ export async function setQueryText(
     vsCodePage: Page,
     sql: string,
 ): Promise<void> {
-    await vsCodePage.click("div.view-lines.monaco-mouse-cursor-text");
+    await getActiveEditorTextArea(vsCodePage).click();
     await vsCodePage.keyboard.press(`${getModifierKey()}+A`);
     // Insert the whole SQL string as one textInput event. This avoids Monaco's per-keystroke
     // suggestion acceptance on newlines and keeps the OS clipboard available for concurrent

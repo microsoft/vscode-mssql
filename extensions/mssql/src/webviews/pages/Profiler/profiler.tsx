@@ -359,6 +359,11 @@ export const Profiler: React.FC = () => {
         const grid = reactGrid.slickGrid;
 
         if (grid) {
+            grid.getContainerNode()?.setAttribute(
+                "aria-label",
+                locConstants.profiler.eventsGridAriaLabel,
+            );
+
             grid.onHeaderCellRendered.subscribe((_e, args) => {
                 const column = args.column;
                 // Only add sort/filter buttons to filterable columns

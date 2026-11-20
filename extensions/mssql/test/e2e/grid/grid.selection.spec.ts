@@ -36,6 +36,7 @@ import {
     SELECTION_QUERY,
     SELECTION_ROW_COUNT,
 } from "./gridFixtures";
+import { testCases } from "../utils/testCases";
 
 /**
  * Selection and keyboard navigation for the results grid.
@@ -136,7 +137,7 @@ test.describe("MSSQL Extension - Results Grid Selection", () => {
         await expect(selectedCells()).toHaveCount(12);
     });
 
-    test("ctrl+click adds a disjoint cell to the selection", async () => {
+    test("ctrl+click adds a disjoint cell to the selection", testCases(5878887), async () => {
         await clickCell(grid, 0, 0);
         await clickCell(grid, 4, 3, { modifiers: ["Control"] });
 
@@ -429,16 +430,20 @@ test.describe("MSSQL Extension - Results Grid Selection", () => {
         );
     });
 
-    test("a multi-range selection survives switching away and back to results", async () => {
-        const tabs = resultsFrame.getByTestId("results-tab-list");
-        await clickCell(grid, 0, 0);
-        await clickCell(grid, 3, 2, { modifiers: ["Control"] });
-        await expect(selectedCells()).toHaveCount(2);
-        await tabs.getByRole("tab", { name: "Messages" }).click();
-        await tabs.getByRole("tab", { name: /^Results/ }).click();
-        await expect(selectedCells()).toHaveCount(2);
-        await expect(getCell(grid, 3, 2)).toHaveClass(/active/);
-    });
+    test(
+        "a multi-range selection survives switching away and back to results",
+        testCases(5878887),
+        async () => {
+            const tabs = resultsFrame.getByTestId("results-tab-list");
+            await clickCell(grid, 0, 0);
+            await clickCell(grid, 3, 2, { modifiers: ["Control"] });
+            await expect(selectedCells()).toHaveCount(2);
+            await tabs.getByRole("tab", { name: "Messages" }).click();
+            await tabs.getByRole("tab", { name: /^Results/ }).click();
+            await expect(selectedCells()).toHaveCount(2);
+            await expect(getCell(grid, 3, 2)).toHaveClass(/active/);
+        },
+    );
 
     test("row-number selection covers only visible data columns", async () => {
         await openGridMenu(grid);

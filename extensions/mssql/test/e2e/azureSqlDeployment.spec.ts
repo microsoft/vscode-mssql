@@ -73,7 +73,10 @@ test.describe("Azure SQL deployment options", () => {
                 },
             });
         }, Object.values(ContainerEngine));
-        const localSection = deployment.getByRole("region", { name: "Run locally", exact: true });
+        const localSection = deployment.getByRole("region", {
+            name: "Run locally",
+            exact: true,
+        });
         const cloudSection = deployment.getByRole("region", {
             name: "Run in the cloud",
             exact: true,
@@ -116,9 +119,10 @@ test.describe("Azure SQL deployment options", () => {
         ).toBeVisible();
         const next = deployment.getByRole("button", { name: "Next", exact: true });
         await next.click();
+        // Container engine detection runs when Next is clicked and is slow on a cold runner.
         await expect(
             deployment.getByText("Install a container engine to continue", { exact: true }),
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 30_000 });
         await expect(next).toBeDisabled();
         const retryDetection = deployment.getByRole("button", { name: "Retry", exact: true });
         await retryDetection.click();

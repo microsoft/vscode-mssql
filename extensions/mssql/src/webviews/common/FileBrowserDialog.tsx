@@ -272,6 +272,7 @@ export const FileBrowserDialog = ({
                                 validationMessage={selectedNodeValidationMessage()}>
                                 <Input
                                     size="small"
+                                    aria-label={Loc.fileBrowser.selectedPath}
                                     placeholder={
                                         showFoldersOnly
                                             ? Loc.fileBrowser.folderPath

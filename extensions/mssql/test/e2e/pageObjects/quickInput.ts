@@ -25,6 +25,10 @@ import { expect, Locator, Page } from "@playwright/test";
  *     all for a filter containing parentheses, so ">MS SQL: Connect (MSSQL)" matches nothing even
  *     though that is the row's label. {@link QuickInput.runCommand} takes them separately.
  *
+ *  4. **Something else can close the palette.** A focus change while the palette is open (for
+ *     example, a connection finishing or an editor opening) closes it. {@link QuickInput.pick}
+ *     notices instead of waiting out its timeout, and {@link QuickInput.runCommand} reopens it.
+ *
  * Row structure is taken from the VS Code source rather than guessed. `quickInputList.ts` builds
  * each row as `.quick-input-list-entry > label.quick-input-list-label > .quick-input-list-rows`,
  * where the first `.quick-input-list-row` holds an IconLabel plus a
@@ -33,6 +37,15 @@ import { expect, Locator, Page } from "@playwright/test";
  * label, which is why matching on row text fails. `iconLabel.ts` puts the label itself in
  * `a.label-name` inside `span.monaco-icon-name-container`, and that is what this object compares.
  */
+/** Thrown by {@link QuickInput.pick} when the quick input closes before the row appears. */
+export class QuickInputClosedError extends Error {}
+
+/** How long to read a row's label before treating the row as gone (the list re-rendered). */
+const ROW_READ_TIMEOUT_MS = 1000;
+
+/** Total attempts {@link QuickInput.runCommand} makes when the palette is closed under it. */
+const RUN_COMMAND_ATTEMPTS = 3;
+
 export class QuickInput {
     /** Label element inside a row; see the class comment for where this comes from. */
     private static readonly ROW_LABEL = ".quick-input-list-label .monaco-icon-name-container";
@@ -121,8 +134,12 @@ export class QuickInput {
         for (let index = 0; index < count; index++) {
             const row = this.rows.nth(index);
             const label = row.locator(QuickInput.ROW_LABEL).first();
-            const text =
-                (await label.count()) > 0 ? await label.innerText() : await row.innerText();
+            // A row can disappear between the count and the read when the list re-renders or
+            // closes. Record it as empty rather than waiting out the action timeout, so indexes
+            // still line up with the rows.
+            const text = await ((await label.count()) > 0 ? label : row)
+                .innerText({ timeout: ROW_READ_TIMEOUT_MS })
+                .catch(() => "");
             labels.push(text.replace(/\s+/g, " ").trim());
         }
         return labels;
@@ -136,17 +153,29 @@ export class QuickInput {
      */
     async pick(label: string, timeout = 30 * 1000): Promise<void> {
         let seen: string[] = [];
+        let state = "waiting" as "found" | "closed" | "waiting";
+        // Callers may pick before the quick pick has opened, so it only counts as closed once it
+        // has been seen open during this call.
+        let wasOpen = false;
 
         try {
             await expect
                 .poll(
                     async () => {
                         seen = await this.labels();
-                        return seen.includes(label);
+                        if (seen.includes(label)) {
+                            state = "found";
+                        } else if (await this.isOpen()) {
+                            wasOpen = true;
+                            state = "waiting";
+                        } else {
+                            state = wasOpen ? "closed" : "waiting";
+                        }
+                        return state;
                     },
                     { timeout },
                 )
-                .toBe(true);
+                .not.toBe("waiting");
         } catch {
             const widgets = await this.page.locator(".quick-input-widget").count();
             const visibleWidgets = await this.widget.count();
@@ -160,6 +189,12 @@ export class QuickInput {
                 `Quick pick row "${label}" never appeared. ` +
                     `widgets=${widgets} visible=${visibleWidgets} rowsInDocument=${rowsInDocument} ` +
                     `seen=[${seen.join(" | ")}]`,
+            );
+        }
+
+        if (state === "closed") {
+            throw new QuickInputClosedError(
+                `The quick input closed before row "${label}" appeared. Seen: ${seen.join(" | ")}`,
             );
         }
 
@@ -178,9 +213,18 @@ export class QuickInput {
      * @param rowLabel Exact row label to click, e.g. "MS SQL: Connect (MSSQL)".
      */
     async runCommand(filterText: string, rowLabel: string, timeout = 30 * 1000): Promise<void> {
-        await this.open();
-        await this.filter(`>${filterText}`);
-        await this.pick(rowLabel, timeout);
+        for (let attempt = 1; ; attempt++) {
+            await this.open();
+            await this.filter(`>${filterText}`);
+            try {
+                await this.pick(rowLabel, timeout);
+                return;
+            } catch (error) {
+                if (!(error instanceof QuickInputClosedError) || attempt >= RUN_COMMAND_ATTEMPTS) {
+                    throw error;
+                }
+            }
+        }
     }
 
     /** Runs one of the known commands in {@link VsCodeCommand}. */

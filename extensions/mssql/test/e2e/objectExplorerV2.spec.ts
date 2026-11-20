@@ -40,7 +40,10 @@ test.describe("Object Explorer v2 view parity", () => {
             has: page.getByRole("heading", { name: "Connections", exact: true }),
         });
         const preview = page.locator(".pane").filter({
-            has: page.getByRole("heading", { name: "Connections (Private Preview)", exact: true }),
+            has: page.getByRole("heading", {
+                name: "Connections (Private Preview)",
+                exact: true,
+            }),
         });
         const gettingStarted = (pane: typeof classic) =>
             pane.getByRole("treeitem").filter({ hasText: "Getting Started" });

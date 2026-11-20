@@ -1,0 +1,155 @@
+# Runs every MSSQL end-to-end test nightly, and on demand. Tests are sorted into tiers by
+# Playwright tags; see extensions/mssql/test/e2e/README.md.
+#
+# - stable: every test not tagged @flaky. A failure fails the run.
+# - flaky: tests tagged @flaky, without retries. Failures are reported in the job summary but do
+#   not fail the run. Remove a test's tag once it passes here consistently.
+#
+# Pull requests run only the @pull-request tier, in build-and-test.yml.
+name: E2E Nightly
+
+on:
+  schedule:
+    # 4 AM Pacific Standard Time (5 AM during daylight saving time).
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: Which tiers to run
+        type: choice
+        options:
+          - all
+          - stable
+          - flaky
+        default: all
+  # Validates changes to this pipeline itself.
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - ".github/workflows/e2e-nightly.yml"
+      - ".github/actions/setup-e2e/**"
+      - "extensions/mssql/playwright.config.ts"
+      - "extensions/mssql/scripts/e2e-results-summary.js"
+
+concurrency:
+  group: e2e-nightly-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  VS_CODE_VERSION: stable
+  SERVER_NAME: localhost
+  AUTHENTICATION_TYPE: SQL Login
+  USER_NAME: sa
+  SAVE_PASSWORD: "No"
+  PROFILE_NAME: test-server
+  ENABLE_ELECTRON_VIDEO_RECORDING: "true"
+
+jobs:
+  stable:
+    name: Stable E2E tests
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.tier != 'flaky' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up E2E tests
+        uses: ./.github/actions/setup-e2e
+
+      # The VSIX tests install the packaged extension.
+      - name: MSSQL - Package VSIX
+        run: npm run package -- --target mssql --preview
+
+      - name: Run stable E2E tests
+        working-directory: ./extensions/mssql
+        env:
+          E2E_TIER: stable
+        run: |
+          export BUILT_VSIX_PATH="$(find "$PWD" -maxdepth 1 -name "*.vsix" | head -n 1)"
+          DISPLAY=:10 npx playwright test
+
+      - name: Publish per-test results
+        if: ${{ !cancelled() }}
+        working-directory: ./extensions/mssql
+        run: node scripts/e2e-results-summary.js ./test-reports/e2e-stable-results.json "Stable E2E tests"
+
+      - name: Upload failure videos, traces, and screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-stable-failure-artifacts
+          path: ./extensions/mssql/test-results/**/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-stable-reports
+          path: |
+            ./extensions/mssql/test-reports/e2e-stable-results.xml
+            ./extensions/mssql/test-reports/e2e-stable-results.json
+            ./extensions/mssql/test-reports/e2e-stable-html/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  flaky:
+    name: Flaky E2E tests
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.tier != 'stable' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # Flaky tests are expected to fail sometimes. The job still shows its failures, but they do
+    # not fail the run.
+    continue-on-error: true
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up E2E tests
+        uses: ./.github/actions/setup-e2e
+
+      - name: Run flaky E2E tests
+        working-directory: ./extensions/mssql
+        env:
+          E2E_TIER: flaky
+        run: DISPLAY=:10 npx playwright test
+
+      - name: Publish per-test results
+        if: ${{ !cancelled() }}
+        working-directory: ./extensions/mssql
+        run: node scripts/e2e-results-summary.js ./test-reports/e2e-flaky-results.json "Flaky E2E tests"
+
+      - name: Upload failure videos, traces, and screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-flaky-failure-artifacts
+          path: ./extensions/mssql/test-results/**/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-flaky-reports
+          path: |
+            ./extensions/mssql/test-reports/e2e-flaky-results.xml
+            ./extensions/mssql/test-reports/e2e-flaky-results.json
+            ./extensions/mssql/test-reports/e2e-flaky-html/
+          if-no-files-found: ignore
+          retention-days: 14

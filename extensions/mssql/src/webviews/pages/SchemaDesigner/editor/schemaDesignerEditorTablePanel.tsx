@@ -368,6 +368,7 @@ const ColumnsTable = ({
                 return (
                     <Input
                         size="small"
+                        aria-label={locConstants.schemaDesigner.columnName}
                         className={classes.columnInput}
                         ref={(ref) => {
                             if (columnNameInputRefs.current) {
@@ -425,6 +426,7 @@ const ColumnsTable = ({
                 return (
                     <Checkbox
                         size="medium"
+                        aria-label={locConstants.schemaDesigner.primaryKey}
                         checked={column.isPrimaryKey}
                         onChange={(_e, data) => {
                             updateColumn(index, {
@@ -443,6 +445,7 @@ const ColumnsTable = ({
                     <Button
                         size="small"
                         appearance="subtle"
+                        aria-label={locConstants.schemaDesigner.delete}
                         disabled={Boolean(deleteDisabledReason)}
                         icon={<FluentIcons.DeleteRegular />}
                         onClick={() => deleteColumn(index)}
@@ -470,6 +473,7 @@ const ColumnsTable = ({
                             <Button
                                 size="small"
                                 appearance="subtle"
+                                aria-label={locConstants.schemaDesigner.advancedOptions}
                                 icon={<FluentIcons.MoreHorizontalRegular />}
                             />
                         </PopoverTrigger>
@@ -747,6 +751,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                 <Label>{locConstants.schemaDesigner.name}</Label>
                 <Input
                     autoFocus
+                    aria-label={locConstants.tableDesigner.tableName}
                     value={context.table.name}
                     onChange={(_e, data) => updateTableName(data.value)}
                 />

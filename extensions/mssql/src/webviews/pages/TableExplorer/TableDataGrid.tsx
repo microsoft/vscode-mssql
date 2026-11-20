@@ -471,6 +471,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     return createDomElement("i", {
                         className: iconClass,
                         title: canRevert ? loc.tableExplorer.revertRow : "",
+                        role: "button",
+                        ariaLabel: loc.tableExplorer.revertRow,
+                        ariaDisabled: canRevert ? "false" : "true",
                     });
                 },
                 minWidth: 30,

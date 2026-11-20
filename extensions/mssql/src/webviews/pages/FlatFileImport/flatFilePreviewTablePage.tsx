@@ -225,6 +225,7 @@ export const FlatFilePreviewTable = () => {
             <div className={classes.tableDiv}>
                 <Table
                     className={classes.table}
+                    aria-label={locConstants.flatFileImport.dataPreviewTable}
                     size="small"
                     ref={tableFeatures.tableRef}
                     {...tableFeatures.columnSizing_unstable.getTableProps()}>

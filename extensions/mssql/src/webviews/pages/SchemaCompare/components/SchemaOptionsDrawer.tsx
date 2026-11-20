@@ -326,6 +326,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                     return (
                                         <div className={classes.listItemContainer} key={key}>
                                             <Checkbox
+                                                aria-label={presentation.displayName}
                                                 checked={value.value}
                                                 onChange={() => handleSettingChanged(key)}
                                                 label={

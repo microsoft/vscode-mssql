@@ -238,6 +238,11 @@ export const FlatFileColumnSettingsPage = ({
                                 {column.inputType === CHECKBOX_TYPE && (
                                     <Checkbox
                                         id={`select-all-${index}`}
+                                        aria-label={
+                                            index === NEW_PRIMARY_KEY_COL_INDEX
+                                                ? locConstants.flatFileImport.selectAllPrimaryKey
+                                                : locConstants.flatFileImport.selectAllAllowNulls
+                                        }
                                         checked={
                                             checkedStates[index]?.every((isChecked) => isChecked) ||
                                             false
@@ -335,12 +340,14 @@ export const FlatFileColumnSettingsPage = ({
     );
 
     const renderCell = (cell: FlatFileTableCell, colIndex: number, rowIndex: number) => {
+        const sourceColumnName = tablePreview?.columnInfo[rowIndex]?.name ?? "";
         switch (cell.type) {
             case INPUT_TYPE:
                 return (
                     <Input
                         size="small"
                         className={classes.input}
+                        aria-label={locConstants.flatFileImport.columnNameFor(sourceColumnName)}
                         value={cell.value.toString()}
                         onChange={(_event, data) =>
                             handleColumnChange(rowIndex, "newName", data?.value || "")
@@ -364,7 +371,7 @@ export const FlatFileColumnSettingsPage = ({
                                 value: cell.value.toString(),
                                 text: cell.value.toString(),
                             }}
-                            ariaLabel={locConstants.flatFileImport.dataType}
+                            ariaLabel={locConstants.flatFileImport.dataTypeFor(sourceColumnName)}
                             onSelect={(option) =>
                                 handleColumnChange(rowIndex, "newDataType", option.value)
                             }
@@ -376,6 +383,11 @@ export const FlatFileColumnSettingsPage = ({
                 return (
                     <Checkbox
                         className={classes.checkbox}
+                        aria-label={
+                            colIndex === NEW_PRIMARY_KEY_COL_INDEX
+                                ? locConstants.flatFileImport.primaryKeyFor(sourceColumnName)
+                                : locConstants.flatFileImport.allowNullsFor(sourceColumnName)
+                        }
                         checked={checkedStates[colIndex][rowIndex]}
                         onChange={(_event, data) => {
                             const changedField =
@@ -466,6 +478,7 @@ export const FlatFileColumnSettingsPage = ({
                 <Table
                     {...keyboardNavAttr}
                     as="table"
+                    aria-label={locConstants.flatFileImport.columnSettingsTable}
                     className={classes.table}
                     size="extra-small"
                     ref={tableFeatures.tableRef}

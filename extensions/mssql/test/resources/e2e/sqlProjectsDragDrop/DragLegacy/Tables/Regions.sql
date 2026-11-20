@@ -1,0 +1,4 @@
+CREATE TABLE [dbo].[Regions]
+(
+  [Id] INT NOT NULL PRIMARY KEY
+)

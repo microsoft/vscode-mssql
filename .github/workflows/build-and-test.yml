@@ -207,12 +207,16 @@ jobs:
           export PASSWORD=${{ env.PASSWORD }}
           export SAVE_PASSWORD=No
           export PROFILE_NAME=test-server
+          # Pull requests run the @pull-request tier; every tier runs in e2e-nightly.yml.
+          export E2E_TIER=pull-request
+          # Keeps a video clip of each failed test attempt; passing attempts leave nothing behind.
+          export ENABLE_ELECTRON_VIDEO_RECORDING=true
           export BUILT_VSIX_PATH=$(find ./extensions/mssql -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 npm run smoketest -- --target mssql
           SMOKE_EXIT_CODE=$?
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
-      - name: Upload Smoke Test Screenshots and Videos
+      - name: Upload Smoke Test Screenshots, Videos, and Traces
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: smoke-test-failure-screenshots
@@ -224,7 +228,7 @@ jobs:
         if: success() || failure()
         with:
           name: "Smoke Test Report"
-          path: ./test-reports/**/smoke-results.xml
+          path: ./test-reports/**/e2e-pull-request-results.xml
           reporter: jest-junit
           working-directory: ./extensions/mssql
           badge-title: "smoke-tests"

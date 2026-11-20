@@ -98,7 +98,6 @@ export async function launchVsCodeWithMssqlExtension(
     page: Page;
     userDataDir: string;
     extensionsDir: string;
-    videoDir: string;
 }> {
     const config: mssqlExtensionLaunchConfig = {
         initialConfig: DEFAULT_USER_CONFIG,
@@ -121,16 +120,9 @@ export async function launchVsCodeWithMssqlExtension(
     const tmpRoot = fs.mkdtempSync(path.join(tmpBaseDir, "mssql-"));
     const userDataDir = path.join(tmpRoot, "u");
     const extensionsDir = path.join(tmpRoot, "e");
-    const videoDir = path.join(
-        process.cwd(),
-        "test-reports",
-        "videos",
-        `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-    );
 
     fs.mkdirSync(userDataDir, { recursive: true });
     fs.mkdirSync(extensionsDir, { recursive: true });
-    fs.mkdirSync(videoDir, { recursive: true });
 
     // Create initial settings.json
     const settingsPath = path.join(userDataDir, "User", "settings.json");
@@ -150,6 +142,10 @@ export async function launchVsCodeWithMssqlExtension(
         // A trust prompt would otherwise intercept the first interaction in a workspace.
         "--disable-workspace-trust",
         "--disable-telemetry",
+        // Linux CI runners have no OS keyring, so the first saved secret (such as a connection
+        // password) raises a modal that covers the workbench. The throwaway test profile does
+        // not need keyring encryption. macOS and Windows ignore this flag.
+        "--password-store=basic",
         `--user-data-dir=${userDataDir}`,
         `--extensions-dir=${extensionsDir}`,
         ...(config.extraLaunchArgs ?? []),
@@ -187,17 +183,8 @@ export async function launchVsCodeWithMssqlExtension(
         launchArgs.push("--temp-profile");
     }
 
-    // Video recording is opt-in everywhere. Locally it interferes with Playwright's window
-    // detection (a blank window gets captured instead of the workbench), and in CI each
-    // recording costs real CPU for the whole run while parallel workers are competing for
-    // it — which shows up as timing flake. Traces are retained on failure instead. Set
-    // ENABLE_ELECTRON_VIDEO_RECORDING=true to turn it back on for a single investigation.
-    const shouldRecordVideo = process.env["ENABLE_ELECTRON_VIDEO_RECORDING"] === "true";
-
+    // Videos and traces are recorded per test once the workbench is up; see failureArtifacts.ts.
     console.log("Launching VS Code with:", vscodePath, launchArgs);
-    if (shouldRecordVideo) {
-        console.log("Staging Playwright videos in:", videoDir);
-    }
 
     const electronLaunchOptions = {
         executablePath: vscodePath,
@@ -205,14 +192,6 @@ export async function launchVsCodeWithMssqlExtension(
         args: config.useVsix
             ? launchArgs
             : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
-        ...(shouldRecordVideo
-            ? {
-                  recordVideo: {
-                      dir: videoDir,
-                      size: { width: 1920, height: 1080 },
-                  },
-              }
-            : {}),
     };
 
     const electronApp = await electron.launch(electronLaunchOptions);
@@ -239,7 +218,7 @@ export async function launchVsCodeWithMssqlExtension(
             })
             .toBeGreaterThan(0);
 
-        return { electronApp, page, userDataDir, extensionsDir, videoDir };
+        return { electronApp, page, userDataDir, extensionsDir };
     } catch (error) {
         await electronApp.close().catch(() => undefined);
         if (path.dirname(tmpRoot) === tmpBaseDir && path.basename(tmpRoot).startsWith("mssql-")) {

@@ -76,6 +76,11 @@ same directory and configure a reachable SQL Server. Then run:
 npm run smoketest -- --target mssql
 ```
 
+This runs the stable tier, which skips tests tagged `@flaky`. Set `E2E_TIER` to `pull-request`,
+`flaky`, or `all` to run another tier. See
+[extensions/mssql/test/e2e/README.md](extensions/mssql/test/e2e/README.md) for the test tiers and
+failure artifacts.
+
 ## Localization
 
 When localization sources change, run the repository-wide extraction:

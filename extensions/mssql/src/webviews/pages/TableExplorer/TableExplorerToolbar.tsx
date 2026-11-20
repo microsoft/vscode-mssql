@@ -260,9 +260,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                                 : () => context.generateScript(),
                         }}
                         menuButton={{
-                            "aria-label": showScriptPane
-                                ? loc.tableExplorer.hideSqlPane
-                                : loc.tableExplorer.showSqlPane,
+                            "aria-label": loc.tableExplorer.sqlPaneOptions,
                         }}>
                         {showScriptPane
                             ? loc.tableExplorer.hideSqlPane
@@ -356,6 +354,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "auto" }}>
                 <span style={{ fontSize: "12px" }}>{loc.tableExplorer.totalRowsToFetch}</span>
                 <Combobox
+                    aria-label={loc.tableExplorer.totalRowsToFetch}
                     value={loadRowCount}
                     onChange={onRowCountChange}
                     onOptionSelect={onRowCountSelect}

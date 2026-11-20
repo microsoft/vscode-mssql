@@ -1,0 +1,4 @@
+EmployeeId	FirstName	Department
+1	Ada	Engineering
+2	Grace	Research
+3	Linus	Operations

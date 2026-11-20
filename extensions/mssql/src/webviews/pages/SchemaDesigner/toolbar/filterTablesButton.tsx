@@ -248,6 +248,7 @@ export function FilterTablesButton() {
         return (
             <Tree
                 className={classes.treeDiv}
+                aria-label={locConstants.schemaDesigner.filterTablesTreeLabel}
                 openItems={openItems}
                 checkedItems={checkedItems}
                 selectionMode="multiselect"
@@ -502,6 +503,7 @@ export function FilterTablesButton() {
                 <SearchBox
                     size="small"
                     placeholder={locConstants.schemaDesigner.searchTables}
+                    aria-label={locConstants.schemaDesigner.filterTablesSearchLabel}
                     style={{
                         marginBottom: "10px",
                         width: "100%",

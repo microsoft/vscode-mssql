@@ -129,6 +129,36 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.contain("Windows Authentication");
     });
 
+    test("constructor should lead the accessible name with the label when there is no profile name", () => {
+        const profile: any = {
+            id: "1",
+            server: "myServer",
+            user: "myUser",
+            authenticationType: "SqlLogin",
+        };
+
+        const node = new ConnectionNode(profile as any);
+
+        expect(node.tooltip).to.be.a("string");
+        expect(node.accessibilityInformation?.label).to.equal(`${node.label}\n${node.tooltip}`);
+        expect(node.accessibilityInformation?.label).to.match(/^myServer/);
+    });
+
+    test("constructor should leave the accessible name to the tooltip when there is a profile name", () => {
+        const profile: any = {
+            id: "1",
+            server: "myServer",
+            user: "myUser",
+            authenticationType: "SqlLogin",
+            profileName: "myProfile",
+        };
+
+        const node = new ConnectionNode(profile as any);
+
+        expect(node.tooltip).to.match(/^myProfile/);
+        expect(node.accessibilityInformation).to.equal(undefined);
+    });
+
     suite("SQL container nodes", () => {
         const dashboard = "mssql.performance.openDashboard";
         const start = "mssql.startContainer";

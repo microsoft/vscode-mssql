@@ -139,6 +139,7 @@ export const SearchDatabaseFilters: React.FC = React.memo(() => {
                 <Label className={classes.sectionTitle}>{loc.searchDatabase.database}</Label>
                 <Dropdown
                     className={classes.dropdown}
+                    aria-label={loc.searchDatabase.database}
                     value={selectedDatabase}
                     selectedOptions={[selectedDatabase]}
                     onOptionSelect={handleDatabaseChange}

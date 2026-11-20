@@ -60,7 +60,7 @@ export const SchemaDesignerFindTableWidget = ({
         <FindWidget
             getItems={getSearchableItems}
             onItemSelected={handleItemSelected}
-            searchLabel={locConstants.common.find}
+            searchLabel={locConstants.schemaDesigner.findTables}
             width="200px"
             emitSearchEvent={(searchText) => {
                 context.setFindTableText(searchText);

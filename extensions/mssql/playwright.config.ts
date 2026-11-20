@@ -10,6 +10,21 @@ import { defineConfig } from "@playwright/test";
 dotenv.config({ path: path.resolve(__dirname, "test/e2e/.env") });
 
 /**
+ * E2E_TIER selects which tier of tests runs; see test/e2e/README.md.
+ * - "stable" (default): every test except those tagged @flaky
+ * - "pull-request": the stable tests tagged @pull-request, run as a check on every pull request
+ * - "flaky": only the tests tagged @flaky, without retries so a flaky test reports as failed
+ * - "all": every test
+ */
+const PULL_REQUEST_TAG = /@pull-request/;
+const FLAKY_TAG = /@flaky/;
+const tier = process.env.E2E_TIER || "stable";
+if (!["stable", "pull-request", "flaky", "all"].includes(tier)) {
+    throw new Error(`Unsupported E2E_TIER value: ${tier}`);
+}
+const isFlakyTier = tier === "flaky";
+
+/**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
@@ -20,26 +35,25 @@ export default defineConfig({
     globalTeardown: require.resolve("./test/e2e/globalTeardown"),
     /* Smoke and grid projects share one CI run; cap total VS Code instances at two. */
     workers: 2,
+    grep: tier === "pull-request" ? PULL_REQUEST_TAG : isFlakyTier ? FLAKY_TAG : undefined,
+    grepInvert: tier === "stable" || tier === "pull-request" ? FLAKY_TAG : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
-        [
-            "junit",
-            {
-                outputFile: "./test-reports/smoke-results.xml",
-            },
-        ],
+        ["junit", { outputFile: `./test-reports/e2e-${tier}-results.xml` }],
+        /* Read by scripts/e2e-results-summary.js for the CI job summary. */
+        ["json", { outputFile: `./test-reports/e2e-${tier}-results.json` }],
+        ["html", { outputFolder: `./test-reports/e2e-${tier}-html`, open: "never" }],
         /* Prints the flaky count, so a test that only passes on retry stays visible. */
         ["list"],
     ],
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
-        /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-        trace: "on-first-retry",
         /*
-         * Electron video recording is configured per launch in launchVscodeWithMsSqlExt.ts and is
-         * opt-in via ENABLE_ELECTRON_VIDEO_RECORDING. Nothing here uses a browser context, so there
-         * is no second recording path to leave enabled.
+         * Every test drives VS Code through a custom Electron launch, which these options do not
+         * reach. utils/failureArtifacts.ts records a trace (ENABLE_ELECTRON_TRACING) and a video
+         * clip (ENABLE_ELECTRON_VIDEO_RECORDING) per test attempt and keeps them only on failure.
          */
+        trace: "off",
         video: "off",
     },
     projects: [
@@ -52,7 +66,7 @@ export default defineConfig({
             workers: 1,
             /* Set timeout to 5 minutes */
             timeout: 5 * 60 * 1000,
-            retries: process.env.CI ? 2 : 0,
+            retries: isFlakyTier ? 0 : process.env.CI ? 2 : 0,
         },
         {
             name: "grid-e2e",
@@ -82,7 +96,7 @@ export default defineConfig({
              * One retry, so a timing blip reports as flaky rather than as a red build and the
              * difference between flake and a real break stays visible in the report.
              */
-            retries: 1,
+            retries: isFlakyTier ? 0 : 1,
         },
     ],
 });

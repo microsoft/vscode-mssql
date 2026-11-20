@@ -392,6 +392,7 @@ const ForeignKeyCard = ({
                     <Button
                         appearance="subtle"
                         icon={<DeleteRegular />}
+                        aria-label={locConstants.schemaDesigner.deleteForeignKey(foreignKey.name)}
                         onClick={() => onDelete(index)}
                     />
                 }
@@ -409,6 +410,7 @@ const ForeignKeyCard = ({
                     <Label>{locConstants.schemaDesigner.name}</Label>
                     <Input
                         size="small"
+                        aria-label={locConstants.schemaDesigner.foreignKeyName}
                         value={foreignKey.name}
                         ref={(element) => {
                             inputRef.current = element;
