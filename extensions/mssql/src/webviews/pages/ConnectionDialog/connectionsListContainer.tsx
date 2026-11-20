@@ -5,6 +5,8 @@
 
 import {
     ArrowClockwise16Filled,
+    ChevronLeft16Regular,
+    ChevronRight16Regular,
     Copy16Regular,
     Delete16Regular,
     Dismiss16Regular,
@@ -22,7 +24,7 @@ import {
     tokens,
     Image,
 } from "@fluentui/react-components";
-import { MouseEventHandler, useContext, useEffect, useState } from "react";
+import { MouseEventHandler, useContext, useEffect, useId, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
@@ -97,8 +99,15 @@ const useStyles = makeStyles({
     },
     text: { margin: "0" },
     adsMigrationContainer: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
         marginTop: "4px",
         marginBottom: "8px",
+    },
+    sidebarToggle: {
+        minWidth: "32px",
+        flexShrink: 0,
     },
     adsMigrationButton: {
         width: "100%",
@@ -114,8 +123,15 @@ const useStyles = makeStyles({
 
 const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
-export const ConnectionsListContainer = () => {
+export const ConnectionsListContainer = ({
+    isCollapsed,
+    onToggleCollapsed,
+}: {
+    isCollapsed: boolean;
+    onToggleCollapsed: () => void;
+}) => {
     const styles = useStyles();
+    const connectionsListId = useId();
     const context = useContext(ConnectionDialogContext);
     const savedConnections = useConnectionDialogSelector((s) => s.savedConnections) ?? [];
     const recentConnections = useConnectionDialogSelector((s) => s.recentConnections) ?? [];
@@ -124,6 +140,9 @@ export const ConnectionsListContainer = () => {
         ConnectionDialogReducers
     >();
     const hasRecentConnections = recentConnections.length > 0;
+    const toggleLabel = isCollapsed
+        ? locConstants.connectionDialog.expandConnectionsSidebar
+        : locConstants.connectionDialog.collapseConnectionsSidebar;
 
     if (context === undefined) {
         return undefined;
@@ -132,23 +151,38 @@ export const ConnectionsListContainer = () => {
     return (
         <div className={styles.container}>
             <div className={styles.adsMigrationContainer}>
-                <Button
-                    className={styles.adsMigrationButton}
-                    appearance="secondary"
-                    icon={
-                        <Image
-                            className={styles.adsMigrationIcon}
-                            src={azureDataStudioIcon}
-                            alt={locConstants.connectionDialog.importFromAzureDataStudio}
-                        />
-                    }
-                    onClick={async () => {
-                        await extensionRpc.sendRequest(OpenAzureDataStudioMigrationRequest.type);
-                    }}>
-                    {locConstants.connectionDialog.importFromAzureDataStudio}
-                </Button>
+                <Tooltip content={toggleLabel} relationship="label">
+                    <Button
+                        className={styles.sidebarToggle}
+                        appearance="subtle"
+                        icon={isCollapsed ? <ChevronLeft16Regular /> : <ChevronRight16Regular />}
+                        aria-label={toggleLabel}
+                        aria-expanded={!isCollapsed}
+                        aria-controls={connectionsListId}
+                        onClick={onToggleCollapsed}
+                    />
+                </Tooltip>
+                {!isCollapsed && (
+                    <Button
+                        className={styles.adsMigrationButton}
+                        appearance="secondary"
+                        icon={
+                            <Image
+                                className={styles.adsMigrationIcon}
+                                src={azureDataStudioIcon}
+                                alt={locConstants.connectionDialog.importFromAzureDataStudio}
+                            />
+                        }
+                        onClick={async () => {
+                            await extensionRpc.sendRequest(
+                                OpenAzureDataStudioMigrationRequest.type,
+                            );
+                        }}>
+                        {locConstants.connectionDialog.importFromAzureDataStudio}
+                    </Button>
+                )}
             </div>
-            <div className={styles.listScrollArea}>
+            <div id={connectionsListId} className={styles.listScrollArea} hidden={isCollapsed}>
                 {hasRecentConnections && (
                     <>
                         <div className={styles.paneTitle}>

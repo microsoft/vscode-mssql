@@ -4347,6 +4347,8 @@
     },
     "Connection Authentication": "Connection Authentication",
     "Import from Azure Data Studio": "Import from Azure Data Studio",
+    "Collapse recent and saved connections": "Collapse recent and saved connections",
+    "Expand recent and saved connections": "Expand recent and saved connections",
     "Add to favorites": "Add to favorites",
     "Remove from favorites": "Remove from favorites",
     "Azure Databases": "Azure Databases",
