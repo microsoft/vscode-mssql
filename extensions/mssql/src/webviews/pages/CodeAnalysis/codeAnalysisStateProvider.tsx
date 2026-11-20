@@ -35,6 +35,7 @@ export const CodeAnalysisStateProvider: React.FC<{ children: React.ReactNode }> 
                     closeAfterSave,
                     enableCodeAnalysisOnBuild,
                 }),
+            restorePackages: () => extensionRpc.action("restorePackages", {}),
             extensionRpc,
             themeKind,
         }),

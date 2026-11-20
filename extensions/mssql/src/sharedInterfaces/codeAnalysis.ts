@@ -11,6 +11,9 @@ export { CodeAnalysisRuleSeverity };
 /** Category shown for custom rules that don't specify one. */
 export const customRulesCategory = "Custom Rules";
 
+/** ID of the message bar button that restores the project's NuGet packages. */
+export const restorePackagesButtonId = "restorePackages";
+
 /**
  * Represents a SQL code analysis rule
  */
@@ -69,6 +72,8 @@ export interface CodeAnalysisReducers {
         closeAfterSave: boolean;
         enableCodeAnalysisOnBuild: boolean;
     };
+    /** Restore the project's NuGet packages, then reload the rules */
+    restorePackages: {};
 }
 
 /**
@@ -82,4 +87,5 @@ export interface CodeAnalysisProvider {
         closeAfterSave: boolean,
         enableCodeAnalysisOnBuild: boolean,
     ) => void;
+    restorePackages: () => void;
 }

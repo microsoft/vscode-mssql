@@ -2818,6 +2818,11 @@ export class CodeAnalysis {
     );
     public static failedToSaveRules = l10n.t("Failed to save code analysis rules");
     public static rulesSaved = l10n.t("Code analysis rules saved successfully");
+    public static packagesOutOfSync = l10n.t(
+        "This project's NuGet packages are not restored or are out of date with the project file, so custom code analysis rules may be missing or stale. Restore the packages to update the rules.",
+    );
+    public static restorePackages = l10n.t("Restore packages");
+    public static restoringPackages = l10n.t("Restoring NuGet packages...");
 }
 
 export class SchemaCompare {

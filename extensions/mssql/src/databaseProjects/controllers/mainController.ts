@@ -103,8 +103,11 @@ export default class MainController implements vscode.Disposable {
         this.context.subscriptions.push(
             vscode.commands.registerCommand(
                 "sqlDatabaseProjects.restorePackages",
-                async (node: WorkspaceTreeItem) => {
-                    return this.projectsController.restoreProject(node);
+                async (context: WorkspaceTreeItem | string) => {
+                    // Typed overloads don't accept the union, so dispatch on the context kind.
+                    return typeof context === "string"
+                        ? this.projectsController.restoreProject(context)
+                        : this.projectsController.restoreProject(context);
                 },
             ),
         );

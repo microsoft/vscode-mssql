@@ -12,9 +12,10 @@ import {
     SqlCodeAnalysisRule,
     CodeAnalysisRuleSeverity,
     customRulesCategory,
+    restorePackagesButtonId,
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
-import { CodeAnalysis as Loc } from "../constants/locConstants";
+import { CodeAnalysis as Loc, SqlProjects as SqlProjectsLoc } from "../constants/locConstants";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
@@ -22,6 +23,7 @@ import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
 import { parseSqlprojRuleOverrides } from "../publishProject/projectUtils";
+import { isPackageRestoreOutOfSync, readProjectAssetsFile } from "./packageRestoreStatus";
 
 /**
  * Controller for the Code Analysis dialog webview
@@ -195,6 +197,89 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
                 return state;
             }
         });
+        // Restore the project's NuGet packages, then reload so custom rules reflect the restore
+        this.registerReducer("restorePackages", async (state) => {
+            state.isLoading = true;
+            state.message = { message: Loc.restoringPackages, intent: "info" };
+            this.updateState(state);
+
+            let restoreError: string | undefined;
+            let restored = false;
+            try {
+                restored =
+                    (await vscode.commands.executeCommand<boolean>(
+                        constants.cmdRestoreDatabaseProjectPackages,
+                        state.projectFilePath,
+                    )) === true;
+            } catch (error) {
+                restoreError = getErrorMessage(error);
+            }
+
+            if (!restored) {
+                this.logger.error(
+                    `Failed to restore NuGet packages for code analysis: ${restoreError ?? "restore task failed"}`,
+                );
+                this.sendError(
+                    TelemetryActions.CodeAnalysisPackagesRestoreError,
+                    new Error(restoreError ?? "Restore task failed"),
+                );
+                state.isLoading = false;
+                state.message = {
+                    message: SqlProjectsLoc.projRestoreFailed(restoreError),
+                    intent: "error",
+                    buttons: [{ id: restorePackagesButtonId, label: Loc.restorePackages }],
+                };
+                return state;
+            }
+
+            sendActionEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.CodeAnalysisPackagesRestored,
+                { additionalProps: { operationId: this._operationId } },
+            );
+            await this.loadRules();
+            return this.state;
+        });
+    }
+
+    /**
+     * Checks whether the project's NuGet packages need restoring for custom code analysis rules
+     * to match the .sqlproj, and if so returns a warning with a button that runs the restore.
+     * Never throws — if the status can't be determined, no warning is shown.
+     */
+    private async getPackageRestoreWarning(): Promise<DialogMessageSpec | undefined> {
+        try {
+            const references = await this.sqlProjectsService.getDatabaseReferences(
+                this.state.projectFilePath,
+            );
+            if (!references?.success) {
+                return undefined;
+            }
+            const packageReferences = (references.nugetPackageReferences ?? []).map(
+                (reference) => ({
+                    name: reference.packageName,
+                    version: reference.packageVersion,
+                }),
+            );
+            if (packageReferences.length === 0) {
+                return undefined;
+            }
+
+            const assetsFileContents = await readProjectAssetsFile(this.state.projectFilePath);
+            if (!isPackageRestoreOutOfSync(packageReferences, assetsFileContents)) {
+                return undefined;
+            }
+            return {
+                message: Loc.packagesOutOfSync,
+                intent: "warning",
+                buttons: [{ id: restorePackagesButtonId, label: Loc.restorePackages }],
+            };
+        } catch (error) {
+            this.logger.warn(
+                `Failed to check NuGet package restore status: ${getErrorMessage(error)}`,
+            );
+            return undefined;
+        }
     }
 
     /**
@@ -320,8 +405,11 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
             this.state.message = undefined;
             this.updateState();
 
-            // Get the static code analysis rules from dacfx
-            const { rules: dacfxStaticRules, warning } = await this.fetchRulesFromDacFx();
+            // Get the static code analysis rules from dacfx, and check in parallel whether the
+            // packages that supply custom rules are in sync with the .sqlproj
+            const [{ rules: dacfxStaticRules, warning }, packageRestoreWarning] = await Promise.all(
+                [this.fetchRulesFromDacFx(), this.getPackageRestoreWarning()],
+            );
 
             // Load saved overrides from the .sqlproj and apply them.
             // Isolated in its own method so a failure here doesn't discard the DacFx rules.
@@ -329,8 +417,9 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
             this.state.rules = overrideResult.rules;
             this.state.dacfxStaticRules = dacfxStaticRules;
             this.state.enableCodeAnalysisOnBuild = overrideResult.enableCodeAnalysisOnBuild;
-            // An override-load failure is the more actionable of the two, so it wins the banner.
-            this.state.message = overrideResult.message ?? warning;
+            // An override-load failure is the most actionable, then the restore prompt (which can
+            // also explain an STS warning about missing analyzer packages).
+            this.state.message = overrideResult.message ?? packageRestoreWarning ?? warning;
             this.state.isLoading = false;
             this.updateState();
 
@@ -343,6 +432,7 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
                             .filter((rule) => rule.category)
                             .map((rule) => rule.category),
                     ).size.toString(),
+                    packagesOutOfSync: (packageRestoreWarning !== undefined).toString(),
                 },
             });
         } catch (error) {

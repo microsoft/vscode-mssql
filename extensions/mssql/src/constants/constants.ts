@@ -90,6 +90,8 @@ export const cmdImportBacpac = "mssql.dacpacDialog.import";
 export const cmdExportBacpac = "mssql.dacpacDialog.export";
 export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
 export const cmdConfigureCodeAnalysisSettings = "mssql.configureCodeAnalysisSettings";
+/** Restores a SQL project's NuGet packages; returns true on success. */
+export const cmdRestoreDatabaseProjectPackages = "sqlDatabaseProjects.restorePackages";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
