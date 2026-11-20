@@ -14,7 +14,6 @@ import {
     IExtensionContextService,
     initializeExtensionToolkit,
     initializeTelemetryReporter,
-    sendActionEvent,
     telemetryReporter,
 } from "extension-toolkit/vscode";
 import MainController from "./controllers/mainController";
@@ -25,13 +24,6 @@ import { registerDataWorkspace } from "./dataWorkspace/dataWorkspaceRegistration
 import { ProjectProviderRegistry } from "./dataWorkspace/common/projectProviderRegistry";
 import { registerDatabaseProjects } from "./databaseProjects/extension";
 import { initializeDatabaseProjectsServices } from "./databaseProjects/serviceLocator";
-import {
-    createSqlAgentRequestHandler,
-    ISqlChatResult,
-    provideFollowups,
-} from "./copilot/chatAgentRequestHandler";
-import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
-import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { OverviewWebviewController } from "./controllers/overviewWebviewController";
 import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
@@ -253,39 +245,6 @@ class MssqlActivation {
             controller.connectionManager,
             SqlToolsServerClient.instance,
         );
-
-        const participant = vscode.chat.createChatParticipant(
-            "mssql.agent",
-            createSqlAgentRequestHandler(controller.copilotService, context, controller),
-        );
-        participant.iconPath = vscode.Uri.joinPath(
-            context.extensionUri,
-            "images",
-            "mssql-chat-avatar.jpg",
-        );
-        participant.followupProvider = {
-            provideFollowups: (
-                result: vscode.ChatResult,
-                context: vscode.ChatContext,
-                token: vscode.CancellationToken,
-            ) => provideFollowups(result, context, token, controller),
-        };
-
-        const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
-            (feedback: vscode.ChatResultFeedback) => {
-                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Feedback, {
-                    additionalProps: {
-                        kind:
-                            feedback.kind === ChatResultFeedbackKind.Helpful
-                                ? "Helpful"
-                                : "Unhelpful",
-                        correlationId: (feedback.result as ISqlChatResult).metadata.correlationId,
-                    },
-                });
-            },
-        );
-
-        context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
         await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
 

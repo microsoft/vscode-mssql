@@ -136,19 +136,6 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
         nodeKinds: ["connectedServer", "disconnectedConnection", "lostConnection"],
     },
     {
-        feature: "chatWithDatabase",
-        classicCommand: "mssql.objectExplorerChatWithDatabase",
-        level: "h0",
-        nodeKinds: [
-            "connectedServer",
-            "disconnectedConnection",
-            "lostConnection",
-            "database",
-            "object",
-        ],
-        objectKinds: ["table"],
-    },
-    {
         feature: "chatWithDatabaseAgent",
         classicCommand: "mssql.objectExplorerChatWithDatabaseInAgentMode",
         level: "h0",

@@ -246,20 +246,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     // ------------------------------------------------------------ 6_copilot
     {
-        id: "mssql.objectExplorerV2.chatWithDatabase",
-        feature: "chatWithDatabase",
-        route: "legacyRedirect",
-        placements: [
-            {
-                flag: "copilotChat",
-                menuGroup: "6_MSSQL_copilot@1",
-                appliesTo: (facts) =>
-                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
-                extraWhen: COPILOT_INSTALLED,
-            },
-        ],
-    },
-    {
         id: "mssql.objectExplorerV2.chatWithDatabaseAgent",
         feature: "chatWithDatabaseAgent",
         route: "legacyRedirect",

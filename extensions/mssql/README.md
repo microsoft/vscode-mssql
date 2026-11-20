@@ -135,12 +135,6 @@ Press `F1` and type `MS SQL` to see all available commands. Here are the most co
 - **MS SQL: Select Top 1000** — quick-select rows from a table
 - **MS SQL: DACPAC/BACPAC Operations** — deploy, extract, import, or export `.dacpac` and `.bacpac` files
 
-**Copilot**
-
-- **MS SQL: Explain Query** — get an AI explanation of the current query
-- **MS SQL: Analyze Query Performance** — AI-powered query performance analysis
-- **MS SQL: Rewrite Query** — let Copilot rewrite and optimize your query
-
 </details>
 
 ## Extension Settings
