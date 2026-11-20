@@ -10,6 +10,9 @@ on:
 jobs:
   publish-baseline:
     runs-on: ubuntu-latest
+    env:
+      # Valid channels: CHANNELS in extensions/mssql/scripts/build-channels.js.
+      MSSQL_BUILD_CHANNEL: development
     permissions:
       contents: read
 
