@@ -23,7 +23,24 @@ const MAXIMUM_PLAYBACK_MILLISECONDS = 5_000;
  * File size limit for custom audio files to avoid performance issues
  */
 const MAXIMUM_CUSTOM_COMPLETION_SOUND_FILESIZE_KB = 400;
-const DEFAULT_COMPLETION_SOUND_FILENAME = "query-complete.wav";
+
+/**
+ * Settings and bundled defaults for each kind of query completion sound
+ */
+const COMPLETION_SOUNDS = {
+    success: {
+        customFileSetting: Constants.configQueryCompletionSoundFile,
+        defaultFilename: "query-complete.wav",
+        logLabel: "query completion sound",
+    },
+    error: {
+        customFileSetting: Constants.configQueryErrorSoundFile,
+        defaultFilename: "query-error.wav",
+        logLabel: "query error sound",
+    },
+} as const;
+
+type CompletionSoundType = keyof typeof COMPLETION_SOUNDS;
 
 interface AudioCommand {
     command: string;
@@ -31,19 +48,19 @@ interface AudioCommand {
     options?: childProcess.SpawnOptions;
 }
 
+/**
+ * Plays a sound when a query finishes executing: an error sound if any batch failed, otherwise a completion sound.
+ */
 export class QueryCompletionSoundService {
     private readonly _logger = logger.withPrefix("QueryCompletionSoundService");
-    private readonly _defaultAudioPath: string;
 
-    constructor(_extensionPath: string) {
-        this._defaultAudioPath = path.join(
-            _extensionPath,
-            "media",
-            DEFAULT_COMPLETION_SOUND_FILENAME,
-        );
-    }
+    constructor(private readonly _extensionPath: string) {}
 
-    public async play(): Promise<void> {
+    /**
+     * Plays a single sound for a completed query, if enabled.
+     * @param hasError whether any batch in the query failed; the error sound takes priority over the completion sound.
+     */
+    public async play(hasError: boolean = false): Promise<void> {
         const configuration = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
         );
@@ -51,10 +68,15 @@ export class QueryCompletionSoundService {
             return;
         }
 
-        const configuredFile = configuration
-            .get<string>(Constants.configQueryCompletionSoundFile, "")
-            .trim();
-        const customCompletionSoundPath = await this.getCustomCompletionSoundPath(configuredFile);
+        const soundType: CompletionSoundType = hasError ? "error" : "success";
+        const sound = COMPLETION_SOUNDS[soundType];
+        const defaultAudioPath = path.join(this._extensionPath, "media", sound.defaultFilename);
+
+        const configuredFile = configuration.get<string>(sound.customFileSetting, "").trim();
+        const customCompletionSoundPath = await this.getCustomCompletionSoundPath(
+            configuredFile,
+            sound.logLabel,
+        );
 
         // 1. Attempt to play custom audio if configured and valid
         if (customCompletionSoundPath) {
@@ -62,14 +84,13 @@ export class QueryCompletionSoundService {
                 return;
             } else {
                 this._logger.warn(
-                    `Unable to play the custom query completion sound "${customCompletionSoundPath}". Using default sound instead.`,
+                    `Unable to play the custom ${sound.logLabel} "${customCompletionSoundPath}". Using default sound instead.`,
                 );
             }
         }
 
-        if (!(await this.tryPlayAudio(this._defaultAudioPath))) {
-            const message =
-                "Unable to play the bundled default query completion sound because no supported audio player could be used.";
+        if (!(await this.tryPlayAudio(defaultAudioPath))) {
+            const message = `Unable to play the bundled default ${sound.logLabel} because no supported audio player could be used.`;
             this._logger.warn(message);
 
             sendErrorEvent(
@@ -85,6 +106,7 @@ export class QueryCompletionSoundService {
                         osType: os.type(),
                         osRelease: os.release(),
                         osVersion: os.version(),
+                        soundType,
                     },
                 },
             );
@@ -93,6 +115,7 @@ export class QueryCompletionSoundService {
 
     private async getCustomCompletionSoundPath(
         configuredFile: string,
+        logLabel: string,
     ): Promise<string | undefined> {
         if (!configuredFile) {
             return undefined;
@@ -103,7 +126,7 @@ export class QueryCompletionSoundService {
         // only .wav files are supported due to cross-platform compatibility for playing encoded audio
         if (path.extname(audioFile).toLowerCase() !== ".wav") {
             this._logger.warn(
-                `The configured query completion sound "${audioFile}" is not a WAV file. Using default sound.`,
+                `The configured ${logLabel} "${audioFile}" is not a WAV file. Using default sound.`,
             );
 
             return undefined;
@@ -114,7 +137,7 @@ export class QueryCompletionSoundService {
 
             if (!fileStats.isFile()) {
                 this._logger.warn(
-                    `The configured query completion sound "${audioFile}" is not a file. Using default sound instead.`,
+                    `The configured ${logLabel} "${audioFile}" is not a file. Using default sound instead.`,
                 );
                 return undefined;
             }
@@ -124,7 +147,7 @@ export class QueryCompletionSoundService {
                 MAXIMUM_CUSTOM_COMPLETION_SOUND_FILESIZE_KB * 1024 /* convert to bytes */
             ) {
                 this._logger.error(
-                    `The configured query completion sound "${audioFile}" is larger than ${MAXIMUM_CUSTOM_COMPLETION_SOUND_FILESIZE_KB} KB and will not be played. Using default sound instead.`,
+                    `The configured ${logLabel} "${audioFile}" is larger than ${MAXIMUM_CUSTOM_COMPLETION_SOUND_FILESIZE_KB} KB and will not be played. Using default sound instead.`,
                 );
                 return undefined;
             }
@@ -132,7 +155,7 @@ export class QueryCompletionSoundService {
             return audioFile;
         } catch (error) {
             this._logger.warn(
-                `The configured query completion sound "${audioFile}" could not be accessed. Using default sound instead.`,
+                `The configured ${logLabel} "${audioFile}" could not be accessed. Using default sound instead.`,
                 getErrorMessage(error),
             );
         }

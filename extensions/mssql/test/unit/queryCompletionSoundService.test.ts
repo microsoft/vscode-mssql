@@ -24,6 +24,7 @@ chai.use(sinonChai);
 
 suite("QueryCompletionSoundService", () => {
     const defaultAudioPath = path.join("/extension", "media", "query-complete.wav");
+    const defaultErrorAudioPath = path.join("/extension", "media", "query-error.wav");
     let sandbox: sinon.SinonSandbox;
     let getConfigurationStub: sinon.SinonStub;
     let spawnProcessStub: sinon.SinonStub;
@@ -57,11 +58,12 @@ suite("QueryCompletionSoundService", () => {
         sandbox.restore();
     });
 
-    function setConfiguration(enabled: boolean, audioFile = ""): void {
+    function setConfiguration(enabled: boolean, audioFile = "", errorAudioFile = ""): void {
         getConfigurationStub.returns(
             stubs.createWorkspaceConfiguration({
                 [Constants.configQueryCompletionSoundEnabled]: enabled,
                 [Constants.configQueryCompletionSoundFile]: audioFile,
+                [Constants.configQueryErrorSoundFile]: errorAudioFile,
             }),
         );
     }
@@ -256,6 +258,7 @@ suite("QueryCompletionSoundService", () => {
                     osType: "test-os",
                     osRelease: "test-release",
                     osVersion: "test-version",
+                    soundType: "success",
                 },
             },
         );
@@ -280,5 +283,64 @@ suite("QueryCompletionSoundService", () => {
         expect(loggerWarnStub).to.have.been.calledWith(
             'Unable to play the custom query completion sound "/sounds/complete.wav". Using default sound instead.',
         );
+    });
+
+    suite("error sound", () => {
+        test("does not start a player when the setting is disabled", async () => {
+            setConfiguration(false, "/sounds/complete.wav", "/sounds/error.wav");
+
+            await createService().play(true);
+
+            expect(spawnProcessStub).not.to.have.been.called;
+        });
+
+        test("plays only the bundled error sound when the query has errors", async () => {
+            setConfiguration(true);
+            returnSuccessfulProcess();
+
+            await createService().play(true);
+
+            expect(spawnProcessStub).to.have.been.calledOnceWith("/usr/bin/afplay", [
+                defaultErrorAudioPath,
+            ]);
+        });
+
+        test("plays the configured error WAV file instead of the completion file", async () => {
+            setConfiguration(true, "/sounds/complete.wav", "/sounds/error.wav");
+            returnSuccessfulProcess();
+
+            await createService().play(true);
+
+            expect(spawnProcessStub).to.have.been.calledOnceWith("/usr/bin/afplay", [
+                "/sounds/error.wav",
+            ]);
+        });
+
+        test("ignores the configured error file when the query succeeds", async () => {
+            setConfiguration(true, "", "/sounds/error.wav");
+            returnSuccessfulProcess();
+
+            await createService().play(false);
+
+            expect(spawnProcessStub).to.have.been.calledOnceWith("/usr/bin/afplay", [
+                defaultAudioPath,
+            ]);
+        });
+
+        test("falls back to the bundled error sound after a custom error sound fails", async () => {
+            setConfiguration(true, "", "/sounds/error.wav");
+            spawnProcessStub.callsFake((_command, args) =>
+                createProcessThatClosesWith(args.includes("/sounds/error.wav") ? 1 : 0),
+            );
+
+            await createService().play(true);
+
+            expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+                defaultErrorAudioPath,
+            ]);
+            expect(loggerWarnStub).to.have.been.calledWith(
+                'Unable to play the custom query error sound "/sounds/error.wav". Using default sound instead.',
+            );
+        });
     });
 });

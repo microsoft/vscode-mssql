@@ -19,12 +19,14 @@ import { IDbColumn, ISelectionData } from "../../src/models/interfaces";
 import {
     BatchSummary,
     ExecutionPlanOptions,
+    QueryExecuteCompleteNotificationResult,
     QueryExecuteSubsetResult,
 } from "../../src/models/contracts/queryExecute";
 import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
 import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
+import { QueryCompletionSoundService } from "../../src/services/queryCompletionSoundService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import QueryRunner, { QueryExecutionCompleteEvent } from "../../src/controllers/queryRunner";
 import ResultsSerializer from "../../src/models/resultsSerializer";
@@ -342,6 +344,48 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         expect(listedRunner.dispose).to.not.have.been.called;
         expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(listedRunner);
+    });
+
+    suite("query completion sound", () => {
+        let playStub: sinon.SinonStub;
+        let queryRunner: QueryRunner;
+
+        setup(async () => {
+            const soundService = sandbox.createStubInstance(QueryCompletionSoundService);
+            playStub = soundService.play.resolves();
+            contentProvider = new SqlOutputContentProvider(
+                context,
+                statusViewInstance,
+                executionPlanService as unknown as ExecutionPlanService,
+                soundService as unknown as QueryCompletionSoundService,
+            );
+            queryRunner = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                testUri,
+                "title",
+            );
+        });
+
+        function completeQuery(batchErrors: boolean[]): void {
+            queryRunner.handleQueryComplete({
+                ownerUri: testUri,
+                batchSummaries: batchErrors.map(
+                    (hasError, id) => ({ id, hasError }) as unknown as BatchSummary,
+                ),
+            } as QueryExecuteCompleteNotificationResult);
+        }
+
+        test("plays the error sound once when any batch has an error", () => {
+            completeQuery([false, true, false]);
+
+            expect(playStub).to.have.been.calledOnceWithExactly(true);
+        });
+
+        test("plays the completion sound once when all batches succeed", () => {
+            completeQuery([false, false, false]);
+
+            expect(playStub).to.have.been.calledOnceWithExactly(false);
+        });
     });
 
     suite("cleanupRunner for a running query", () => {
