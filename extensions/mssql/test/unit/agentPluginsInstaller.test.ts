@@ -26,6 +26,7 @@ chai.use(sinonChai);
 
 const PLUGIN_LOCATIONS = "chat.pluginLocations";
 const LAST_CHECK_KEY = `overview/agentSkills.lastCheckMs/${AGENT_SKILL_PLUGINS[0]}`;
+const SKILLS_BRANCH_SETTING = "mssql.agentSkills.branch";
 
 suite("Agent Plugins Installer", () => {
     let sandbox: sinon.SinonSandbox;
@@ -34,6 +35,7 @@ suite("Agent Plugins Installer", () => {
     let context: vscode.ExtensionContext;
     let globalStateValues: Record<string, unknown>;
     let userLocations: Record<string, boolean> | undefined;
+    let skillsBranch: unknown;
     let updateStub: sinon.SinonStub;
 
     async function createPluginOnDisk(): Promise<void> {
@@ -46,6 +48,7 @@ suite("Agent Plugins Installer", () => {
         sandbox = sinon.createSandbox();
         globalStateValues = {};
         userLocations = undefined;
+        skillsBranch = undefined;
         storageDir = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-agent-plugins-"));
 
         updateStub = sinon.stub().callsFake((_section: string, value: unknown) => {
@@ -54,6 +57,8 @@ suite("Agent Plugins Installer", () => {
         });
 
         sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: (section: string) =>
+                section === SKILLS_BRANCH_SETTING ? skillsBranch : undefined,
             inspect: (section: string) =>
                 section === PLUGIN_LOCATIONS ? { globalValue: userLocations } : undefined,
             update: updateStub,
@@ -665,6 +670,122 @@ suite("Agent Plugins Installer", () => {
         expect(await installed).to.equal(true);
         expect(updateStub).to.not.have.been.called;
         expect(userLocations).to.deep.equal({ [installer.pluginRoot.fsPath]: true });
+    });
+
+    suite("branch override", () => {
+        const sha = "c".repeat(40);
+        let archiveSource: string;
+        let archivePath: string;
+        let getStub: sinon.SinonStub;
+        let downloadStub: sinon.SinonStub;
+
+        setup(async () => {
+            archiveSource = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-skills-branch-"));
+            const root = path.join(archiveSource, "sql-skills-branch");
+            for (const name of AGENT_SKILL_PLUGINS) {
+                const pluginDir = path.join(root, "plugins", name);
+                await fs.mkdir(path.join(pluginDir, ".claude-plugin"), { recursive: true });
+                await fs.writeFile(
+                    path.join(pluginDir, ".claude-plugin", "plugin.json"),
+                    JSON.stringify({ name }),
+                );
+                await fs.mkdir(path.join(pluginDir, "skills", "sample"), { recursive: true });
+                await fs.writeFile(
+                    path.join(pluginDir, "skills", "sample", "SKILL.md"),
+                    ["---", "description: A sample skill.", "---"].join("\n"),
+                );
+            }
+            archivePath = path.join(archiveSource, "skills.tar.gz");
+            await tar.c({ gzip: true, file: archivePath, cwd: archiveSource }, [
+                "sql-skills-branch",
+            ]);
+
+            getStub = sandbox
+                .stub(VscodeHttpClient.prototype, "get")
+                .callsFake(async (url: string) => ({
+                    ok: !url.startsWith("https://aka.ms/"),
+                    status: url.startsWith("https://aka.ms/") ? 301 : 200,
+                    statusText: "",
+                    headers: createHttpHeaders(
+                        url.startsWith("https://aka.ms/")
+                            ? { location: "https://github.com/contoso/sql-skills" }
+                            : {},
+                    ),
+                    data: url.startsWith("https://api.github.com/") ? sha : "",
+                }));
+            downloadStub = sandbox
+                .stub(VscodeHttpClient.prototype, "downloadToPath")
+                .callsFake(async (_url, target) => {
+                    await fs.copyFile(archivePath, target);
+                    return { status: 200 } as Awaited<
+                        ReturnType<VscodeHttpClient["downloadToPath"]>
+                    >;
+                });
+        });
+
+        teardown(async () => {
+            await fs.rm(archiveSource, { recursive: true, force: true });
+        });
+
+        test("reads the revision and links the catalog to the configured branch", async () => {
+            skillsBranch = "feature/nov-refresh";
+
+            const catalog = await new AgentPluginsInstaller(context).getSkillsCatalog();
+
+            const revisionUrls = getStub
+                .getCalls()
+                .map((call) => String(call.args[0]))
+                .filter((url) => url.startsWith("https://api.github.com/"));
+            expect(revisionUrls).to.deep.equal([
+                "https://api.github.com/repos/contoso/sql-skills/commits/feature/nov-refresh",
+            ]);
+            expect(catalog[0].repositoryUrl).to.equal(
+                `https://github.com/contoso/sql-skills/tree/feature/nov-refresh/plugins/${AGENT_SKILL_PLUGINS[0]}`,
+            );
+            expect(catalog[0].skills[0].repositoryUrl).to.equal(
+                `https://github.com/contoso/sql-skills/blob/feature/nov-refresh/plugins/${AGENT_SKILL_PLUGINS[0]}/skills/sample/SKILL.md`,
+            );
+        });
+
+        test("downloads the branch head when its revision cannot be read", async () => {
+            skillsBranch = "feature/nov-refresh";
+            sandbox.stub(AgentSkillsDownloads.prototype, "fetchLatestSha").resolves(undefined);
+
+            await new AgentPluginsInstaller(context).install();
+
+            expect(String(downloadStub.firstCall.args[0])).to.equal(
+                "https://codeload.github.com/contoso/sql-skills/tar.gz/refs/heads/feature/nov-refresh",
+            );
+            expect(
+                globalStateValues[`overview/agentSkills.ref/${AGENT_SKILL_PLUGINS[0]}`],
+            ).to.equal("feature/nov-refresh");
+        });
+
+        test("falls back to main for a value that is not a branch name", () => {
+            for (const value of ["../../evil", "a?b", "/leading", "trailing/", "a//b", "  ", 42]) {
+                skillsBranch = value;
+                expect(new AgentSkillsDownloads(context).ref, String(value)).to.equal("main");
+            }
+        });
+
+        test("replaces a copy from another branch without waiting a day", async () => {
+            await createPluginOnDisk();
+            userLocations = { [installer.pluginRoot.fsPath]: true };
+            // Installed from main an hour ago, at the same revision the branch now reports.
+            globalStateValues[LAST_CHECK_KEY] = Date.now() - 60 * 60 * 1000;
+            globalStateValues[`overview/agentSkills.sha/${AGENT_SKILL_PLUGINS[0]}`] = sha;
+            skillsBranch = "feature/nov-refresh";
+
+            const current = new AgentPluginsInstaller(context);
+            expect(await current.checkForUpdates()).to.equal(true);
+            expect(downloadStub).to.have.been.calledOnce;
+            expect(
+                globalStateValues[`overview/agentSkills.ref/${AGENT_SKILL_PLUGINS[0]}`],
+            ).to.equal("feature/nov-refresh");
+
+            // Now on the configured branch, so the daily interval applies again.
+            expect(await current.checkForUpdates()).to.equal(false);
+        });
     });
 
     test("shares one revision check and one archive across plugins updating together", async () => {
